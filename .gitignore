@@ -5,3 +5,7 @@
 # Mac files #
 #############
 .DS_Store
+
+# vi files #
+############
+.*.swp
