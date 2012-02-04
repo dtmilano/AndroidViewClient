@@ -26,10 +26,12 @@ package='com.android.settings'
 activity='.Settings'                           
 component_name=package + "/" + activity                        
 device = MonkeyRunner.waitForConnection(60)
+if not device:
+	raise Exception('Cannot connect to device')
 if True:
     device.startActivity(component=component_name)
     MonkeyRunner.sleep(3)
-    device.press('KEYCODE_DPAD_DOWN') # extra Visual Multi-tasking setting WARNING!
+    device.press('KEYCODE_DPAD_DOWN') # extra VMT setting WARNING!
     MonkeyRunner.sleep(1)
     device.press('KEYCODE_DPAD_CENTER', "DOWN_AND_UP")
     device.press('KEYCODE_DPAD_DOWN', MonkeyDevice.DOWN_AND_UP)
