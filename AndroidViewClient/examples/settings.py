@@ -8,10 +8,16 @@ Created on Feb 1, 2012
 
 import re
 import sys
+import os
 
 # this must be imported before MonkeyRunner and MonkeyDevice,
 # otherwise the import fails
-sys.path.append('/Users/diego/Work/workspace/AndroidViewClient/src')
+try:
+    ANDROID_VIEW_CLIENT_HOME = os.environ['ANDROID_VIEW_CLIENT_HOME']
+except KeyError:
+    print >>sys.stderr, "%s: ERROR: ANDROID_VIEW_CLIENT_HOME not set in environment" % __file__
+    sys.exit(1)
+sys.path.append(ANDROID_VIEW_CLIENT_HOME + '/src')
 from com.dtmilano.android.viewclient import ViewClient
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
