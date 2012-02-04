@@ -4,6 +4,7 @@ Created on Feb 2, 2012
 @author: diego
 '''
 
+import unittest
 import subprocess
 import re
 import socket
@@ -11,7 +12,7 @@ import os
 
 DEBUG = False
 
-ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
+ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/Users/diego/opt/android-sdk'
 VIEW_SERVER_HOST = 'localhost'
 VIEW_SERVER_PORT = 4939
 
@@ -24,8 +25,6 @@ class ViewClient:
     '''
 
     def __init__(self, device):
-        if not device:
-            raise Exception('Device is not connected')
         if not self.serviceResponse(device.shell('service call window 3')):
             self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
                 VIEW_SERVER_PORT))
@@ -36,8 +35,7 @@ class ViewClient:
         self.viewsById = {}
     
     def assertServiceResponse(self, response):
-        if not self.serviceResponse(response):
-            raise Exception('Invalid response received from service.')
+        unittest.assertTrue(self.serviceResponse(response))
 
     def serviceResponse(self, response):
         return response == "Result: Parcel(00000000 00000001   '........')\r\n"

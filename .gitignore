@@ -1,2 +1,7 @@
+# Compiled classes #
+####################
+*$py.class
 
+# Mac files #
+#############
 .DS_Store
