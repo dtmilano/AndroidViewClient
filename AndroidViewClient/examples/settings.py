@@ -1,5 +1,6 @@
 #! /usr/bin/env monkeyrunner
 '''
+Copyright (C) 2012  Diego Torres Milano
 Created on Feb 1, 2012
 
 @author: diego

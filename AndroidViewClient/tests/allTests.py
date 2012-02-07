@@ -1,4 +1,5 @@
 '''
+Copyright (C) 2012  Diego Torres Milano
 Created on Feb 5, 2012
 
 @author: diego
