@@ -4,17 +4,105 @@ Created on Feb 2, 2012
 @author: diego
 '''
 
+import sys
 import subprocess
 import re
 import socket
 import os
 
-DEBUG = False
+DEBUG = True
 
 ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
 VIEW_SERVER_HOST = 'localhost'
 VIEW_SERVER_PORT = 4939
 
+STATUS_BAR = 38
+TITLE = 40
+CHECK_BOX = 50 # FIXME: this is not just for CheckBox
+
+class View:
+    '''
+    View class
+    '''
+    
+    def __init__(self, map, device):
+        self.map = map
+        self.device = device
+        
+    def __getitem__(self, key):
+        return self.map[key]
+        
+    def __getattr__(self, name):
+        if DEBUG:
+            print "__getattr__(%s)" % (name)
+        
+        # I should try to see if 'name' is a defined method
+        # but it seems that if I call locals() here an infinite loop is entered
+        
+        if self.map.has_key(name):
+            r = self.map[name]
+        elif self.map.has_key(name + '()'):
+            # the method names are stored in the map with their trailing '()'
+            r = self.map[name + '()']
+        elif name.count("_") > 0:
+            mangledList = self.allPossibleNamesWithColon(name)
+            mangledName = self.intersection(mangledList, self.map.keys())
+            if len(mangledName) > 0:
+                r = self.map[mangledName[0]]
+            else:
+                # Default behavior
+                raise AttributeError, name
+        else:
+            # Default behavior
+            raise AttributeError, name
+        
+        # if the method name starts with 'is' let's assume its return value is boolean
+        if name[:2] == 'is':
+            r = True if r == 'true' else False
+        
+        # this should not cached in some way
+        def innerMethod():
+            if DEBUG:
+                print >>sys.stderr, "innerMethod: %s returning %s" % (innerMethod.__name__, r)
+            return r
+        
+        innerMethod.__name__ = name
+        
+        # this should work, but then there's problems with the arguments of innerMethod 
+        # even if innerMethod(self) is added
+        #setattr(View, innerMethod.__name__, innerMethod)
+        #setattr(self, innerMethod.__name__, innerMethod)
+        
+        return innerMethod
+    
+    def __call__(self, *args, **kwargs):
+        if DEBUG:
+            print "__call__(%s)" % (args if args else None)
+            
+    def getXY(self):
+        # FIXME: it's not always a CheckBox
+        x = int(map['layout:mLeft']) + int(map['layout:layout_leftMargin']) + CHECK_BOX/2
+        y = int(map['layout:mTop']) + int(map['layout:layout_topMargin']) + STATUS_BAR + TITLE + CHECK_BOX/2
+        return (x, y)
+
+    # FIXME: should be MonkeyDevice.DOWN_AND_UP
+    def touch(self, type="DOWN_AND_UP"): 
+        (x, y) = self.getXY()
+        if DEBUG:
+            print "should click @ (%d, %d)" % (x, y)
+        self.device.touch(x, y, type)
+        
+    def allPossibleNamesWithColon(self, name):
+        l = []
+        for i in range(name.count("_")):
+            name = name.replace("_", ":", 1)
+            l.append(name)
+        return l
+
+    def intersection(self, l1, l2):
+        return list(set(l1) & set(l2))
+
+ 
 class ViewClient:
     '''
     ViewClient is a ViewServer client.
@@ -23,16 +111,21 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device):
+    def __init__(self, device, adb=ANDROID_HOME+'/platform-tools/adb'):
+        '''
+        Constructor
+        '''
+        
         if not device:
             raise Exception('Device is not connected')
         if not self.serviceResponse(device.shell('service call window 3')):
             self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
                 VIEW_SERVER_PORT))
 
-        subprocess.check_call([ANDROID_HOME + '/platform-tools/adb',
-            'forward', 'tcp:%d' % VIEW_SERVER_PORT, 'tcp:%d' % VIEW_SERVER_PORT])
+        subprocess.check_call([adb, 'forward', 'tcp:%d' % VIEW_SERVER_PORT,
+                               'tcp:%d' % VIEW_SERVER_PORT])
 
+        self.device = device
         self.viewsById = {}
     
     def assertServiceResponse(self, response):
@@ -42,10 +135,14 @@ class ViewClient:
     def serviceResponse(self, response):
         return response == "Result: Parcel(00000000 00000001   '........')\r\n"
 
-    def dump(self):
+    def dump(self, windowId=-1):
+        '''
+        Dumps the window content
+        '''
+        
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((VIEW_SERVER_HOST, VIEW_SERVER_PORT))
-        s.send('dump -1\r\n')
+        s.send('dump %d\r\n' % windowId)
         received = ""
         doneRE = re.compile("DONE")
         while True:
@@ -84,6 +181,7 @@ class ViewClient:
 
                     
                 if viewId in self.viewsById:
+                    # sometimes the view ids are not unique, so let's generate a unique id here
                     i = 1
                     while True:
                         newId = viewId + '/%d' % i
@@ -101,7 +199,7 @@ class ViewClient:
         '''
         Finds the View with the specified viewId.
         '''
-        return self.viewsById[viewId]
+        return View(self.viewsById[viewId], self.device)
 
     def getViewIds(self):
         '''
@@ -110,6 +208,10 @@ class ViewClient:
         return self.viewsById
 
 
-
 if __name__ == "__main__":
-    ViewClient(None)
+    try:
+        vc = ViewClient(None)
+    except:
+        print "Don't expect this to do anything"
+
+        
