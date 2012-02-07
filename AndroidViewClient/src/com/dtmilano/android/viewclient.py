@@ -10,7 +10,7 @@ import re
 import socket
 import os
 
-DEBUG = True
+DEBUG = False
 
 ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
 VIEW_SERVER_HOST = 'localhost'
@@ -26,6 +26,10 @@ class View:
     '''
     
     def __init__(self, map, device):
+        '''
+        Constructor
+        '''
+        
         self.map = map
         self.device = device
         
@@ -34,7 +38,7 @@ class View:
         
     def __getattr__(self, name):
         if DEBUG:
-            print "__getattr__(%s)" % (name)
+            print >>sys.stderr, "__getattr__(%s)" % (name)
         
         # I should try to see if 'name' is a defined method
         # but it seems that if I call locals() here an infinite loop is entered
@@ -80,16 +84,24 @@ class View:
             print "__call__(%s)" % (args if args else None)
             
     def getXY(self):
+        '''
+        Returns the coordinates of this View
+        '''
+        
         # FIXME: it's not always a CheckBox
-        x = int(map['layout:mLeft']) + int(map['layout:layout_leftMargin']) + CHECK_BOX/2
-        y = int(map['layout:mTop']) + int(map['layout:layout_topMargin']) + STATUS_BAR + TITLE + CHECK_BOX/2
+        x = int(self.map['layout:mLeft']) + int(self.map['layout:layout_leftMargin']) + CHECK_BOX/2
+        y = int(self.map['layout:mTop']) + int(self.map['layout:layout_topMargin']) + STATUS_BAR + TITLE + CHECK_BOX/2
         return (x, y)
 
     # FIXME: should be MonkeyDevice.DOWN_AND_UP
-    def touch(self, type="DOWN_AND_UP"): 
+    def touch(self, type="DOWN_AND_UP"):
+        '''
+        Touches this View
+        '''
+        
         (x, y) = self.getXY()
         if DEBUG:
-            print "should click @ (%d, %d)" % (x, y)
+            print >>sys.stderr, "should click @ (%d, %d)" % (x, y)
         self.device.touch(x, y, type)
         
     def allPossibleNamesWithColon(self, name):

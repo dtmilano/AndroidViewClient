@@ -22,30 +22,32 @@ from com.dtmilano.android.viewclient import ViewClient
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
-STATUS_BAR = 38
-TITLE = 40
-CHECK_BOX = 50
 
 # 01-04 18:23:42.000: I/ActivityManager(4288): Displayed com.android.development/.DevelopmentSettings: +379ms
 package = 'com.android.development'                                          
-activity = '.DevelopmentSetting'                           
+activity = '.DevelopmentSettings'                           
 componentName = package + "/" + activity                        
-device = MonkeyRunner.waitForConnection(60)
+device = MonkeyRunner.waitForConnection(60, "emulator-5554")
 if not device:
 	raise Exception('Cannot connect to device')
 
 device.startActivity(component=componentName)
+MonkeyRunner.sleep(5)
+
 vc = ViewClient(device)
 vc.dump()
-print vc.getViewIds().keys()
 
 showCpu = vc.findViewById("id/show_cpu")
 showLoad = vc.findViewById("id/show_load")
 alwaysFinish = vc.findViewById("id/always_finish")
 
-if showLoad.isChecked() == 'false':
+if not showLoad.isChecked():
     showLoad.touch()
 
-if alwaysFinish['isChecked()'] == 'false':
+if not alwaysFinish.isChecked():
     alwaysFinish.touch()
 
+if not showCpu.isChecked():
+    # WARNING: Show CPU usage is de-activated as soon as it's activated, that's why it seems it
+    # is never set
+    showCpu.touch()
