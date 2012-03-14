@@ -146,7 +146,10 @@ class ViewClient:
             raise Exception('Invalid response received from service.')
 
     def serviceResponse(self, response):
-        return response == "Result: Parcel(00000000 00000001   '........')\r\n"
+        PARCEL_TRUE = "Result: Parcel(00000000 00000001   '........')\r\n"
+        if DEBUG:
+            print >>sys.stderr, "serviceResponse: comparing '%s' vs Parcel(%s)" % (response, PARCEL_TRUE)
+        return response == PARCEL_TRUE
 
     def dump(self, windowId=-1):
         '''
