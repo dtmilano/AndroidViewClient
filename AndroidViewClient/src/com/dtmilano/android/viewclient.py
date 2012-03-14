@@ -114,6 +114,13 @@ class View:
 
     def intersection(self, l1, l2):
         return list(set(l1) & set(l2))
+    
+    def __str__(self):
+        str = "View[ "
+        for a in self.map:
+            str += a + "=" + self.map[a] + " "
+        str += "]"
+        return str
 
  
 class ViewClient:
