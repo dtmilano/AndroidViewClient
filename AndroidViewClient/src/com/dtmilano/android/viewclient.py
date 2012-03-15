@@ -131,16 +131,23 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, adb=ANDROID_HOME+'/platform-tools/adb'):
+    def __init__(self, device, adb=os.path.join(ANDROID_HOME, 'platform-tools', 'adb')):
         '''
         Constructor
         '''
         
         if not device:
             raise Exception('Device is not connected')
+        if not os.access(adb, os.X_OK):
+            raise Exception('adb="%s" is not executable' % adb)
         if not self.serviceResponse(device.shell('service call window 3')):
-            self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
-                VIEW_SERVER_PORT))
+            try:
+                self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
+                                                        VIEW_SERVER_PORT))
+            except:
+                raise Exception('Cannot start View server.\n'
+                                'This only works on emulator and devices running developer versions.\n'
+                                'Does hierarchyviewer work on your device ?')
 
         subprocess.check_call([adb, 'forward', 'tcp:%d' % VIEW_SERVER_PORT,
                                'tcp:%d' % VIEW_SERVER_PORT])
