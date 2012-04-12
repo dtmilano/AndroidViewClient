@@ -7,5 +7,6 @@
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/AndroidViewClient/src</path>
 <path>/AndroidViewClient/examples</path>
+<path>/AndroidViewClient/tests</path>
 </pydev_pathproperty>
 </pydev_project>
