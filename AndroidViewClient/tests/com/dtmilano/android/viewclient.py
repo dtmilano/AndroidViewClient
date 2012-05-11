@@ -17,6 +17,7 @@ sys.path.append(ANDROID_VIEW_CLIENT_HOME + '/src')
 from com.dtmilano.android.viewclient import View
 from com.dtmilano.android.viewclient import ViewClient
 from mocks import MockDevice
+from mocks import DUMP
 
 
 class ViewTest(unittest.TestCase):
@@ -62,7 +63,27 @@ class ViewTest(unittest.TestCase):
             raise Exception("AttributeError not raised")
         except AttributeError:
             pass
+    
+    def testViewTreeRoot(self):
+        root = View({'root':1}, None)
+        self.assertTrue(root.parent == None)
+        
+    def testViewTree(self):
+        root = View({'root':1}, None)
+        children = ["A", "B", "C"]
+        for s in children:
+            root.add(View({s:1}, None))
+        
+        self.assertEquals(len(children), len(root.children)) 
 
+    def testViewTreeParent(self):
+        root = View({'root':1}, None)
+        children = ["A", "B", "C"]
+        for s in children:
+            root.add(View({s:1}, None))
+        
+        for ch in root.children:
+            self.assertTrue(ch.parent == root)
 
 class ViewClientTest(unittest.TestCase):
 
@@ -81,6 +102,27 @@ class ViewClientTest(unittest.TestCase):
     def testConstructor(self):
         vc = ViewClient(MockDevice(), adb='/usr/bin/true')
         self.assertNotEquals(None, vc)
+    
+    def __mockTree(self):
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true')
+        self.assertNotEquals(None, vc)
+        vc.setViews(DUMP)
+        vc.parseTree(vc.views)
+        return vc
+
+    def testRoot(self):
+        vc = self.__mockTree()
+        root = vc.root
+        self.assertTrue(root != None)
+        self.assertTrue(root.parent == None)
+        self.assertTrue(root.map['class'] == 'com.android.internal.policy.impl.PhoneWindow$DecorView')
+        
+    def testParseTree(self):
+        vc = self.__mockTree()
+        print
+        print "TRAVERSE:"
+        vc.traverse(vc.root)
+        print
 
          
 if __name__ == "__main__":
