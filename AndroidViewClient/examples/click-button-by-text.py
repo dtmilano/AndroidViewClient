@@ -21,22 +21,17 @@ sys.path.append(ANDROID_VIEW_CLIENT_HOME + '/src')
 from com.dtmilano.android.viewclient import ViewClient
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
-
-
-#package = 'com.example.i2at.tc'                                          
-#activity = '.TemperatureConverterActivity'                           
-#componentName = package + "/" + activity                        
+                     
 device = MonkeyRunner.waitForConnection(60, "emulator-5554")
 if not device:
 	raise Exception('Cannot connect to device')
 
-#device.startActivity(component=componentName)
 MonkeyRunner.sleep(5)
 
 vc = ViewClient(device)
 vc.dump()
 
-for bt in [ '1', '2', '3', '4', '5', '6' ]:
+for bt in [ 'One', 'Two', 'Three', 'Four', 'Five' ]:
     b = vc.findViewWithAttribute('text:mText', bt)
     if b:
         (x, y) = b.getXY()
