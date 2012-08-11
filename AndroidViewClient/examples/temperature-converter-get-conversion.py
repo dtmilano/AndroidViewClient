@@ -6,6 +6,7 @@ Created on Feb 3, 2012
 This example starts the TemperatureConverter activity then type '123' into the 'Celsius' field.
 Then a ViewClient is created to obtain the view dump and the current values of the views with
 id/celsius and id/fahrenheith are obtained and the conversion printed to stdout.
+Finally, the fields are obtained by using their tags and again, conversion printed to stdout.
   
 @author: diego
 '''
@@ -45,39 +46,36 @@ vc.dump()
 
 # obtain the views by id
 celsius = vc.findViewById("id/celsius")
+if not celsius:
+    raise "Couldn't find View with id/celsius"
 fahrenheit = vc.findViewById("id/fahrenheit")
+if not fahrenheit:
+    raise "Couldn't find View with id/fahrenheit"
     
 
 # in android-15 this is text:mText while in previous versions it was just mText
-try:
+version = int(device.getSystemProperty('ro.build.version.sdk'))
+
+if version >= 15:
     c = float(celsius.text_mText())
     f = float(fahrenheit.text_mText())
-
-    print "%.2f C => %.2f F" % (c, f)
-except:
-    try:
-        c = float(celsius.mText())
-        f = float(fahrenheit.mText())
-
-        print "%.2f C => %.2f F" % (c, f)
-    except:
-        print "Unexpected error:", sys.exc_info()[0]
+else:
+    c = float(celsius.mText())
+    f = float(fahrenheit.mText())
+print "by id: %.2f C => %.2f F" % (c, f)
 
 # obtain the views by tag
 celsius = vc.findViewByTag("celsius")
+if not celsius:
+    raise "Couldn't find View with tag celsius"
 fahrenheit = vc.findViewByTag("fahrenheit")
+if not fahrenheit:
+    raise "Couldn't find View with tag fahrenheit"
 
-# in android-15 this is text:mText while in previous versions it was just mText
-try:
+if version >= 15:
     c = float(celsius.text_mText())
     f = float(fahrenheit.text_mText())
-
-    print "%.2f C => %.2f F" % (c, f)
-except:
-    try:
-        c = float(celsius.mText())
-        f = float(fahrenheit.mText())
-
-        print "%.2f C => %.2f F" % (c, f)
-    except:
-        print "Unexpected error:", sys.exc_info()[0]
+else:
+    c = float(celsius.mText())
+    f = float(fahrenheit.mText())
+print "by tag: %.2f C => %.2f F" % (c, f)

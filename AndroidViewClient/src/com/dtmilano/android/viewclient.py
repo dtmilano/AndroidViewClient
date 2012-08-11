@@ -10,6 +10,7 @@ import subprocess
 import re
 import socket
 import os
+import java
 from com.android.monkeyrunner import MonkeyDevice
 
 DEBUG = False
@@ -21,13 +22,23 @@ ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') 
 VIEW_SERVER_HOST = 'localhost'
 VIEW_SERVER_PORT = 4939
 
+# this is probably the only reliable way of determining the OS in monkeyrunner
+os_name = java.lang.System.getProperty('os.name')
+if os_name.startswith('Windows'):
+    ADB = 'adb.exe'
+else:
+    ADB = 'adb'
+
 OFFSET = 50
 
 class View:
     '''
     View class
     '''
-    
+
+    GET_VISIBILITY_PROPERTY = 'getVisibility()'
+    LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
+
     def __init__(self, map, device):
         '''
         Constructor
@@ -86,19 +97,24 @@ class View:
     
     def __call__(self, *args, **kwargs):
         if DEBUG:
-            print "__call__(%s)" % (args if args else None)
+            print >>sys.stderr, "__call__(%s)" % (args if args else None)
             
     def getX(self):
         x = 0
-        if self.map['getVisibility()'] == 'VISIBLE':
+        if self.GET_VISIBILITY_PROPERTY in self.map and self.map[self.GET_VISIBILITY_PROPERTY] == 'VISIBLE':
             x += int(self.map['layout:mLeft'])
-        x += OFFSET/2
+        #x += OFFSET/2
         return x
     
     def getY(self):
         y = 0
-        if self.map['getVisibility()'] == 'VISIBLE':
+        if self.GET_VISIBILITY_PROPERTY in self.map and self.map[self.GET_VISIBILITY_PROPERTY] == 'VISIBLE':
             y += int(self.map['layout:mTop'])
+
+        #if self.LAYOUT_TOP_MARGIN_PROPERTY in self.map:
+        #    if DEBUG:
+        #        print >>sys.stderr, "   adding top margin=%d" % int(self.map[self.LAYOUT_TOP_MARGIN_PROPERTY])
+        #    y += int(self.map[self.LAYOUT_TOP_MARGIN_PROPERTY])
         return y
     
     def getXY(self):
@@ -106,7 +122,7 @@ class View:
         Returns the coordinates of this View
         '''
         
-        # FIXME: this usually don't return the real coordinates of the View but the coordinates
+        # FIXME: this usually doesn't return the real coordinates of the View but the coordinates
         #        relative to its parent, so to obtain the real coordinates the View root should
         #        have to be traversed to the root adding the coordinates for every child
         x = self.getX()
@@ -125,6 +141,15 @@ class View:
             parent = parent.parent
         return (x, y+hy)
 
+    def getCoords(self):
+        '''
+        Gets the coords of the View
+        '''
+        (x, y) = self.getXY();
+        w = int(self.map['layout:getWidth()'])
+        h = int(self.map['layout:getHeight()'])
+        return ((x, y), (x+w, y+h))
+
     def touch(self, type=MonkeyDevice.DOWN_AND_UP):
         '''
         Touches this View
@@ -132,8 +157,8 @@ class View:
         
         (x, y) = self.getXY()
         if DEBUG:
-            print >>sys.stderr, "should click @ (%d, %d)" % (x, y)
-        self.device.touch(x, y, type)
+            print >>sys.stderr, "should touch @ (%d, %d)" % (x+OFFSET/2, y+OFFSET/2)
+        self.device.touch(x+OFFSET/2, y+OFFSET/2, type)
         
     def allPossibleNamesWithColon(self, name):
         l = []
@@ -183,7 +208,7 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, adb=os.path.join(ANDROID_HOME, 'platform-tools', 'adb')):
+    def __init__(self, device, adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB)):
         '''
         Constructor
         '''
@@ -223,8 +248,8 @@ class ViewClient:
     def setViews(self, received):
         self.views = received.split("\n")
         if DEBUG:
-            print "there are %d views in this dump" % len(self.views)
-        
+            print >>sys.stderr, "there are %d views in this dump" % len(self.views)
+
     def __splitAttrs(self, str, addViewToViewsById=False):
         '''
         Splits the view attributes in str and optionally adds the view id to the viewsById list.
@@ -232,6 +257,10 @@ class ViewClient:
         '''
         
         idRE = re.compile("(?P<viewId>id/\S+)")
+        # FIXME: this split is incorrect if for example a text:mText contains spaces
+        # maybe something like this should be used and the count the chars specified
+        # and cut it
+        #textRE = re.compile("(?P<attr>\S+)(\(\))?=\d+,(?P<text>.+)")
         attrRE = re.compile("(?P<attr>\S+)(\(\))?=\d+,(?P<val>\S+)")
         hashRE = re.compile("(?P<class>\S+)@(?P<oid>[0-9a-f]+)")
         
@@ -241,8 +270,9 @@ class ViewClient:
         if m:
             viewId = m.group('viewId')
             if DEBUG:
-                print "found %s" % viewId
-        
+                print >>sys.stderr, "found %s" % viewId
+
+        # FIXME: this split is incorrect if for example a text:mText contains spaces
         for attr in str.split():
             m = attrRE.match(attr)
             if m:
@@ -254,9 +284,14 @@ class ViewClient:
                     attrs['oid'] = m.group('oid')
                 else:
                     if DEBUG:
-                        print attr, "doesn't match"
+                        print >>sys.stderr, attr, "doesn't match"
         
         if addViewToViewsById:
+            if not viewId:
+                # If the view has NO_ID we are assigning a default id here (id/no_id) which is
+                # immediatelly incremented if another view with no id was found before to generate
+                # a unique id
+                viewId = "id/no_id"
             if viewId in self.viewsById:
                 # sometimes the view ids are not unique, so let's generate a unique id here
                 i = 1
@@ -267,9 +302,11 @@ class ViewClient:
                     i += 1
                 viewId = newId
                 if DEBUG:
-                    print "adding viewById %s" % viewId
-            if viewId:
-                self.viewsById[viewId] = attrs
+                    print >>sys.stderr, "adding viewById %s" % viewId
+            # We are assigning a new attribute to keep the original id preserved, which could have
+            # been NO_ID repeated multiple times
+            attrs['uniqueId'] = viewId
+            self.viewsById[viewId] = attrs
                           
         return attrs
     
@@ -301,7 +338,7 @@ class ViewClient:
         if not root:
             return
 
-        print "%s%s" % (indent, root)
+        print >>sys.stderr, "%s%s" % (indent, root)
         
         for ch in root.children:
             self.traverse(ch, indent=indent+"   ")
@@ -323,9 +360,9 @@ class ViewClient:
 
         s.close()
         if DEBUG_RECEIVED:
-            print
-            print received
-            print
+            print >>sys.stderr
+            print >>sys.stderr, received
+            print >>sys.stderr
         self.setViews(received)
         self.parseTree(self.views)
 
@@ -348,10 +385,10 @@ class ViewClient:
         return self.findViewWithAttribute('getTag()', tag)
     
     def findViewWithAttributeInTree(self, attr, val, root):
-        if DEBUG: print "findViewWitAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
+        if DEBUG: print >>sys.stderr, "findViewWitAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
         
         if root and attr in root.map and root.map[attr] == val:
-            if DEBUG: print "findViewWitAttributeInTree:  FOUND: %s" % root.__smallStr__()
+            if DEBUG: print >>sys.stderr, "findViewWitAttributeInTree:  FOUND: %s" % root.__smallStr__()
             return root
         else:
             for ch in root.children:
@@ -381,4 +418,4 @@ if __name__ == "__main__":
     except:
         print "Don't expect this to do anything"
 
-        
+
