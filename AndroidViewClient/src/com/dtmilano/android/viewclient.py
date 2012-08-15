@@ -139,6 +139,8 @@ class View:
             if DEBUG: print >>sys.stderr, "$$$ parent=%s y=%d py=%d hy=%d" % (parent.__smallStr__(), y, parent.getY(), hy)
             hy += parent.getY()
             parent = parent.parent
+            if parent and parent['mID'] == 'id/action_bar_title':
+                break
         return (x, y+hy)
 
     def getCoords(self):
@@ -177,7 +179,8 @@ class View:
     def __smallStr__(self):
         str = "View["
         if "class" in self.map:
-            str += " class=" + self.map["class"]
+            str += " class=" + self.map['class']
+        str += " id=" + self.map['mID']
         str += " ]   parent="
         if self.parent and "class" in self.parent.map:
             str += "%s" % self.parent.map["class"]
@@ -233,6 +236,7 @@ class ViewClient:
                                'tcp:%d' % VIEW_SERVER_PORT])
 
         self.device = device
+        self.root = None
         self.viewsById = {}
     
     def assertServiceResponse(self, response):
@@ -334,6 +338,9 @@ class ViewClient:
                 parent.add(lastView)
                     
     
+    def getRoot(self):
+        return self.root
+
     def traverse(self, root, indent=""):
         if not root:
             return
@@ -384,15 +391,19 @@ class ViewClient:
         
         return self.findViewWithAttribute('getTag()', tag)
     
-    def findViewWithAttributeInTree(self, attr, val, root):
-        if DEBUG: print >>sys.stderr, "findViewWitAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
+    def __findViewWithAttributeInTree(self, attr, val, root):
+        if not self.root:
+           print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+           return None
+
+        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
         
         if root and attr in root.map and root.map[attr] == val:
-            if DEBUG: print >>sys.stderr, "findViewWitAttributeInTree:  FOUND: %s" % root.__smallStr__()
+            if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
             return root
         else:
             for ch in root.children:
-                v = self.findViewWithAttributeInTree(attr, val, ch)
+                v = self.__findViewWithAttributeInTree(attr, val, ch)
                 if v:
                     return v
         
@@ -403,8 +414,11 @@ class ViewClient:
         Finds the View with the specified attribute and value
         '''
         
-        return self.findViewWithAttributeInTree(attr, val, self.root)
+        return self.__findViewWithAttributeInTree(attr, val, self.root)
         
+    def findViewWithText(self, text):
+        return self.findViewWithAttribute('text:mText', text)
+
     def getViewIds(self):
         '''
         Returns the Views map.
