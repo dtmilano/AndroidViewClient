@@ -48,6 +48,7 @@ class View:
         self.device = device
         self.children = []
         self.parent = None
+        self.barHeight = self.getNotificationBarHeight()
         
     def __getitem__(self, key):
         return self.map[key]
@@ -109,7 +110,7 @@ class View:
     def getY(self):
         y = 0
         if self.GET_VISIBILITY_PROPERTY in self.map and self.map[self.GET_VISIBILITY_PROPERTY] == 'VISIBLE':
-            y += int(self.map['layout:mTop'])
+            y += int(self.map['layout:mTop']) + self.barHeight
 
         #if self.LAYOUT_TOP_MARGIN_PROPERTY in self.map:
         #    if DEBUG:
@@ -147,20 +148,42 @@ class View:
         '''
         Gets the coords of the View
         '''
-        (x, y) = self.getXY();
+        (x, y) = self.getXY()
         w = int(self.map['layout:getWidth()'])
-        h = int(self.map['layout:getHeight()'])
+        h = int(self.map['layout:getHeight()'] + self.barHeight)
         return ((x, y), (x+w, y+h))
+
+    def getCenter(self):
+        '''
+        Gets the center coords of the View
+        '''
+        (left, top), (right, bottom) = self.getCoords()
+        x = left + (right - left) / 2
+        y = top + (bottom - top) / 2
+        return (x, y)
 
     def touch(self, type=MonkeyDevice.DOWN_AND_UP):
         '''
         Touches this View
         '''
-        
-        (x, y) = self.getXY()
+        (x, y) = self.getCenter()
+        print 'touching (%d, %d)' % (x, y)
         if DEBUG:
-            print >>sys.stderr, "should touch @ (%d, %d)" % (x+OFFSET/2, y+OFFSET/2)
-        self.device.touch(x+OFFSET/2, y+OFFSET/2, type)
+            print >>sys.stderr, "should touch @ (%d, %d)" % (x, y)
+        self.device.touch(x, y, type)
+
+    def getNotificationBarHeight(self):
+        '''
+        Gets the height of the notification bar
+        '''
+        density = self.device.getProperty('display.density')
+        if density <= 0.75:
+            barHeight = 24
+        elif density >= 1.5:
+            barHeight = 48
+        else:
+            barHeight = 32
+        return barHeight
         
     def allPossibleNamesWithColon(self, name):
         l = []
