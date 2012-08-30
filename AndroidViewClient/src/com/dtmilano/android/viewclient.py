@@ -150,7 +150,7 @@ class View:
         '''
         (x, y) = self.getXY()
         w = int(self.map['layout:getWidth()'])
-        h = int(self.map['layout:getHeight()'] + self.barHeight)
+        h = int(self.map['layout:getHeight()'])
         return ((x, y), (x+w, y+h))
 
     def getCenter(self):
@@ -167,7 +167,6 @@ class View:
         Touches this View
         '''
         (x, y) = self.getCenter()
-        print 'touching (%d, %d)' % (x, y)
         if DEBUG:
             print >>sys.stderr, "should touch @ (%d, %d)" % (x, y)
         self.device.touch(x, y, type)
