@@ -31,13 +31,18 @@ else:
 
 OFFSET = 50
 
+# some constants for the attributes
+TEXT_PROPERTY = 'text:mText'
+WS = "\xfe" # the whitespace replacement char for TEXT_PROPERTY
+GET_VISIBILITY_PROPERTY = 'getVisibility()'
+LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
+
+
 class View:
     '''
     View class
     '''
 
-    GET_VISIBILITY_PROPERTY = 'getVisibility()'
-    LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
 
     def __init__(self, map, device):
         '''
@@ -101,14 +106,14 @@ class View:
             
     def getX(self):
         x = 0
-        if self.GET_VISIBILITY_PROPERTY in self.map and self.map[self.GET_VISIBILITY_PROPERTY] == 'VISIBLE':
+        if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
             x += int(self.map['layout:mLeft'])
         #x += OFFSET/2
         return x
     
     def getY(self):
         y = 0
-        if self.GET_VISIBILITY_PROPERTY in self.map and self.map[self.GET_VISIBILITY_PROPERTY] == 'VISIBLE':
+        if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
             y += int(self.map['layout:mTop'])
 
         #if self.LAYOUT_TOP_MARGIN_PROPERTY in self.map:
@@ -260,11 +265,16 @@ class ViewClient:
         Returns the attributes map.
         '''
         
+        # replace the spaces in text:mText to preserve them in later split
+        # they are translated back after the attribute matches
+        textRE = re.compile(TEXT_PROPERTY + "=(?P<len>\d+),")
+        m = textRE.search(str)
+        if m:
+            s1 = str[m.start():m.end()+int(m.group('len'))]
+            s2 = s1.replace(' ', WS)
+            str = str.replace(s1, s2, 1)
+        
         idRE = re.compile("(?P<viewId>id/\S+)")
-        # FIXME: this split is incorrect if for example a text:mText contains spaces
-        # maybe something like this should be used and the count the chars specified
-        # and cut it
-        #textRE = re.compile("(?P<attr>\S+)(\(\))?=\d+,(?P<text>.+)")
         attrRE = re.compile("(?P<attr>\S+)(\(\))?=\d+,(?P<val>\S+)")
         hashRE = re.compile("(?P<class>\S+)@(?P<oid>[0-9a-f]+)")
         
@@ -276,11 +286,15 @@ class ViewClient:
             if DEBUG:
                 print >>sys.stderr, "found %s" % viewId
 
-        # FIXME: this split is incorrect if for example a text:mText contains spaces
         for attr in str.split():
             m = attrRE.match(attr)
             if m:
-                attrs[m.group('attr')] = m.group('val')                    
+                attr = m.group('attr')
+                val = m.group('val')
+                if attr == TEXT_PROPERTY:
+                    # restore spaces that have been replaced
+                    val = val.replace(WS, ' ')
+                attrs[attr] = val
             else:
                 m = hashRE.match(attr)
                 if m:
@@ -430,6 +444,6 @@ if __name__ == "__main__":
     try:
         vc = ViewClient(None)
     except:
-        print "Don't expect this to do anything"
+        print "%s: Don't expect this to do anything" % __file__
 
 
