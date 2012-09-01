@@ -9,11 +9,14 @@ import sys
 import os
 
 # PyDev sets PYTHONPATH, use it
-for p in os.environ['PYTHONPATH'].split(':'):
-    if not p in sys.path:
-        sys.path.append(p)
 try:
-    sys.path.append(os.environ['ANDROID_VIEW_CLIENT_HOME'])
+    for p in os.environ['PYTHONPATH'].split(':'):
+        if not p in sys.path:
+            sys.path.append(p)
+except:
+    pass
+try:
+    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
     pass
 

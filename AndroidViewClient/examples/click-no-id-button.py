@@ -31,7 +31,7 @@ MonkeyRunner.sleep(5)
 vc = ViewClient(device)
 vc.dump()
 
-for i in range(9):
+for i in range(1, 9):
     view = vc.findViewById("id/no_id/%d" % i)
     print view
 #button2.touch(MonkeyDevice.DOWN_AND_UP)

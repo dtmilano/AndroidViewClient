@@ -11,12 +11,15 @@ import re
 import socket
 import os
 import java
+import types
 from com.android.monkeyrunner import MonkeyDevice
 
 DEBUG = False
 DEBUG_RECEIVED = DEBUG and True
 DEBUG_TREE = DEBUG and True
 DEBUG_GETATTR = DEBUG and False
+DEBUG_COORDS = DEBUG and True
+DEBUG_TOUCH = DEBUG and False
 
 ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
 VIEW_SERVER_HOST = 'localhost'
@@ -29,7 +32,9 @@ if os_name.startswith('Windows'):
 else:
     ADB = 'adb'
 
-OFFSET = 50
+# This assumes the smallest touchable view on the screen is approximately 50px x 50px
+# and touches it at (x+OFFSET, y+OFFSET)
+OFFSET = 25
 
 # some constants for the attributes
 TEXT_PROPERTY = 'text:mText'
@@ -104,57 +109,104 @@ class View:
         if DEBUG:
             print >>sys.stderr, "__call__(%s)" % (args if args else None)
             
+    def getClass(self):
+        try:
+            return self.map['class']
+        except:
+            return None
+
+    def getId(self):
+        try:
+            return self.map['mID']
+        except:
+            return None
+
+    def getText(self):
+        try:
+            return self.map[TEXT_PROPERTY]
+        except Exception:
+            return None
+
+    def getHeight(self):
+        try:
+            return int(self.map['layout:getHeight()'])
+        except:
+            return 0
+
+    def getWidth(self):
+        try:
+            return int(self.map['layout:getWidth()'])
+        except:
+            return 0
+
+    def getUniqueId(self):
+        try:
+            return self.map['uniqueId']
+        except:
+            return None
+
     def getX(self):
+        if DEBUG_COORDS:
+            print >>sys.stderr, "getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         x = 0
         if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
+            if DEBUG_COORDS: print >>sys.stderr, "   getX: VISIBLE adding %d" % int(self.map['layout:mLeft'])
             x += int(self.map['layout:mLeft'])
-        #x += OFFSET/2
+        if DEBUG_COORDS: print >>sys.stderr, "   getX: returning %d" % (x)
         return x
     
     def getY(self):
+        if DEBUG_COORDS:
+            print >>sys.stderr, "getY(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         y = 0
         if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
+            if DEBUG_COORDS: print >>sys.stderr, "   getY: VISIBLE adding %d" % int(self.map['layout:mTop'])
             y += int(self.map['layout:mTop'])
 
-        #if self.LAYOUT_TOP_MARGIN_PROPERTY in self.map:
-        #    if DEBUG:
-        #        print >>sys.stderr, "   adding top margin=%d" % int(self.map[self.LAYOUT_TOP_MARGIN_PROPERTY])
-        #    y += int(self.map[self.LAYOUT_TOP_MARGIN_PROPERTY])
+        if DEBUG_COORDS: print >>sys.stderr, "   getY: returning %d" % (y)
         return y
     
     def getXY(self):
         '''
-        Returns the coordinates of this View
+        Returns the "screen" coordinates of this View.
         '''
         
-        # FIXME: this usually doesn't return the real coordinates of the View but the coordinates
-        #        relative to its parent, so to obtain the real coordinates the View root should
-        #        have to be traversed to the root adding the coordinates for every child
+        if DEBUG_COORDS:
+            print >> sys.stderr, "getXY(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
+
         x = self.getX()
         y = self.getY()
         parent = self.parent
+        if DEBUG_COORDS: print >> sys.stderr, "   getXY: x=%s y=%s parent=%s" % (x, y, parent.getId() if parent else "None")
+        hx = 0
         hy = 0
         while parent != None:
-            if parent.map['class'] in [ 'com.android.internal.widget.ActionBarView', 
-                                       'com.android.internal.widget.ActionBarContainer',
+            if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId())
+            if parent.getClass() in [ 'com.android.internal.widget.ActionBarView',
                                        'com.android.internal.widget.ActionBarContextView',
-                                       'com.android.internal.view.menu.ActionMenuView' ]:
+                                       'com.android.internal.view.menu.ActionMenuView',
+                                       'com.android.internal.policy.impl.PhoneWindow$DecorView' ]:
+                if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s" % (parent.getClass(), parent.getId())
                 parent = parent.parent
                 continue
-            if DEBUG: print >>sys.stderr, "$$$ parent=%s y=%d py=%d hy=%d" % (parent.__smallStr__(), y, parent.getY(), hy)
+            if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s y=%d hy=%d" % (parent.getId(), y, hy)
+            hx += parent.getX()
             hy += parent.getY()
             parent = parent.parent
-            if parent and parent['mID'] == 'id/action_bar_title':
-                break
-        return (x, y+hy)
+
+        if DEBUG_COORDS: print >>sys.stderr, "   getXY: returning (%d, %d) ***" % (x+hx, y+hy)
+        return (x+hx, y+hy)
 
     def getCoords(self):
         '''
         Gets the coords of the View
         '''
+        if DEBUG_COORDS:
+            print >>sys.stderr, "getCoords(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
+
         (x, y) = self.getXY();
-        w = int(self.map['layout:getWidth()'])
-        h = int(self.map['layout:getHeight()'])
+        w = self.getWidth()
+        h = self.getHeight()
         return ((x, y), (x+w, y+h))
 
     def touch(self, type=MonkeyDevice.DOWN_AND_UP):
@@ -163,9 +215,9 @@ class View:
         '''
         
         (x, y) = self.getXY()
-        if DEBUG:
-            print >>sys.stderr, "should touch @ (%d, %d)" % (x+OFFSET/2, y+OFFSET/2)
-        self.device.touch(x+OFFSET/2, y+OFFSET/2, type)
+        if DEBUG_TOUCH:
+            print >>sys.stderr, "should touch @ (%d, %d)" % (x+OFFSET, y+OFFSET)
+        self.device.touch(x+OFFSET, y+OFFSET, type)
         
     def allPossibleNamesWithColon(self, name):
         l = []
@@ -182,30 +234,45 @@ class View:
         self.children.append(child)
         
     def __smallStr__(self):
-        str = "View["
+        __str = "View["
         if "class" in self.map:
-            str += " class=" + self.map['class']
-        str += " id=" + self.map['mID']
-        str += " ]   parent="
+            __str += " class=" + self.map['class']
+        __str += " id=%s" % self.getId()
+        __str += " ]   parent="
         if self.parent and "class" in self.parent.map:
-            str += "%s" % self.parent.map["class"]
+            __str += "%s" % self.parent.map["class"]
         else:
-            str += "None"
-        return str
+            __str += "None"
+
+        return __str
+            
+    def __tinyStr__(self):
+        __str = "View["
+        if "class" in self.map:
+            __str += " class=" + re.sub('.*\.', '', self.map['class'])
+        __str += " id=%s" % self.getId()
+        __str += " ]"
+        #__str += "parent="
+        #if self.parent and "class" in self.parent.map:
+        #    __str += "%s" % re.sub('.*\.', '', self.parent.map["class"])
+        #else:
+        #    __str += "None"
+
+        return __str
             
     def __str__(self):
-        str = "View["
+        __str = "View["
         if "class" in self.map:
-            str += " class=" + self.map["class"] + " "
+            __str += " class=" + self.map["class"] + " "
         for a in self.map:
-            str += a + "=" + self.map[a] + " "
-        str += "]   parent="
+            __str += a + "=" + self.map[a] + " "
+        __str += "]   parent="
         if self.parent and "class" in self.parent.map:
-            str += "%s" % self.parent.map["class"]
+            __str += "%s" % self.parent.map["class"]
         else:
-            str += "None"
+            __str += "None"
 
-        return str
+        return __str
 
  
 class ViewClient:
@@ -216,7 +283,7 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB)):
+    def __init__(self, device, adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True):
         '''
         Constructor
         '''
@@ -243,6 +310,15 @@ class ViewClient:
         self.device = device
         self.root = None
         self.viewsById = {}
+        self.display = {}
+        for prop in [ 'width', 'height', 'density' ]:
+            try:
+                self.display[prop] = device.getProperty(prop)
+            except:
+                self.display[prop] = -1
+
+        if autodump:
+            self.dump()
     
     def assertServiceResponse(self, response):
         if not self.serviceResponse(response):
@@ -259,34 +335,34 @@ class ViewClient:
         if DEBUG:
             print >>sys.stderr, "there are %d views in this dump" % len(self.views)
 
-    def __splitAttrs(self, str, addViewToViewsById=False):
+    def __splitAttrs(self, strArgs, addViewToViewsById=False):
         '''
-        Splits the view attributes in str and optionally adds the view id to the viewsById list.
+        Splits the view attributes in strArgs and optionally adds the view id to the viewsById list.
         Returns the attributes map.
         '''
         
         # replace the spaces in text:mText to preserve them in later split
         # they are translated back after the attribute matches
         textRE = re.compile(TEXT_PROPERTY + "=(?P<len>\d+),")
-        m = textRE.search(str)
+        m = textRE.search(strArgs)
         if m:
-            s1 = str[m.start():m.end()+int(m.group('len'))]
+            s1 = strArgs[m.start():m.end()+int(m.group('len'))]
             s2 = s1.replace(' ', WS)
-            str = str.replace(s1, s2, 1)
-        
+            strArgs = strArgs.replace(s1, s2, 1)
+
         idRE = re.compile("(?P<viewId>id/\S+)")
         attrRE = re.compile("(?P<attr>\S+)(\(\))?=\d+,(?P<val>\S+)")
         hashRE = re.compile("(?P<class>\S+)@(?P<oid>[0-9a-f]+)")
         
         attrs = {}
         viewId = None
-        m = idRE.search(str)
+        m = idRE.search(strArgs)
         if m:
             viewId = m.group('viewId')
             if DEBUG:
                 print >>sys.stderr, "found %s" % viewId
 
-        for attr in str.split():
+        for attr in strArgs.split():
             m = attrRE.match(attr)
             if m:
                 attr = m.group('attr')
@@ -307,14 +383,14 @@ class ViewClient:
         if addViewToViewsById:
             if not viewId:
                 # If the view has NO_ID we are assigning a default id here (id/no_id) which is
-                # immediatelly incremented if another view with no id was found before to generate
+                # immediately incremented if another view with no id was found before to generate
                 # a unique id
-                viewId = "id/no_id"
+                viewId = "id/no_id/1"
             if viewId in self.viewsById:
                 # sometimes the view ids are not unique, so let's generate a unique id here
                 i = 1
                 while True:
-                    newId = viewId + '/%d' % i
+                    newId = re.sub('/\d+$', '', viewId) + '/%d' % i
                     if not newId in self.viewsById:
                         break
                     i += 1
@@ -328,41 +404,63 @@ class ViewClient:
                           
         return attrs
     
-    def parseTree(self, str):
+    def parseTree(self, treeStr):
         self.root = None
         parent = None
-        treeLevel = 0
+        parents = []
+        treeLevel = -1
+        newLevel = -1
         lastView = None
         for v in self.views:
-            if v == 'DONE':
+            if v == 'DONE' or v == 'DONE.':
                 break
             attrs = self.__splitAttrs(v, addViewToViewsById=True)
             if not self.root:
                 if v[0] == ' ':
-                    raise "Unexpected ' '."
+                    raise "Unexpected root element starting with ' '."
                 self.root = View(attrs, self.device)
-                parent = self.root
+                treeLevel = 0
+                newLevel = 0
                 lastView = self.root
+                parent = self.root
+                parents.append(parent)
             else:
                 newLevel = (len(v) - len(v.lstrip()))
-                if treeLevel != newLevel:
+                if newLevel == 0:
+                    raise "newLevel==0 but tree can have only one root, v=", v
+                child = View(attrs, self.device)
+                if newLevel == treeLevel:
+                    parent.add(child)
+                    lastView = child
+                elif newLevel > treeLevel:
+                    if (newLevel - treeLevel) != 1:
+                        raise "newLevel jumps %d levels, v=%s" % ((newLevel-treeLevel), v)
                     parent = lastView
+                    parents.append(parent)
+                    parent.add(child)
+                    lastView = child
                     treeLevel = newLevel
-                lastView = View(attrs, self.device)
-                parent.add(lastView)
-                    
-    
+                else: # newLevel < treeLevel
+                    for i in range(treeLevel - newLevel):
+                        parents.pop()
+                    parent = parents.pop()
+                    parents.append(parent)
+                    parent.add(child)
+                    treeLevel = newLevel
+                    lastView = child
+     
+
     def getRoot(self):
         return self.root
 
-    def traverse(self, root, indent=""):
+    def traverse(self, root, indent="", transform=View.__str__):
         if not root:
             return
 
-        print >>sys.stderr, "%s%s" % (indent, root)
+        print "%s%s" % (indent, transform(root))
         
         for ch in root.children:
-            self.traverse(ch, indent=indent+"   ")
+            self.traverse(ch, indent=indent+"   ", transform=transform)
                 
     def dump(self, windowId=-1):
         '''
@@ -392,11 +490,28 @@ class ViewClient:
             
         return self.views
 
-    def findViewById(self, viewId):
+    def findViewById(self, viewId, root="ROOT"):
         '''
         Finds the View with the specified viewId.
         '''
-        return View(self.viewsById[viewId], self.device)
+
+        if not root:
+            return None
+
+        if type(root) == types.StringType and root == "ROOT":
+            return self.findViewById(viewId, self.root)
+
+        if root.getId() == viewId:
+            return root
+
+        if re.match('^id/no_id', viewId):
+            if root.getUniqueId() == viewId:
+                return root;
+        
+        for ch in root.children:
+            foundView = self.findViewById(viewId, ch)
+            if foundView:
+                return foundView
 
     def findViewByTag(self, tag):
         '''
@@ -407,8 +522,8 @@ class ViewClient:
     
     def __findViewWithAttributeInTree(self, attr, val, root):
         if not self.root:
-           print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
-           return None
+            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            return None
 
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
         
@@ -423,6 +538,29 @@ class ViewClient:
         
         return None
          
+    def __findViewWithAttributeInTreeThatMatches(self, attr, regex, root, rlist=[]):
+        if not self.root:
+            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            return None
+
+        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (root.__smallStr__(), attr, regex)
+        
+        if root and attr in root.map and regex.match(root.map[attr]):
+            if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__()
+            return root
+            #print >>sys.stderr, "appending root=%s to rlist=%s" % (root.__smallStr__(), rlist)
+            #return rlist.append(root)
+        else:
+            for ch in root.children:
+                v = self.__findViewWithAttributeInTreeThatMatches(attr, regex, ch, rlist)
+                if v:
+                    return v
+                    #print >>sys.stderr, "appending v=%s to rlist=%s" % (v.__smallStr__(), rlist)
+                    #return rlist.append(v)
+        
+        return None
+        #return rlist
+
     def findViewWithAttribute(self, attr, val):
         '''
         Finds the View with the specified attribute and value
@@ -430,13 +568,34 @@ class ViewClient:
         
         return self.__findViewWithAttributeInTree(attr, val, self.root)
         
+    def findViewWithAttributeThatMatches(self, attr, regex):
+        '''
+        Finds the list of Views with the specified attribute matching
+        regex
+        '''
+        
+        return self.__findViewWithAttributeInTreeThatMatches(attr, regex, self.root)
+        
     def findViewWithText(self, text):
-        return self.findViewWithAttribute('text:mText', text)
+        if type(text).__name__ == 'PatternObject':
+            return self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text)
+            #l = self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text)
+            #ll = len(l)
+            #if ll == 0:
+            #    return None
+            #elif ll == 1:
+            #    return l[0]
+            #else:
+            #    print >>sys.stderr, "WARNING: findViewWithAttributeThatMatches invoked by findViewWithText returns %d items." % ll
+            #    return l
+        else:
+            return self.findViewWithAttribute(TEXT_PROPERTY, text)
 
     def getViewIds(self):
         '''
         Returns the Views map.
         '''
+
         return self.viewsById
 
 
