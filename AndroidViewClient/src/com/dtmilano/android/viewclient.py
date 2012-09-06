@@ -42,6 +42,18 @@ WS = "\xfe" # the whitespace replacement char for TEXT_PROPERTY
 GET_VISIBILITY_PROPERTY = 'getVisibility()'
 LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
 
+def __nd(name):
+    '''
+    Returns a named decimal
+    '''
+    return '(?P<%s>\d+)' % name
+
+def __nh(name):
+    '''
+    Returns a named hexa
+    '''
+    return '(?P<%s>[0-9a-f]+)' % name
+
 
 class View:
     '''
@@ -58,6 +70,8 @@ class View:
         self.device = device
         self.children = []
         self.parent = None
+        self.windows = {}
+        self.currentFocus = None
         
     def __getitem__(self, key):
         return self.map[key]
@@ -189,13 +203,15 @@ class View:
                 if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s" % (parent.getClass(), parent.getId())
                 parent = parent.parent
                 continue
-            if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s y=%d hy=%d" % (parent.getId(), y, hy)
+            if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy)
             hx += parent.getX()
             hy += parent.getY()
             parent = parent.parent
 
-        if DEBUG_COORDS: print >>sys.stderr, "   getXY: returning (%d, %d) ***" % (x+hx, y+hy)
-        return (x+hx, y+hy)
+        (wvx, wvy) = self.__dumpWindowsInformation()
+        if DEBUG_COORDS: print >>sys.stderr, "   getXY: wv=(%d, %d)" % (wvx, wvy)
+        if DEBUG_COORDS: print >>sys.stderr, "   getXY: returning (%d, %d) ***" % (x+hx+wvx, y+hy+wvy)
+        return (x+hx+wvx, y+hy+wvy)
 
     def getCoords(self):
         '''
@@ -209,6 +225,59 @@ class View:
         h = self.getHeight()
         return ((x, y), (x+w, y+h))
 
+    def __obtainVxVy(self, m):
+        wvx = int(m.group('vx'))
+        wvy = int(m.group('vy'))
+        return wvx, wvy
+
+    def __dumpWindowsInformation(self):
+        self.windows = {}
+        self.currentFocus = None
+        lines = self.device.shell('dumpsys window windows').split('\n')
+        widRE = re.compile('^ *Window #%s Window{%s (?P<activity>\S+).*}:' %
+                            (__nd('num'), __nh('winId')))
+        currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % __nh('winId'))
+        # This is for 4.0.4 API-15
+        contentFrameRE = re.compile('^   *mContentFrame=\[%s,%s\]\[%s,%s\] mVisibleFrame=\[%s,%s\]' %
+                            (__nd('x'), __nd('y'), __nd('w'), __nd('h'), __nd('vx'), __nd('vy')))
+        # This is for 4.1 API-16
+        framesRE = re.compile('^   *Frames:')
+        contentRE = re.compile('^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]' % 
+                            (__nd('x'), __nd('y'), __nd('w'), __nd('h'), __nd('vx'), __nd('vy')))
+        
+        for l in range(len(lines)):
+            m = widRE.search(lines[l])
+            if m:
+                num = int(m.group('num'))
+                winId = m.group('winId')
+                activity = m.group('activity')
+                wvx = 0
+                wvy = 0
+                for l2 in range(l+1, len(lines)):
+                    m = widRE.search(lines[l2])
+                    if m:
+                        l += (l2-1)
+                        break
+                    m = framesRE.search(lines[l2])
+                    if m:
+                        m = contentRE.search(lines[l2+1])
+                        if m:
+                            wvx, wvy = self.__obtainVxVy(m)
+                    else:
+                        m = contentFrameRE.search(lines[l2])
+                        if m:
+                            wvx, wvy = self.__obtainVxVy(m)
+                self.windows[winId] = (wvx, wvy)
+            else:
+                m = currentFocusRE.search(lines[l])
+                if m:
+                    self.currentFocus = m.group('winId')
+        
+        if self.currentFocus in self.windows:
+            return self.windows[self.currentFocus]
+        else:
+            return (0,0)
+    
     def touch(self, type=MonkeyDevice.DOWN_AND_UP):
         '''
         Touches this View
@@ -218,7 +287,7 @@ class View:
         if DEBUG_TOUCH:
             print >>sys.stderr, "should touch @ (%d, %d)" % (x+OFFSET, y+OFFSET)
         self.device.touch(x+OFFSET, y+OFFSET, type)
-        
+    
     def allPossibleNamesWithColon(self, name):
         l = []
         for i in range(name.count("_")):
@@ -597,6 +666,9 @@ class ViewClient:
         '''
 
         return self.viewsById
+    
+    def __getFocusedWindowPosition(self):
+        focusedWindowId = self.__getFocusedWindowId()
 
 
 if __name__ == "__main__":
