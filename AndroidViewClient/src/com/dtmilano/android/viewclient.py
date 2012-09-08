@@ -19,7 +19,8 @@ DEBUG_RECEIVED = DEBUG and True
 DEBUG_TREE = DEBUG and True
 DEBUG_GETATTR = DEBUG and False
 DEBUG_COORDS = DEBUG and True
-DEBUG_TOUCH = DEBUG and False
+DEBUG_TOUCH = DEBUG and True
+DEBUG_STATUSBAR = DEBUG and True
 
 ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
 VIEW_SERVER_HOST = 'localhost'
@@ -50,9 +51,42 @@ def __nd(name):
 
 def __nh(name):
     '''
-    Returns a named hexa
+    Returns a named hex
     '''
     return '(?P<%s>[0-9a-f]+)' % name
+
+def traverseShowClassIdAndText(view):
+    try:
+        return "%s %s %s" % (view.getClass(), view.getId(), view.getText())
+    except Exception, e:
+        return "Exception in view=%s: %s" % (view.__smallStr__(), e)
+
+# methods that can be used to transform ViewClient.traverse output
+TRAVERSE_CIT = traverseShowClassIdAndText
+
+class Window:
+    '''
+    Window class
+    '''
+
+    def __init__(self, winId, activity, wvx, wvy, wvw, wvh, visibility):
+        '''
+        Constructor
+        '''
+
+        if DEBUG_COORDS: print >> sys.stderr, "Window(%s, %s, %d, %d, %d, %d, %d)" % \
+                (winId, activity, wvx, wvy, wvw, wvh, visibility)
+        self.winId = winId
+        self.activity = activity
+        self.wvx = wvx
+        self.wvy = wvy
+        self.wvw = wvw
+        self.wvh = wvh
+        self.visibility = visibility
+
+    def __str__(self):
+        return "Window(%s, %s, %d, %d, %d, %d, %d)" % \
+                (self.winId, self.activity, self.wvx, self.wvy, self.wvw, self.wvh, self.visibility)
 
 
 class View:
@@ -159,6 +193,19 @@ class View:
         except:
             return None
 
+    def getVisibility(self):
+        try:
+            if self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
+                return 0x0
+            elif self.map[GET_VISIBILITY_PROPERTY] == 'INVISIBLE':
+                return 0x4
+            elif self.map[GET_VISIBILITY_PROPERTY] == 'GONE':
+                return 0x8
+            else:
+                return -2
+        except:
+            return -1
+
     def getX(self):
         if DEBUG_COORDS:
             print >>sys.stderr, "getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
@@ -200,7 +247,7 @@ class View:
                                        'com.android.internal.widget.ActionBarContextView',
                                        'com.android.internal.view.menu.ActionMenuView',
                                        'com.android.internal.policy.impl.PhoneWindow$DecorView' ]:
-                if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s" % (parent.getClass(), parent.getId())
+                if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.getX(), parent.getY())
                 parent = parent.parent
                 continue
             if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy)
@@ -209,9 +256,19 @@ class View:
             parent = parent.parent
 
         (wvx, wvy) = self.__dumpWindowsInformation()
-        if DEBUG_COORDS: print >>sys.stderr, "   getXY: wv=(%d, %d)" % (wvx, wvy)
-        if DEBUG_COORDS: print >>sys.stderr, "   getXY: returning (%d, %d) ***" % (x+hx+wvx, y+hy+wvy)
-        return (x+hx+wvx, y+hy+wvy)
+        if DEBUG_COORDS:
+            print >>sys.stderr, "   getXY: wv=(%d, %d)" % (wvx, wvy)
+            print >>sys.stderr, "   getXY: returning (%d, %d) ***" % (x+hx+wvx, y+hy+wvy)
+        statusBarOffset = 0
+        fw = self.windows[self.currentFocus]
+        if DEBUG_STATUSBAR:
+            print "focused window=", fw
+            print "deciding whether to consider statusbar offset because current focused windows is at", (fw.wvx, fw.wvy)
+        (sbw, sbh) = self.__obtainStatusBarDimensionsIfVisible()
+        if self.windows[self.currentFocus].wvy <= sbh:
+            if DEBUG_STATUSBAR: print "considering offset=", sbh
+            statusBarOffset = sbh
+        return (x+hx+wvx, y+hy+wvy-statusBarOffset)
 
     def getCoords(self):
         '''
@@ -225,10 +282,30 @@ class View:
         h = self.getHeight()
         return ((x, y), (x+w, y+h))
 
+    def __obtainStatusBarDimensionsIfVisible(self):
+        sbw = 0
+        sbh = 0
+        for winId in self.windows:
+            w = self.windows[winId]
+            if w.activity == 'StatusBar':
+                if w.wvy == 0 and w.visibility == 0:
+                    if DEBUG_COORDS: print >> sys.stderr, "      __obtainStatusBarDimensionsIfVisible: statusBar=", (w.wvw, w.wvh)
+                    sbw = w.wvw
+                    sbh = w.wvh
+                break
+
+        return (sbw, sbh)
+
     def __obtainVxVy(self, m):
         wvx = int(m.group('vx'))
         wvy = int(m.group('vy'))
         return wvx, wvy
+
+    def __obtainVwVh(self, m):
+        (wvx, wvy) = self.__obtainVxVy(m)
+        wvx1 = int(m.group('vx1'))
+        wvy1 = int(m.group('vy1'))
+        return (wvx1-wvx, wvy1-wvy)
 
     def __dumpWindowsInformation(self):
         self.windows = {}
@@ -237,13 +314,14 @@ class View:
         widRE = re.compile('^ *Window #%s Window{%s (?P<activity>\S+).*}:' %
                             (__nd('num'), __nh('winId')))
         currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % __nh('winId'))
+        viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % __nh('visibility'))
         # This is for 4.0.4 API-15
-        contentFrameRE = re.compile('^   *mContentFrame=\[%s,%s\]\[%s,%s\] mVisibleFrame=\[%s,%s\]' %
-                            (__nd('x'), __nd('y'), __nd('w'), __nd('h'), __nd('vx'), __nd('vy')))
+        contentFrameRE = re.compile('^   *mContentFrame=\[%s,%s\]\[%s,%s\] mVisibleFrame=\[%s,%s\]\[%s,%s\]' %
+                             (__nd('x'), __nd('y'), __nd('w'), __nd('h'), __nd('vx'), __nd('vy'), __nd('vx1'), __nd('vy1')))
         # This is for 4.1 API-16
         framesRE = re.compile('^   *Frames:')
-        contentRE = re.compile('^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]' % 
-                            (__nd('x'), __nd('y'), __nd('w'), __nd('h'), __nd('vx'), __nd('vy')))
+        contentRE = re.compile('^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]\[%s,%s\]' % 
+                               (__nd('x'), __nd('y'), __nd('w'), __nd('h'), __nd('vx'), __nd('vy'), __nd('vx1'), __nd('vy1')))
         
         for l in range(len(lines)):
             m = widRE.search(lines[l])
@@ -253,29 +331,43 @@ class View:
                 activity = m.group('activity')
                 wvx = 0
                 wvy = 0
+                wvw = 0
+                wvh = 0
+                visibility = -1
                 for l2 in range(l+1, len(lines)):
                     m = widRE.search(lines[l2])
                     if m:
                         l += (l2-1)
                         break
+                    m = viewVisibilityRE.search(lines[l2])
+                    if m:
+                        visibility = int(m.group('visibility'))
+                        if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: visibility=", visibility
                     m = framesRE.search(lines[l2])
                     if m:
                         m = contentRE.search(lines[l2+1])
                         if m:
                             wvx, wvy = self.__obtainVxVy(m)
+                            wvw, wvh = self.__obtainVwVh(m)
                     else:
                         m = contentFrameRE.search(lines[l2])
                         if m:
                             wvx, wvy = self.__obtainVxVy(m)
-                self.windows[winId] = (wvx, wvy)
+                            wvw, wvh = self.__obtainVwVh(m)
+                self.windows[winId] = Window(winId, activity, wvx, wvy, wvw, wvh, visibility)
             else:
                 m = currentFocusRE.search(lines[l])
                 if m:
                     self.currentFocus = m.group('winId')
         
-        if self.currentFocus in self.windows:
-            return self.windows[self.currentFocus]
+        if self.currentFocus in self.windows and self.windows[self.currentFocus].visibility == 0:
+            if DEBUG_COORDS:
+                print >> sys.stderr, "__dumpWindowsInformation: focus=", self.currentFocus
+                print >> sys.stderr, "__dumpWindowsInformation:", self.windows[self.currentFocus]
+            w = self.windows[self.currentFocus]
+            return (w.wvx, w.wvy)
         else:
+            if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: (0,0)"
             return (0,0)
     
     def touch(self, type=MonkeyDevice.DOWN_AND_UP):
@@ -321,11 +413,6 @@ class View:
             __str += " class=" + re.sub('.*\.', '', self.map['class'])
         __str += " id=%s" % self.getId()
         __str += " ]"
-        #__str += "parent="
-        #if self.parent and "class" in self.parent.map:
-        #    __str += "%s" % re.sub('.*\.', '', self.parent.map["class"])
-        #else:
-        #    __str += "None"
 
         return __str
             
@@ -343,7 +430,7 @@ class View:
 
         return __str
 
- 
+
 class ViewClient:
     '''
     ViewClient is a ViewServer client.
@@ -352,7 +439,7 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True):
+    def __init__(self, device, adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True, serialno='emulator-5554'):
         '''
         Constructor
         '''
@@ -370,10 +457,8 @@ class ViewClient:
                                 'This only works on emulator and devices running developer versions.\n'
                                 'Does hierarchyviewer work on your device ?')
 
-        # FIXME: if there are more than one device this command will fail
-        # -s <serialno> should be included in next command but it seems there's
-        # no way of obtaining the serialno from the MonkeyDevice
-        subprocess.check_call([adb, 'forward', 'tcp:%d' % VIEW_SERVER_PORT,
+        # FIXME: it seems there's no way of obtaining the serialno from the MonkeyDevice
+        subprocess.check_call([adb, '-s', serialno, 'forward', 'tcp:%d' % VIEW_SERVER_PORT,
                                'tcp:%d' % VIEW_SERVER_PORT])
 
         self.device = device
@@ -522,15 +607,18 @@ class ViewClient:
     def getRoot(self):
         return self.root
 
-    def traverse(self, root, indent="", transform=View.__str__):
+    def traverse(self, root="ROOT", indent="", transform=View.__str__):
         if not root:
             return
+
+        if root == "ROOT":
+            root = self.root
 
         print "%s%s" % (indent, transform(root))
         
         for ch in root.children:
             self.traverse(ch, indent=indent+"   ", transform=transform)
-                
+
     def dump(self, windowId=-1):
         '''
         Dumps the window content
