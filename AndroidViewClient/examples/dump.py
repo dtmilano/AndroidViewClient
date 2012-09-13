@@ -26,9 +26,7 @@ try:
 except:
     pass
 
-from com.dtmilano.android.viewclient import ViewClient, View
-
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
+from com.dtmilano.android.viewclient import ViewClient
 
 device, serialno = ViewClient.connectToDeviceOrExit()
 ViewClient(device=device, serialno=serialno).traverse(transform=ViewClient.TRAVERSE_CIT)

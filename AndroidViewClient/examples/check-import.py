@@ -20,7 +20,7 @@ try:
 except:
     pass
 
-print >>sys.stderr, "path=", sys.path
+print >>sys.stderr, "sys.path=", sys.path
 import com
 import com.dtmilano
 import com.dtmilano.android

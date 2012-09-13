@@ -41,7 +41,7 @@ device.startActivity(component=componentName, flags=FLAG_ACTIVITY_NEW_TASK)
 MonkeyRunner.sleep(3)
 
 # Set it to True or False to decide if AndroidViewClient or plain monkeyrunner is used
-USE_AVC = False
+USE_AVC = True
 
 if USE_AVC:
     # AndroidViewClient
@@ -54,7 +54,6 @@ if USE_AVC:
         editText = vc.findViewById('id/0x123456')
         editText.touch()
         MonkeyRunner.sleep(3)
-        #Should work but it doesn't
         device.type('Donald')
         MonkeyRunner.sleep(3)
         ok = vc.findViewWithText('OK')

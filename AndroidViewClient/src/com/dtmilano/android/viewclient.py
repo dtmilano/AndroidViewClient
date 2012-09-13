@@ -554,7 +554,7 @@ class ViewClient:
         if not device:
             raise Exception('Device is not connected')
         if not os.access(adb, os.X_OK):
-            raise Exception('adb="%s" is not executable' % adb)
+            raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
         if not self.serviceResponse(device.shell('service call window 3')):
             try:
                 self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
