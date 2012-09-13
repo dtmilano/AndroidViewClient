@@ -1,6 +1,7 @@
 # Compiled classes #
 ####################
 *$py.class
+*.pyc
 
 # Mac files #
 #############

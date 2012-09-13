@@ -1,7 +1,7 @@
 #! /usr/bin/env monkeyrunner
 '''
 Copyright (C) 2012  Diego Torres Milano
-Created on Aug 15, 2012
+Created on Aug 31, 2012
 
 @author: diego
 '''
@@ -29,29 +29,14 @@ from com.dtmilano.android.viewclient import ViewClient, View
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
-
-START_ACTIVITY = True
-FLAG_ACTIVITY_NEW_TASK = 0x10000000
-
-package='com.android.settings'
-activity='.Settings'
-componentName=package + "/" + activity
-
 device, serialno = ViewClient.connectToDeviceOrExit()
-
-if START_ACTIVITY:
-    device.startActivity(component=componentName, flags=FLAG_ACTIVITY_NEW_TASK)
-    MonkeyRunner.sleep(3)
-
 vc = ViewClient(device=device, serialno=serialno)
-vc.dump()
-# this may help you find the attributes for specific Views
-#vc.traverse(vc.getRoot())
-text = 'Display'
-view = vc.findViewWithText(text)
-if view:
-	print view.__smallStr__()
-	print view.getCoords()
-	print view['layout:mLeft'], ',', view['layout:mTop']
-else:
-	print "Not found"
+
+# Find the 3 toggle buttons, because the first 2 change their text if they are selected
+# we use a regex to find them.
+# Once found, we touch them changing their state
+for t in [re.compile('Button 1 .*'), re.compile('Button 2 .*'), 'Button with ID']:
+    view = vc.findViewWithText(t)
+    if view:
+        view.touch()
+

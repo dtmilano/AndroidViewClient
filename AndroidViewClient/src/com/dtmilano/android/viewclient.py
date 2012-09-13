@@ -12,7 +12,7 @@ import socket
 import os
 import java
 import types
-from com.android.monkeyrunner import MonkeyDevice
+from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
 DEBUG = False
 DEBUG_RECEIVED = DEBUG and True
@@ -23,6 +23,8 @@ DEBUG_TOUCH = DEBUG and True
 DEBUG_STATUSBAR = DEBUG and True
 
 ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
+''' This environment variable is used to locate the I{Android SDK} components needed.
+    Set C{ANDROID_HOME} in the process environment to point to the I{Android SDK} installation. '''
 VIEW_SERVER_HOST = 'localhost'
 VIEW_SERVER_PORT = 4939
 
@@ -33,9 +35,9 @@ if os_name.startswith('Windows'):
 else:
     ADB = 'adb'
 
-# This assumes the smallest touchable view on the screen is approximately 50px x 50px
-# and touches it at (x+OFFSET, y+OFFSET)
 OFFSET = 25
+''' This assumes the smallest touchable view on the screen is approximately 50px x 50px
+    and touches it at M{(x+OFFSET, y+OFFSET)} '''
 
 # some constants for the attributes
 TEXT_PROPERTY = 'text:mText'
@@ -45,24 +47,22 @@ LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
 
 def __nd(name):
     '''
-    Returns a named decimal
+    @return: Returns a named decimal
     '''
     return '(?P<%s>\d+)' % name
 
 def __nh(name):
     '''
-    Returns a named hex
+    @return: Returns a named hex
     '''
     return '(?P<%s>[0-9a-f]+)' % name
 
-def traverseShowClassIdAndText(view):
-    try:
-        return "%s %s %s" % (view.getClass(), view.getId(), view.getText())
-    except Exception, e:
-        return "Exception in view=%s: %s" % (view.__smallStr__(), e)
+def __ns(name):
+    '''
+    @return: Returns a named string (only non-whitespace characters allowed)
+    '''
+    return '(?P<%s>\S+)' % name
 
-# methods that can be used to transform ViewClient.traverse output
-TRAVERSE_CIT = traverseShowClassIdAndText
 
 class Window:
     '''
@@ -72,6 +72,21 @@ class Window:
     def __init__(self, winId, activity, wvx, wvy, wvw, wvh, visibility):
         '''
         Constructor
+        
+        @type winId: str
+        @param winId: the window ID
+        @type activity: str
+        @param activity: the activity (or sometimes other component) owning the window
+        @type wvx: int
+        @param wvx: window's virtual X
+        @type wvy: int
+        @param wvy: window's virtual Y
+        @type wvw: int
+        @param wvw: window's virtual width
+        @type wvh: int
+        @param wvh: window's virtual height
+        @type visibility: int
+        @param visibility: visibility of the window
         '''
 
         if DEBUG_COORDS: print >> sys.stderr, "Window(%s, %s, %d, %d, %d, %d, %d)" % \
@@ -94,10 +109,31 @@ class View:
     View class
     '''
 
-
+    @staticmethod
+    def factory(attrs, device):
+        '''
+        View factory
+        '''
+        
+        if attrs.has_key('class'):
+            clazz = attrs['class']
+            if clazz == 'android.widget.TextView':
+                return TextView(attrs, device)
+            elif clazz == 'android.widget.EditText':
+                return EditText(attrs, device)
+            else:
+                return View(attrs, device)
+        else:
+            return View(attrs, device)
+    
     def __init__(self, map, device):
         '''
         Constructor
+        
+        @type map: map
+        @param map: the map containing the (attribute, value) pairs
+        @type device: MonkeyDevice
+        @param device: the device containing this View
         '''
         
         self.map = map
@@ -158,18 +194,37 @@ class View:
             print >>sys.stderr, "__call__(%s)" % (args if args else None)
             
     def getClass(self):
+        '''
+        Gets the View class
+        
+        @return:  the View class or None if not defined
+        '''
+        
         try:
             return self.map['class']
         except:
             return None
 
     def getId(self):
+        '''
+        Gets the View Id
+        
+        @return: the View Id or None if not defined
+        @see: L{getUniqueId()}
+        '''
+        
         try:
             return self.map['mID']
         except:
             return None
 
     def getText(self):
+        '''
+        Gets the text attribute
+        
+        @return: the text attribute or None if not defined
+        '''
+        
         try:
             return self.map[TEXT_PROPERTY]
         except Exception:
@@ -188,12 +243,22 @@ class View:
             return 0
 
     def getUniqueId(self):
+        '''
+        Gets the unique Id of this View.
+        
+        @see: L{ViewClient.__splitAttrs()} for a discussion on B{Unique Ids}
+        '''
+        
         try:
             return self.map['uniqueId']
         except:
             return None
 
     def getVisibility(self):
+        '''
+        Gets the View visibility
+        '''
+        
         try:
             if self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
                 return 0x0
@@ -207,6 +272,10 @@ class View:
             return -1
 
     def getX(self):
+        '''
+        Gets the View X coordinate
+        '''
+        
         if DEBUG_COORDS:
             print >>sys.stderr, "getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         x = 0
@@ -217,6 +286,10 @@ class View:
         return x
     
     def getY(self):
+        '''
+        Gets the View Y coordinate
+        '''
+        
         if DEBUG_COORDS:
             print >>sys.stderr, "getY(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         y = 0
@@ -229,7 +302,9 @@ class View:
     
     def getXY(self):
         '''
-        Returns the "screen" coordinates of this View.
+        Returns the I{screen} coordinates of this C{View}.
+        
+        @return: The I{screen} coordinates of this C{View}
         '''
         
         if DEBUG_COORDS:
@@ -260,12 +335,15 @@ class View:
             print >>sys.stderr, "   getXY: wv=(%d, %d)" % (wvx, wvy)
             print >>sys.stderr, "   getXY: returning (%d, %d) ***" % (x+hx+wvx, y+hy+wvy)
         statusBarOffset = 0
-        fw = self.windows[self.currentFocus]
-        if DEBUG_STATUSBAR:
-            print "focused window=", fw
-            print "deciding whether to consider statusbar offset because current focused windows is at", (fw.wvx, fw.wvy)
+        try:
+            fw = self.windows[self.currentFocus]
+            if DEBUG_STATUSBAR:
+                print "focused window=", fw
+                print "deciding whether to consider statusbar offset because current focused windows is at", (fw.wvx, fw.wvy)
+        except KeyError:
+            fw = None
         (sbw, sbh) = self.__obtainStatusBarDimensionsIfVisible()
-        if self.windows[self.currentFocus].wvy <= sbh:
+        if fw and fw.wvy <= sbh:
             if DEBUG_STATUSBAR: print "considering offset=", sbh
             statusBarOffset = sbh
         return (x+hx+wvx, y+hy+wvy-statusBarOffset)
@@ -274,6 +352,7 @@ class View:
         '''
         Gets the coords of the View
         '''
+        
         if DEBUG_COORDS:
             print >>sys.stderr, "getCoords(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
 
@@ -311,8 +390,8 @@ class View:
         self.windows = {}
         self.currentFocus = None
         lines = self.device.shell('dumpsys window windows').split('\n')
-        widRE = re.compile('^ *Window #%s Window{%s (?P<activity>\S+).*}:' %
-                            (__nd('num'), __nh('winId')))
+        widRE = re.compile('^ *Window #%s Window{%s %s.*}:' %
+                            (__nd('num'), __nh('winId'), __ns('activity')))
         currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % __nh('winId'))
         viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % __nh('visibility'))
         # This is for 4.0.4 API-15
@@ -372,7 +451,7 @@ class View:
     
     def touch(self, type=MonkeyDevice.DOWN_AND_UP):
         '''
-        Touches this View
+        Touches this C{View}
         '''
         
         (x, y) = self.getXY()
@@ -391,6 +470,12 @@ class View:
         return list(set(l1) & set(l2))
     
     def add(self, child):
+        '''
+        Adds a child
+        
+        @type child: View
+        @param child: The child to add
+        '''
         child.parent = self
         self.children.append(child)
         
@@ -430,10 +515,23 @@ class View:
 
         return __str
 
+class TextView(View):
+    '''
+    TextView class.
+    '''
+    
+    pass
+
+class EditText(TextView):
+    '''
+    EditText class.
+    '''
+    
+    pass
 
 class ViewClient:
     '''
-    ViewClient is a ViewServer client.
+    ViewClient is a I{ViewServer} client.
     
     If not running the ViewServer is started on the target device or emulator and then the port
     mapping is created.
@@ -442,6 +540,15 @@ class ViewClient:
     def __init__(self, device, adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True, serialno='emulator-5554'):
         '''
         Constructor
+        
+        @type device: MonkeyDevice
+        @param device: The device running the C{View server} to which this client will connect
+        @type adb: str
+        @param adb: the path of the C{adb} executable
+        @type autodump: boolean
+        @param autodump: whether an automatic dump is performed at the end of this constructor
+        @type serialno: str
+        @param serialno: the serial number of the device or emulator to connect to
         '''
         
         if not device:
@@ -462,9 +569,13 @@ class ViewClient:
                                'tcp:%d' % VIEW_SERVER_PORT])
 
         self.device = device
+        ''' The C{MonkeyDevice} device instance '''
         self.root = None
+        ''' The root node '''
         self.viewsById = {}
+        ''' The map containing all the L{View}s indexed by their L{uniqueId} '''
         self.display = {}
+        ''' The map containing the device's display properties: width, height and density '''
         for prop in [ 'width', 'height', 'density' ]:
             try:
                 self.display[prop] = device.getProperty(prop)
@@ -474,30 +585,104 @@ class ViewClient:
         if autodump:
             self.dump()
     
+    @staticmethod
+    def connectToDeviceOrExit(timeout=60):
+        '''
+        Connects to a device which serial number is obtained from the script arguments if available
+        or using the default C{emulator-5554}.
+        
+        If the connection is not successful the script exits.
+        L{MonkeyRunner.waitForConnection()} returns a L{MonkeyDevice} even if the connection failed.
+        Then, to detect this situation, C{device.wake()} is attempted and if it fails then it is
+        assumed the previous connection failed.
+        
+        @type timeout: int
+        @param timeout: timeout for the connection
+        @return: the device and serialno used for the connection
+        '''
+        
+        serialno = sys.argv[1] if len(sys.argv) > 1 else 'emulator-5554'
+        device = MonkeyRunner.waitForConnection(timeout, serialno)
+        try:
+            device.wake()
+        except java.lang.NullPointerException, e:
+            print >> sys.stderr, "%s: ERROR: Couldn't connect to %s: %s" % (os.path.basename(sys.argv[0]), serialno, e)
+            sys.exit(1)
+        return device, serialno
+        
+    @staticmethod
+    def traverseShowClassIdAndText(view):
+        '''
+        Shows the View class, id and text if available.
+        This function can be used as a transform function to L{ViewClient.traverse()}
+        
+        @type view: I{View}
+        @param view: the View
+        @return: the string containing class, id, and text if available 
+        '''
+        
+        try:
+            return "%s %s %s" % (view.getClass(), view.getId(), view.getText())
+        except Exception, e:
+            return "Exception in view=%s: %s" % (view.__smallStr__(), e)
+        
+    # methods that can be used to transform ViewClient.traverse output
+    TRAVERSE_CIT = traverseShowClassIdAndText
+    ''' An alias for L{traverseShowClassIdAndText(view)} '''
+    
     def assertServiceResponse(self, response):
         if not self.serviceResponse(response):
             raise Exception('Invalid response received from service.')
 
     def serviceResponse(self, response):
+        '''
+        Checks the response received from the I{ViewServer}.
+        
+        @return: C{True} if the response received matches L{PARCEL_TRUE}, C{False} otherwise
+        '''
+        
         PARCEL_TRUE = "Result: Parcel(00000000 00000001   '........')\r\n"
         if DEBUG:
             print >>sys.stderr, "serviceResponse: comparing '%s' vs Parcel(%s)" % (response, PARCEL_TRUE)
         return response == PARCEL_TRUE
 
     def setViews(self, received):
+        '''
+        Sets C{self.views} to the received value splitting it into lines.
+        
+        @type received: str
+        @param received: the string received from the I{View server}
+        '''
+        
         self.views = received.split("\n")
         if DEBUG:
             print >>sys.stderr, "there are %d views in this dump" % len(self.views)
 
     def __splitAttrs(self, strArgs, addViewToViewsById=False):
         '''
-        Splits the view attributes in strArgs and optionally adds the view id to the viewsById list.
-        Returns the attributes map.
+        Splits the C{View} attributes in C{strArgs} and optionally adds the view id to the C{viewsById} list.
+        
+        Unique Ids
+        ==========
+        It is very common to find C{View}s having B{NO_ID} as the Id. This turns very difficult to 
+        use L{self.findViewById()}. To help in this situation this method assigns B{unique Ids} if
+        C{addViewToViewsById} is C{True}.
+        
+        The B{unique Ids} are generated using the pattern C{id/no_id/<number>} with C{<number>} starting
+        at 1.
+        
+        @type strArgs: str
+        @param strArgs: the string containing the raw list of attributes and values
+        @type addViewToViewsById: boolean
+        @param addViewToViewsById: whether to add the parsed list of attributes and values to the
+                                   map C{self.viewsById}
+        
+        @return: Returns the attributes map.
         '''
         
         # replace the spaces in text:mText to preserve them in later split
         # they are translated back after the attribute matches
-        textRE = re.compile(TEXT_PROPERTY + "=(?P<len>\d+),")
+        textRE = re.compile('%s=%s,' % (TEXT_PROPERTY, __nd('len')))
         m = textRE.search(strArgs)
         if m:
             s1 = strArgs[m.start():m.end()+int(m.group('len'))]
@@ -505,8 +690,8 @@ class ViewClient:
             strArgs = strArgs.replace(s1, s2, 1)
 
         idRE = re.compile("(?P<viewId>id/\S+)")
-        attrRE = re.compile("(?P<attr>\S+)(\(\))?=\d+,(?P<val>\S+)")
-        hashRE = re.compile("(?P<class>\S+)@(?P<oid>[0-9a-f]+)")
+        attrRE = re.compile('%s(\(\))?=\d+,%s' % (__ns('attr'), __ns('val')))
+        hashRE = re.compile('%s@%s' % (__ns('class'), __nh('oid')))
         
         attrs = {}
         viewId = None
@@ -572,7 +757,7 @@ class ViewClient:
             if not self.root:
                 if v[0] == ' ':
                     raise "Unexpected root element starting with ' '."
-                self.root = View(attrs, self.device)
+                self.root = View.factory(attrs, self.device) #View(attrs, self.device)
                 treeLevel = 0
                 newLevel = 0
                 lastView = self.root
@@ -582,7 +767,7 @@ class ViewClient:
                 newLevel = (len(v) - len(v.lstrip()))
                 if newLevel == 0:
                     raise "newLevel==0 but tree can have only one root, v=", v
-                child = View(attrs, self.device)
+                child = View.factory(attrs, self.device) #View(attrs, self.device)
                 if newLevel == treeLevel:
                     parent.add(child)
                     lastView = child
@@ -605,16 +790,36 @@ class ViewClient:
      
 
     def getRoot(self):
+        '''
+        Gets the root node of the C{View} tree
+        
+        @return: the root node of the C{View} tree
+        '''
         return self.root
 
     def traverse(self, root="ROOT", indent="", transform=View.__str__):
+        '''
+        Traverses the C{View} tree and prints its nodes.
+        
+        The nodes are printed converting them to string but other transformations can be specified
+        by providing a method name as the C{transform} parameter.
+        
+        @type root: L{View}
+        @param root: the root node from where the traverse starts
+        @type indent: str
+        @param indent: the indentation string to use to print the nodes
+        @type transform: method
+        @param transform: a method to use to transform the node before is printed  
+        '''
         if not root:
             return
 
         if root == "ROOT":
             root = self.root
 
-        print "%s%s" % (indent, transform(root))
+        s = transform(root)
+        if s:
+            print "%s%s" % (indent, s)
         
         for ch in root.children:
             self.traverse(ch, indent=indent+"   ", transform=transform)

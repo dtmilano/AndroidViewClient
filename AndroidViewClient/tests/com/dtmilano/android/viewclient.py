@@ -18,7 +18,7 @@ try:
 except:
     pass
 
-from com.dtmilano.android.viewclient import View, ViewClient
+from com.dtmilano.android.viewclient import View, TextView, EditText, ViewClient
 from mocks import MockDevice
 from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP
 
@@ -31,6 +31,21 @@ class ViewTest(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def testViewFactory_View(self):
+        attrs = {'class': 'android.widget.AnyView', 'text:mText': 'Button with ID'}
+        view = View.factory(attrs, None)
+        self.assertTrue(isinstance(view, View))
+        
+    def testViewFactory_TextView(self):
+        attrs = {'class': 'android.widget.TextView', 'text:mText': 'Button with ID'}
+        view = View.factory(attrs, None)
+        self.assertTrue(isinstance(view, TextView))
+        
+    def testViewFactory_TextView(self):
+        attrs = {'class': 'android.widget.EditText', 'text:mText': 'Button with ID'}
+        view = View.factory(attrs, None)
+        self.assertTrue(isinstance(view, EditText))
+    
     def testInnerMethod(self):
         v = View({'isChecked()':'true'}, None)
         self.assertTrue(v.isChecked())
@@ -147,10 +162,8 @@ class ViewClientTest(unittest.TestCase):
         
     def testParseTree(self):
         vc = self.__mockTree()
-        print
-        print "TRAVERSE:"
-        vc.traverse(vc.root, transform=self.__getClassAndId)
-        print
+        # eat all the output
+        vc.traverse(vc.root, transform=self.__eatIt)
         # We know there are 23 views in mock tree
         self.assertEqual(23, len(vc.getViewIds()))
         
@@ -159,6 +172,9 @@ class ViewClientTest(unittest.TestCase):
             return "%s %s %s %s" % (view.getClass(), view.getId(), view.getUniqueId(), view.getCoords())
         except Exception, e:
             return "Exception in view=%s: %s" % (view.__smallStr__(), e)
+    
+    def __eatIt(self, view):
+        return ""
     
     def testViewWithNoIdReceivesUniqueId(self):
         vc = self.__mockTree()
