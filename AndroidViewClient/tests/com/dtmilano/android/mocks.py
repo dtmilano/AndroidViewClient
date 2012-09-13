@@ -77,6 +77,188 @@ mock data
 mock data
 """
 
+DUMPSYS_WINDOW_WINDOWS_SAMPLE_UI = """WINDOW MANAGER WINDOWS (dumpsys window windows)
+  Window #7 Window{b4d250b0 RecentsPanel paused=false}:
+    mSession=Session{b4d254d0 uid 1000} mClient=android.os.BinderProxy@b4c60590
+    mAttrs=WM.LayoutParams{(0,0)(fillxfill) gr=#53 sim=#31 ty=2014 fl=#820100 fmt=-3 wanim=0x7f0c0008}
+    Requested w=480 h=800 mLayoutSeq=20
+    mBaseLayer=151000 mSubLayer=0 mAnimLayer=151000+0=151000 mLastLayer=0
+    mToken=WindowToken{b4c000b0 token=null}
+    mRootToken=WindowToken{b4c000b0 token=null}
+    mViewVisibility=0x8 mLastHidden=false mHaveFrame=true mObscured=false
+    mSeq=0 mSystemUiVisibility=0x0
+    mGivenContentInsets=[0,0][0,0] mGivenVisibleInsets=[0,0][0,0]
+    mConfiguration=null
+    mShownFrame=[0.0,0.0][0.0,0.0]
+    mFrame=[0,0][480,800] last=[0,0][0,0]
+    mContainingFrame=[0,0][480,800] mParentFrame=[0,0][480,800] mDisplayFrame=[0,0][480,800]
+    mContentFrame=[0,0][480,800] mVisibleFrame=[0,0][480,800]
+    mContentInsets=[0,0][0,0] last=[0,0][0,0] mVisibleInsets=[0,0][0,0] last=[0,0][0,0]
+    mDrawPending=false mCommitDrawPending=false mReadyToShow=false mHasDrawn=false
+  Window #6 Window{b4d27678 StatusBar paused=false}:
+    mSession=Session{b4d254d0 uid 1000} mClient=android.os.BinderProxy@b4d27488
+    mAttrs=WM.LayoutParams{(0,0)(fillx38) gr=#37 sim=#20 ty=2000 fl=#800048 fmt=4 wanim=0x7f0c0009}
+    Requested w=480 h=38 mLayoutSeq=102
+    mBaseLayer=141000 mSubLayer=0 mAnimLayer=141000+0=141000 mLastLayer=141000
+    mSurface=Surface(name=StatusBar, identity=6)
+    Surface: shown=true layer=141000 alpha=1.0 rect=(0.0,0.0) 480.0 x 38.0
+    mToken=WindowToken{b4c000b0 token=null}
+    mRootToken=WindowToken{b4c000b0 token=null}
+    mViewVisibility=0x0 mLastHidden=false mHaveFrame=true mObscured=false
+    mSeq=0 mSystemUiVisibility=0x0
+    mGivenContentInsets=[0,0][0,0] mGivenVisibleInsets=[0,0][0,0]
+    mConfiguration={1.0 310mcc260mnc en_US layoutdir=0 sw320dp w320dp h508dp nrml long port finger qwerty/v/v tball/v s.5}
+    mShownFrame=[0.0,0.0][480.0,38.0]
+    mFrame=[0,0][480,38] last=[0,0][480,38]
+    mContainingFrame=[0,0][480,800] mParentFrame=[0,0][480,800] mDisplayFrame=[0,0][480,800]
+    mContentFrame=[0,0][480,38] mVisibleFrame=[0,0][480,38]
+    mContentInsets=[0,0][0,0] last=[0,0][0,0] mVisibleInsets=[0,0][0,0] last=[0,0][0,0]
+    mDrawPending=false mCommitDrawPending=false mReadyToShow=false mHasDrawn=true
+  Window #5 Window{b4d1bc30 StatusBarExpanded paused=false}:
+    mSession=Session{b4d254d0 uid 1000} mClient=android.os.BinderProxy@b4dca320
+    mAttrs=WM.LayoutParams{(0,-800)(480x762) gr=#37 sim=#10 ty=2017 fl=#811328 pfl=0x8 fmt=-3 wanim=0x1030000}
+    Requested w=480 h=762 mLayoutSeq=102
+    mBaseLayer=131000 mSubLayer=0 mAnimLayer=131005+0=131005 mLastLayer=131005
+    mSurface=Surface(name=StatusBarExpanded, identity=13)
+    Surface: shown=true layer=131005 alpha=1.0 rect=(0.0,-800.0) 480.0 x 762.0
+    mToken=WindowToken{b4c000b0 token=null}
+    mRootToken=WindowToken{b4c000b0 token=null}
+    mViewVisibility=0x0 mLastHidden=false mHaveFrame=true mObscured=false
+    mSeq=0 mSystemUiVisibility=0x0
+    mGivenContentInsets=[0,0][0,0] mGivenVisibleInsets=[0,0][0,0]
+    mConfiguration={1.0 310mcc260mnc en_US layoutdir=0 sw320dp w320dp h508dp nrml long port finger qwerty/v/v tball/v s.5}
+    mShownFrame=[0.0,-800.0][480.0,-38.0]
+    mFrame=[0,-800][480,-38] last=[0,-800][480,-38]
+    mContainingFrame=[0,0][480,800] mParentFrame=[0,0][480,800] mDisplayFrame=[-10000,-10000][10000,10000]
+    mContentFrame=[0,-800][480,-38] mVisibleFrame=[0,-800][480,-38]
+    mContentInsets=[0,0][0,0] last=[0,0][0,0] mVisibleInsets=[0,0][0,0] last=[0,0][0,0]
+    mDrawPending=false mCommitDrawPending=false mReadyToShow=false mHasDrawn=true
+  Window #4 Window{b4d62e40 TrackingView paused=false}:
+    mSession=Session{b4d254d0 uid 1000} mClient=android.os.BinderProxy@b4d62ca8
+    mAttrs=WM.LayoutParams{(0,-800)(fillxfill) gr=#37 sim=#20 ty=2017 fl=#20300 fmt=-3}
+    Requested w=480 h=800 mLayoutSeq=17
+    mBaseLayer=131000 mSubLayer=0 mAnimLayer=131000+0=131000 mLastLayer=0
+    mToken=WindowToken{b4c000b0 token=null}
+    mRootToken=WindowToken{b4c000b0 token=null}
+    mViewVisibility=0x8 mLastHidden=false mHaveFrame=true mObscured=false
+    mSeq=0 mSystemUiVisibility=0x0
+    mGivenContentInsets=[0,0][0,0] mGivenVisibleInsets=[0,0][0,0]
+    mConfiguration=null
+    mShownFrame=[0.0,0.0][0.0,0.0]
+    mFrame=[0,-800][480,0] last=[0,0][0,0]
+    mContainingFrame=[0,0][480,800] mParentFrame=[0,0][480,800] mDisplayFrame=[-10000,-10000][10000,10000]
+    mContentFrame=[0,-800][480,0] mVisibleFrame=[0,-800][480,0]
+    mContentInsets=[0,0][0,0] last=[0,0][0,0] mVisibleInsets=[0,0][0,0] last=[0,0][0,0]
+    mDrawPending=false mCommitDrawPending=false mReadyToShow=false mHasDrawn=false
+  Window #3 Window{b4c01158 Keyguard paused=false}:
+    mSession=Session{b4be1be8 uid 1000} mClient=android.view.ViewRootImpl$W@b4c12f70
+    mAttrs=WM.LayoutParams{(0,0)(fillxfill) sim=#10 ty=2004 fl=#10120800 pfl=0x8 fmt=-3 wanim=0x10301da or=5}
+    Requested w=480 h=762 mLayoutSeq=32
+    mBaseLayer=111000 mSubLayer=0 mAnimLayer=111000+0=111000 mLastLayer=111000
+    mToken=WindowToken{b4c000b0 token=null}
+    mRootToken=WindowToken{b4c000b0 token=null}
+    mViewVisibility=0x8 mLastHidden=true mHaveFrame=true mObscured=false
+    mSeq=0 mSystemUiVisibility=0x0
+    mGivenContentInsets=[0,0][0,0] mGivenVisibleInsets=[0,0][0,0]
+    mConfiguration={1.0 310mcc260mnc en_US layoutdir=0 sw320dp w320dp h508dp nrml long port finger qwerty/v/v tball/v s.5}
+    mShownFrame=[0.0,38.0][480.0,800.0]
+    mFrame=[0,38][480,800] last=[0,38][480,800]
+    mContainingFrame=[0,38][480,800] mParentFrame=[0,38][480,800] mDisplayFrame=[0,38][480,800]
+    mContentFrame=[0,38][480,800] mVisibleFrame=[0,38][480,800]
+    mContentInsets=[0,0][0,0] last=[0,0][0,0] mVisibleInsets=[0,0][0,0] last=[0,0][0,0]
+    mShownAlpha=1.0 mAlpha=1.0 mLastAlpha=0.0
+    mDrawPending=false mCommitDrawPending=false mReadyToShow=false mHasDrawn=true
+  Window #2 Window{b4d2a948 com.dtmilano.android.sampleui/com.dtmilano.android.sampleui.MainActivity paused=false}:
+    mSession=Session{b4d3cdf0 uid 10046} mClient=android.os.BinderProxy@b4c09bf0
+    mAttrs=WM.LayoutParams{(0,0)(fillxfill) sim=#120 ty=1 fl=#1810100 pfl=0x8 wanim=0x1030292}
+    Requested w=480 h=800 mLayoutSeq=102
+    mBaseLayer=21000 mSubLayer=0 mAnimLayer=21010+0=21010 mLastLayer=21010
+    mSurface=Surface(name=com.dtmilano.android.sampleui/com.dtmilano.android.sampleui.MainActivity, identity=28)
+    Surface: shown=true layer=21010 alpha=1.0 rect=(0.0,0.0) 480.0 x 800.0
+    mToken=AppWindowToken{b4d8bf80 token=Token{b4d3ab58 ActivityRecord{b4d3aa20 com.dtmilano.android.sampleui/.MainActivity}}}
+    mRootToken=AppWindowToken{b4d8bf80 token=Token{b4d3ab58 ActivityRecord{b4d3aa20 com.dtmilano.android.sampleui/.MainActivity}}}
+    mAppToken=AppWindowToken{b4d8bf80 token=Token{b4d3ab58 ActivityRecord{b4d3aa20 com.dtmilano.android.sampleui/.MainActivity}}}
+    mViewVisibility=0x0 mLastHidden=false mHaveFrame=true mObscured=false
+    mSeq=0 mSystemUiVisibility=0x0
+    mGivenContentInsets=[0,0][0,0] mGivenVisibleInsets=[0,0][0,0]
+    mConfiguration={1.0 310mcc260mnc en_US layoutdir=0 sw320dp w320dp h508dp nrml long port finger qwerty/v/v tball/v s.5}
+    mShownFrame=[0.0,0.0][480.0,800.0]
+    mFrame=[0,0][480,800] last=[0,0][480,800]
+    mContainingFrame=[0,0][480,800] mParentFrame=[0,0][480,800] mDisplayFrame=[0,0][480,800]
+    mContentFrame=[0,38][480,800] mVisibleFrame=[0,38][480,800]
+    mContentInsets=[0,38][0,0] last=[0,38][0,0] mVisibleInsets=[0,38][0,0] last=[0,38][0,0]
+    mDrawPending=false mCommitDrawPending=false mReadyToShow=false mHasDrawn=true
+  Window #1 Window{b4d78098 com.android.launcher/com.android.launcher2.Launcher paused=false}:
+    mSession=Session{b4d35180 uid 10012} mClient=android.os.BinderProxy@b4d3b188
+    mAttrs=WM.LayoutParams{(0,0)(fillxfill) sim=#20 ty=1 fl=#1910100 pfl=0x8 fmt=-2 wanim=0x1030292}
+    Requested w=480 h=800 mLayoutSeq=37
+    mBaseLayer=21000 mSubLayer=0 mAnimLayer=21005+0=21005 mLastLayer=21005
+    mToken=AppWindowToken{b4d14528 token=Token{b4d12ab8 ActivityRecord{b4d12688 com.android.launcher/com.android.launcher2.Launcher}}}
+    mRootToken=AppWindowToken{b4d14528 token=Token{b4d12ab8 ActivityRecord{b4d12688 com.android.launcher/com.android.launcher2.Launcher}}}
+    mAppToken=AppWindowToken{b4d14528 token=Token{b4d12ab8 ActivityRecord{b4d12688 com.android.launcher/com.android.launcher2.Launcher}}}
+    mViewVisibility=0x8 mLastHidden=true mHaveFrame=true mObscured=true
+    mSeq=0 mSystemUiVisibility=0x0
+    mGivenContentInsets=[0,0][0,0] mGivenVisibleInsets=[0,0][0,0]
+    mConfiguration={1.0 310mcc260mnc en_US layoutdir=0 sw320dp w320dp h508dp nrml long port finger qwerty/v/v tball/v s.5}
+    mShownFrame=[0.0,0.0][480.0,800.0]
+    mFrame=[0,0][480,800] last=[0,0][480,800]
+    mContainingFrame=[0,0][480,800] mParentFrame=[0,0][480,800] mDisplayFrame=[0,0][480,800]
+    mContentFrame=[0,38][480,800] mVisibleFrame=[0,38][480,800]
+    mContentInsets=[0,38][0,0] last=[0,38][0,0] mVisibleInsets=[0,38][0,0] last=[0,38][0,0]
+    mShownAlpha=1.0 mAlpha=1.0 mLastAlpha=0.0
+    mDrawPending=false mCommitDrawPending=false mReadyToShow=false mHasDrawn=true
+    mWallpaperX=0.5 mWallpaperY=0.5
+    mWallpaperXStep=0.25 mWallpaperYStep=1.0
+  Window #0 Window{b4d2e648 com.android.systemui.ImageWallpaper paused=false}:
+    mSession=Session{b4d254d0 uid 1000} mClient=android.os.BinderProxy@b4d82d48
+    mAttrs=WM.LayoutParams{(0,0)(960x800) gr=#33 ty=2013 fl=#318 fmt=2 wanim=0x10301e4}
+    Requested w=960 h=800 mLayoutSeq=43
+    mIsImWindow=false mIsWallpaper=true mIsFloatingLayer=true mWallpaperVisible=false
+    mBaseLayer=21000 mSubLayer=0 mAnimLayer=21000+0=21000 mLastLayer=21000
+    mSurface=Surface(name=com.android.systemui.ImageWallpaper, identity=8)
+    Surface: shown=false layer=21000 alpha=1.0 rect=(-240.0,0.0) 960.0 x 800.0
+    mToken=WindowToken{b4c64f60 token=android.os.Binder@b4bead18}
+    mRootToken=WindowToken{b4c64f60 token=android.os.Binder@b4bead18}
+    mViewVisibility=0x0 mLastHidden=true mHaveFrame=true mObscured=true
+    mSeq=0 mSystemUiVisibility=0x0
+    Offsets x=-240 y=0
+    mGivenContentInsets=[0,0][0,0] mGivenVisibleInsets=[0,0][0,0]
+    mConfiguration={1.0 310mcc260mnc en_US layoutdir=0 sw320dp w320dp h508dp nrml long port finger qwerty/v/v tball/v s.5}
+    mShownFrame=[-240.0,0.0][720.0,800.0]
+    mFrame=[0,0][960,800] last=[0,0][960,800]
+    mContainingFrame=[0,0][480,800] mParentFrame=[0,0][480,800] mDisplayFrame=[-10000,-10000][10000,10000]
+    mContentFrame=[0,0][960,800] mVisibleFrame=[0,0][960,800]
+    mContentInsets=[0,0][0,0] last=[0,0][0,0] mVisibleInsets=[0,0][0,0] last=[0,0][0,0]
+    mDrawPending=false mCommitDrawPending=false mReadyToShow=false mHasDrawn=true
+    mWallpaperX=0.5 mWallpaperY=0.5
+    mWallpaperXStep=0.25 mWallpaperYStep=1.0
+
+  Display: init=480x800 base=480x800 cur=480x800 app=480x800 raw=480x800
+  mCurConfiguration={1.0 310mcc260mnc en_US layoutdir=0 sw320dp w320dp h508dp nrml long port finger qwerty/v/v tball/v s.5}
+  mCurrentFocus=Window{b4d2a948 com.dtmilano.android.sampleui/com.dtmilano.android.sampleui.MainActivity paused=false}
+  mFocusedApp=AppWindowToken{b4d8bf80 token=Token{b4d3ab58 ActivityRecord{b4d3aa20 com.dtmilano.android.sampleui/.MainActivity}}}
+  mInTouchMode=true mLayoutSeq=102
+  mWallpaperTarget=null
+  mLastWallpaperX=0.5 mLastWallpaperY=0.5
+  mWindowAnimationBackgroundSurface:
+    mDimSurface=Surface(name=DimSurface, identity=20)
+    mDimShown=false mLayer=21009 mDimColor=0xff000000
+    mLastDimWidth=480 mLastDimWidth=480
+  mSystemBooted=true mDisplayEnabled=true
+  mLayoutNeeded=false mBlurShown=false
+  mDimAnimator:
+    mDimSurface=Surface(name=DimAnimator, identity=17) 480 x 800
+    mDimShown=true current=0.0 target=0.0 delta=-0.002727273 lastAnimTime=0
+  mDisplayFrozen=false mWindowsFreezingScreen=false mAppsFreezingScreen=0 mWaitingForConfig=false
+  mRotation=0 mAltOrientation=false
+  mLastWindowForcedOrientation-1 mForcedAppOrientation=-1
+  mDeferredRotationPauseCount=0
+  mAnimationPending=false mWindowAnimationScale=1.0 mTransitionWindowAnimationScale=1.0
+  mNextAppTransition=0xffffffff mAppTransitionReady=false
+  mAppTransitionRunning=false mAppTransitionTimeout=false
+  mStartingIconInTransition=false, mSkipAppTransitionAnimation=false
+"""
+
 class MockDevice(object):
     '''
     Mocks an Android device
