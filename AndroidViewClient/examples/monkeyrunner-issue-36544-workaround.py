@@ -49,17 +49,21 @@ if USE_AVC:
     showDialogButton = vc.findViewById('id/show_dialog_button')
     if showDialogButton:
         showDialogButton.touch()
-        MonkeyRunner.sleep(3)
         vc.dump()
-        editText = vc.findViewById('id/0x123456')
-        editText.touch()
-        MonkeyRunner.sleep(3)
-        device.type('Donald')
-        MonkeyRunner.sleep(3)
+        vc.findViewById('id/0x123456').type('Donald')
         ok = vc.findViewWithText('OK')
         if ok:
             # 09-08 20:17:47.860: D/MonkeyStub(2033): translateCommand: tap 265 518
             ok.touch()
+        vc.dump()
+        hello = vc.findViewById('id/hello')
+        if hello:
+            if hello.getText() == "Hello Donald":
+                print "OK"
+            else:
+                print "FAIL"
+        else:
+            print >> sys.stderr, "'hello' not found" 
     else:
         print >> sys.stderr, "'Show Dialog' button not found"
 else:
@@ -79,3 +83,12 @@ else:
         if ok:
             # 09-08 20:16:41.119: D/MonkeyStub(1992): translateCommand: tap 348 268
             easyDevice.touch(ok, MonkeyDevice.DOWN_AND_UP)
+        hello = By.id('id/hello')
+        if hello:
+            if easyDevice.getText(hello) == "Hello Donald":
+                print "OK"
+            else:
+                print "FAIL"
+        else:
+            print >> sys.stderr, "'hello' not found" 
+            

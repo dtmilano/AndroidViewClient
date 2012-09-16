@@ -17,6 +17,7 @@ com.dtmilano.android.viewclient.DEBUG_STATUSBAR	com.dtmilano.android.viewclient-
 com.dtmilano.android.viewclient.OFFSET	com.dtmilano.android.viewclient-module.html#OFFSET
 com.dtmilano.android.viewclient.DEBUG	com.dtmilano.android.viewclient-module.html#DEBUG
 com.dtmilano.android.viewclient.ANDROID_HOME	com.dtmilano.android.viewclient-module.html#ANDROID_HOME
+com.dtmilano.android.viewclient.DEBUG_WINDOWS	com.dtmilano.android.viewclient-module.html#DEBUG_WINDOWS
 com.dtmilano.android.viewclient.VIEW_SERVER_HOST	com.dtmilano.android.viewclient-module.html#VIEW_SERVER_HOST
 com.dtmilano.android.viewclient.DEBUG_RECEIVED	com.dtmilano.android.viewclient-module.html#DEBUG_RECEIVED
 com.dtmilano.android.viewclient.__nh	com.dtmilano.android.viewclient-module.html#__nh
@@ -37,6 +38,7 @@ com.dtmilano.android.viewclient.View.factory	com.dtmilano.android.viewclient.Vie
 com.dtmilano.android.viewclient.View.getId	com.dtmilano.android.viewclient.View-class.html#getId
 com.dtmilano.android.viewclient.View.add	com.dtmilano.android.viewclient.View-class.html#add
 com.dtmilano.android.viewclient.View.__call__	com.dtmilano.android.viewclient.View-class.html#__call__
+com.dtmilano.android.viewclient.EditText.type	com.dtmilano.android.viewclient.EditText-class.html#type
 com.dtmilano.android.viewclient.View.__smallStr__	com.dtmilano.android.viewclient.View-class.html#__smallStr__
 com.dtmilano.android.viewclient.View.allPossibleNamesWithColon	com.dtmilano.android.viewclient.View-class.html#allPossibleNamesWithColon
 com.dtmilano.android.viewclient.View.__getitem__	com.dtmilano.android.viewclient.View-class.html#__getitem__
@@ -87,6 +89,7 @@ com.dtmilano.android.viewclient.View.factory	com.dtmilano.android.viewclient.Vie
 com.dtmilano.android.viewclient.View.__getattr__	com.dtmilano.android.viewclient.View-class.html#__getattr__
 com.dtmilano.android.viewclient.View.add	com.dtmilano.android.viewclient.View-class.html#add
 com.dtmilano.android.viewclient.View.__dumpWindowsInformation	com.dtmilano.android.viewclient.View-class.html#__dumpWindowsInformation
+com.dtmilano.android.viewclient.View.__obtainPxPy	com.dtmilano.android.viewclient.View-class.html#__obtainPxPy
 com.dtmilano.android.viewclient.View.__call__	com.dtmilano.android.viewclient.View-class.html#__call__
 com.dtmilano.android.viewclient.View.__smallStr__	com.dtmilano.android.viewclient.View-class.html#__smallStr__
 com.dtmilano.android.viewclient.View.allPossibleNamesWithColon	com.dtmilano.android.viewclient.View-class.html#allPossibleNamesWithColon
@@ -104,17 +107,19 @@ com.dtmilano.android.viewclient.ViewClient.TRAVERSE_CIT	com.dtmilano.android.vie
 com.dtmilano.android.viewclient.ViewClient.dump	com.dtmilano.android.viewclient.ViewClient-class.html#dump
 com.dtmilano.android.viewclient.ViewClient.findViewWithAttribute	com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithAttribute
 com.dtmilano.android.viewclient.ViewClient.findViewByTag	com.dtmilano.android.viewclient.ViewClient-class.html#findViewByTag
-com.dtmilano.android.viewclient.ViewClient.device	com.dtmilano.android.viewclient.ViewClient-class.html#device
+com.dtmilano.android.viewclient.ViewClient.__parseTree	com.dtmilano.android.viewclient.ViewClient-class.html#__parseTree
 com.dtmilano.android.viewclient.ViewClient.findViewWithAttributeThatMatches	com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithAttributeThatMatches
 com.dtmilano.android.viewclient.ViewClient.__init__	com.dtmilano.android.viewclient.ViewClient-class.html#__init__
 com.dtmilano.android.viewclient.ViewClient.findViewById	com.dtmilano.android.viewclient.ViewClient-class.html#findViewById
 com.dtmilano.android.viewclient.ViewClient.__findViewWithAttributeInTreeThatMatches	com.dtmilano.android.viewclient.ViewClient-class.html#__findViewWithAttributeInTreeThatMatches
 com.dtmilano.android.viewclient.ViewClient.setViews	com.dtmilano.android.viewclient.ViewClient-class.html#setViews
 com.dtmilano.android.viewclient.ViewClient.findViewWithText	com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithText
+com.dtmilano.android.viewclient.ViewClient.build	com.dtmilano.android.viewclient.ViewClient-class.html#build
 com.dtmilano.android.viewclient.ViewClient.__splitAttrs	com.dtmilano.android.viewclient.ViewClient-class.html#__splitAttrs
 com.dtmilano.android.viewclient.ViewClient.assertServiceResponse	com.dtmilano.android.viewclient.ViewClient-class.html#assertServiceResponse
 com.dtmilano.android.viewclient.ViewClient.__getFocusedWindowPosition	com.dtmilano.android.viewclient.ViewClient-class.html#__getFocusedWindowPosition
-com.dtmilano.android.viewclient.ViewClient.parseTree	com.dtmilano.android.viewclient.ViewClient-class.html#parseTree
+com.dtmilano.android.viewclient.ViewClient.views	com.dtmilano.android.viewclient.ViewClient-class.html#views
+com.dtmilano.android.viewclient.ViewClient.device	com.dtmilano.android.viewclient.ViewClient-class.html#device
 com.dtmilano.android.viewclient.ViewClient.connectToDeviceOrExit	com.dtmilano.android.viewclient.ViewClient-class.html#connectToDeviceOrExit
 com.dtmilano.android.viewclient.ViewClient.serviceResponse	com.dtmilano.android.viewclient.ViewClient-class.html#serviceResponse
 com.dtmilano.android.viewclient.ViewClient.getRoot	com.dtmilano.android.viewclient.ViewClient-class.html#getRoot

@@ -112,8 +112,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="assertServiceResponse"></a><span class="summary-sig-name">assertServiceResponse</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">response</span>)</span></td>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#assertServiceResponse" class="summary-sig-name">assertServiceResponse</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">response</span>)</span><br />
+      Checks whether the response received from the server is correct or 
+      raises and Exception.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.assertServiceResponse">source&nbsp;code</a></span>
             
@@ -180,16 +182,18 @@
       
     </td>
   </tr>
-<tr>
+<tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="parseTree"></a><span class="summary-sig-name">parseTree</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">treeStr</span>)</span></td>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#__parseTree" class="summary-sig-name" onclick="show_private();">__parseTree</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Parses the View tree contained in <a 
+      href="com.dtmilano.android.viewclient.ViewClient-class.html#views" 
+      class="link">self.views</a>.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.parseTree">source&nbsp;code</a></span>
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__parseTree">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -240,9 +244,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="dump"></a><span class="summary-sig-name">dump</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">windowId</span>=<span class="summary-sig-default">-1</span>)</span><br />
-      Dumps the window content</td>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#dump" class="summary-sig-name">dump</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">windowId</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">sleep</span>=<span class="summary-sig-default">1</span>)</span><br />
+      Dumps the window content.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.dump">source&nbsp;code</a></span>
             
@@ -543,6 +548,24 @@
       density
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="build"></a><span class="summary-name">build</span><br />
+      The map containing the device's build properties: version.sdk, 
+      version.release
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="com.dtmilano.android.viewclient.ViewClient-class.html#views" class="summary-name">views</a><br />
+      The list of Views represented as <code>str</code> obtained after 
+      splitting it into lines after being received from the server.
+    </td>
+  </tr>
 </table>
 <!-- ==================== METHOD DETAILS ==================== -->
 <a name="section-MethodDetails"></a>
@@ -685,6 +708,35 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="assertServiceResponse"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">assertServiceResponse</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">response</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.assertServiceResponse">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Checks whether the response received from the server is correct or 
+  raises and Exception.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>response</code></strong> (str) - Response received from the server</li>
+    </ul></dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>Exception</strong></code> - If the response received from the server is invalid</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="serviceResponse"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -773,6 +825,30 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="__parseTree"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__parseTree</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__parseTree">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Parses the View tree contained in <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#views" 
+  class="link">self.views</a>. The tree is created and the root node 
+  assigned to <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#root" 
+  class="link">self.root</a>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="getRoot"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -826,6 +902,70 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="dump"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">dump</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">windowId</span>=<span class="sig-default">-1</span>,
+        <span class="sig-arg">sleep</span>=<span class="sig-default">1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.dump">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Dumps the window content.</p>
+  <p>Sleep is useful to wait some time before obtaining the new content 
+  when something in the window has changed.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>windowId</code></strong> (int) - the window id of the window to dump or -1 to dump all windows</li>
+        <li><strong class="pname"><code>sleep</code></strong> (int) - sleep in seconds before proceeding to dump the content</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the list of Views as <code>str</code> received from the server 
+          after being split into lines</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== INSTANCE VARIABLE DETAILS ==================== -->
+<a name="section-InstanceVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="views"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">views</h3>
+  <p>The list of Views represented as <code>str</code> obtained after 
+  splitting it into lines after being received from the server. Done by <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#setViews" 
+  class="link">self.setViews()</a>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
@@ -858,7 +998,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Sep 13 01:11:05 2012
+    Generated by Epydoc 3.0.1 on Sun Sep 16 18:36:46 2012
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
