@@ -42,6 +42,7 @@ com.dtmilano.android.viewclient.EditText.type	com.dtmilano.android.viewclient.Ed
 com.dtmilano.android.viewclient.View.__smallStr__	com.dtmilano.android.viewclient.View-class.html#__smallStr__
 com.dtmilano.android.viewclient.View.allPossibleNamesWithColon	com.dtmilano.android.viewclient.View-class.html#allPossibleNamesWithColon
 com.dtmilano.android.viewclient.View.__getitem__	com.dtmilano.android.viewclient.View-class.html#__getitem__
+com.dtmilano.android.viewclient.View.getCenter	com.dtmilano.android.viewclient.View-class.html#getCenter
 com.dtmilano.android.viewclient.View.intersection	com.dtmilano.android.viewclient.View-class.html#intersection
 com.dtmilano.android.viewclient.View.getXY	com.dtmilano.android.viewclient.View-class.html#getXY
 com.dtmilano.android.viewclient.View.getX	com.dtmilano.android.viewclient.View-class.html#getX
@@ -66,6 +67,7 @@ com.dtmilano.android.viewclient.View.__call__	com.dtmilano.android.viewclient.Vi
 com.dtmilano.android.viewclient.View.__smallStr__	com.dtmilano.android.viewclient.View-class.html#__smallStr__
 com.dtmilano.android.viewclient.View.allPossibleNamesWithColon	com.dtmilano.android.viewclient.View-class.html#allPossibleNamesWithColon
 com.dtmilano.android.viewclient.View.__getitem__	com.dtmilano.android.viewclient.View-class.html#__getitem__
+com.dtmilano.android.viewclient.View.getCenter	com.dtmilano.android.viewclient.View-class.html#getCenter
 com.dtmilano.android.viewclient.View.intersection	com.dtmilano.android.viewclient.View-class.html#intersection
 com.dtmilano.android.viewclient.View.getXY	com.dtmilano.android.viewclient.View-class.html#getXY
 com.dtmilano.android.viewclient.View.getX	com.dtmilano.android.viewclient.View-class.html#getX
@@ -94,6 +96,7 @@ com.dtmilano.android.viewclient.View.__call__	com.dtmilano.android.viewclient.Vi
 com.dtmilano.android.viewclient.View.__smallStr__	com.dtmilano.android.viewclient.View-class.html#__smallStr__
 com.dtmilano.android.viewclient.View.allPossibleNamesWithColon	com.dtmilano.android.viewclient.View-class.html#allPossibleNamesWithColon
 com.dtmilano.android.viewclient.View.__getitem__	com.dtmilano.android.viewclient.View-class.html#__getitem__
+com.dtmilano.android.viewclient.View.getCenter	com.dtmilano.android.viewclient.View-class.html#getCenter
 com.dtmilano.android.viewclient.View.intersection	com.dtmilano.android.viewclient.View-class.html#intersection
 com.dtmilano.android.viewclient.View.getXY	com.dtmilano.android.viewclient.View-class.html#getXY
 com.dtmilano.android.viewclient.View.getX	com.dtmilano.android.viewclient.View-class.html#getX

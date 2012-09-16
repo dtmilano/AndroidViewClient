@@ -412,6 +412,18 @@ class View:
         h = self.getHeight()
         return ((x, y), (x+w, y+h))
 
+    def getCenter(self):
+        '''
+        Gets the center coords of the View
+        
+        @author: U{Dean Morin <https://github.com/deanmorin>}
+        '''
+        
+        (left, top), (right, bottom) = self.getCoords()
+        x = left + (right - left) / 2
+        y = top + (bottom - top) / 2
+        return (x, y)
+
     def __obtainStatusBarDimensionsIfVisible(self):
         sbw = 0
         sbh = 0
@@ -522,13 +534,13 @@ class View:
     
     def touch(self, type=MonkeyDevice.DOWN_AND_UP):
         '''
-        Touches this C{View}
+        Touches the center of this C{View}
         '''
         
-        (x, y) = self.getXY()
+        (x, y) = self.getCenter()
         if DEBUG_TOUCH:
-            print >>sys.stderr, "should touch @ (%d, %d)" % (x+OFFSET, y+OFFSET)
-        self.device.touch(x+OFFSET, y+OFFSET, type)
+            print >>sys.stderr, "should touch @ (%d, %d)" % (x, y)
+        self.device.touch(x, y, type)
     
     def allPossibleNamesWithColon(self, name):
         l = []
