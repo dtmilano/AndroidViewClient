@@ -16,7 +16,8 @@ limitations under the License.
 
 @author: diego
 '''
-__version__ = '0.9'
+
+__version__ = '1.0'
 
 import sys
 import subprocess
@@ -127,6 +128,9 @@ class Window:
         return "Window(%d, %s, %s, %d, %d, %d, %d, %d, %d, %d)" % \
                 (self.num, self.winId, self.activity, self.wvx, self.wvy, self.wvw, self.wvh, self.px, self.py, self.visibility)
 
+
+class ViewNotFoundException(Exception):
+    pass
 
 class View:
     '''
@@ -247,6 +251,9 @@ class View:
         except:
             return None
 
+    def getParent(self):
+        return self.parent
+    
     def getText(self):
         '''
         Gets the text attribute
@@ -997,6 +1004,20 @@ class ViewClient:
             if foundView:
                 return foundView
 
+    def findViewByIdOrRaise(self, viewId, root="ROOT"):
+        '''
+        Finds the View or raise a ViewNotFoundException.
+        
+        @return: the View found
+        @raise ViewNotFoundException: raise the exception if View not found
+        '''
+        
+        view = self.findViewById(viewId, root)
+        if view:
+            return view
+        else:
+            raise ViewNotFoundException("Couldn't find view with ID=%s" % viewId)
+        
     def findViewByTag(self, tag):
         '''
         Finds the View with the specified tag
@@ -1052,6 +1073,20 @@ class ViewClient:
         
         return self.__findViewWithAttributeInTree(attr, val, self.root)
         
+    def findViewWithAttributeOrRaise(self, attr, val):
+        '''
+        Finds the View or raise a ViewNotFoundException.
+        
+        @return: the View found
+        @raise ViewNotFoundException: raise the exception if View not found
+        '''
+        
+        view = self.findViewWithAttribute(attr, val)
+        if view:
+            return view
+        else:
+            raise ViewNotFoundException("Couldn't find View with %s='%s'" % (attr, val))
+        
     def findViewWithAttributeThatMatches(self, attr, regex):
         '''
         Finds the list of Views with the specified attribute matching
@@ -1075,6 +1110,20 @@ class ViewClient:
         else:
             return self.findViewWithAttribute(TEXT_PROPERTY, text)
 
+    def findViewWithTextOrRaise(self, text):
+        '''
+        Finds the View or raise a ViewNotFoundException.
+        
+        @return: the View found
+        @raise ViewNotFoundException: raise the exception if View not found
+        '''
+        
+        view = self.findViewWithText(text)
+        if view:
+            return view
+        else:
+            raise ViewNotFoundException("Coulnd't find View with text='%s'" % text)
+    
     def getViewIds(self):
         '''
         Returns the Views map.

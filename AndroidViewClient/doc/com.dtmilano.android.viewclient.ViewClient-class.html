@@ -284,6 +284,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#findViewByIdOrRaise" class="summary-sig-name">findViewByIdOrRaise</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">viewId</span>,
+        <span class="summary-sig-arg">root</span>=<span class="summary-sig-default">&quot;ROOT&quot;</span>)</span><br />
+      Finds the View or raise a ViewNotFoundException.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewByIdOrRaise">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="findViewByTag"></a><span class="summary-sig-name">findViewByTag</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">tag</span>)</span><br />
       Finds the View with the specified tag</td>
@@ -360,6 +379,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithAttributeOrRaise" class="summary-sig-name">findViewWithAttributeOrRaise</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">val</span>)</span><br />
+      Finds the View or raise a ViewNotFoundException.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithAttributeOrRaise">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="findViewWithAttributeThatMatches"></a><span class="summary-sig-name">findViewWithAttributeThatMatches</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">attr</span>,
         <span class="summary-sig-arg">regex</span>)</span><br />
@@ -383,6 +421,24 @@
         <span class="summary-sig-arg">text</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithText">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithTextOrRaise" class="summary-sig-name">findViewWithTextOrRaise</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">text</span>)</span><br />
+      Finds the View or raise a ViewNotFoundException.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithTextOrRaise">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -937,6 +993,86 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="findViewByIdOrRaise"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">findViewByIdOrRaise</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">viewId</span>,
+        <span class="sig-arg">root</span>=<span class="sig-default">&quot;ROOT&quot;</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewByIdOrRaise">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds the View or raise a ViewNotFoundException.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>the View found</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="com.dtmilano.android.viewclient.ViewNotFoundException-class.html">ViewNotFoundException</a></strong></code> - raise the exception if View not found</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="findViewWithAttributeOrRaise"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">findViewWithAttributeOrRaise</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">attr</span>,
+        <span class="sig-arg">val</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithAttributeOrRaise">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds the View or raise a ViewNotFoundException.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>the View found</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="com.dtmilano.android.viewclient.ViewNotFoundException-class.html">ViewNotFoundException</a></strong></code> - raise the exception if View not found</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="findViewWithTextOrRaise"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">findViewWithTextOrRaise</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">text</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithTextOrRaise">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds the View or raise a ViewNotFoundException.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>the View found</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="com.dtmilano.android.viewclient.ViewNotFoundException-class.html">ViewNotFoundException</a></strong></code> - raise the exception if View not found</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== INSTANCE VARIABLE DETAILS ==================== -->
 <a name="section-InstanceVariableDetails"></a>
@@ -1002,7 +1138,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Sun Sep 16 19:07:58 2012
+    Generated by Epydoc 3.0.1 on Wed Sep 19 00:35:00 2012
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
