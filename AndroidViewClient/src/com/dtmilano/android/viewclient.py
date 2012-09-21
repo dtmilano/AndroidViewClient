@@ -26,6 +26,7 @@ import socket
 import os
 import java
 import types
+import time
 import warnings
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
@@ -34,7 +35,7 @@ DEBUG_RECEIVED = DEBUG and True
 DEBUG_TREE = DEBUG and True
 DEBUG_GETATTR = DEBUG and False
 DEBUG_COORDS = DEBUG and True
-DEBUG_TOUCH = DEBUG and True
+DEBUG_TOUCH = DEBUG and True or True
 DEBUG_STATUSBAR = DEBUG and True
 DEBUG_WINDOWS = DEBUG and True
 
@@ -570,7 +571,14 @@ class View:
         (x, y) = self.getCenter()
         if DEBUG_TOUCH:
             print >>sys.stderr, "should touch @ (%d, %d)" % (x, y)
-        self.device.touch(x, y, type)
+        if type == MonkeyDevice.DOWN_AND_UP:
+            if WARNINGS:
+                print >> sys.stderr, "ViewClient: touch workaround enabled"
+            self.device.touch(x, y, MonkeyDevice.DOWN)
+            time.sleep(50/1000.0)
+            self.device.touch(x+10, y+10, MonkeyDevice.UP)
+        else:
+            self.device.touch(x, y, type)
     
     def allPossibleNamesWithColon(self, name):
         l = []
