@@ -658,8 +658,9 @@ class ViewClient:
                                 'This only works on emulator and devices running developer versions.\n'
                                 'Does hierarchyviewer work on your device ?')
 
+        self.serialno = ViewClient.__mapSerialNo(serialno)
         # FIXME: it seems there's no way of obtaining the serialno from the MonkeyDevice
-        subprocess.check_call([adb, '-s', serialno, 'forward', 'tcp:%d' % VIEW_SERVER_PORT,
+        subprocess.check_call([adb, '-s', self.serialno, 'forward', 'tcp:%d' % VIEW_SERVER_PORT,
                                'tcp:%d' % VIEW_SERVER_PORT])
 
         self.device = device
@@ -688,6 +689,13 @@ class ViewClient:
                 
         if autodump:
             self.dump()
+    
+    @staticmethod
+    def __mapSerialNo(serialno):
+        ipRE = re.compile('\d+\.\d+.\d+.\d+')
+        if ipRE.match(serialno):
+            serialno += ':5555'
+        return serialno
     
     @staticmethod
     def connectToDeviceOrExit(timeout=60):
@@ -770,6 +778,7 @@ class ViewClient:
         ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
         if DEBUG:
             print >>sys.stderr, "there are %d views in this dump" % len(self.views)
+        self.__parseTree()
 
     def __splitAttrs(self, strArgs, addViewToViewsById=False):
         '''
@@ -974,7 +983,6 @@ class ViewClient:
             print >>sys.stderr, received
             print >>sys.stderr
         self.setViews(received)
-        self.__parseTree()
 
         if DEBUG_TREE:
             self.traverse(self.root)

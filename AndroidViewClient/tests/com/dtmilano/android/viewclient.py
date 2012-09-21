@@ -146,11 +146,18 @@ class ViewClientTest(unittest.TestCase):
         vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
         self.assertNotEquals(None, vc)
     
+    def testMapSerialNo(self):
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False, serialno='192.168.1.100')
+        self.assertEqual('192.168.1.100:5555', vc.serialno)
+        
+    def testMapSerialNo_emulator(self):
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False, serialno='emulator-5556')
+        self.assertEqual('emulator-5556', vc.serialno)
+        
     def __mockTree(self, dump=DUMP):
         vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
         self.assertNotEquals(None, vc)
         vc.setViews(dump)
-        vc.parseTree(vc.views)
         return vc
 
     def testRoot(self):
