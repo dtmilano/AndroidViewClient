@@ -882,7 +882,7 @@ class ViewClient:
             attrs = self.__splitAttrs(v, addViewToViewsById=True)
             if not self.root:
                 if v[0] == ' ':
-                    raise "Unexpected root element starting with ' '."
+                    raise Exception("Unexpected root element starting with ' '.")
                 self.root = View.factory(attrs, self.device)
                 treeLevel = 0
                 newLevel = 0
@@ -892,14 +892,14 @@ class ViewClient:
             else:
                 newLevel = (len(v) - len(v.lstrip()))
                 if newLevel == 0:
-                    raise "newLevel==0 but tree can have only one root, v=", v
+                    raise Exception("newLevel==0 treeLevel=%d but tree can have only one root, v=%s" % (treeLevel, v))
                 child = View.factory(attrs, self.device)
                 if newLevel == treeLevel:
                     parent.add(child)
                     lastView = child
                 elif newLevel > treeLevel:
                     if (newLevel - treeLevel) != 1:
-                        raise "newLevel jumps %d levels, v=%s" % ((newLevel-treeLevel), v)
+                        raise Exception("newLevel jumps %d levels, v=%s" % ((newLevel-treeLevel), v))
                     parent = lastView
                     parents.append(parent)
                     parent.add(child)
