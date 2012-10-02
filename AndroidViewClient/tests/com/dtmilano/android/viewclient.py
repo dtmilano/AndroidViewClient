@@ -18,34 +18,42 @@ try:
 except:
     pass
 
-from com.dtmilano.android.viewclient import View, TextView, EditText, ViewClient
+from com.dtmilano.android.viewclient import *
 from mocks import MockDevice
-from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP
+from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, RUNNING, STOPPED
 
 
 class ViewTest(unittest.TestCase):
 
     def setUp(self):
-        self.view = View(VIEW_MAP, None)
+        self.view = View(VIEW_MAP, None, -1)
 
     def tearDown(self):
         pass
 
     def testViewFactory_View(self):
         attrs = {'class': 'android.widget.AnyView', 'text:mText': 'Button with ID'}
-        view = View.factory(attrs, None)
+        view = View.factory(attrs, None, -1)
         self.assertTrue(isinstance(view, View))
         
     def testViewFactory_TextView(self):
         attrs = {'class': 'android.widget.TextView', 'text:mText': 'Button with ID'}
-        view = View.factory(attrs, None)
+        view = View.factory(attrs, None, -1)
         self.assertTrue(isinstance(view, TextView))
         
     def testViewFactory_TextView(self):
         attrs = {'class': 'android.widget.EditText', 'text:mText': 'Button with ID'}
-        view = View.factory(attrs, None)
+        view = View.factory(attrs, None, -1)
         self.assertTrue(isinstance(view, EditText))
     
+    def testView_notSpecifiedSdkVersion(self):
+        view = View(VIEW_MAP, MockDevice(), -1)
+        self.assertEqual(15, view.build[VERSION_SDK_PROPERTY])
+        
+    def testView_specifiedSdkVersion(self):
+        view = View(VIEW_MAP, MockDevice(), 10)
+        self.assertEqual(10, view.build[VERSION_SDK_PROPERTY])
+        
     def testInnerMethod(self):
         v = View({'isChecked()':'true'}, None)
         self.assertTrue(v.isChecked())
@@ -69,6 +77,7 @@ class ViewTest(unittest.TestCase):
         self.assertEqual('id/button_with_id', self.view.getId())
     
     def testGetText(self):
+        self.assertTrue(self.view.map.has_key('text:mText'))
         self.assertEqual('Button with ID', self.view.getText())
        
     def testGetWidth(self):
@@ -150,9 +159,22 @@ class ViewClientTest(unittest.TestCase):
         vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False, serialno='192.168.1.100')
         self.assertEqual('192.168.1.100:5555', vc.serialno)
         
+    def testMapSerialNo(self):
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False, serialno='192.168.1.100:5555')
+        self.assertEqual('192.168.1.100:5555', vc.serialno)
+        
     def testMapSerialNo_emulator(self):
         vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False, serialno='emulator-5556')
         self.assertEqual('emulator-5556', vc.serialno)
+        
+    def testMapSerialNo_emulator(self):
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False, serialno='.*')
+        self.assertEqual('emulator-5554', vc.serialno)
+        
+    def testMapSerialNo_None(self):
+        device = MockDevice()
+        vc = ViewClient(device, adb='/usr/bin/true', autodump=False, serialno=None)
+        self.assertEqual(device.serialno, vc.serialno)
         
     def __mockTree(self, dump=DUMP):
         vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
@@ -215,6 +237,15 @@ class ViewClientTest(unittest.TestCase):
         self.assertEqual(ty, y)
         self.assertEqual((tsx, tsy), xy)
         self.assertEqual(((tsx, tsy), (xy[0] + w, xy[1] + h)), coords)
+        
+    def testServiceStoppedAfterDestructor(self):
+        device = MockDevice()
+        self.assertTrue(device.service == STOPPED)
+        if True:
+            vc = ViewClient(device, adb='/usr/bin/true', autodump=False)
+            self.assertTrue(device.service == RUNNING)
+            vc.__del__()
+        self.assertTrue(device.service == STOPPED)
 
          
 if __name__ == "__main__":

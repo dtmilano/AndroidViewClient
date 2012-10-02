@@ -16,5 +16,5 @@ add_to_path ()
 }
 
 
-add_to_path $ANDROID_SDK/tools
-add_to_path $ANDROID_SDK/platform-tools
+add_to_path $ANDROID_HOME/tools
+add_to_path $ANDROID_HOME/platform-tools

@@ -29,4 +29,4 @@ except:
 from com.dtmilano.android.viewclient import ViewClient
 
 device, serialno = ViewClient.connectToDeviceOrExit()
-ViewClient(device=device, serialno=serialno).traverse(transform=ViewClient.TRAVERSE_CIT)
+ViewClient(device=device).traverse(transform=ViewClient.TRAVERSE_CIT)
