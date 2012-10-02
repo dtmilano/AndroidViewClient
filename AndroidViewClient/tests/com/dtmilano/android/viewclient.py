@@ -69,6 +69,7 @@ class ViewTest(unittest.TestCase):
         self.assertEqual('id/button_with_id', self.view.getId())
     
     def testGetText(self):
+        self.assertTrue(self.view.map.has_key('text:mText'))
         self.assertEqual('Button with ID', self.view.getText())
        
     def testGetWidth(self):

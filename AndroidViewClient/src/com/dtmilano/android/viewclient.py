@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '1.0'
+__version__ = '1.2'
 
 import sys
 import subprocess
@@ -54,6 +54,13 @@ else:
 OFFSET = 25
 ''' This assumes the smallest touchable view on the screen is approximately 50px x 50px
     and touches it at M{(x+OFFSET, y+OFFSET)} '''
+
+USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES = True
+
+SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED = False
+''' Skips some classes related with the Action Bar and the PhoneWindow$DecorView in the
+    coordinates calculation
+    @see: L{View.getXY()} '''
 
 # some constants for the attributes
 TEXT_PROPERTY = 'text:mText'
@@ -361,13 +368,14 @@ class View:
         hy = 0
         while parent != None:
             if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId())
-            if parent.getClass() in [ 'com.android.internal.widget.ActionBarView',
+            if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
+                if parent.getClass() in [ 'com.android.internal.widget.ActionBarView',
                                        'com.android.internal.widget.ActionBarContextView',
                                        'com.android.internal.view.menu.ActionMenuView',
                                        'com.android.internal.policy.impl.PhoneWindow$DecorView' ]:
-                if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.getX(), parent.getY())
-                parent = parent.parent
-                continue
+                    if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.getX(), parent.getY())
+                    parent = parent.parent
+                    continue
             if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy)
             hx += parent.getX()
             hy += parent.getY()
@@ -419,6 +427,17 @@ class View:
         h = self.getHeight()
         return ((x, y), (x+w, y+h))
 
+    def getPositionAndSize(self):
+        '''
+        Gets the position and size (X,Y, W, H)
+        '''
+        
+        (x, y) = self.getXY();
+        w = self.getWidth()
+        h = self.getHeight()
+        return (x, y, w, h)
+
+        
     def getCenter(self):
         '''
         Gets the center coords of the View
@@ -738,9 +757,27 @@ class ViewClient:
         except Exception, e:
             return "Exception in view=%s: %s" % (view.__smallStr__(), e)
         
+    @staticmethod
+    def traverseShowClassIdTextAndCenter(view):
+        '''
+        Shows the View class, id and text if available.
+        This function can be used as a transform function to L{ViewClient.traverse()}
+        
+        @type view: I{View}
+        @param view: the View
+        @return: the string containing class, id, and text if available 
+        '''
+        
+        try:
+            return "%s %s %s %s" % (view.getClass(), view.getId(), view.getText(), view.getCenter())
+        except Exception, e:
+            return "Exception in view=%s: %s" % (view.__smallStr__(), e)
+        
     # methods that can be used to transform ViewClient.traverse output
     TRAVERSE_CIT = traverseShowClassIdAndText
     ''' An alias for L{traverseShowClassIdAndText(view)} '''
+    TRAVERSE_CITC = traverseShowClassIdTextAndCenter
+    ''' An alias for L{traverseShowClassIdTextAndCenter(view)} '''
     
     def assertServiceResponse(self, response):
         '''
@@ -774,6 +811,8 @@ class ViewClient:
         @param received: the string received from the I{View server}
         '''
         
+        if not received or received == "":
+            raise ValueError("received is empty")
         self.views = received.split("\n")
         ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
         if DEBUG:

@@ -1,0 +1,1268 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>src.com.dtmilano.android.viewclient.ViewClient</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="src.com.dtmilano.android-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://dtmilano.com/viewclient">Project Homepage</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Package&nbsp;src ::
+        Package&nbsp;com ::
+        Package&nbsp;dtmilano ::
+        <a href="src.com.dtmilano.android-module.html">Package&nbsp;android</a> ::
+        <a href="src.com.dtmilano.android.viewclient-module.html">Module&nbsp;viewclient</a> ::
+        Class&nbsp;ViewClient
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="src.com.dtmilano.android.viewclient.ViewClient-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class ViewClient</h1><p class="nomargin-top"><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient">source&nbsp;code</a></span></p>
+<p>ViewClient is a <i>ViewServer</i> client.</p>
+  <p>If not running the ViewServer is started on the target device or 
+  emulator and then the port mapping is created.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">device</span>,
+        <span class="summary-sig-arg">adb</span>=<span class="summary-sig-default">os.path.join(ANDROID_HOME,'platform-tools',ADB)</span>,
+        <span class="summary-sig-arg">autodump</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">serialno</span>=<span class="summary-sig-default">'emulator-5554'</span>)</span><br />
+      Constructor</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#assertServiceResponse" class="summary-sig-name">assertServiceResponse</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">response</span>)</span><br />
+      Checks whether the response received from the server is correct or 
+      raises and Exception.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.assertServiceResponse">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#serviceResponse" class="summary-sig-name">serviceResponse</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">response</span>)</span><br />
+      Checks the response received from the <i>ViewServer</i>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.serviceResponse">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#setViews" class="summary-sig-name">setViews</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">received</span>)</span><br />
+      Sets <a 
+      href="src.com.dtmilano.android.viewclient.ViewClient-class.html#views"
+      class="link">self.views</a> to the received value splitting it into 
+      lines.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.setViews">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#__splitAttrs" class="summary-sig-name" onclick="show_private();">__splitAttrs</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">strArgs</span>,
+        <span class="summary-sig-arg">addViewToViewsById</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Splits the <code>View</code> attributes in <code>strArgs</code> and 
+      optionally adds the view id to the <code>viewsById</code> list.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__splitAttrs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#__parseTree" class="summary-sig-name" onclick="show_private();">__parseTree</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Parses the View tree contained in <a 
+      href="src.com.dtmilano.android.viewclient.ViewClient-class.html#views"
+      class="link">self.views</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__parseTree">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#getRoot" class="summary-sig-name">getRoot</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Gets the root node of the <code>View</code> tree</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.getRoot">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#traverse" class="summary-sig-name">traverse</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">root</span>=<span class="summary-sig-default">&quot;ROOT&quot;</span>,
+        <span class="summary-sig-arg">indent</span>=<span class="summary-sig-default">&quot;&quot;</span>,
+        <span class="summary-sig-arg">transform</span>=<span class="summary-sig-default">View.__str__</span>)</span><br />
+      Traverses the <code>View</code> tree and prints its nodes.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverse">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#dump" class="summary-sig-name">dump</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">windowId</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">sleep</span>=<span class="summary-sig-default">1</span>)</span><br />
+      Dumps the window content.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.dump">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="findViewById"></a><span class="summary-sig-name">findViewById</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">viewId</span>,
+        <span class="summary-sig-arg">root</span>=<span class="summary-sig-default">&quot;ROOT&quot;</span>)</span><br />
+      Finds the View with the specified viewId.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewById">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewByIdOrRaise" class="summary-sig-name">findViewByIdOrRaise</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">viewId</span>,
+        <span class="summary-sig-arg">root</span>=<span class="summary-sig-default">&quot;ROOT&quot;</span>)</span><br />
+      Finds the View or raise a ViewNotFoundException.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewByIdOrRaise">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="findViewByTag"></a><span class="summary-sig-name">findViewByTag</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">tag</span>)</span><br />
+      Finds the View with the specified tag</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewByTag">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__findViewWithAttributeInTree"></a><span class="summary-sig-name">__findViewWithAttributeInTree</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">val</span>,
+        <span class="summary-sig-arg">root</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__findViewWithAttributeInTree">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__findViewWithAttributeInTreeThatMatches"></a><span class="summary-sig-name">__findViewWithAttributeInTreeThatMatches</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">regex</span>,
+        <span class="summary-sig-arg">root</span>,
+        <span class="summary-sig-arg">rlist</span>=<span class="summary-sig-default">[]</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__findViewWithAttributeInTreeThatMatches">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="findViewWithAttribute"></a><span class="summary-sig-name">findViewWithAttribute</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">val</span>)</span><br />
+      Finds the View with the specified attribute and value</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithAttribute">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithAttributeOrRaise" class="summary-sig-name">findViewWithAttributeOrRaise</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">val</span>)</span><br />
+      Finds the View or raise a ViewNotFoundException.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithAttributeOrRaise">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="findViewWithAttributeThatMatches"></a><span class="summary-sig-name">findViewWithAttributeThatMatches</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">regex</span>)</span><br />
+      Finds the list of Views with the specified attribute matching regex</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithAttributeThatMatches">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="findViewWithText"></a><span class="summary-sig-name">findViewWithText</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">text</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithText">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithTextOrRaise" class="summary-sig-name">findViewWithTextOrRaise</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">text</span>)</span><br />
+      Finds the View or raise a ViewNotFoundException.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithTextOrRaise">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getViewIds"></a><span class="summary-sig-name">getViewIds</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the Views map.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.getViewIds">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__getFocusedWindowPosition"></a><span class="summary-sig-name">__getFocusedWindowPosition</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__getFocusedWindowPosition">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== STATIC METHODS ==================== -->
+<a name="section-StaticMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Static Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-StaticMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__mapSerialNo"></a><span class="summary-sig-name">__mapSerialNo</span>(<span class="summary-sig-arg">serialno</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__mapSerialNo">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#connectToDeviceOrExit" class="summary-sig-name">connectToDeviceOrExit</a>(<span class="summary-sig-arg">timeout</span>=<span class="summary-sig-default">60</span>)</span><br />
+      Connects to a device which serial number is obtained from the script 
+      arguments if available or using the default 
+      <code>emulator-5554</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.connectToDeviceOrExit">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdAndText" class="summary-sig-name">traverseShowClassIdAndText</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      Shows the View class, id and text if available.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdAndText">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndCenter" class="summary-sig-name">traverseShowClassIdTextAndCenter</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      Shows the View class, id and text if available.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndCenter">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CIT" class="summary-sig-name">TRAVERSE_CIT</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      An alias for <a 
+      href="src.com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdAndText"
+      class="link">traverseShowClassIdAndText(view)</a></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdAndText">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITC" class="summary-sig-name">TRAVERSE_CITC</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      An alias for <code 
+      class="link">traverseShowClassIdTextCenter(view)</code></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndCenter">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE VARIABLES ==================== -->
+<a name="section-InstanceVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="device"></a><span class="summary-name">device</span><br />
+      The <code>MonkeyDevice</code> device instance
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="root"></a><span class="summary-name">root</span><br />
+      The root node
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="viewsById"></a><span class="summary-name">viewsById</span><br />
+      The map containing all the <a 
+      href="src.com.dtmilano.android.viewclient.View-class.html" 
+      class="link">View</a>s indexed by their <code 
+      class="link">uniqueId</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="display"></a><span class="summary-name">display</span><br />
+      The map containing the device's display properties: width, height and
+      density
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="build"></a><span class="summary-name">build</span><br />
+      The map containing the device's build properties: version.sdk, 
+      version.release
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#views" class="summary-name">views</a><br />
+      The list of Views represented as <code>str</code> obtained after 
+      splitting it into lines after being received from the server.
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">device</span>,
+        <span class="sig-arg">adb</span>=<span class="sig-default">os.path.join(ANDROID_HOME,'platform-tools',ADB)</span>,
+        <span class="sig-arg">autodump</span>=<span class="sig-default">True</span>,
+        <span class="sig-arg">serialno</span>=<span class="sig-default">'emulator-5554'</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Constructor</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>device</code></strong> (MonkeyDevice) - The device running the <code>View server</code> to which this 
+          client will connect</li>
+        <li><strong class="pname"><code>adb</code></strong> (str) - the path of the <code>adb</code> executable</li>
+        <li><strong class="pname"><code>autodump</code></strong> (boolean) - whether an automatic dump is performed at the end of this 
+          constructor</li>
+        <li><strong class="pname"><code>serialno</code></strong> (str) - the serial number of the device or emulator to connect to</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="connectToDeviceOrExit"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">connectToDeviceOrExit</span>(<span class="sig-arg">timeout</span>=<span class="sig-default">60</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.connectToDeviceOrExit">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Connects to a device which serial number is obtained from the script 
+  arguments if available or using the default 
+  <code>emulator-5554</code>.</p>
+  <p>If the connection is not successful the script exits. <code 
+  class="link">MonkeyRunner.waitForConnection()</code> returns a 
+  MonkeyDevice even if the connection failed. Then, to detect this 
+  situation, <code>device.wake()</code> is attempted and if it fails then 
+  it is assumed the previous connection failed.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>timeout</code></strong> (int) - timeout for the connection</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the device and serialno used for the connection</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="traverseShowClassIdAndText"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">traverseShowClassIdAndText</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdAndText">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Shows the View class, id and text if available. This function can be 
+  used as a transform function to <a 
+  href="src.com.dtmilano.android.viewclient.ViewClient-class.html#traverse"
+  class="link">ViewClient.traverse()</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="traverseShowClassIdTextAndCenter"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">traverseShowClassIdTextAndCenter</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndCenter">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Shows the View class, id and text if available. This function can be 
+  used as a transform function to <a 
+  href="src.com.dtmilano.android.viewclient.ViewClient-class.html#traverse"
+  class="link">ViewClient.traverse()</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="TRAVERSE_CIT"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">TRAVERSE_CIT</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdAndText">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>An alias for <a 
+  href="src.com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdAndText"
+  class="link">traverseShowClassIdAndText(view)</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="TRAVERSE_CITC"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">TRAVERSE_CITC</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndCenter">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>An alias for <code 
+  class="link">traverseShowClassIdTextCenter(view)</code></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="assertServiceResponse"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">assertServiceResponse</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">response</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.assertServiceResponse">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Checks whether the response received from the server is correct or 
+  raises and Exception.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>response</code></strong> (str) - Response received from the server</li>
+    </ul></dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>Exception</strong></code> - If the response received from the server is invalid</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="serviceResponse"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">serviceResponse</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">response</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.serviceResponse">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Checks the response received from the <i>ViewServer</i>.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd><code>True</code> if the response received matches <code 
+          class="link">PARCEL_TRUE</code>, <code>False</code> otherwise</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="setViews"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">setViews</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">received</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.setViews">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Sets <a 
+  href="src.com.dtmilano.android.viewclient.ViewClient-class.html#views" 
+  class="link">self.views</a> to the received value splitting it into 
+  lines.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>received</code></strong> (str) - the string received from the <i>View server</i></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__splitAttrs"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__splitAttrs</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">strArgs</span>,
+        <span class="sig-arg">addViewToViewsById</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__splitAttrs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Splits the <code>View</code> attributes in <code>strArgs</code> and 
+  optionally adds the view id to the <code>viewsById</code> list.</p>
+  <h1 class="heading">Unique Ids</h1>
+    <p>It is very common to find <code>View</code>s having <b>NO_ID</b> as 
+    the Id. This turns very difficult to use <a 
+    href="src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewById"
+    class="link">self.findViewById()</a>. To help in this situation this 
+    method assigns <b>unique Ids</b> if <code>addViewToViewsById</code> is 
+    <code>True</code>.</p>
+    <p>The <b>unique Ids</b> are generated using the pattern 
+    <code>id/no_id/&lt;number&gt;</code> with <code>&lt;number&gt;</code> 
+    starting at 1.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>strArgs</code></strong> (str) - the string containing the raw list of attributes and values</li>
+        <li><strong class="pname"><code>addViewToViewsById</code></strong> (boolean) - whether to add the parsed list of attributes and values to the 
+          map <code>self.viewsById</code></li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>Returns the attributes map.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__parseTree"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__parseTree</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__parseTree">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Parses the View tree contained in <a 
+  href="src.com.dtmilano.android.viewclient.ViewClient-class.html#views" 
+  class="link">self.views</a>. The tree is created and the root node 
+  assigned to <a 
+  href="src.com.dtmilano.android.viewclient.ViewClient-class.html#root" 
+  class="link">self.root</a>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getRoot"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getRoot</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.getRoot">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Gets the root node of the <code>View</code> tree</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>the root node of the <code>View</code> tree</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="traverse"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">traverse</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">root</span>=<span class="sig-default">&quot;ROOT&quot;</span>,
+        <span class="sig-arg">indent</span>=<span class="sig-default">&quot;&quot;</span>,
+        <span class="sig-arg">transform</span>=<span class="sig-default">View.__str__</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverse">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Traverses the <code>View</code> tree and prints its nodes.</p>
+  <p>The nodes are printed converting them to string but other 
+  transformations can be specified by providing a method name as the 
+  <code>transform</code> parameter.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>root</code></strong> (<a href="src.com.dtmilano.android.viewclient.View-class.html" 
+          class="link">View</a>) - the root node from where the traverse starts</li>
+        <li><strong class="pname"><code>indent</code></strong> (str) - the indentation string to use to print the nodes</li>
+        <li><strong class="pname"><code>transform</code></strong> (method) - a method to use to transform the node before is printed</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="dump"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">dump</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">windowId</span>=<span class="sig-default">-1</span>,
+        <span class="sig-arg">sleep</span>=<span class="sig-default">1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.dump">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Dumps the window content.</p>
+  <p>Sleep is useful to wait some time before obtaining the new content 
+  when something in the window has changed.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>windowId</code></strong> (int) - the window id of the window to dump or -1 to dump all windows</li>
+        <li><strong class="pname"><code>sleep</code></strong> (int) - sleep in seconds before proceeding to dump the content</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the list of Views as <code>str</code> received from the server 
+          after being split into lines</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="findViewByIdOrRaise"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">findViewByIdOrRaise</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">viewId</span>,
+        <span class="sig-arg">root</span>=<span class="sig-default">&quot;ROOT&quot;</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewByIdOrRaise">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds the View or raise a ViewNotFoundException.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>the View found</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="src.com.dtmilano.android.viewclient.ViewNotFoundException-class.html">ViewNotFoundException</a></strong></code> - raise the exception if View not found</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="findViewWithAttributeOrRaise"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">findViewWithAttributeOrRaise</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">attr</span>,
+        <span class="sig-arg">val</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithAttributeOrRaise">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds the View or raise a ViewNotFoundException.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>the View found</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="src.com.dtmilano.android.viewclient.ViewNotFoundException-class.html">ViewNotFoundException</a></strong></code> - raise the exception if View not found</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="findViewWithTextOrRaise"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">findViewWithTextOrRaise</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">text</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithTextOrRaise">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds the View or raise a ViewNotFoundException.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>the View found</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'><a href="src.com.dtmilano.android.viewclient.ViewNotFoundException-class.html">ViewNotFoundException</a></strong></code> - raise the exception if View not found</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== INSTANCE VARIABLE DETAILS ==================== -->
+<a name="section-InstanceVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="views"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">views</h3>
+  <p>The list of Views represented as <code>str</code> obtained after 
+  splitting it into lines after being received from the server. Done by <a 
+  href="src.com.dtmilano.android.viewclient.ViewClient-class.html#setViews"
+  class="link">self.setViews()</a>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="src.com.dtmilano.android-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://dtmilano.com/viewclient">Project Homepage</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue Oct  2 00:38:58 2012
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
