@@ -7,6 +7,7 @@ Created on Feb 5, 2012
 
 import sys
 import os
+import StringIO
 import unittest
 
 # PyDev sets PYTHONPATH, use it
@@ -18,7 +19,7 @@ try:
 except:
     pass
 
-from com.dtmilano.android.viewclient import View, TextView, EditText, ViewClient
+from com.dtmilano.android.viewclient import *
 from mocks import MockDevice
 from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP
 
@@ -174,7 +175,50 @@ class ViewClientTest(unittest.TestCase):
         vc.traverse(vc.root, transform=self.__eatIt)
         # We know there are 23 views in mock tree
         self.assertEqual(23, len(vc.getViewIds()))
+       
+    def testTraverseShowClassIdAndText(self):
+        device = MockDevice()
+        root = View({'text:mText':'0'}, device)
+        root.add(View({'text:mText':'1'}, device))
+        root.add(View({'text:mText':'2'}, device))
+        v3 = View({'text:mText':'3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
+        v3.add(v35)
+        vc = ViewClient(device, adb='/usr/bin/true', autodump=False)
+        self.assertNotEquals(None, vc)
+        treeStr = StringIO.StringIO()
+        vc.traverse(root=root, transform=ViewClient.TRAVERSE_CIT, stream=treeStr)
+        self.assertNotEquals(None, treeStr.getvalue())
+        lines = treeStr.getvalue().splitlines()
+        self.assertEqual(5, len(lines))
+        self.assertEqual('None None 0', lines[0])
+        citRE = re.compile(' +None None \d+')
+        for l in lines[1:]:
+            self.assertTrue(citRE.match(l))
         
+    
+    def testTraverseShowClassIdTextAndCenter(self):
+        device = MockDevice()
+        root = View({'mID':'0', 'text:mText':'0', 'layout:mLeft':0, 'layout:mTop':0}, device)
+        root.add(View({'mID':'1', 'text:mText':'1', 'layout:mLeft':1, 'layout:mTop':1}, device))
+        root.add(View({'mID':'2', 'text:mText':'2', 'layout:mLeft':2, 'layout:mTop':2}, device))
+        v3 = View({'mID':'3', 'text:mText':'3', 'layout:mLeft':3, 'layout:mTop':3}, device)
+        root.add(v3)
+        v35 = View({'mID':'5', 'text:mText':'5', 'getTag()':'v35', 'layout:mLeft':5, 'layout:mTop':5}, device)
+        v3.add(v35)
+        vc = ViewClient(device, adb='/usr/bin/true', autodump=False)
+        self.assertNotEquals(None, vc)
+        treeStr = StringIO.StringIO()
+        vc.traverse(root=root, transform=ViewClient.TRAVERSE_CITC, stream=treeStr)
+        self.assertNotEquals(None, treeStr.getvalue())
+        lines = treeStr.getvalue().splitlines()
+        self.assertEqual(5, len(lines))
+        self.assertEqual('None 0 0 (0, 0)', lines[0])
+        citRE = re.compile(' +None \d+ \d+ \(\d+, \d+\)')
+        for l in lines[1:]:
+            self.assertTrue(citRE.match(l))
+    
     def __getClassAndId(self, view):
         try:
             return "%s %s %s %s" % (view.getClass(), view.getId(), view.getUniqueId(), view.getCoords())
@@ -216,7 +260,157 @@ class ViewClientTest(unittest.TestCase):
         self.assertEqual(ty, y)
         self.assertEqual((tsx, tsy), xy)
         self.assertEqual(((tsx, tsy), (xy[0] + w, xy[1] + h)), coords)
+        
+    def testFindViewByIdOrRaise(self):
+        vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
+        vc.findViewByIdOrRaise('id/up')
+        
+    def testFindViewByIdOrRaise_nonExistentView(self):
+        vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
+        try:
+            vc.findViewByIdOrRaise('id/nonexistent')
+            self.fail()
+        except ViewNotFoundException:
+            pass
+           
+    def testFindViewById_root(self):
+        device = None
+        root = View({'mID':'0'}, device)
+        root.add(View({'mID':'1'}, device))
+        root.add(View({'mID':'2'}, device))
+        v3 = View({'mID':'3'}, device)
+        root.add(v3)
+        v35 = View({'mID':'5', 'getTag()':'v35'}, device)
+        v3.add(v35)
+        v4 = View({'mID':'4'}, device)
+        root.add(v4)
+        v45 = View({'mID':'5', 'getTag()':'v45'}, device)
+        v4.add(v45)
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        v5 = vc.findViewById('5')
+        self.assertNotEqual(v5, None)
+        self.assertEqual('v35', v5.getTag())
+        v5 = vc.findViewById('5', root=v4)
+        self.assertNotEqual(v5, None)
+        self.assertEqual('v45', v5.getTag())
+        v5 = vc.findViewById('5', root=v3)
+        self.assertNotEqual(v5, None)
+        self.assertEqual('v35', v5.getTag())
+        
+    def testFindViewByIdOrRaise_root(self):
+        device = None
+        root = View({'mID':'0'}, device)
+        root.add(View({'mID':'1'}, device))
+        root.add(View({'mID':'2'}, device))
+        v3 = View({'mID':'3'}, device)
+        root.add(v3)
+        v35 = View({'mID':'5', 'getTag()':'v35'}, device)
+        v3.add(v35)
+        v4 = View({'mID':'4'}, device)
+        root.add(v4)
+        v45 = View({'mID':'5', 'getTag()':'v45'}, device)
+        v4.add(v45)
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        v5 = vc.findViewByIdOrRaise('5')
+        self.assertEqual('v35', v5.getTag())
+        v5 = vc.findViewByIdOrRaise('5', root=v4)
+        self.assertEqual('v45', v5.getTag())
+        v5 = vc.findViewByIdOrRaise('5', root=v3)
+        self.assertEqual('v35', v5.getTag())
+        
+    def testFindViewWithText_root(self):
+        device = None
+        root = View({'text:mText':'0'}, device)
+        root.add(View({'text:mText':'1'}, device))
+        root.add(View({'text:mText':'2'}, device))
+        v3 = View({'text:mText':'3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
+        v4.add(v45)
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        v5 = vc.findViewWithText('5')
+        self.assertNotEqual(v5, None)
+        self.assertEqual('v35', v5.getTag())
+        v5 = vc.findViewWithText('5', root=v4)
+        self.assertNotEqual(v5, None)
+        self.assertEqual('v45', v5.getTag())
+        v5 = vc.findViewWithText('5', root=v3)
+        self.assertNotEqual(v5, None)
+        self.assertEqual('v35', v5.getTag())
+        
+    def testFindViewWithTextOrRaise_root(self):
+        device = None
+        root = View({'text:mText':'0'}, device)
+        root.add(View({'text:mText':'1'}, device))
+        root.add(View({'text:mText':'2'}, device))
+        v3 = View({'text:mText':'3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
+        v4.add(v45)
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        v5 = vc.findViewWithTextOrRaise('5')
+        self.assertEqual('v35', v5.getTag())
+        v5 = vc.findViewWithTextOrRaise('5', root=v4)
+        self.assertEqual('v45', v5.getTag())
+        v5 = vc.findViewWithTextOrRaise('5', root=v3)
+        self.assertEqual('v35', v5.getTag())
+        
+    def testFindViewWithTextOrRaise_rootNonExistent(self):
+        device = None
+        root = View({'text:mText':'0'}, device)
+        root.add(View({'text:mText':'1'}, device))
+        root.add(View({'text:mText':'2'}, device))
+        v3 = View({'text:mText':'3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
+        v4.add(v45)
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        try:
+            vc.findViewWithTextOrRaise('Non Existent', root=v4)
+            self.fail()
+        except ViewNotFoundException:
+            pass
 
+    def testFindViewWithText_rootNonExistent(self):
+        device = None
+        root = View({'text:mText':'0'}, device)
+        root.add(View({'text:mText':'1'}, device))
+        root.add(View({'text:mText':'2'}, device))
+        v3 = View({'text:mText':'3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
+        v4.add(v45)
+        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        vne = vc.findViewWithText('Non Existent', root=v4)
+        self.assertEquals(None, vne)
          
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

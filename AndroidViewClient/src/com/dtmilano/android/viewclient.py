@@ -613,12 +613,15 @@ class View:
     def __str__(self):
         __str = "View["
         if "class" in self.map:
-            __str += " class=" + self.map["class"] + " "
+            __str += " class=" + self.map["class"].__str__() + " "
         for a in self.map:
-            __str += a + "=" + self.map[a] + " "
+            __str += a + "=" + self.map[a].__str__() + " "
         __str += "]   parent="
-        if self.parent and "class" in self.parent.map:
-            __str += "%s" % self.parent.map["class"]
+        if self.parent:
+            if "class" in self.parent.map:
+                __str += "%s" % self.parent.map["class"]
+            else:
+                __str += self.parent.getId().__str__()
         else:
             __str += "None"
 
@@ -742,18 +745,20 @@ class ViewClient:
         return device, serialno
         
     @staticmethod
-    def traverseShowClassIdAndText(view):
+    def traverseShowClassIdAndText(view, extraInfo=None):
         '''
         Shows the View class, id and text if available.
         This function can be used as a transform function to L{ViewClient.traverse()}
         
         @type view: I{View}
         @param view: the View
+        @type extraInfo: method
+        @param extraInfo: the View method to add extra info  
         @return: the string containing class, id, and text if available 
         '''
         
         try:
-            return "%s %s %s" % (view.getClass(), view.getId(), view.getText())
+            return "%s %s %s%s" % (view.getClass(), view.getId(), view.getText(), " " + extraInfo(view).__str__() if extraInfo != None else '')
         except Exception, e:
             return "Exception in view=%s: %s" % (view.__smallStr__(), e)
         
@@ -768,16 +773,28 @@ class ViewClient:
         @return: the string containing class, id, and text if available 
         '''
         
-        try:
-            return "%s %s %s %s" % (view.getClass(), view.getId(), view.getText(), view.getCenter())
-        except Exception, e:
-            return "Exception in view=%s: %s" % (view.__smallStr__(), e)
+        return ViewClient.traverseShowClassIdAndText(view, View.getCenter)
+
+    @staticmethod
+    def traverseShowClassIdTextPositionAndSize(view):
+        '''
+        Shows the View class, id and text if available.
+        This function can be used as a transform function to L{ViewClient.traverse()}
+        
+        @type view: I{View}
+        @param view: the View
+        @return: the string containing class, id, and text if available 
+        '''
+        
+        return ViewClient.traverseShowClassIdAndText(view, View.getPositionAndSize)
         
     # methods that can be used to transform ViewClient.traverse output
     TRAVERSE_CIT = traverseShowClassIdAndText
     ''' An alias for L{traverseShowClassIdAndText(view)} '''
     TRAVERSE_CITC = traverseShowClassIdTextAndCenter
     ''' An alias for L{traverseShowClassIdTextAndCenter(view)} '''
+    TRAVERSE_CITPS = traverseShowClassIdTextPositionAndSize
+    ''' An alias for L{traverseShowClassIdTextPositionAndSize(view)} '''
     
     def assertServiceResponse(self, response):
         '''
@@ -962,7 +979,7 @@ class ViewClient:
         '''
         return self.root
 
-    def traverse(self, root="ROOT", indent="", transform=View.__str__):
+    def traverse(self, root="ROOT", indent="", transform=View.__str__, stream=sys.stdout):
         '''
         Traverses the C{View} tree and prints its nodes.
         
@@ -979,15 +996,15 @@ class ViewClient:
         if not root:
             return
 
-        if root == "ROOT":
+        if type(root) == types.StringType and root == "ROOT":
             root = self.root
 
         s = transform(root)
         if s:
-            print "%s%s" % (indent, s)
+            print >>stream, "%s%s" % (indent, s)
         
         for ch in root.children:
-            self.traverse(ch, indent=indent+"   ", transform=transform)
+            self.traverse(ch, indent=indent+"   ", transform=transform, stream=stream)
 
     def dump(self, windowId=-1, sleep=1):
         '''
@@ -1063,19 +1080,33 @@ class ViewClient:
         if view:
             return view
         else:
-            raise ViewNotFoundException("Couldn't find view with ID=%s" % viewId)
+            raise ViewNotFoundException("Couldn't find view with ID=%s in tree with root=%s" % (viewId, root))
         
-    def findViewByTag(self, tag):
+    def findViewByTag(self, tag, root="ROOT"):
         '''
         Finds the View with the specified tag
         '''
         
-        return self.findViewWithAttribute('getTag()', tag)
+        return self.findViewWithAttribute('getTag()', tag, root)
+    
+    def findViewByTagOrRaise(self, tag, root="ROOT"):
+        '''
+        Finds the View with the specified tag or raise a ViewNotFoundException
+        '''
+        
+        view = self.findViewWithAttribute('getTag()', tag, root)
+        if view:
+            return view
+        else:
+            raise ViewNotFoundException("Couldn't find view with tag=%s in tree with root=%s" % (tag, root))
     
     def __findViewWithAttributeInTree(self, attr, val, root):
         if not self.root:
             print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
             return None
+
+        if type(root) == types.StringType and root == "ROOT":
+            root = self.root
 
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
         
@@ -1095,6 +1126,9 @@ class ViewClient:
             print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
             return None
 
+        if type(root) == types.StringType and root == "ROOT":
+            root = self.root
+
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (root.__smallStr__(), attr, regex)
         
         if root and attr in root.map and regex.match(root.map[attr]):
@@ -1113,14 +1147,14 @@ class ViewClient:
         return None
         #return rlist
 
-    def findViewWithAttribute(self, attr, val):
+    def findViewWithAttribute(self, attr, val, root="ROOT"):
         '''
         Finds the View with the specified attribute and value
         '''
         
-        return self.__findViewWithAttributeInTree(attr, val, self.root)
+        return self.__findViewWithAttributeInTree(attr, val, root)
         
-    def findViewWithAttributeOrRaise(self, attr, val):
+    def findViewWithAttributeOrRaise(self, attr, val, root="ROOT"):
         '''
         Finds the View or raise a ViewNotFoundException.
         
@@ -1128,23 +1162,23 @@ class ViewClient:
         @raise ViewNotFoundException: raise the exception if View not found
         '''
         
-        view = self.findViewWithAttribute(attr, val)
+        view = self.findViewWithAttribute(attr, val, root)
         if view:
             return view
         else:
-            raise ViewNotFoundException("Couldn't find View with %s='%s'" % (attr, val))
+            raise ViewNotFoundException("Couldn't find View with %s='%s' in tree with root=%s" % (attr, val, root))
         
-    def findViewWithAttributeThatMatches(self, attr, regex):
+    def findViewWithAttributeThatMatches(self, attr, regex, root="ROOT"):
         '''
         Finds the list of Views with the specified attribute matching
         regex
         '''
         
-        return self.__findViewWithAttributeInTreeThatMatches(attr, regex, self.root)
+        return self.__findViewWithAttributeInTreeThatMatches(attr, regex, root)
         
-    def findViewWithText(self, text):
+    def findViewWithText(self, text, root="ROOT"):
         if type(text).__name__ == 'PatternObject':
-            return self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text)
+            return self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text, root)
             #l = self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text)
             #ll = len(l)
             #if ll == 0:
@@ -1155,9 +1189,9 @@ class ViewClient:
             #    print >>sys.stderr, "WARNING: findViewWithAttributeThatMatches invoked by findViewWithText returns %d items." % ll
             #    return l
         else:
-            return self.findViewWithAttribute(TEXT_PROPERTY, text)
+            return self.findViewWithAttribute(TEXT_PROPERTY, text, root)
 
-    def findViewWithTextOrRaise(self, text):
+    def findViewWithTextOrRaise(self, text, root="ROOT"):
         '''
         Finds the View or raise a ViewNotFoundException.
         
@@ -1165,11 +1199,11 @@ class ViewClient:
         @raise ViewNotFoundException: raise the exception if View not found
         '''
         
-        view = self.findViewWithText(text)
+        view = self.findViewWithText(text, root)
         if view:
             return view
         else:
-            raise ViewNotFoundException("Coulnd't find View with text='%s'" % text)
+            raise ViewNotFoundException("Coulnd't find View with text='%s' in tree with root=%s" % (text, root))
     
     def getViewIds(self):
         '''
