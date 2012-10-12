@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '1.2'
+__version__ = '2.0'
 
 import sys
 import subprocess
@@ -657,18 +657,18 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True, serialno='emulator-5554'):
+    def __init__(self, device, serialno='emulator-5554', adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True):
         '''
         Constructor
         
         @type device: MonkeyDevice
         @param device: The device running the C{View server} to which this client will connect
+        @type serialno: str
+        @param serialno: the serial number of the device or emulator to connect to
         @type adb: str
         @param adb: the path of the C{adb} executable
         @type autodump: boolean
         @param autodump: whether an automatic dump is performed at the end of this constructor
-        @type serialno: str
-        @param serialno: the serial number of the device or emulator to connect to
         '''
         
         if not device:
