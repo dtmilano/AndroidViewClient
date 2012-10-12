@@ -38,6 +38,8 @@ DEBUG_TOUCH = DEBUG and True
 DEBUG_STATUSBAR = DEBUG and True
 DEBUG_WINDOWS = DEBUG and True
 
+WARNINGS = False
+
 ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
 ''' This environment variable is used to locate the I{Android SDK} components needed.
     Set C{ANDROID_HOME} in the process environment to point to the I{Android SDK} installation. '''
@@ -82,9 +84,11 @@ def __nh(name):
 
 def __ns(name):
     '''
+    NOTICE: this is using a non-greedy regex
+    
     @return: Returns a named string (only non-whitespace characters allowed)
     '''
-    return '(?P<%s>\S+)' % name
+    return '(?P<%s>\S+?)' % name
 
 
 class Window:
@@ -863,12 +867,15 @@ class ViewClient:
         textRE = re.compile('%s=%s,' % (TEXT_PROPERTY, __nd('len')))
         m = textRE.search(strArgs)
         if m:
-            s1 = strArgs[m.start():m.end()+int(m.group('len'))]
+            __textStart = m.end()
+            __textLen = int(m.group('len'))
+            __textEnd = m.end() + __textLen
+            s1 = strArgs[__textStart:__textEnd]
             s2 = s1.replace(' ', WS)
             strArgs = strArgs.replace(s1, s2, 1)
 
         idRE = re.compile("(?P<viewId>id/\S+)")
-        attrRE = re.compile('%s(\(\))?=\d+,%s' % (__ns('attr'), __ns('val')))
+        attrRE = re.compile('%s(?P<parens>\(\))?=%s,(?P<val>[^ ]*)' % (__ns('attr'), __nd('len')), flags=re.DOTALL)
         hashRE = re.compile('%s@%s' % (__ns('class'), __nh('oid')))
         
         attrs = {}
@@ -882,12 +889,16 @@ class ViewClient:
         for attr in strArgs.split():
             m = attrRE.match(attr)
             if m:
-                attr = m.group('attr')
-                val = m.group('val')
-                if attr == TEXT_PROPERTY:
+                __attr = m.group('attr')
+                __parens = '()' if m.group('parens') else ''
+                __len = int(m.group('len'))
+                __val = m.group('val')
+                if WARNINGS and __len != len(__val):
+                    warnings.warn("Invalid len: expected: %d   found: %d   s=%s   e=%s" % (__len, len(__val), __val[:50], __val[-50:]))
+                if __attr == TEXT_PROPERTY:
                     # restore spaces that have been replaced
-                    val = val.replace(WS, ' ')
-                attrs[attr] = val
+                    __val = __val.replace(WS, ' ')
+                attrs[__attr + __parens] = __val
             else:
                 m = hashRE.match(attr)
                 if m:
@@ -940,6 +951,7 @@ class ViewClient:
                 if v[0] == ' ':
                     raise Exception("Unexpected root element starting with ' '.")
                 self.root = View.factory(attrs, self.device)
+                if DEBUG: self.root.raw = v
                 treeLevel = 0
                 newLevel = 0
                 lastView = self.root
@@ -950,6 +962,7 @@ class ViewClient:
                 if newLevel == 0:
                     raise Exception("newLevel==0 treeLevel=%d but tree can have only one root, v=%s" % (treeLevel, v))
                 child = View.factory(attrs, self.device)
+                if DEBUG: child.raw = v
                 if newLevel == treeLevel:
                     parent.add(child)
                     lastView = child
@@ -1034,7 +1047,10 @@ class ViewClient:
                 break
 
         s.close()
+        if DEBUG:
+            self.received = received     
         if DEBUG_RECEIVED:
+            print >>sys.stderr, "received %d chars" % len(received)
             print >>sys.stderr
             print >>sys.stderr, received
             print >>sys.stderr

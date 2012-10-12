@@ -1,3 +1,4 @@
+#! /usr/bin/env monkeyrunner
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Feb 5, 2012
@@ -11,9 +12,13 @@ import StringIO
 import unittest
 
 # PyDev sets PYTHONPATH, use it
-for p in os.environ['PYTHONPATH'].split(':'):
-    if not p in sys.path:
-        sys.path.append(p)
+try:
+    for p in os.environ['PYTHONPATH'].split(':'):
+        if not p in sys.path:
+            sys.path.append(p)
+except:
+    pass
+
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
@@ -23,6 +28,12 @@ from com.dtmilano.android.viewclient import *
 from mocks import MockDevice
 from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP
 
+# this is probably the only reliable way of determining the OS in monkeyrunner
+os_name = java.lang.System.getProperty('os.name')
+if os_name.startswith('Linux'):
+    TRUE = '/bin/true'
+else:
+    TRUE = '/usr/bin/true'
 
 class ViewTest(unittest.TestCase):
 
@@ -72,6 +83,7 @@ class ViewTest(unittest.TestCase):
     def testGetText(self):
         self.assertTrue(self.view.map.has_key('text:mText'))
         self.assertEqual('Button with ID', self.view.getText())
+        self.assertEqual('Button with ID', self.view['text:mText'])
        
     def testGetWidth(self):
         self.assertEqual(1140, self.view.getWidth())
@@ -145,19 +157,19 @@ class ViewClientTest(unittest.TestCase):
             self.assertEqual('Device is not connected', e.message)
             
     def testConstructor(self):
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
     
     def testMapSerialNo(self):
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False, serialno='192.168.1.100')
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False, serialno='192.168.1.100')
         self.assertEqual('192.168.1.100:5555', vc.serialno)
         
     def testMapSerialNo_emulator(self):
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False, serialno='emulator-5556')
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False, serialno='emulator-5556')
         self.assertEqual('emulator-5556', vc.serialno)
         
     def __mockTree(self, dump=DUMP):
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.setViews(dump)
         return vc
@@ -185,7 +197,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v3)
         v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
         v3.add(v35)
-        vc = ViewClient(device, adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(device, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         treeStr = StringIO.StringIO()
         vc.traverse(root=root, transform=ViewClient.TRAVERSE_CIT, stream=treeStr)
@@ -207,7 +219,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v3)
         v35 = View({'mID':'5', 'text:mText':'5', 'getTag()':'v35', 'layout:mLeft':5, 'layout:mTop':5}, device)
         v3.add(v35)
-        vc = ViewClient(device, adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(device, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         treeStr = StringIO.StringIO()
         vc.traverse(root=root, transform=ViewClient.TRAVERSE_CITC, stream=treeStr)
@@ -238,6 +250,18 @@ class ViewClientTest(unittest.TestCase):
     def testTextWithSpaces(self):
         vc = self.__mockTree()
         self.assertNotEqual(None, vc.findViewWithText('Medium Text'))
+        
+    def testTextWithVeryLargeContent(self):
+        TEXT = """\
+MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddingBottom=1,0 text:mText=319,[!   "   #   $   %   &   '   (   )   *   +   ,   -   .   /   0   1   2   3   4   5   6   7   8   9   :   ;   <   =   >   ?   @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _   `   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p] mViewFlags=11,-1744830336\
+"""
+        vc = self.__mockTree(TEXT)
+        test = vc.findViewById('id/test')
+        text = test.getText()
+        self.assertEqual(319, len(text))
+        self.assertEqual('[', text[0])
+        self.assertEqual(']', text[318])
+        self.assertEqual('-1744830336', test['mViewFlags'])
 
     def testActionBarSubtitleCoordinates(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
@@ -286,7 +310,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v4)
         v45 = View({'mID':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         v5 = vc.findViewById('5')
@@ -312,7 +336,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v4)
         v45 = View({'mID':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         v5 = vc.findViewByIdOrRaise('5')
@@ -335,7 +359,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v4)
         v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         v5 = vc.findViewWithText('5')
@@ -361,7 +385,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v4)
         v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         v5 = vc.findViewWithTextOrRaise('5')
@@ -384,7 +408,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v4)
         v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         try:
@@ -406,7 +430,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v4)
         v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb='/usr/bin/true', autodump=False)
+        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         vne = vc.findViewWithText('Non Existent', root=v4)
