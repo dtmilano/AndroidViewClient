@@ -732,7 +732,7 @@ class ViewClient:
         return serialno
     
     @staticmethod
-    def connectToDeviceOrExit(timeout=60):
+    def connectToDeviceOrExit(timeout=60, verbose=False):
         '''
         Connects to a device which serial number is obtained from the script arguments if available
         or using the default C{emulator-5554}.
@@ -748,12 +748,16 @@ class ViewClient:
         '''
         
         serialno = sys.argv[1] if len(sys.argv) > 1 else 'emulator-5554'
+        if verbose:
+            print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         device = MonkeyRunner.waitForConnection(timeout, serialno)
         try:
             device.wake()
         except java.lang.NullPointerException, e:
             print >> sys.stderr, "%s: ERROR: Couldn't connect to %s: %s" % (os.path.basename(sys.argv[0]), serialno, e)
             sys.exit(1)
+        if verbose:
+            print 'Connected to device with serialno=%s' % serialno
         return device, serialno
         
     @staticmethod
