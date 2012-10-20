@@ -747,6 +747,7 @@ class ViewClient:
         @return: the device and serialno used for the connection
         '''
         
+        progname = os.path.basename(sys.argv[0])
         serialno = sys.argv[1] if len(sys.argv) > 1 else 'emulator-5554'
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
@@ -754,10 +755,15 @@ class ViewClient:
         try:
             device.wake()
         except java.lang.NullPointerException, e:
-            print >> sys.stderr, "%s: ERROR: Couldn't connect to %s: %s" % (os.path.basename(sys.argv[0]), serialno, e)
+            print >> sys.stderr, "%s: ERROR: Couldn't connect to %s: %s" % (progname, serialno, e)
             sys.exit(1)
         if verbose:
             print 'Connected to device with serialno=%s' % serialno
+        secure = device.getSystemProperty('ro.secure')
+        debuggable = device.getSystemProperty('ro.debuggable')
+        if secure == '1' and debuggable == '0':
+            print >> sys.stderr, "%s: ERROR: Device is secure, AndroidViewClient won't work." % progname
+            sys.exit(1)
         return device, serialno
         
     @staticmethod
