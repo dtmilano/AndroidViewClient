@@ -732,7 +732,7 @@ class ViewClient:
         return serialno
     
     @staticmethod
-    def connectToDeviceOrExit(timeout=60, verbose=False):
+    def connectToDeviceOrExit(timeout=60, verbose=False, ignoresecuredevice=False):
         '''
         Connects to a device which serial number is obtained from the script arguments if available
         or using the default C{emulator-5554}.
@@ -744,6 +744,11 @@ class ViewClient:
         
         @type timeout: int
         @param timeout: timeout for the connection
+        @type verbose: bool
+        @param verbose: Verbose output
+        @type ignoresecuredevice: bool
+        @param ignoresecuredevice: Ignores the check for a secure device
+        
         @return: the device and serialno used for the connection
         '''
         
@@ -761,7 +766,7 @@ class ViewClient:
             print 'Connected to device with serialno=%s' % serialno
         secure = device.getSystemProperty('ro.secure')
         debuggable = device.getSystemProperty('ro.debuggable')
-        if secure == '1' and debuggable == '0':
+        if secure == '1' and debuggable == '0' and not ignoresecuredevice:
             print >> sys.stderr, "%s: ERROR: Device is secure, AndroidViewClient won't work." % progname
             sys.exit(1)
         return device, serialno
