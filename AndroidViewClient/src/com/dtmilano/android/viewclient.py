@@ -720,7 +720,11 @@ class ViewClient:
                     self.build[prop] = int(self.build[prop])
             except:
                 self.build[prop] = -1
-                
+
+        if int(self.build["version.sdk"]) <= 10: # gingerbread 2.3.3
+            global TEXT_PROPERTY
+            TEXT_PROPERTY = "mText"
+
         if autodump:
             self.dump()
     
