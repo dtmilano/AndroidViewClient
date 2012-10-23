@@ -656,7 +656,24 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, serialno='emulator-5554', adb=None, autodump=True):
+
+    @staticmethod
+    def _get_serial_no(serialno=None):
+        if serialno != None:
+            return serialno
+
+        import subprocess
+        cmd = "adb devices |grep -v attached |grep device |head -n 1 | cut  -f1"
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        serialno = p.stdout.readline()
+        if serialno != None and len(serialno) >0:
+            if serialno != None and serialno.find("\n") >= 0:
+                serialno = serialno.split("\n")[0]
+            return serialno
+        return "emulator-5554"
+
+    def __init__(self, device, serialno=None, adb=None, autodump=True):
         '''
         Constructor
         
@@ -671,6 +688,7 @@ class ViewClient:
         '''
         
         adb = self._get_adb_path(adb)
+        serialno = ViewClient._get_serial_no(serialno)
 
         if not device:
             raise Exception('Device is not connected')
@@ -755,6 +773,9 @@ class ViewClient:
 
     @staticmethod
     def __mapSerialNo(serialno):
+        ipRE = re.compile('\d+\.\d+.\d+.\d+:\d+')
+        if ipRE.match(serialno):
+            return serialno
         ipRE = re.compile('\d+\.\d+.\d+.\d+')
         if ipRE.match(serialno):
             serialno += ':5555'
@@ -782,7 +803,7 @@ class ViewClient:
         '''
         
         progname = os.path.basename(sys.argv[0])
-        serialno = sys.argv[1] if len(sys.argv) > 1 else 'emulator-5554'
+        serialno = sys.argv[1] if len(sys.argv) > 1 else ViewClient._get_serial_no()
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         device = MonkeyRunner.waitForConnection(timeout, serialno)
