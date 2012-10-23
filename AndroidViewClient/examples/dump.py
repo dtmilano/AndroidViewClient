@@ -25,6 +25,10 @@ try:
 except:
     pass
 
+sys.path.append(".")
+sys.path.append("..")
+sys.path.append("../src")
+
 from com.dtmilano.android.viewclient import ViewClient
 
 device, serialno = ViewClient.connectToDeviceOrExit()
