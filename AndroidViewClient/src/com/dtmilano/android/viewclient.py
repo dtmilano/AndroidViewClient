@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.0'
+__version__ = '2.1'
 
 import sys
 import subprocess
@@ -35,9 +35,9 @@ DEBUG_RECEIVED = DEBUG and True
 DEBUG_TREE = DEBUG and True
 DEBUG_GETATTR = DEBUG and False
 DEBUG_COORDS = DEBUG and True
-DEBUG_TOUCH = DEBUG and True or True
+DEBUG_TOUCH = DEBUG and True
 DEBUG_STATUSBAR = DEBUG and True
-DEBUG_WINDOWS = DEBUG and True
+DEBUG_WINDOWS = DEBUG and False
 
 WARNINGS = False
 
@@ -65,6 +65,9 @@ SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED = False
     coordinates calculation
     @see: L{View.getXY()} '''
 
+# some device properties
+VERSION_SDK_PROPERTY = "version.sdk"
+
 # some constants for the attributes
 TEXT_PROPERTY = 'text:mText'
 WS = "\xfe" # the whitespace replacement char for TEXT_PROPERTY
@@ -83,13 +86,18 @@ def __nh(name):
     '''
     return '(?P<%s>[0-9a-f]+)' % name
 
-def __ns(name):
+def __ns(name, greedy=False):
     '''
-    NOTICE: this is using a non-greedy regex
+    NOTICE: this is using a non-greedy (or minimal) regex
+    
+    @type name: str
+    @param name: the name used to tag the expression
+    @type greedy: bool
+    @param greedy: Whether the regex is greedy or not
     
     @return: Returns a named string (only non-whitespace characters allowed)
     '''
-    return '(?P<%s>\S+?)' % name
+    return '(?P<%s>\S+%s)' % (name, '' if greedy else '?')
 
 
 class Window:
@@ -184,9 +192,9 @@ class View:
         self.currentFocus = None
         self.build = {}
         try:
-            self.build['version.sdk'] = int(device.getProperty('build.version.sdk'))
+            self.build[VERSION_SDK_PROPERTY] = int(device.getProperty('build.version.sdk'))
         except:
-            self.build['version.sdk'] = -1
+            self.build[VERSION_SDK_PROPERTY] = -1
         
     def __getitem__(self, key):
         return self.map[key]
@@ -460,6 +468,7 @@ class View:
         sbh = 0
         for winId in self.windows:
             w = self.windows[winId]
+            if DEBUG_COORDS: print >> sys.stderr, "      __obtainStatusBarDimensionsIfVisible: w=", w, "   w.activity=", w.activity, "%%%"
             if w.activity == 'StatusBar':
                 if w.wvy == 0 and w.visibility == 0:
                     if DEBUG_COORDS: print >> sys.stderr, "      __obtainStatusBarDimensionsIfVisible: statusBar=", (w.wvw, w.wvh)
@@ -492,7 +501,7 @@ class View:
         if DEBUG_WINDOWS: print >> sys.stderr, dww
         lines = dww.split('\n')
         widRE = re.compile('^ *Window #%s Window{%s %s.*}:' %
-                            (__nd('num'), __nh('winId'), __ns('activity')))
+                            (__nd('num'), __nh('winId'), __ns('activity', greedy=True)))
         currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % __nh('winId'))
         viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % __nh('visibility'))
         # This is for 4.0.4 API-15
@@ -505,6 +514,7 @@ class View:
                                (__nd('cx'), __nd('cy'), __nd('cw'), __nd('ch'), __nd('px'), __nd('py'), __nd('pw'), __nd('ph')))
         contentRE = re.compile('^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]\[%s,%s\]' % 
                                (__nd('x'), __nd('y'), __nd('w'), __nd('h'), __nd('vx'), __nd('vy'), __nd('vx1'), __nd('vy1')))
+        policyVisibilityRE = re.compile('mPolicyVisibility=%s ' % __ns('policyVisibility', greedy=True))
         
         for l in range(len(lines)):
             m = widRE.search(lines[l])
@@ -519,6 +529,8 @@ class View:
                 px = 0
                 py = 0
                 visibility = -1
+                policyVisibility = 0x0
+                
                 for l2 in range(l+1, len(lines)):
                     m = widRE.search(lines[l2])
                     if m:
@@ -528,7 +540,7 @@ class View:
                     if m:
                         visibility = int(m.group('visibility'))
                         if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: visibility=", visibility
-                    if self.build['version.sdk'] == 16:
+                    if self.build[VERSION_SDK_PROPERTY] == 16:
                         m = framesRE.search(lines[l2])
                         if m:
                             px, py = self.__obtainPxPy(m)
@@ -536,7 +548,7 @@ class View:
                             if m:
                                 wvx, wvy = self.__obtainVxVy(m)
                                 wvw, wvh = self.__obtainVwVh(m)
-                    elif self.build['version.sdk'] == 15:
+                    elif self.build[VERSION_SDK_PROPERTY] == 15:
                         m = containingFrameRE.search(lines[l2])
                         if m:
                             px, py = self.__obtainPxPy(m)
@@ -545,9 +557,14 @@ class View:
                                 wvx, wvy = self.__obtainVxVy(m)
                                 wvw, wvh = self.__obtainVwVh(m)
                     else:
-                        warnings.warn("Unsupported Android version %d" % self.build['version.sdk'])
+                        warnings.warn("Unsupported Android version %d" % self.build[VERSION_SDK_PROPERTY])
+                    
+                    #print >> sys.stderr, "Searching policyVisibility in", lines[l2]
+                    m = policyVisibilityRE.search(lines[l2])
+                    if m:
+                        policyVisibility = 0x0 if m.group('policyVisibility') == 'true' else 0x8
                 
-                self.windows[winId] = Window(num, winId, activity, wvx, wvy, wvw, wvh, px, py, visibility)
+                self.windows[winId] = Window(num, winId, activity, wvx, wvy, wvw, wvh, px, py, visibility + policyVisibility)
             else:
                 m = currentFocusRE.search(lines[l])
                 if m:
@@ -713,15 +730,15 @@ class ViewClient:
 
         self.build = {}
         ''' The map containing the device's build properties: version.sdk, version.release '''
-        for prop in ['version.sdk', 'version.release']:
+        for prop in [VERSION_SDK_PROPERTY, 'version.release']:
             try:
                 self.build[prop] = device.getProperty('build.' + prop)
-                if prop == 'version.sdk':
+                if prop == VERSION_SDK_PROPERTY:
                     self.build[prop] = int(self.build[prop])
             except:
                 self.build[prop] = -1
 
-        if int(self.build["version.sdk"]) <= 10: # gingerbread 2.3.3
+        if self.build[VERSION_SDK_PROPERTY] > 0 and self.build[VERSION_SDK_PROPERTY] <= 10: # gingerbread 2.3.3
             global TEXT_PROPERTY
             TEXT_PROPERTY = "mText"
 

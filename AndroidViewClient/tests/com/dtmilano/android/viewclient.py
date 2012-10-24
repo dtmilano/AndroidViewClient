@@ -275,6 +275,8 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         h = toggleButton.getHeight()
         xy = toggleButton.getXY()
         coords = toggleButton.getCoords()
+        self.assertNotEqual(None, textView3.getText())
+        self.assertNotEqual("", textView3.getText().strip())
         list = [ eval(v) for v in textView3.getText().strip().split() ]
         tx = list[0][0]
         ty = list[0][1]
