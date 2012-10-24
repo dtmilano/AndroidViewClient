@@ -35,7 +35,7 @@ DEBUG_RECEIVED = DEBUG and True
 DEBUG_TREE = DEBUG and True
 DEBUG_GETATTR = DEBUG and False
 DEBUG_COORDS = DEBUG and True
-DEBUG_TOUCH = DEBUG and True or True
+DEBUG_TOUCH = DEBUG and True
 DEBUG_STATUSBAR = DEBUG and True
 DEBUG_WINDOWS = DEBUG and True
 
@@ -58,9 +58,14 @@ SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED = False
 
 # some constants for the attributes
 TEXT_PROPERTY = 'text:mText'
+LEFT_PROPERTY = 'layout:mLeft'
+TOP_PROPERTY  = 'layout:mTop'
+GET_HEIGHT_PROPERTY = 'layout:getHeight()'
+GET_WIDTH_PROPERTY = 'layout:getWidth()'
+
+
 WS = "\xfe" # the whitespace replacement char for TEXT_PROPERTY
 GET_VISIBILITY_PROPERTY = 'getVisibility()'
-LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
 
 def __nd(name):
     '''
@@ -271,13 +276,13 @@ class View:
 
     def getHeight(self):
         try:
-            return int(self.map['layout:getHeight()'])
+            return int(self.map[GET_HEIGHT_PROPERTY])
         except:
             return 0
 
     def getWidth(self):
         try:
-            return int(self.map['layout:getWidth()'])
+            return int(self.map[GET_WIDTH_PROPERTY])
         except:
             return 0
 
@@ -314,16 +319,16 @@ class View:
         '''
         Gets the View X coordinate
         '''
-        
+
         if DEBUG_COORDS:
             print >>sys.stderr, "getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         x = 0
         try:
             if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
-                if DEBUG_COORDS: print >>sys.stderr, "   getX: VISIBLE adding %d" % int(self.map['layout:mLeft'])
-                x += int(self.map['layout:mLeft'])
+                if DEBUG_COORDS: print >>sys.stderr, "   getX: VISIBLE adding %d" % int(self.map[LEFT_PROPERTY])
+                x += int(self.map[LEFT_PROPERTY])
         except:
-            warnings.warn("View %s has no 'layout:mLeft' property" % self.getId())
+            warnings.warn("View %s has no %s property" % ( self.getId() , LEFT_PROPERTY ))
         
         if DEBUG_COORDS: print >>sys.stderr, "   getX: returning %d" % (x)
         return x
@@ -338,10 +343,10 @@ class View:
         y = 0
         try:
             if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
-                if DEBUG_COORDS: print >>sys.stderr, "   getY: VISIBLE adding %d" % int(self.map['layout:mTop'])
-                y += int(self.map['layout:mTop'])
+                if DEBUG_COORDS: print >>sys.stderr, "   getY: VISIBLE adding %d" % int(self.map[TOP_PROPERTY])
+                y += int(self.map[TOP_PROPERTY])
         except:
-            warnings.warn("View %s has no 'layout:mTop' property" % self.getId())
+            warnings.warn("View %s has no %s property" % (self.getId(), TOP_PROPERTY))
 
         if DEBUG_COORDS: print >>sys.stderr, "   getY: returning %d" % (y)
         return y
@@ -658,7 +663,7 @@ class ViewClient:
 
 
     @staticmethod
-    def _get_serial_no(serialno=None):
+    def _getSerialNumber(serialno=None):
         if serialno != None:
             return serialno
 
@@ -667,7 +672,7 @@ class ViewClient:
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 
         serialno = p.stdout.readline()
-        if serialno != None and len(serialno) >0:
+        if serialno != None and len(serialno) > 0:
             if serialno != None and serialno.find("\n") >= 0:
                 serialno = serialno.split("\n")[0]
             return serialno
@@ -687,8 +692,8 @@ class ViewClient:
         @param autodump: whether an automatic dump is performed at the end of this constructor
         '''
         
-        adb = self._get_adb_path(adb)
-        serialno = ViewClient._get_serial_no(serialno)
+        adb = self._getAdbPath(adb)
+        serialno = ViewClient._getSerialNumber(serialno)
 
         if not device:
             raise Exception('Device is not connected')
@@ -731,43 +736,63 @@ class ViewClient:
             except:
                 self.build[prop] = -1
 
-        if int(self.build["version.sdk"]) <= 10: # gingerbread 2.3.3
+        sdk_version = int(self.build["version.sdk"])
+        if sdk_version == 9 or sdk_version == 10: # gingerbread
             global TEXT_PROPERTY
             TEXT_PROPERTY = "mText"
+        elif sdk_version == 8: # froyo
+            global TEXT_PROPERTY
+            TEXT_PROPERTY = "mText"
+
+            global LEFT_PROPERTY
+            LEFT_PROPERTY = "mLeft"
+
+            global TOP_PROPERTY
+            TOP_PROPERTY = "mTop"
+
+            global GET_HEIGHT_PROPERTY
+            GET_HEIGHT_PROPERTY = 'getHeight()'
+
+            global GET_WIDTH_PROPERTY
+            GET_WIDTH_PROPERTY =  'getWidth()'
+
 
         if autodump:
             self.dump()
     
-    def _get_adb_path(self, suggested_path):
-        # this is probably the only reliable way of determining the OS in monkeyrunner
-        os_name = java.lang.System.getProperty('os.name')
-        if os_name.startswith('Windows'):
+    def _getAdbPath(self, suggested_path):
+        osName = java.lang.System.getProperty('os.name')
+        if osName.startswith('Windows'):
             adb = 'adb.exe'
         else:
             adb = 'adb'
 
         ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
 
-        possible_choices= [ suggested_path,
+        possibleChoices= [ suggested_path,
         os.path.join(ANDROID_HOME, 'platform-tools', adb),
-        os.path.join(os.environ['HOME'],  "android-sdk-linux",  'platform-tools', adb),
-        os.path.join(os.environ['HOME'],  "android-sdk-mac", 'platform-tools', adb),
-        os.path.join(os.environ['HOME'],  "android-sdk-mac_x86",  'platform-tools', adb),
-        os.path.join(os.environ['HOME'],  "android-sdk", 'platform-tools', adb),
         os.path.join(os.environ['HOME'],  "android", 'platform-tools', adb),
-        os.path.join("""C:\Program Files\Android\android-sdk\platform-tools""", adb),
-        os.path.join("""C:\Program Files (x86)\Android\android-sdk\platform-tools""", adb),
+        os.path.join(os.environ['HOME'],  "android-sdk", 'platform-tools', adb),
         adb,
         ]
 
-        for exe_file in possible_choices:
-            if exe_file != None and os.access(exe_file, os.X_OK):
-                return exe_file
+        if osName.startswith('Windows'):
+            possibleChoices.append(os.path.join("""C:\Program Files\Android\android-sdk\platform-tools""", adb)),
+            possibleChoices.append(os.path.join("""C:\Program Files (x86)\Android\android-sdk\platform-tools""", adb)),
+        elif osName.startswith('Linux'):
+            possibleChoices.append(os.path.join(os.environ['HOME'],  "android-sdk-linux",  'platform-tools', adb)),
+        else:
+            possibleChoices.append(os.path.join(os.environ['HOME'],  "android-sdk-mac", 'platform-tools', adb)),
+            possibleChoices.append(os.path.join(os.environ['HOME'],  "android-sdk-mac_x86",  'platform-tools', adb)),
+
+        for exeFile in possibleChoices:
+            if exeFile != None and os.access(exeFile, os.X_OK):
+                return exeFile
 
         for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, adb)
-            if exe_file != None and os.access(exe_file, os.X_OK):
-                return exe_file
+            exeFile = os.path.join(path, adb)
+            if exeFile != None and os.access(exeFile, os.X_OK):
+                return exeFile
 
         raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
 
@@ -803,7 +828,7 @@ class ViewClient:
         '''
         
         progname = os.path.basename(sys.argv[0])
-        serialno = sys.argv[1] if len(sys.argv) > 1 else ViewClient._get_serial_no()
+        serialno = sys.argv[1] if len(sys.argv) > 1 else ViewClient._getSerialNumber()
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         device = MonkeyRunner.waitForConnection(timeout, serialno)
@@ -1106,7 +1131,7 @@ class ViewClient:
         
         @return: the list of Views as C{str} received from the server after being split into lines
         '''
-        
+
         if sleep > 0:
             MonkeyRunner.sleep(sleep)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -1198,7 +1223,7 @@ class ViewClient:
             root = self.root
 
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
-        
+
         if root and attr in root.map and root.map[attr] == val:
             if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
             return root
