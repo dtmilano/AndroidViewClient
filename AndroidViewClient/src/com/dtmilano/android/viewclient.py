@@ -41,18 +41,9 @@ DEBUG_WINDOWS = DEBUG and True
 
 WARNINGS = False
 
-ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
-''' This environment variable is used to locate the I{Android SDK} components needed.
-    Set C{ANDROID_HOME} in the process environment to point to the I{Android SDK} installation. '''
 VIEW_SERVER_HOST = 'localhost'
 VIEW_SERVER_PORT = 4939
 
-# this is probably the only reliable way of determining the OS in monkeyrunner
-os_name = java.lang.System.getProperty('os.name')
-if os_name.startswith('Windows'):
-    ADB = 'adb.exe'
-else:
-    ADB = 'adb'
 
 OFFSET = 25
 ''' This assumes the smallest touchable view on the screen is approximately 50px x 50px
@@ -665,7 +656,7 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, serialno='emulator-5554', adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True):
+    def __init__(self, device, serialno='emulator-5554', adb=None, autodump=True):
         '''
         Constructor
         
@@ -679,10 +670,11 @@ class ViewClient:
         @param autodump: whether an automatic dump is performed at the end of this constructor
         '''
         
+        adb = self._getAdbPath(adb)
+
         if not device:
             raise Exception('Device is not connected')
-        if not os.access(adb, os.X_OK):
-            raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
+      
         if not self.serviceResponse(device.shell('service call window 3')):
             try:
                 self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
@@ -728,6 +720,42 @@ class ViewClient:
         if autodump:
             self.dump()
     
+    def _getAdbPath(self, suggested_path):
+        osName = java.lang.System.getProperty('os.name')
+        if osName.startswith('Windows'):
+            adb = 'adb.exe'
+        else:
+            adb = 'adb'
+
+        ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
+
+        possibleChoices= [ suggested_path,
+        os.path.join(ANDROID_HOME, 'platform-tools', adb),
+        os.path.join(os.environ['HOME'],  "android", 'platform-tools', adb),
+        os.path.join(os.environ['HOME'],  "android-sdk", 'platform-tools', adb),
+        adb,
+        ]
+
+        if osName.startswith('Windows'):
+            possibleChoices.append(os.path.join("""C:\Program Files\Android\android-sdk\platform-tools""", adb)),
+            possibleChoices.append(os.path.join("""C:\Program Files (x86)\Android\android-sdk\platform-tools""", adb)),
+        elif osName.startswith('Linux'):
+            possibleChoices.append(os.path.join(os.environ['HOME'],  "android-sdk-linux",  'platform-tools', adb)),
+        else:
+            possibleChoices.append(os.path.join(os.environ['HOME'],  "android-sdk-mac", 'platform-tools', adb)),
+            possibleChoices.append(os.path.join(os.environ['HOME'],  "android-sdk-mac_x86",  'platform-tools', adb)),
+
+        for exeFile in possibleChoices:
+            if exeFile != None and os.access(exeFile, os.X_OK):
+                return exeFile
+
+        for path in os.environ["PATH"].split(os.pathsep):
+            exeFile = os.path.join(path, adb)
+            if exeFile != None and os.access(exeFile, os.X_OK):
+                return exeFile
+
+        raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
+
     @staticmethod
     def __mapSerialNo(serialno):
         ipRE = re.compile('\d+\.\d+.\d+.\d+')
