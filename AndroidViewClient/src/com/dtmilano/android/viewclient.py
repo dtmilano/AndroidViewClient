@@ -41,18 +41,9 @@ DEBUG_WINDOWS = DEBUG and True
 
 WARNINGS = False
 
-ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
-''' This environment variable is used to locate the I{Android SDK} components needed.
-    Set C{ANDROID_HOME} in the process environment to point to the I{Android SDK} installation. '''
 VIEW_SERVER_HOST = 'localhost'
 VIEW_SERVER_PORT = 4939
 
-# this is probably the only reliable way of determining the OS in monkeyrunner
-os_name = java.lang.System.getProperty('os.name')
-if os_name.startswith('Windows'):
-    ADB = 'adb.exe'
-else:
-    ADB = 'adb'
 
 OFFSET = 25
 ''' This assumes the smallest touchable view on the screen is approximately 50px x 50px
@@ -665,7 +656,24 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, serialno='emulator-5554', adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True):
+
+    @staticmethod
+    def _get_serial_no(serialno=None):
+        if serialno != None:
+            return serialno
+
+        import subprocess
+        cmd = "adb devices |grep -v attached |grep device |head -n 1 | cut  -f1"
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        serialno = p.stdout.readline()
+        if serialno != None and len(serialno) >0:
+            if serialno != None and serialno.find("\n") >= 0:
+                serialno = serialno.split("\n")[0]
+            return serialno
+        return "emulator-5554"
+
+    def __init__(self, device, serialno=None, adb=None, autodump=True):
         '''
         Constructor
         
@@ -679,10 +687,12 @@ class ViewClient:
         @param autodump: whether an automatic dump is performed at the end of this constructor
         '''
         
+        adb = self._get_adb_path(adb)
+        serialno = ViewClient._get_serial_no(serialno)
+
         if not device:
             raise Exception('Device is not connected')
-        if not os.access(adb, os.X_OK):
-            raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
+      
         if not self.serviceResponse(device.shell('service call window 3')):
             try:
                 self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
@@ -728,8 +738,44 @@ class ViewClient:
         if autodump:
             self.dump()
     
+    def _get_adb_path(self, suggested_path):
+        # this is probably the only reliable way of determining the OS in monkeyrunner
+        os_name = java.lang.System.getProperty('os.name')
+        if os_name.startswith('Windows'):
+            adb = 'adb.exe'
+        else:
+            adb = 'adb'
+
+        ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
+
+        possible_choices= [ suggested_path,
+        os.path.join(ANDROID_HOME, 'platform-tools', adb),
+        os.path.join(os.environ['HOME'],  "android-sdk-linux",  'platform-tools', adb),
+        os.path.join(os.environ['HOME'],  "android-sdk-mac", 'platform-tools', adb),
+        os.path.join(os.environ['HOME'],  "android-sdk-mac_x86",  'platform-tools', adb),
+        os.path.join(os.environ['HOME'],  "android-sdk", 'platform-tools', adb),
+        os.path.join(os.environ['HOME'],  "android", 'platform-tools', adb),
+        os.path.join("""C:\Program Files\Android\android-sdk\platform-tools""", adb),
+        os.path.join("""C:\Program Files (x86)\Android\android-sdk\platform-tools""", adb),
+        adb,
+        ]
+
+        for exe_file in possible_choices:
+            if exe_file != None and os.access(exe_file, os.X_OK):
+                return exe_file
+
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, adb)
+            if exe_file != None and os.access(exe_file, os.X_OK):
+                return exe_file
+
+        raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
+
     @staticmethod
     def __mapSerialNo(serialno):
+        ipRE = re.compile('\d+\.\d+.\d+.\d+:\d+')
+        if ipRE.match(serialno):
+            return serialno
         ipRE = re.compile('\d+\.\d+.\d+.\d+')
         if ipRE.match(serialno):
             serialno += ':5555'
@@ -757,7 +803,7 @@ class ViewClient:
         '''
         
         progname = os.path.basename(sys.argv[0])
-        serialno = sys.argv[1] if len(sys.argv) > 1 else 'emulator-5554'
+        serialno = sys.argv[1] if len(sys.argv) > 1 else ViewClient._get_serial_no()
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         device = MonkeyRunner.waitForConnection(timeout, serialno)
