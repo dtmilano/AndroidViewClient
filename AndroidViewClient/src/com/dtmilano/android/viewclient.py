@@ -27,16 +27,17 @@ import os
 import java
 import types
 import time
+import signal
 import warnings
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
 DEBUG = False
-DEBUG_RECEIVED = DEBUG and True
-DEBUG_TREE = DEBUG and True
+DEBUG_RECEIVED = DEBUG and False
+DEBUG_TREE = DEBUG and False
 DEBUG_GETATTR = DEBUG and False
-DEBUG_COORDS = DEBUG and True
-DEBUG_TOUCH = DEBUG and True
-DEBUG_STATUSBAR = DEBUG and True
+DEBUG_COORDS = DEBUG and False
+DEBUG_TOUCH = DEBUG and False
+DEBUG_STATUSBAR = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
 
 WARNINGS = False
@@ -777,7 +778,11 @@ class ViewClient:
         serialno = sys.argv[1] if len(sys.argv) > 1 else 'emulator-5554'
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
+        # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
+        # handle it here
+        signal.alarm(timeout+5)
         device = MonkeyRunner.waitForConnection(timeout, serialno)
+        signal.alarm(0)
         try:
             device.wake()
         except java.lang.NullPointerException, e:
@@ -878,11 +883,11 @@ class ViewClient:
         
         if not received or received == "":
             raise ValueError("received is empty")
-        self.views = received.split("\n")
+        self.views = []
         ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
         if DEBUG:
             print >>sys.stderr, "there are %d views in this dump" % len(self.views)
-        self.__parseTree()
+        self.__parseTree(received.split("\n"))
 
     def __splitAttrs(self, strArgs, addViewToViewsById=False):
         '''
@@ -976,20 +981,22 @@ class ViewClient:
                           
         return attrs
     
-    def __parseTree(self):
+    def __parseTree(self, receivedLines):
         '''
         Parses the View tree contained in L{self.views}. The tree is created and the root node assigned to L{self.root}.
         '''
         
         self.root = None
+        self.viewsById = {}
         parent = None
         parents = []
         treeLevel = -1
         newLevel = -1
         lastView = None
-        for v in self.views:
-            if v == 'DONE' or v == 'DONE.':
+        for v in receivedLines:
+            if v == '' or v == 'DONE' or v == 'DONE.':
                 break
+            self.views.append(v)
             attrs = self.__splitAttrs(v, addViewToViewsById=True)
             if not self.root:
                 if v[0] == ' ':

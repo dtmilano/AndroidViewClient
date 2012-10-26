@@ -187,6 +187,16 @@ class ViewClientTest(unittest.TestCase):
         vc.traverse(vc.root, transform=self.__eatIt)
         # We know there are 23 views in mock tree
         self.assertEqual(23, len(vc.getViewIds()))
+        
+    def testNewViewClientInstancesDontDuplicateTree(self):
+        vc = {}
+        n = {}
+        for i in range(10):
+            vc[i] = self.__mockTree()
+            n[i] = len(vc[i].getViewIds())
+        
+        for i in range(1, 10):
+            self.assertEquals(n[0], n[i])
        
     def testTraverseShowClassIdAndText(self):
         device = MockDevice()
