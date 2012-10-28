@@ -187,6 +187,16 @@ class ViewClientTest(unittest.TestCase):
         vc.traverse(vc.root, transform=self.__eatIt)
         # We know there are 23 views in mock tree
         self.assertEqual(23, len(vc.getViewIds()))
+        
+    def testNewViewClientInstancesDontDuplicateTree(self):
+        vc = {}
+        n = {}
+        for i in range(10):
+            vc[i] = self.__mockTree()
+            n[i] = len(vc[i].getViewIds())
+        
+        for i in range(1, 10):
+            self.assertEquals(n[0], n[i])
        
     def testTraverseShowClassIdAndText(self):
         device = MockDevice()
@@ -275,6 +285,8 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         h = toggleButton.getHeight()
         xy = toggleButton.getXY()
         coords = toggleButton.getCoords()
+        self.assertNotEqual(None, textView3.getText())
+        self.assertNotEqual("", textView3.getText().strip())
         list = [ eval(v) for v in textView3.getText().strip().split() ]
         tx = list[0][0]
         ty = list[0][1]
