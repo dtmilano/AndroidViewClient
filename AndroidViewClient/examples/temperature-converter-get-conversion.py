@@ -35,8 +35,13 @@ from com.dtmilano.android.viewclient import ViewClient
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
-
-device, serialno = ViewClient.connectToDeviceOrExit()
+print sys.argv
+localViewServer = False
+if len(sys.argv) > 1 and sys.argv[1] == '--localViewServer':
+    localViewServer = True
+    sys.argv.pop(1)
+    
+device, serialno = ViewClient.connectToDeviceOrExit(ignoresecuredevice=localViewServer)
 
 FLAG_ACTIVITY_NEW_TASK = 0x10000000
 package = 'com.example.i2at.tc'                                          
@@ -50,7 +55,7 @@ MonkeyRunner.sleep(5)
 device.type("123")
 MonkeyRunner.sleep(3)
 
-vc = ViewClient(device, serialno)
+vc = ViewClient(device, serialno, startviewserver=(not localViewServer))
 
 # obtain the views by id
 celsius = vc.findViewByIdOrRaise("id/celsius")

@@ -683,7 +683,7 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, serialno='emulator-5554', adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True):
+    def __init__(self, device, serialno='emulator-5554', adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True, startviewserver=True):
         '''
         Constructor
         
@@ -695,18 +695,21 @@ class ViewClient:
         @param adb: the path of the C{adb} executable
         @type autodump: boolean
         @param autodump: whether an automatic dump is performed at the end of this constructor
+        @type startviewserverparam: boolean
+        @param startviewserverparam: Whether to start the B{global} ViewServer
         '''
         
         if not device:
             raise Exception('Device is not connected')
         if not os.access(adb, os.X_OK):
             raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
-        if not self.serviceResponse(device.shell('service call window 3')):
-            try:
-                self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
+        if startviewserver:
+            if not self.serviceResponse(device.shell('service call window 3')):
+                try:
+                    self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
                                                         VIEW_SERVER_PORT))
-            except:
-                raise Exception('Cannot start View server.\n'
+                except:
+                    raise Exception('Cannot start View server.\n'
                                 'This only works on emulator and devices running developer versions.\n'
                                 'Does hierarchyviewer work on your device ?')
 
@@ -775,6 +778,9 @@ class ViewClient:
         '''
         
         progname = os.path.basename(sys.argv[0])
+        # eat all the extra options the invoking script may have added
+        while len(sys.argv) > 1 and sys.argv[1][0] == '-':
+            sys.argv.pop(1)
         serialno = sys.argv[1] if len(sys.argv) > 1 else 'emulator-5554'
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
