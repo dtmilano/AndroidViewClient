@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.1'
+__version__ = '2.2'
 
 import sys
 import subprocess
@@ -31,7 +31,8 @@ import signal
 import warnings
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
-DEBUG = False
+DEBUG = True
+DEBUG_DEVICE = DEBUG and True
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
 DEBUG_GETATTR = DEBUG and False
@@ -62,9 +63,17 @@ VERSION_SDK_PROPERTY = "version.sdk"
 
 # some constants for the attributes
 TEXT_PROPERTY = 'text:mText'
+TEXT_PROPERTY_API_10 = 'mText'
 WS = "\xfe" # the whitespace replacement char for TEXT_PROPERTY
 GET_VISIBILITY_PROPERTY = 'getVisibility()'
 LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
+
+VERSION_SDK_PROPERTY = 'version.sdk'
+
+# visibility
+VISIBLE = 0x0
+INVISIBLE = 0x4
+GONE = 0x8
 
 def __nd(name):
     '''
@@ -150,7 +159,7 @@ class View:
     '''
 
     @staticmethod
-    def factory(attrs, device):
+    def factory(attrs, device, version=-1):
         '''
         View factory
         '''
@@ -158,15 +167,15 @@ class View:
         if attrs.has_key('class'):
             clazz = attrs['class']
             if clazz == 'android.widget.TextView':
-                return TextView(attrs, device)
+                return TextView(attrs, device, version)
             elif clazz == 'android.widget.EditText':
-                return EditText(attrs, device)
+                return EditText(attrs, device, version)
             else:
-                return View(attrs, device)
+                return View(attrs, device, version)
         else:
-            return View(attrs, device)
+            return View(attrs, device, version)
     
-    def __init__(self, map, device):
+    def __init__(self, map, device, version=-1):
         '''
         Constructor
         
@@ -174,19 +183,35 @@ class View:
         @param map: the map containing the (attribute, value) pairs
         @type device: MonkeyDevice
         @param device: the device containing this View
+        @type version: int
+        @param version: the Android SDK version number of the platform where this View belongs. If
+                        this is C{-1} then the Android SDK version will be obtained in this
+                        constructor.
         '''
         
         self.map = map
+        ''' The map that contains the C{attr},C{value} pairs '''
         self.device = device
+        ''' The MonkeyDevice '''
         self.children = []
+        ''' The children of this View '''
         self.parent = None
+        ''' The parent of this View '''
         self.windows = {}
         self.currentFocus = None
         self.build = {}
-        try:
-            self.build[VERSION_SDK_PROPERTY] = int(device.getProperty('build.version.sdk'))
-        except:
-            self.build[VERSION_SDK_PROPERTY] = -1
+
+        if version != -1:
+            self.build[VERSION_SDK_PROPERTY] = version
+        else:
+            try:
+                if USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES:
+                    self.build[VERSION_SDK_PROPERTY] = int(device.getProperty('build.' + VERSION_SDK_PROPERTY))
+                else:
+                    self.build[VERSION_SDK_PROPERTY] = int(device.shell('getprop ro.build.' + VERSION_SDK_PROPERTY)[:-2])
+            except:
+                self.build[VERSION_SDK_PROPERTY] = -1
+
         
     def __getitem__(self, key):
         return self.map[key]
@@ -274,7 +299,7 @@ class View:
         '''
         
         try:
-            return self.map[TEXT_PROPERTY]
+            return self.map[TEXT_PROPERTY_API_10 if self.build[VERSION_SDK_PROPERTY] == 10 else TEXT_PROPERTY]
         except Exception:
             return None
 
@@ -309,11 +334,11 @@ class View:
         
         try:
             if self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
-                return 0x0
+                return VISIBLE
             elif self.map[GET_VISIBILITY_PROPERTY] == 'INVISIBLE':
-                return 0x4
+                return INVISIBLE
             elif self.map[GET_VISIBILITY_PROPERTY] == 'GONE':
-                return 0x8
+                return GONE
             else:
                 return -2
         except:
@@ -548,6 +573,14 @@ class View:
                             if m:
                                 wvx, wvy = self.__obtainVxVy(m)
                                 wvw, wvh = self.__obtainVwVh(m)
+                    elif self.build[VERSION_SDK_PROPERTY] == 10:
+                        m = containingFrameRE.search(lines[l2])
+                        if m:
+                            px, py = self.__obtainPxPy(m)
+                            m = contentFrameRE.search(lines[l2+1])
+                            if m:
+                                wvx, wvy = self.__obtainVxVy(m)
+                                wvw, wvh = self.__obtainVwVh(m)
                     else:
                         warnings.warn("Unsupported Android version %d" % self.build[VERSION_SDK_PROPERTY])
                     
@@ -674,7 +707,7 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, serialno='emulator-5554', adb=None, autodump=True):
+    def __init__(self, device, serialno, adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT):
         '''
         Constructor
         
@@ -686,33 +719,44 @@ class ViewClient:
         @param adb: the path of the C{adb} executable
         @type autodump: boolean
         @param autodump: whether an automatic dump is performed at the end of this constructor
+        @type localport: int
+        @param localport: the local port used in the redirection
+        @type remoteport: int
+        @param remoteport: the remote port used to start the C{ViewServer} in the device or
+                           emulator
         '''
 
         if not device:
             raise Exception('Device is not connected')
-        
         if adb:
             if not os.access(adb, os.X_OK):
                 raise Exception('adb="%s" is not executable')
         else:
             adb = ViewClient.__obtainAdbPath()
-      
+        if not serialno:
+            raise ValueError("Serialno cannot be None")
+        if not os.access(adb, os.X_OK):
+            raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
+        self.device = device
+        ''' The C{MonkeyDevice} device instance '''
+        self.serialno = self.__mapSerialNo(serialno)
+        ''' The serial number of the device '''
+        if DEBUG_DEVICE: print >> sys.stderr, "ViewClient: using device with serialno", self.serialno
         if not self.serviceResponse(device.shell('service call window 3')):
             try:
                 self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
-                                                        VIEW_SERVER_PORT))
+                                                        remoteport))
             except:
                 raise Exception('Cannot start View server.\n'
                                 'This only works on emulator and devices running developer versions.\n'
                                 'Does hierarchyviewer work on your device ?')
 
-        self.serialno = ViewClient.__mapSerialNo(serialno)
+        self.localPort = localport
+        self.remotePort = remoteport
         # FIXME: it seems there's no way of obtaining the serialno from the MonkeyDevice
-        subprocess.check_call([adb, '-s', self.serialno, 'forward', 'tcp:%d' % VIEW_SERVER_PORT,
-                               'tcp:%d' % VIEW_SERVER_PORT])
+        subprocess.check_call([adb, '-s', self.serialno, 'forward', 'tcp:%d' % self.localPort,
+                               'tcp:%d' % self.remotePort])
 
-        self.device = device
-        ''' The C{MonkeyDevice} device instance '''
         self.root = None
         ''' The root node '''
         self.viewsById = {}
@@ -720,14 +764,32 @@ class ViewClient:
         self.display = {}
         ''' The map containing the device's display properties: width, height and density '''
         for prop in [ 'width', 'height', 'density' ]:
-            try:
-                self.display[prop] = device.getProperty('display.' + prop)
-            except:
-                self.display[prop] = -1
-
+            self.display[prop] = -1
+            if USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES:
+                try:
+                    self.display[prop] = int(device.getProperty('display.' + prop))
+                except:
+                    warnings.warn("Couldn't determine display %s" % prop)
+            else:
+                # these values are usually not defined as properties, so we stick to the -1 set
+                # before
+                pass
         self.build = {}
         ''' The map containing the device's build properties: version.sdk, version.release '''
         for prop in [VERSION_SDK_PROPERTY, 'version.release']:
+            self.build[prop] = -1
+            try:
+                if USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES:
+                    self.build[prop] = device.getProperty('build.' + prop)
+                else:
+                    self.build[prop] = device.shell('getprop ro.build.' + prop)[:-2]
+            except:
+                warnings.warn("Couldn't determine build %s" % prop)
+                
+            if prop == VERSION_SDK_PROPERTY:
+                # we expect it to be an int
+                self.build[prop] = int(self.build[prop] if self.build[prop] else -1)
+                
             try:
                 self.build[prop] = device.getProperty('build.' + prop)
                 if prop == VERSION_SDK_PROPERTY:
@@ -737,10 +799,14 @@ class ViewClient:
 
         if self.build[VERSION_SDK_PROPERTY] > 0 and self.build[VERSION_SDK_PROPERTY] <= 10: # gingerbread 2.3.3
             global TEXT_PROPERTY
-            TEXT_PROPERTY = "mText"
+            TEXT_PROPERTY = TEXT_PROPERTY_API_10
 
         if autodump:
             self.dump()
+    
+    def __del__(self):
+        # should clean up some things
+        pass
     
     @staticmethod
     def __obtainAdbPath():
@@ -792,16 +858,39 @@ class ViewClient:
 
     @staticmethod
     def __mapSerialNo(serialno):
-        ipRE = re.compile('\d+\.\d+.\d+.\d+')
+        ipRE = re.compile('^\d+\.\d+.\d+.\d+$')
         if ipRE.match(serialno):
-            serialno += ':5555'
+            if DEBUG_DEVICE: print >>sys.stderr, "ViewClient: adding default port to serialno", serialno, '5555'
+            return serialno + ':5555'
+        
+        ipPortRE = re.compile('^\d+\.\d+.\d+.\d+:\d+$')
+        if ipPortRE.match(serialno):
+            # nothing to map
+            return serialno
+        
+        if re.search("[.*()+]", serialno):
+            raise ValueError("Regular expression not supported as serialno in ViewClient")
+
         return serialno
     
+    @staticmethod
+    def __obtainDeviceSerialNumber(device):
+        serialno = device.getProperty('ro.serialno')
+        if not serialno:
+            serialno = device.shell('getprop ro.serialno')[:-2]
+        if not serialno:
+            if int(device.shell('getprop ro.kernel.qemu')[:-2]) == 1:
+                # FIXME !!!!!
+                # this must be calculated from somewhere, though using a fixed serialno for now
+                warnings.warn("Running on emulator but no serial number was specified then 'emulator-5554' is used")
+                serialno = 'emulator-5554'
+        return serialno
+
     @staticmethod
     def connectToDeviceOrExit(timeout=60, verbose=False, ignoresecuredevice=False):
         '''
         Connects to a device which serial number is obtained from the script arguments if available
-        or using the default C{emulator-5554}.
+        or using the default regex C{.*}.
         
         If the connection is not successful the script exits.
         L{MonkeyRunner.waitForConnection()} returns a L{MonkeyDevice} even if the connection failed.
@@ -818,8 +907,8 @@ class ViewClient:
         @return: the device and serialno used for the connection
         '''
         
+        serialno = sys.argv[1] if len(sys.argv) > 1 else '.*'
         progname = os.path.basename(sys.argv[0])
-        serialno = sys.argv[1] if len(sys.argv) > 1 else 'emulator-5554'
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
@@ -839,6 +928,9 @@ class ViewClient:
         if secure == '1' and debuggable == '0' and not ignoresecuredevice:
             print >> sys.stderr, "%s: ERROR: Device is secure, AndroidViewClient won't work." % progname
             sys.exit(1)
+        if re.search("[.*()+]", serialno):
+            # if a regex was used we have to determine the serialno used
+            serialno = ViewClient.__obtainDeviceSerialNumber(device)
         return device, serialno
         
     @staticmethod
@@ -1045,7 +1137,7 @@ class ViewClient:
             if not self.root:
                 if v[0] == ' ':
                     raise Exception("Unexpected root element starting with ' '.")
-                self.root = View.factory(attrs, self.device)
+                self.root = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY])
                 if DEBUG: self.root.raw = v
                 treeLevel = 0
                 newLevel = 0
@@ -1056,7 +1148,7 @@ class ViewClient:
                 newLevel = (len(v) - len(v.lstrip()))
                 if newLevel == 0:
                     raise Exception("newLevel==0 treeLevel=%d but tree can have only one root, v=%s" % (treeLevel, v))
-                child = View.factory(attrs, self.device)
+                child = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY])
                 if DEBUG: child.raw = v
                 if newLevel == treeLevel:
                     parent.add(child)
@@ -1132,7 +1224,10 @@ class ViewClient:
         if sleep > 0:
             MonkeyRunner.sleep(sleep)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((VIEW_SERVER_HOST, VIEW_SERVER_PORT))
+        try:
+            s.connect((VIEW_SERVER_HOST, self.localPort))
+        except socket.error, ex:
+            raise RuntimeError("ERROR: Connecting to %s:%d: %s" % (VIEW_SERVER_HOST, self.localPort, ex))
         s.send('dump %d\r\n' % windowId)
         received = ""
         doneRE = re.compile("DONE")
