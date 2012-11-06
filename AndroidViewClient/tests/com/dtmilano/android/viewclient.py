@@ -160,13 +160,13 @@ class ViewClientTest(unittest.TestCase):
     
     def testInit_adb(self):
         device = MockDevice()
-        vc = ViewClient(device, adb=TRUE, autodump=False)
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEqual(None, vc)
         
     def testInit_adbNone(self):
         device = MockDevice()
         try:
-            vc = ViewClient(device, adb=None, autodump=False)
+            vc = ViewClient(device, device.serialno, adb=None, autodump=False)
             self.assertNotEqual(None, vc)
         except subprocess.CalledProcessError:
             # This is needed because the ports cannot be forwarded if there is no device connected

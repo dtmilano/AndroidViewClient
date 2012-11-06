@@ -31,7 +31,7 @@ import signal
 import warnings
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
-DEBUG = True
+DEBUG = False
 DEBUG_DEVICE = DEBUG and True
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
@@ -707,7 +707,7 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, serialno, adb=os.path.join(ANDROID_HOME, 'platform-tools', ADB), autodump=True, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT):
+    def __init__(self, device, serialno, adb=None, autodump=True, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT):
         '''
         Constructor
         
