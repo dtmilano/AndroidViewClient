@@ -1,7 +1,7 @@
 #! /usr/bin/env monkeyrunner
 '''
 Copyright (C) 2012  Diego Torres Milano
-Created on Feb 3, 2012
+Created on Oct 15, 2012
 
 @author: diego
 '''
@@ -27,4 +27,4 @@ except:
 
 from com.dtmilano.android.viewclient import ViewClient
 
-ViewClient(*ViewClient.connectToDeviceOrExit()).traverse(transform=ViewClient.TRAVERSE_CIT)
+ViewClient.connectToDeviceOrExit(verbose=True)

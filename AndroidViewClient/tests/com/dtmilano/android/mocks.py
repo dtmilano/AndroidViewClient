@@ -319,12 +319,13 @@ class MockDevice(object):
     '''
 
 
-    def __init__(self):
+    def __init__(self, serialno="MOCK12345678", version=15):
         '''
         Constructor
         '''
         
-        self.serialno = "MOCK12345678"
+        self.serialno = serialno
+        self.version = version
         self.service = STOPPED
         
         
@@ -344,5 +345,5 @@ class MockDevice(object):
         if property == 'ro.serialno':
             return self.serialno
         elif property == 'build.version.sdk':
-            return 15
+            return self.version
         return None
