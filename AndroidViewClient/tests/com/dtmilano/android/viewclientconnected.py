@@ -31,7 +31,6 @@ VERBOSE = False
 # either the alternative of connecting twice from the same script
 # this is the only alternative
 SERIALNO = 'emulator-5554'
-SERIALNO = 'HT04GP900803'
 sys.argv = ['ViewClientConnectedTest', SERIALNO]
 device, serialno = ViewClient.connectToDeviceOrExit(verbose=True)
        
