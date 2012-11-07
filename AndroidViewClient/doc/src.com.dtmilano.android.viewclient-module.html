@@ -87,7 +87,7 @@ limitations under the License.
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        1.2
+        2.2
       </p>
 </div><!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -213,9 +213,9 @@ limitations under the License.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient-module.html#__ns" class="summary-sig-name" onclick="show_private();">__ns</a>(<span class="summary-sig-arg">name</span>)</span><br />
-      Returns:
-      Returns a named string (only non-whitespace characters allowed)</td>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient-module.html#__ns" class="summary-sig-name" onclick="show_private();">__ns</a>(<span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">greedy</span>=<span class="summary-sig-default">False</span>)</span><br />
+      NOTICE: this is using a non-greedy (or minimal) regex</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#__ns">source&nbsp;code</a></span>
             
@@ -247,21 +247,28 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG"></a><span class="summary-name">DEBUG</span> = <code title="False">False</code>
+        <a name="DEBUG"></a><span class="summary-name">DEBUG</span> = <code title="True">True</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG_RECEIVED"></a><span class="summary-name">DEBUG_RECEIVED</span> = <code title="DEBUG and True">DEBUG and True</code>
+        <a name="DEBUG_DEVICE"></a><span class="summary-name">DEBUG_DEVICE</span> = <code title="DEBUG and True">DEBUG and True</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG_TREE"></a><span class="summary-name">DEBUG_TREE</span> = <code title="DEBUG and True">DEBUG and True</code>
+        <a name="DEBUG_RECEIVED"></a><span class="summary-name">DEBUG_RECEIVED</span> = <code title="DEBUG and False">DEBUG and False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DEBUG_TREE"></a><span class="summary-name">DEBUG_TREE</span> = <code title="DEBUG and False">DEBUG and False</code>
     </td>
   </tr>
 <tr>
@@ -275,28 +282,35 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG_COORDS"></a><span class="summary-name">DEBUG_COORDS</span> = <code title="DEBUG and True">DEBUG and True</code>
+        <a name="DEBUG_COORDS"></a><span class="summary-name">DEBUG_COORDS</span> = <code title="DEBUG and False">DEBUG and False</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG_TOUCH"></a><span class="summary-name">DEBUG_TOUCH</span> = <code title="DEBUG and True">DEBUG and True</code>
+        <a name="DEBUG_TOUCH"></a><span class="summary-name">DEBUG_TOUCH</span> = <code title="DEBUG and False">DEBUG and False</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG_STATUSBAR"></a><span class="summary-name">DEBUG_STATUSBAR</span> = <code title="DEBUG and True">DEBUG and True</code>
+        <a name="DEBUG_STATUSBAR"></a><span class="summary-name">DEBUG_STATUSBAR</span> = <code title="DEBUG and False">DEBUG and False</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG_WINDOWS"></a><span class="summary-name">DEBUG_WINDOWS</span> = <code title="DEBUG and True">DEBUG and True</code>
+        <a name="DEBUG_WINDOWS"></a><span class="summary-name">DEBUG_WINDOWS</span> = <code title="DEBUG and False">DEBUG and False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="WARNINGS"></a><span class="summary-name">WARNINGS</span> = <code title="False">False</code>
     </td>
   </tr>
 <tr>
@@ -374,6 +388,13 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="TEXT_PROPERTY_API_10"></a><span class="summary-name">TEXT_PROPERTY_API_10</span> = <code title="'mText'">'mText'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="WS"></a><span class="summary-name">WS</span> = <code title="&quot;\xfe&quot;">&quot;\xfe&quot;</code>
     </td>
   </tr>
@@ -389,6 +410,34 @@ limitations under the License.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="LAYOUT_TOP_MARGIN_PROPERTY"></a><span class="summary-name">LAYOUT_TOP_MARGIN_PROPERTY</span> = <code title="'layout:layout_topMargin'">'layout:layout_topMargin'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="VERSION_SDK_PROPERTY"></a><span class="summary-name">VERSION_SDK_PROPERTY</span> = <code title="'version.sdk'">'version.sdk'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="VISIBLE"></a><span class="summary-name">VISIBLE</span> = <code title="0x0">0x0</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="INVISIBLE"></a><span class="summary-name">INVISIBLE</span> = <code title="0x4">0x4</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="GONE"></a><span class="summary-name">GONE</span> = <code title="0x8">0x8</code>
     </td>
   </tr>
 </table>
@@ -459,15 +508,21 @@ limitations under the License.
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__ns</span>(<span class="sig-arg">name</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__ns</span>(<span class="sig-arg">name</span>,
+        <span class="sig-arg">greedy</span>=<span class="sig-default">False</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#__ns">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  
+  <p>NOTICE: this is using a non-greedy (or minimal) regex</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>name</code></strong> (str) - the name used to tag the expression</li>
+        <li><strong class="pname"><code>greedy</code></strong> (bool) - Whether the regex is greedy or not</li>
+    </ul></dd>
     <dt>Returns:</dt>
         <dd>Returns a named string (only non-whitespace characters allowed)</dd>
   </dl>
@@ -568,7 +623,7 @@ False
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Oct  2 00:38:58 2012
+    Generated by Epydoc 3.0.1 on Mon Nov  5 23:14:19 2012
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

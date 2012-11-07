@@ -30,7 +30,8 @@ VERBOSE = False
 # Because there's no way of disconnect a MonkeyDevice and there's no
 # either the alternative of connecting twice from the same script
 # this is the only alternative
-sys.argv = ['ViewClientConnectedTest', 'emulator-5554']
+SERIALNO = 'emulator-5554'
+sys.argv = ['ViewClientConnectedTest', SERIALNO]
 device, serialno = ViewClient.connectToDeviceOrExit(verbose=True)
        
 class ViewClientConnectedTest(unittest.TestCase):
@@ -46,6 +47,11 @@ class ViewClientConnectedTest(unittest.TestCase):
         pass
     
     
+    def testInit_adbNone(self):
+        device = MockDevice()
+        vc = ViewClient(device, adb=None, autodump=False)
+        self.assertNotEqual(None, vc)
+        
     def testAutodumpVsDump(self):
         vc = ViewClient(self.device, self.serialno)
         ids = vc.getViewIds()

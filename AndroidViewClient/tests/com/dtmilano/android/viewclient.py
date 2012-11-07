@@ -26,7 +26,7 @@ except:
 
 from com.dtmilano.android.viewclient import *
 from mocks import MockDevice
-from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP
+from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, RUNNING, STOPPED
 
 # this is probably the only reliable way of determining the OS in monkeyrunner
 os_name = java.lang.System.getProperty('os.name')
@@ -38,26 +38,34 @@ else:
 class ViewTest(unittest.TestCase):
 
     def setUp(self):
-        self.view = View(VIEW_MAP, None)
+        self.view = View(VIEW_MAP, None, -1)
 
     def tearDown(self):
         pass
 
     def testViewFactory_View(self):
         attrs = {'class': 'android.widget.AnyView', 'text:mText': 'Button with ID'}
-        view = View.factory(attrs, None)
+        view = View.factory(attrs, None, -1)
         self.assertTrue(isinstance(view, View))
         
     def testViewFactory_TextView(self):
         attrs = {'class': 'android.widget.TextView', 'text:mText': 'Button with ID'}
-        view = View.factory(attrs, None)
+        view = View.factory(attrs, None, -1)
         self.assertTrue(isinstance(view, TextView))
         
     def testViewFactory_TextView(self):
         attrs = {'class': 'android.widget.EditText', 'text:mText': 'Button with ID'}
-        view = View.factory(attrs, None)
+        view = View.factory(attrs, None, -1)
         self.assertTrue(isinstance(view, EditText))
     
+    def testView_notSpecifiedSdkVersion(self):
+        view = View(VIEW_MAP, MockDevice(), -1)
+        self.assertEqual(15, view.build[VERSION_SDK_PROPERTY])
+        
+    def testView_specifiedSdkVersion(self):
+        view = View(VIEW_MAP, MockDevice(), 10)
+        self.assertEqual(10, view.build[VERSION_SDK_PROPERTY])
+        
     def testInnerMethod(self):
         v = View({'isChecked()':'true'}, None)
         self.assertTrue(v.isChecked())
@@ -150,26 +158,64 @@ class ViewClientTest(unittest.TestCase):
     def tearDown(self):
         pass
     
+    def testInit_adb(self):
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+        self.assertNotEqual(None, vc)
+        
+    def testInit_adbNone(self):
+        device = MockDevice()
+        try:
+            vc = ViewClient(device, device.serialno, adb=None, autodump=False)
+            self.assertNotEqual(None, vc)
+        except subprocess.CalledProcessError:
+            # This is needed because the ports cannot be forwarded if there is no device connected
+            pass
+        
     def testExceptionDeviceNotConnected(self):
         try:
-            vc = ViewClient(None)
+            vc = ViewClient(None, None)
         except Exception, e:
             self.assertEqual('Device is not connected', e.message)
             
     def testConstructor(self):
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
     
-    def testMapSerialNo(self):
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False, serialno='192.168.1.100')
+    def testMapSerialNo_noPortSpecified(self):
+        vc = ViewClient(MockDevice(), serialno='192.168.1.100', adb=TRUE, autodump=False)
+        self.assertEqual('192.168.1.100:5555', vc.serialno)
+        
+    def testMapSerialNo_portSpecified(self):
+        vc = ViewClient(MockDevice(), serialno='192.168.1.100:5555', adb=TRUE, autodump=False)
         self.assertEqual('192.168.1.100:5555', vc.serialno)
         
     def testMapSerialNo_emulator(self):
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False, serialno='emulator-5556')
+        vc = ViewClient(MockDevice(), serialno='emulator-5556', adb=TRUE, autodump=False)
         self.assertEqual('emulator-5556', vc.serialno)
         
+    def testMapSerialNo_regex(self):
+        # This is an edge case. A regex should not be used as the serialno in ViewClient as it's
+        # behavior is not well defined.
+        # MonkeyRunner.waitForConnection() accepts a regexp as serialno but adb -s doesn't
+        try:
+            ViewClient(MockDevice(),  serialno='.*', adb=TRUE, autodump=False)
+            self.fail()
+        except ValueError:
+            pass
+        
+    def testMapSerialNo_None(self):
+        device = MockDevice()
+        try:
+            ViewClient(device, None, adb=TRUE, autodump=False)
+            self.fail()
+        except ValueError:
+            pass
+        
     def __mockTree(self, dump=DUMP):
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
+        device = MockDevice()
+        vc = ViewClient(device, serialno=device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.setViews(dump)
         return vc
@@ -207,7 +253,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v3)
         v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
         v3.add(v35)
-        vc = ViewClient(device, adb=TRUE, autodump=False)
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         treeStr = StringIO.StringIO()
         vc.traverse(root=root, transform=ViewClient.TRAVERSE_CIT, stream=treeStr)
@@ -229,7 +275,7 @@ class ViewClientTest(unittest.TestCase):
         root.add(v3)
         v35 = View({'mID':'5', 'text:mText':'5', 'getTag()':'v35', 'layout:mLeft':5, 'layout:mTop':5}, device)
         v3.add(v35)
-        vc = ViewClient(device, adb=TRUE, autodump=False)
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         treeStr = StringIO.StringIO()
         vc.traverse(root=root, transform=ViewClient.TRAVERSE_CITC, stream=treeStr)
@@ -297,6 +343,16 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertEqual((tsx, tsy), xy)
         self.assertEqual(((tsx, tsy), (xy[0] + w, xy[1] + h)), coords)
         
+    def testServiceStoppedAfterDestructor(self):
+        device = MockDevice()
+        self.assertTrue(device.service == STOPPED)
+        if True:
+            vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+            self.assertTrue(device.service == RUNNING)
+            vc.__del__()
+        # Perhpas there are other ViewClients using the same server, we cannot expect it stops
+        #self.assertTrue(device.service == STOPPED)
+
     def testFindViewByIdOrRaise(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
         vc.findViewByIdOrRaise('id/up')
@@ -322,7 +378,8 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         root.add(v4)
         v45 = View({'mID':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         v5 = vc.findViewById('5')
@@ -348,7 +405,8 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         root.add(v4)
         v45 = View({'mID':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         v5 = vc.findViewByIdOrRaise('5')
@@ -371,7 +429,8 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         root.add(v4)
         v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         v5 = vc.findViewWithText('5')
@@ -397,7 +456,8 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         root.add(v4)
         v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         v5 = vc.findViewWithTextOrRaise('5')
@@ -420,7 +480,8 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         root.add(v4)
         v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
         v4.add(v45)
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         vc.root = root
         try:
@@ -429,24 +490,6 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         except ViewNotFoundException:
             pass
 
-    def testFindViewWithText_rootNonExistent(self):
-        device = None
-        root = View({'text:mText':'0'}, device)
-        root.add(View({'text:mText':'1'}, device))
-        root.add(View({'text:mText':'2'}, device))
-        v3 = View({'text:mText':'3'}, device)
-        root.add(v3)
-        v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
-        v3.add(v35)
-        v4 = View({'text:mText':'4'}, device)
-        root.add(v4)
-        v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
-        v4.add(v45)
-        vc = ViewClient(MockDevice(), adb=TRUE, autodump=False)
-        self.assertNotEquals(None, vc)
-        vc.root = root
-        vne = vc.findViewWithText('Non Existent', root=v4)
-        self.assertEquals(None, vne)
          
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

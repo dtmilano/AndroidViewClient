@@ -33,7 +33,7 @@ from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 device, serialno = ViewClient.connectToDeviceOrExit()
 
-
+DEBUG = True
 FLAG_ACTIVITY_NEW_TASK = 0x10000000
 # We are not using Settings as the bug describes because there's no WiFi dialog in emulator
 componentName = 'com.android.settings/.Settings'
@@ -41,6 +41,7 @@ device.startActivity(component=componentName, flags=FLAG_ACTIVITY_NEW_TASK)
 MonkeyRunner.sleep(3)
 
 vc = ViewClient(device=device, serialno=serialno)
+if DEBUG: vc.traverse(transform=ViewClient.TRAVERSE_CIT)
 sound = vc.findViewWithText('Sound')
 if sound:
     sound.touch()
