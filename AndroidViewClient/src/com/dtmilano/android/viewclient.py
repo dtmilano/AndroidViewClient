@@ -299,7 +299,7 @@ class View:
         '''
         
         try:
-            return self.map[TEXT_PROPERTY_API_10 if self.build[VERSION_SDK_PROPERTY] == 10 else TEXT_PROPERTY]
+            return self.map[TEXT_PROPERTY]
         except Exception:
             return None
 
@@ -716,7 +716,7 @@ class ViewClient:
         @type serialno: str
         @param serialno: the serial number of the device or emulator to connect to
         @type adb: str
-        @param adb: the path of the C{adb} executable
+        @param adb: the path of the C{adb} executable or None and C{ViewClient} will try to find it
         @type autodump: boolean
         @param autodump: whether an automatic dump is performed at the end of this constructor
         @type localport: int
@@ -728,20 +728,22 @@ class ViewClient:
 
         if not device:
             raise Exception('Device is not connected')
+        self.device = device
+        ''' The C{MonkeyDevice} device instance '''
+        
+        if not serialno:
+            raise ValueError("Serialno cannot be None")
+        self.serialno = self.__mapSerialNo(serialno)
+        ''' The serial number of the device '''
+        
+        if DEBUG_DEVICE: print >> sys.stderr, "ViewClient: using device with serialno", self.serialno
+        
         if adb:
             if not os.access(adb, os.X_OK):
                 raise Exception('adb="%s" is not executable')
         else:
             adb = ViewClient.__obtainAdbPath()
-        if not serialno:
-            raise ValueError("Serialno cannot be None")
-        if not os.access(adb, os.X_OK):
-            raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
-        self.device = device
-        ''' The C{MonkeyDevice} device instance '''
-        self.serialno = self.__mapSerialNo(serialno)
-        ''' The serial number of the device '''
-        if DEBUG_DEVICE: print >> sys.stderr, "ViewClient: using device with serialno", self.serialno
+
         if not self.serviceResponse(device.shell('service call window 3')):
             try:
                 self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
