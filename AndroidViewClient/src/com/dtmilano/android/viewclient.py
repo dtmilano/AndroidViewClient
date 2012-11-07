@@ -707,7 +707,7 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, serialno, adb=None, autodump=True, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT):
+    def __init__(self, device, serialno, adb=None, autodump=True, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True):
         '''
         Constructor
         
@@ -724,6 +724,8 @@ class ViewClient:
         @type remoteport: int
         @param remoteport: the remote port used to start the C{ViewServer} in the device or
                            emulator
+        @type startviewserverparam: boolean
+        @param startviewserverparam: Whether to start the B{global} ViewServer
         '''
 
         if not device:
@@ -744,12 +746,13 @@ class ViewClient:
         else:
             adb = ViewClient.__obtainAdbPath()
 
-        if not self.serviceResponse(device.shell('service call window 3')):
-            try:
-                self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
+        if startviewserver:
+            if not self.serviceResponse(device.shell('service call window 3')):
+                try:
+                    self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
                                                         remoteport))
-            except:
-                raise Exception('Cannot start View server.\n'
+                except:
+                    raise Exception('Cannot start View server.\n'
                                 'This only works on emulator and devices running developer versions.\n'
                                 'Does hierarchyviewer work on your device ?')
 
@@ -909,8 +912,11 @@ class ViewClient:
         @return: the device and serialno used for the connection
         '''
         
-        serialno = sys.argv[1] if len(sys.argv) > 1 else '.*'
         progname = os.path.basename(sys.argv[0])
+        # eat all the extra options the invoking script may have added
+        while len(sys.argv) > 1 and sys.argv[1][0] == '-':
+            sys.argv.pop(1)
+        serialno = sys.argv[1] if len(sys.argv) > 1 else '.*'
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
