@@ -921,9 +921,16 @@ class ViewClient:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
         # handle it here
-        signal.alarm(timeout+5)
+        setAlarm = True
+        osName = java.lang.System.getProperty('os.name')
+        if osName.startswith('Windows'):
+            # alarm is not implemented in Windows
+            setAlarm = False
+        if setAlarm:
+            signal.alarm(timeout+5)
         device = MonkeyRunner.waitForConnection(timeout, serialno)
-        signal.alarm(0)
+        if setAlarm:
+            signal.alarm(0)
         try:
             device.wake()
         except java.lang.NullPointerException, e:
