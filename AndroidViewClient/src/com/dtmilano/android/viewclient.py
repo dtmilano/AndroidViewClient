@@ -826,10 +826,11 @@ class ViewClient:
             adb = 'adb'
 
         ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
+        HOME = os.environ['HOME'] if os.environ.has_key('HOME') else ''
 
         possibleChoices = [ os.path.join(ANDROID_HOME, 'platform-tools', adb),
-                           os.path.join(os.environ['HOME'],  "android", 'platform-tools', adb),
-                           os.path.join(os.environ['HOME'],  "android-sdk", 'platform-tools', adb),
+                           os.path.join(HOME,  "android", 'platform-tools', adb),
+                           os.path.join(HOME,  "android-sdk", 'platform-tools', adb),
                            adb,
                            ]
 
@@ -837,11 +838,9 @@ class ViewClient:
             possibleChoices.append(os.path.join("""C:\Program Files\Android\android-sdk\platform-tools""", adb))
             possibleChoices.append(os.path.join("""C:\Program Files (x86)\Android\android-sdk\platform-tools""", adb))
         elif osName.startswith('Linux'):
-            HOME = os.environ['HOME']
             possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-linux",  'platform-tools', adb))
             possibleChoices.append(os.path.join(HOME,  "android-sdk-linux",  'platform-tools', adb))
         elif osName.startswith('Mac'):
-            HOME = os.environ['HOME']
             possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-mac", 'platform-tools', adb))
             possibleChoices.append(os.path.join(HOME,  "android-sdk-mac", 'platform-tools', adb))
             possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-mac_x86",  'platform-tools', adb))

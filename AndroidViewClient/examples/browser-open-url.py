@@ -12,16 +12,22 @@ import sys
 import os
 import string
 
-# this must be imported before MonkeyRunner and MonkeyDevice,
-# otherwise the import fails
+# This must be imported before MonkeyRunner and MonkeyDevice,
+# otherwise the import fails.
+# PyDev sets PYTHONPATH, use it
 try:
-    ANDROID_VIEW_CLIENT_HOME = os.environ['ANDROID_VIEW_CLIENT_HOME']
-except KeyError:
-    print >>sys.stderr, "%s: ERROR: ANDROID_VIEW_CLIENT_HOME not set in environment" % __file__
-    sys.exit(1)
-sys.path.append(ANDROID_VIEW_CLIENT_HOME + '/src')
-from com.dtmilano.android.viewclient import ViewClient
+    for p in os.environ['PYTHONPATH'].split(':'):
+        if not p in sys.path:
+            sys.path.append(p)
+except:
+    pass
+    
+try:
+    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
+except:
+    pass
 
+from com.dtmilano.android.viewclient import ViewClient
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 # Starting: Intent { act=android.intent.action.MAIN flg=0x10000000 cmp=com.android.browser/.BrowserActivity }
@@ -29,18 +35,14 @@ package = 'com.android.browser'
 activity = '.BrowserActivity'                           
 component = package + "/" + activity
 uri = 'http://dtmilano.blogspot.com'
-                   
-device = MonkeyRunner.waitForConnection(60)
-if not device:
-	raise Exception('Cannot connect to device')
 
+device, serialno = ViewClient.connectToDeviceOrExit()
 device.startActivity(component=component, uri=uri)
 MonkeyRunner.sleep(3)
 
-vc = ViewClient(device)
-vc.dump()
-title = vc.findViewById("id/title")['mText']
-if string.find(title, uri) != -1:
+vc = ViewClient(device, serialno)
+url = vc.findViewByIdOrRaise("id/url").getText()
+if string.find(url, uri) != -1:
     print "%s successfully loaded" % uri
 else:
-    print "%s was not loaded, title=%s" % (uri, title)
+    print "%s was not loaded, url=%s" % (uri, url)

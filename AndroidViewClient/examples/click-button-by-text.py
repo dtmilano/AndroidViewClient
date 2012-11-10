@@ -10,29 +10,27 @@ import sys
 import os
 import time
 
-# this must be imported before MonkeyRunner and MonkeyDevice,
-# otherwise the import fails
+# This must be imported before MonkeyRunner and MonkeyDevice,
+# otherwise the import fails.
+# PyDev sets PYTHONPATH, use it
 try:
-    ANDROID_VIEW_CLIENT_HOME = os.environ['ANDROID_VIEW_CLIENT_HOME']
-except KeyError:
-    print >>sys.stderr, "%s: ERROR: ANDROID_VIEW_CLIENT_HOME not set in environment" % __file__
-    sys.exit(1)
-sys.path.append(ANDROID_VIEW_CLIENT_HOME + '/src')
+    for p in os.environ['PYTHONPATH'].split(':'):
+        if not p in sys.path:
+            sys.path.append(p)
+except:
+    pass
+    
+try:
+    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
+except:
+    pass
+
 from com.dtmilano.android.viewclient import ViewClient
 
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
-                     
-device = MonkeyRunner.waitForConnection(60, "emulator-5554")
-if not device:
-	raise Exception('Cannot connect to device')
-
-MonkeyRunner.sleep(5)
-
-vc = ViewClient(device)
-vc.dump()
+vc = ViewClient(*ViewClient.connectToDeviceOrExit())
 
 for bt in [ 'One', 'Two', 'Three', 'Four', 'Five' ]:
-    b = vc.findViewWithAttribute('text:mText', bt)
+    b = vc.findViewWithText(bt)
     if b:
         (x, y) = b.getXY()
         print >>sys.stderr, "clicking b%s @ (%d,%d) ..." % (bt, x, y)
