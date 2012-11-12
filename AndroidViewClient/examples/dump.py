@@ -9,6 +9,7 @@ Created on Feb 3, 2012
 
 import sys
 import os
+import getopt
 
 # This must be imported before MonkeyRunner and MonkeyDevice,
 # otherwise the import fails.
@@ -27,4 +28,25 @@ except:
 
 from com.dtmilano.android.viewclient import ViewClient
 
-ViewClient(*ViewClient.connectToDeviceOrExit()).traverse(transform=ViewClient.TRAVERSE_CIT)
+UNIQUE_IDS = 'uniqueIds'
+POSITIONS = 'positions'
+
+def usage():
+    print >> sys.stderr, 'usage: dump.py [-u|--%s] [-x|--%s] [serialno]' % (UNIQUE_IDS, POSITIONS)
+    sys.exit(1)
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:], 'ux', [UNIQUE_IDS, POSITIONS])
+except getopt.GetoptError, e:
+    print >>sys.stderr, 'ERROR:', str(e)
+    usage()
+
+transform = ViewClient.TRAVERSE_CIT
+for o, a in opts:
+    o = o.strip('-')
+    if o in ['u', UNIQUE_IDS]:
+        transform = ViewClient.TRAVERSE_CITUI
+    elif o in ['x', POSITIONS]:
+        transform = ViewClient.TRAVERSE_CITPS
+
+ViewClient(*ViewClient.connectToDeviceOrExit()).traverse(transform=transform)

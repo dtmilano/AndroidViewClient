@@ -966,6 +966,19 @@ class ViewClient:
             return "Exception in view=%s: %s" % (view.__smallStr__(), e)
         
     @staticmethod
+    def traverseShowClassIdTextAndUniqueId(view):
+        '''
+        Shows the View class, id, text if available and unique id.
+        This function can be used as a transform function to L{ViewClient.traverse()}
+        
+        @type view: I{View}
+        @param view: the View
+        @return: the string containing class, id, and text if available 
+        '''
+        
+        return ViewClient.traverseShowClassIdAndText(view, View.getUniqueId)
+
+    @staticmethod
     def traverseShowClassIdTextAndCenter(view):
         '''
         Shows the View class, id and text if available.
@@ -994,6 +1007,8 @@ class ViewClient:
     # methods that can be used to transform ViewClient.traverse output
     TRAVERSE_CIT = traverseShowClassIdAndText
     ''' An alias for L{traverseShowClassIdAndText(view)} '''
+    TRAVERSE_CITUI = traverseShowClassIdTextAndUniqueId
+    ''' An alias for L{traverseShowClassIdTextAndUniqueId(view)} '''
     TRAVERSE_CITC = traverseShowClassIdTextAndCenter
     ''' An alias for L{traverseShowClassIdTextAndCenter(view)} '''
     TRAVERSE_CITPS = traverseShowClassIdTextPositionAndSize
