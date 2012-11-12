@@ -25,8 +25,8 @@ try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
     pass
-from com.dtmilano.android.viewclient import ViewClient, View
 
+from com.dtmilano.android.viewclient import ViewClient, View
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 
@@ -35,16 +35,16 @@ FLAG_ACTIVITY_NEW_TASK = 0x10000000
 
 package='com.android.settings'
 activity='.Settings'
-componentName=package + "/" + activity
+component=package + "/" + activity
 
 device, serialno = ViewClient.connectToDeviceOrExit()
 
 if START_ACTIVITY:
-    device.startActivity(component=componentName, flags=FLAG_ACTIVITY_NEW_TASK)
+    device.startActivity(component=component, flags=FLAG_ACTIVITY_NEW_TASK)
     MonkeyRunner.sleep(3)
 
-vc = ViewClient(device=device, serialno=serialno)
-vc.dump()
+vc = ViewClient(device, serialno)
+
 # this may help you find the attributes for specific Views
 #vc.traverse(vc.getRoot())
 text = 'Display'

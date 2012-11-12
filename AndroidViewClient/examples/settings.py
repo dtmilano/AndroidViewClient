@@ -11,41 +11,44 @@ import re
 import sys
 import os
 
-# this must be imported before MonkeyRunner and MonkeyDevice,
-# otherwise the import fails
+# This must be imported before MonkeyRunner and MonkeyDevice,
+# otherwise the import fails.
+# PyDev sets PYTHONPATH, use it
 try:
-    ANDROID_VIEW_CLIENT_HOME = os.environ['ANDROID_VIEW_CLIENT_HOME']
-except KeyError:
-    print >>sys.stderr, "%s: ERROR: ANDROID_VIEW_CLIENT_HOME not set in environment" % __file__
-    sys.exit(1)
-sys.path.append(ANDROID_VIEW_CLIENT_HOME + '/src')
-from com.dtmilano.android.viewclient import ViewClient
+    for p in os.environ['PYTHONPATH'].split(':'):
+        if not p in sys.path:
+            sys.path.append(p)
+except:
+    pass
+    
+try:
+    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
+except:
+    pass
 
+from com.dtmilano.android.viewclient import ViewClient
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 package='com.android.settings'                                          
 activity='.Settings'                           
-component_name=package + "/" + activity                        
-device = MonkeyRunner.waitForConnection(60)
-if not device:
-	raise Exception('Cannot connect to device')
+component=package + "/" + activity                        
+device, serialno = ViewClient.connectToDeviceOrExit()
+
 if True:
-    device.startActivity(component=component_name)
+    device.startActivity(component=component)
     MonkeyRunner.sleep(3)
     device.press('KEYCODE_DPAD_DOWN') # extra VMT setting WARNING!
     MonkeyRunner.sleep(1)
-    device.press('KEYCODE_DPAD_CENTER', "DOWN_AND_UP")
+    device.press('KEYCODE_DPAD_CENTER', MonkeyDevice.DOWN_AND_UP)
     device.press('KEYCODE_DPAD_DOWN', MonkeyDevice.DOWN_AND_UP)
     #device.press('KEYCODE_DPAD_DOWN', MonkeyDevice.DOWN_AND_UP)
     #device.press('KEYCODE_DPAD_DOWN', MonkeyDevice.DOWN_AND_UP)
     #device.press('KEYCODE_DPAD_CENTER', "DOWN_AND_UP")
     #device.press('KEYCODE_DPAD_CENTER', "DOWN_AND_UP")
 
-
-vc = ViewClient(device)
+vc = ViewClient(device, serialno)
 regex = "id/checkbox.*"
 p = re.compile(regex)
-vc.dump()
 found = False
 for id in vc.getViewIds():
     #print id
