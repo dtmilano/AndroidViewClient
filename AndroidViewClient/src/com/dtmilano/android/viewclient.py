@@ -915,7 +915,9 @@ class ViewClient:
         # eat all the extra options the invoking script may have added
         while len(sys.argv) > 1 and sys.argv[1][0] == '-':
             sys.argv.pop(1)
-        serialno = sys.argv[1] if len(sys.argv) > 1 else '.*'
+        serialno = sys.argv[1] if len(sys.argv) > 1 else \
+                os.environ['ANDROID_SERIAL'] if os.environ.has_key('ANDROID_SERIAL') \
+                else '.*'
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
@@ -934,14 +936,14 @@ class ViewClient:
             device.wake()
         except java.lang.NullPointerException, e:
             print >> sys.stderr, "%s: ERROR: Couldn't connect to %s: %s" % (progname, serialno, e)
-            sys.exit(1)
+            sys.exit(3)
         if verbose:
             print 'Connected to device with serialno=%s' % serialno
         secure = device.getSystemProperty('ro.secure')
         debuggable = device.getSystemProperty('ro.debuggable')
         if secure == '1' and debuggable == '0' and not ignoresecuredevice:
             print >> sys.stderr, "%s: ERROR: Device is secure, AndroidViewClient won't work." % progname
-            sys.exit(1)
+            sys.exit(2)
         if re.search("[.*()+]", serialno):
             # if a regex was used we have to determine the serialno used
             serialno = ViewClient.__obtainDeviceSerialNumber(device)

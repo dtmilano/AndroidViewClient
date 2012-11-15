@@ -10,6 +10,7 @@ import sys
 import os
 import StringIO
 import unittest
+import exceptions
 
 # PyDev sets PYTHONPATH, use it
 try:
@@ -177,7 +178,15 @@ class ViewClientTest(unittest.TestCase):
             vc = ViewClient(None, None)
         except Exception, e:
             self.assertEqual('Device is not connected', e.message)
-            
+    
+    def testConnectToDeviceOrExit_environ(self):
+        sys.argv = ['']
+        os.environ['ANDROID_SERIAL'] = 'ABC123'
+        try:
+            ViewClient.connectToDeviceOrExit(verbose=True)
+        except exceptions.SystemExit, e:
+            self.assertEquals(3, e.code)
+        
     def testConstructor(self):
         device = MockDevice()
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
