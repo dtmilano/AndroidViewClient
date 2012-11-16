@@ -838,9 +838,11 @@ class ViewClient:
             possibleChoices.append(os.path.join("""C:\Program Files\Android\android-sdk\platform-tools""", adb))
             possibleChoices.append(os.path.join("""C:\Program Files (x86)\Android\android-sdk\platform-tools""", adb))
         elif osName.startswith('Linux'):
+            possibleChoices.append(os.path.join("opt", "android-sdk-linux",  'platform-tools', adb))
             possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-linux",  'platform-tools', adb))
             possibleChoices.append(os.path.join(HOME,  "android-sdk-linux",  'platform-tools', adb))
         elif osName.startswith('Mac'):
+            possibleChoices.append(os.path.join("opt", "android-sdk-mac_x86",  'platform-tools', adb))
             possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-mac", 'platform-tools', adb))
             possibleChoices.append(os.path.join(HOME,  "android-sdk-mac", 'platform-tools', adb))
             possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-mac_x86",  'platform-tools', adb))
