@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.2'
+__version__ = '2.3'
 
 import sys
 import subprocess
@@ -31,9 +31,9 @@ import signal
 import warnings
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
-DEBUG = False
+DEBUG = True
 DEBUG_DEVICE = DEBUG and True
-DEBUG_RECEIVED = DEBUG and False
+DEBUG_RECEIVED = DEBUG and True
 DEBUG_TREE = DEBUG and False
 DEBUG_GETATTR = DEBUG and False
 DEBUG_COORDS = DEBUG and False
@@ -53,13 +53,15 @@ OFFSET = 25
 
 USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES = True
 
+USE_UI_AUTOMATOR = False
+
 SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED = False
 ''' Skips some classes related with the Action Bar and the PhoneWindow$DecorView in the
     coordinates calculation
     @see: L{View.getXY()} '''
 
 # some device properties
-VERSION_SDK_PROPERTY = "version.sdk"
+VERSION_SDK_PROPERTY = 'version.sdk'
 
 # some constants for the attributes
 TEXT_PROPERTY = 'text:mText'
@@ -67,8 +69,6 @@ TEXT_PROPERTY_API_10 = 'mText'
 WS = "\xfe" # the whitespace replacement char for TEXT_PROPERTY
 GET_VISIBILITY_PROPERTY = 'getVisibility()'
 LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
-
-VERSION_SDK_PROPERTY = 'version.sdk'
 
 # visibility
 VISIBLE = 0x0
@@ -746,22 +746,6 @@ class ViewClient:
         else:
             adb = ViewClient.__obtainAdbPath()
 
-        if startviewserver:
-            if not self.serviceResponse(device.shell('service call window 3')):
-                try:
-                    self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
-                                                        remoteport))
-                except:
-                    raise Exception('Cannot start View server.\n'
-                                'This only works on emulator and devices running developer versions.\n'
-                                'Does hierarchyviewer work on your device ?')
-
-        self.localPort = localport
-        self.remotePort = remoteport
-        # FIXME: it seems there's no way of obtaining the serialno from the MonkeyDevice
-        subprocess.check_call([adb, '-s', self.serialno, 'forward', 'tcp:%d' % self.localPort,
-                               'tcp:%d' % self.remotePort])
-
         self.root = None
         ''' The root node '''
         self.viewsById = {}
@@ -794,17 +778,30 @@ class ViewClient:
             if prop == VERSION_SDK_PROPERTY:
                 # we expect it to be an int
                 self.build[prop] = int(self.build[prop] if self.build[prop] else -1)
-                
-            try:
-                self.build[prop] = device.getProperty('build.' + prop)
-                if prop == VERSION_SDK_PROPERTY:
-                    self.build[prop] = int(self.build[prop])
-            except:
-                self.build[prop] = -1
 
         if self.build[VERSION_SDK_PROPERTY] > 0 and self.build[VERSION_SDK_PROPERTY] <= 10: # gingerbread 2.3.3
             global TEXT_PROPERTY
             TEXT_PROPERTY = TEXT_PROPERTY_API_10
+        elif self.build[VERSION_SDK_PROPERTY] > 16: # jelly bean 4.2
+            global USE_UI_AUTOMATOR
+            USE_UI_AUTOMATOR = True
+
+        if not USE_UI_AUTOMATOR:
+            if startviewserver:
+                if not self.serviceResponse(device.shell('service call window 3')):
+                    try:
+                        self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
+                                                        remoteport))
+                    except:
+                        raise Exception('Cannot start View server.\n'
+                                        'This only works on emulator and devices running developer versions.\n'
+                                        'Does hierarchyviewer work on your device ?')
+
+            self.localPort = localport
+            self.remotePort = remoteport
+            # FIXME: it seems there's no way of obtaining the serialno from the MonkeyDevice
+            subprocess.check_call([adb, '-s', self.serialno, 'forward', 'tcp:%d' % self.localPort,
+                                    'tcp:%d' % self.remotePort])
 
         if autodump:
             self.dump()
@@ -1058,6 +1055,23 @@ class ViewClient:
             print >>sys.stderr, "there are %d views in this dump" % len(self.views)
         self.__parseTree(received.split("\n"))
 
+    def setViewsFromUiAutomatorDump(self, received):
+        '''
+        Sets L{self.views} to the received value parsing the received XML.
+        
+        @type received: str
+        @param received: the string received from the I{UI Automator}
+        '''
+        
+        if not received or received == "":
+            raise ValueError("received is empty")
+        self.views = []
+        ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
+        if DEBUG:
+            print >>sys.stderr, "there are %d views in this dump" % len(self.views)
+        self.__parseTreeFromUiAutomatorDump(self.received)
+        
+        
     def __splitAttrs(self, strArgs, addViewToViewsById=False):
         '''
         Splits the C{View} attributes in C{strArgs} and optionally adds the view id to the C{viewsById} list.
@@ -1202,7 +1216,9 @@ class ViewClient:
                     parent.add(child)
                     treeLevel = newLevel
                     lastView = child
-     
+    
+    def __parseTreeFromUiAutomatorDump(self, receivedXml):
+        raise RuntimeError("NOT IMPLEMENTED YET!") 
 
     def getRoot(self):
         '''
@@ -1256,31 +1272,45 @@ class ViewClient:
         
         if sleep > 0:
             MonkeyRunner.sleep(sleep)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            s.connect((VIEW_SERVER_HOST, self.localPort))
-        except socket.error, ex:
-            raise RuntimeError("ERROR: Connecting to %s:%d: %s" % (VIEW_SERVER_HOST, self.localPort, ex))
-        s.send('dump %d\r\n' % windowId)
-        received = ""
-        doneRE = re.compile("DONE")
-        while True:
-            received += s.recv(1024)
-            if doneRE.search(received[-7:]):
-                break
+            
+        if USE_UI_AUTOMATOR:
+            if not re.search('dumped', self.device.shell('uiautomator dump /mnt/sdcard/window_dump.xml')):
+                raise RuntimeError('ERROR: Getting UIAutomator dump')
+            received = self.device.shell('cat /mnt/sdcard/window_dump.xml')
+            if DEBUG:
+                self.received = received.encode('ascii', 'ignore')
+            if DEBUG_RECEIVED:
+                print >>sys.stderr, "received %d chars" % len(received)
+                print >>sys.stderr
+                print >>sys.stderr, self.received
+                print >>sys.stderr
+            self.setViewsFromUiAutomatorDump(self.received)
+        else:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                s.connect((VIEW_SERVER_HOST, self.localPort))
+            except socket.error, ex:
+                raise RuntimeError("ERROR: Connecting to %s:%d: %s" % (VIEW_SERVER_HOST, self.localPort, ex))
+            s.send('dump %d\r\n' % windowId)
+            received = ""
+            doneRE = re.compile("DONE")
+            while True:
+                received += s.recv(1024)
+                if doneRE.search(received[-7:]):
+                    break
 
-        s.close()
-        if DEBUG:
-            self.received = received     
-        if DEBUG_RECEIVED:
-            print >>sys.stderr, "received %d chars" % len(received)
-            print >>sys.stderr
-            print >>sys.stderr, received
-            print >>sys.stderr
-        self.setViews(received)
+            s.close()
+            if DEBUG:
+                self.received = received     
+            if DEBUG_RECEIVED:
+                print >>sys.stderr, "received %d chars" % len(received)
+                print >>sys.stderr
+                print >>sys.stderr, received
+                print >>sys.stderr
+            self.setViews(received)
 
-        if DEBUG_TREE:
-            self.traverse(self.root)
+            if DEBUG_TREE:
+                self.traverse(self.root)
             
         return self.views
 
