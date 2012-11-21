@@ -29,14 +29,15 @@ import types
 import time
 import signal
 import warnings
+import xml.parsers.expat
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
 DEBUG = True
-DEBUG_DEVICE = DEBUG and True
-DEBUG_RECEIVED = DEBUG and True
+DEBUG_DEVICE = DEBUG and False
+DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
 DEBUG_GETATTR = DEBUG and False
-DEBUG_COORDS = DEBUG and False
+DEBUG_COORDS = DEBUG and True
 DEBUG_TOUCH = DEBUG and False
 DEBUG_STATUSBAR = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
@@ -64,6 +65,7 @@ SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED = False
 VERSION_SDK_PROPERTY = 'version.sdk'
 
 # some constants for the attributes
+ID_PROPERTY = 'mID'
 TEXT_PROPERTY = 'text:mText'
 TEXT_PROPERTY_API_10 = 'mText'
 WS = "\xfe" # the whitespace replacement char for TEXT_PROPERTY
@@ -284,7 +286,7 @@ class View:
         '''
         
         try:
-            return self.map['mID']
+            return self.map[ID_PROPERTY]
         except:
             return None
 
@@ -304,16 +306,22 @@ class View:
             return None
 
     def getHeight(self):
-        try:
-            return int(self.map['layout:getHeight()'])
-        except:
-            return 0
+        if USE_UI_AUTOMATOR:
+            return self.map['bounds'][1][1]
+        else:
+            try:
+                return int(self.map['layout:getHeight()'])
+            except:
+                return 0
 
     def getWidth(self):
-        try:
-            return int(self.map['layout:getWidth()'])
-        except:
-            return 0
+        if USE_UI_AUTOMATOR:
+            return self.map['bounds'][1][0]
+        else:
+            try:
+                return int(self.map['layout:getWidth()'])
+            except:
+                return 0
 
     def getUniqueId(self):
         '''
@@ -352,12 +360,16 @@ class View:
         if DEBUG_COORDS:
             print >>sys.stderr, "getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         x = 0
-        try:
-            if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
-                if DEBUG_COORDS: print >>sys.stderr, "   getX: VISIBLE adding %d" % int(self.map['layout:mLeft'])
-                x += int(self.map['layout:mLeft'])
-        except:
-            warnings.warn("View %s has no 'layout:mLeft' property" % self.getId())
+        
+        if USE_UI_AUTOMATOR:
+            x = self.map['bounds'][0][0]
+        else:
+            try:
+                if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
+                    if DEBUG_COORDS: print >>sys.stderr, "   getX: VISIBLE adding %d" % int(self.map['layout:mLeft'])
+                    x += int(self.map['layout:mLeft'])
+            except:
+                warnings.warn("View %s has no 'layout:mLeft' property" % self.getId())
         
         if DEBUG_COORDS: print >>sys.stderr, "   getX: returning %d" % (x)
         return x
@@ -370,12 +382,16 @@ class View:
         if DEBUG_COORDS:
             print >>sys.stderr, "getY(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         y = 0
-        try:
-            if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
-                if DEBUG_COORDS: print >>sys.stderr, "   getY: VISIBLE adding %d" % int(self.map['layout:mTop'])
-                y += int(self.map['layout:mTop'])
-        except:
-            warnings.warn("View %s has no 'layout:mTop' property" % self.getId())
+        
+        if USE_UI_AUTOMATOR:
+            y = self.map['bounds'][0][1]
+        else:
+            try:
+                if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
+                    if DEBUG_COORDS: print >>sys.stderr, "   getY: VISIBLE adding %d" % int(self.map['layout:mTop'])
+                    y += int(self.map['layout:mTop'])
+            except:
+                warnings.warn("View %s has no 'layout:mTop' property" % self.getId())
 
         if DEBUG_COORDS: print >>sys.stderr, "   getY: returning %d" % (y)
         return y
@@ -557,7 +573,7 @@ class View:
                     if m:
                         visibility = int(m.group('visibility'))
                         if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: visibility=", visibility
-                    if self.build[VERSION_SDK_PROPERTY] == 16:
+                    if self.build[VERSION_SDK_PROPERTY] >= 16:
                         m = framesRE.search(lines[l2])
                         if m:
                             px, py = self.__obtainPxPy(m)
@@ -699,6 +715,73 @@ class EditText(TextView):
         self.device.type(text)
         MonkeyRunner.sleep(1)
 
+class UiAutomator2AndroidViewClient():
+    '''
+    UiAutomator XML to AndroidViewClient
+    '''
+    
+    def __init__(self, device, version):
+        self.device = device
+        self.version = version
+        self.root = None
+        self.nodeStack = []
+        self.parent = None
+        self.viewsById = []
+        self.idCount = 1
+
+    def StartElement(self, name, attributes):
+        '''
+        Expat start element event handler
+        '''
+        if name == 'hierarchy':
+            pass
+        elif name == 'node':
+            # Instantiate an Element object
+            attributes['uniqueId'] = 'id/no_id/%d' % self.idCount
+            bounds = re.split('[\][,]', attributes['bounds'])
+            attributes['bounds'] = ((int(bounds[1]), int(bounds[2])), (int(bounds[4]), int(bounds[5])))
+            self.idCount += 1 
+            child = View.factory(attributes, self.device, self.version)
+            self.viewsById.append(child)
+            # Push element onto the stack and make it a child of parent
+            if not self.nodeStack:
+                self.root = child
+            else:
+                self.parent = self.nodeStack[-1]
+                self.parent.add(child)
+            self.nodeStack.append(child)
+
+    def EndElement(self, name):
+        '''
+        Expat end element event handler
+        '''
+
+        if name == 'hierarchy':
+            pass
+        elif name == 'node':
+            self.nodeStack.pop( )
+
+    def CharacterData(self, data):
+        '''
+        Expat character data event handler
+        '''
+        
+        if data.strip( ):
+            data = data.encode( )
+            element = self.nodeStack[-1]
+            element.cdata += data
+
+    def Parse(self, uiautomatorxml):
+        # Create an Expat parser
+        parser = xml.parsers.expat.ParserCreate()
+        # Set the Expat event handlers to our methods
+        parser.StartElementHandler = self.StartElement
+        parser.EndElementHandler = self.EndElement
+        parser.CharacterDataHandler = self.CharacterData
+        # Parse the XML File
+        parserStatus = parser.Parse(uiautomatorxml, 1)
+        return self.root
+
 class ViewClient:
     '''
     ViewClient is a I{ViewServer} client.
@@ -784,7 +867,11 @@ class ViewClient:
             TEXT_PROPERTY = TEXT_PROPERTY_API_10
         elif self.build[VERSION_SDK_PROPERTY] > 16: # jelly bean 4.2
             global USE_UI_AUTOMATOR
+            global TEXT_PROPERTY
+            global ID_PROPERTY
             USE_UI_AUTOMATOR = True
+            TEXT_PROPERTY = 'text'
+            ID_PROPERTY = 'uniqueId'
 
         if not USE_UI_AUTOMATOR:
             if startviewserver:
@@ -1051,9 +1138,9 @@ class ViewClient:
             raise ValueError("received is empty")
         self.views = []
         ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
+        self.__parseTree(received.split("\n"))
         if DEBUG:
             print >>sys.stderr, "there are %d views in this dump" % len(self.views)
-        self.__parseTree(received.split("\n"))
 
     def setViewsFromUiAutomatorDump(self, received):
         '''
@@ -1067,9 +1154,9 @@ class ViewClient:
             raise ValueError("received is empty")
         self.views = []
         ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
+        self.__parseTreeFromUiAutomatorDump(received)
         if DEBUG:
             print >>sys.stderr, "there are %d views in this dump" % len(self.views)
-        self.__parseTreeFromUiAutomatorDump(self.received)
         
         
     def __splitAttrs(self, strArgs, addViewToViewsById=False):
@@ -1218,7 +1305,9 @@ class ViewClient:
                     lastView = child
     
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
-        raise RuntimeError("NOT IMPLEMENTED YET!") 
+        parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY])
+        self.root = parser.Parse(receivedXml)
+        self.views = parser.viewsById
 
     def getRoot(self):
         '''
@@ -1277,14 +1366,16 @@ class ViewClient:
             if not re.search('dumped', self.device.shell('uiautomator dump /mnt/sdcard/window_dump.xml')):
                 raise RuntimeError('ERROR: Getting UIAutomator dump')
             received = self.device.shell('cat /mnt/sdcard/window_dump.xml')
+            if received:
+                received = received.encode('ascii', 'ignore')
             if DEBUG:
-                self.received = received.encode('ascii', 'ignore')
+                self.received = received
             if DEBUG_RECEIVED:
                 print >>sys.stderr, "received %d chars" % len(received)
                 print >>sys.stderr
-                print >>sys.stderr, self.received
+                print >>sys.stderr, received
                 print >>sys.stderr
-            self.setViewsFromUiAutomatorDump(self.received)
+            self.setViewsFromUiAutomatorDump(received)
         else:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
