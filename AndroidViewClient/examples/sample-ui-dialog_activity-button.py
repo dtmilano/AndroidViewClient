@@ -29,9 +29,8 @@ from com.dtmilano.android.viewclient import ViewClient, View
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
-device, serialno = ViewClient.connectToDeviceOrExit()
-vc = ViewClient(device=device, serialno=serialno)
+vc = ViewClient(*ViewClient.connectToDeviceOrExit())
 
-button = vc.findViewById('id/button1')
+button = vc.findViewWithText('Show Dialog')
 print "button: ", button.getClass(), button.getId(), button.getCoords()
 

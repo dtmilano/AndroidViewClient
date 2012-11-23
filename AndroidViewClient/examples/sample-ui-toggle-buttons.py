@@ -25,12 +25,9 @@ try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
     pass
-from com.dtmilano.android.viewclient import ViewClient, View
+from com.dtmilano.android.viewclient import ViewClient
 
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
-
-device, serialno = ViewClient.connectToDeviceOrExit()
-vc = ViewClient(device=device, serialno=serialno)
+vc = ViewClient(*ViewClient.connectToDeviceOrExit())
 
 # Find the 3 toggle buttons, because the first 2 change their text if they are selected
 # we use a regex to find them.
@@ -39,4 +36,6 @@ for t in [re.compile('Button 1 .*'), re.compile('Button 2 .*'), 'Button with ID'
     view = vc.findViewWithText(t)
     if view:
         view.touch()
+    else:
+        print >>sys.stderr, "Couldn't find button with text=", t
 

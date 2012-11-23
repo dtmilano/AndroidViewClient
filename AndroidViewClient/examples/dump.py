@@ -28,25 +28,27 @@ except:
 
 from com.dtmilano.android.viewclient import ViewClient
 
-UNIQUE_IDS = 'uniqueIds'
-POSITIONS = 'positions'
+UNIQUE_ID = 'uniqueId'
+POSITION = 'position'
+CONTENT_DESCRIPTION = 'content-description'
+MAP = {'u':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
+       'x':ViewClient.TRAVERSE_CITPS, POSITION:ViewClient.TRAVERSE_CITPS,
+       'd':ViewClient.TRAVERSE_CITPS, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
+       }
 
 def usage():
-    print >> sys.stderr, 'usage: dump.py [-u|--%s] [-x|--%s] [serialno]' % (UNIQUE_IDS, POSITIONS)
+    print >> sys.stderr, 'usage: dump.py [-u|--%s] [-x|--%s] [-d|--%s] [serialno]' % \
+        (UNIQUE_ID, POSITION, CONTENT_DESCRIPTION)
     sys.exit(1)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'ux', [UNIQUE_IDS, POSITIONS])
+    opts, args = getopt.getopt(sys.argv[1:], 'uxd', [UNIQUE_ID, POSITION, CONTENT_DESCRIPTION])
 except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
 
 transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
-    o = o.strip('-')
-    if o in ['u', UNIQUE_IDS]:
-        transform = ViewClient.TRAVERSE_CITUI
-    elif o in ['x', POSITIONS]:
-        transform = ViewClient.TRAVERSE_CITPS
+    transform = MAP[o.strip('-')]
 
 ViewClient(*ViewClient.connectToDeviceOrExit()).traverse(transform=transform)

@@ -32,7 +32,7 @@ import warnings
 import xml.parsers.expat
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
-DEBUG = True
+DEBUG = False
 DEBUG_DEVICE = DEBUG and False
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
@@ -41,6 +41,7 @@ DEBUG_COORDS = DEBUG and True
 DEBUG_TOUCH = DEBUG and False
 DEBUG_STATUSBAR = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
+DEBUG_BOUNDS = DEBUG and False
 
 WARNINGS = False
 
@@ -290,6 +291,16 @@ class View:
         except:
             return None
 
+    def getContentDescription(self):
+        '''
+        Gets the content description
+        '''
+        
+        try:
+            return self.map['content-desc']
+        except:
+            return None
+    
     def getParent(self):
         return self.parent
     
@@ -307,7 +318,7 @@ class View:
 
     def getHeight(self):
         if USE_UI_AUTOMATOR:
-            return self.map['bounds'][1][1]
+            return self.map['bounds'][1][1] - self.map['bounds'][0][1]
         else:
             try:
                 return int(self.map['layout:getHeight()'])
@@ -316,7 +327,7 @@ class View:
 
     def getWidth(self):
         if USE_UI_AUTOMATOR:
-            return self.map['bounds'][1][0]
+            return self.map['bounds'][1][0] - self.map['bounds'][0][0]
         else:
             try:
                 return int(self.map['layout:getWidth()'])
@@ -412,20 +423,22 @@ class View:
         if DEBUG_COORDS: print >> sys.stderr, "   getXY: x=%s y=%s parent=%s" % (x, y, parent.getId() if parent else "None")
         hx = 0
         hy = 0
-        while parent != None:
-            if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId())
-            if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
-                if parent.getClass() in [ 'com.android.internal.widget.ActionBarView',
+        
+        if not USE_UI_AUTOMATOR:
+            while parent != None:
+                if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId())
+                if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
+                    if parent.getClass() in [ 'com.android.internal.widget.ActionBarView',
                                        'com.android.internal.widget.ActionBarContextView',
                                        'com.android.internal.view.menu.ActionMenuView',
                                        'com.android.internal.policy.impl.PhoneWindow$DecorView' ]:
-                    if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.getX(), parent.getY())
-                    parent = parent.parent
-                    continue
-            if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy)
-            hx += parent.getX()
-            hy += parent.getY()
-            parent = parent.parent
+                        if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.getX(), parent.getY())
+                        parent = parent.parent
+                        continue
+                if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy)
+                hx += parent.getX()
+                hy += parent.getY()
+                parent = parent.parent
 
         (wvx, wvy) = self.__dumpWindowsInformation()
         if DEBUG_COORDS:
@@ -740,6 +753,8 @@ class UiAutomator2AndroidViewClient():
             attributes['uniqueId'] = 'id/no_id/%d' % self.idCount
             bounds = re.split('[\][,]', attributes['bounds'])
             attributes['bounds'] = ((int(bounds[1]), int(bounds[2])), (int(bounds[4]), int(bounds[5])))
+            if DEBUG_BOUNDS:
+                print >> sys.stderr, "bounds=", attributes['bounds']
             self.idCount += 1 
             child = View.factory(attributes, self.device, self.version)
             self.viewsById.append(child)
@@ -841,7 +856,8 @@ class ViewClient:
                 try:
                     self.display[prop] = int(device.getProperty('display.' + prop))
                 except:
-                    warnings.warn("Couldn't determine display %s" % prop)
+                    if WARNINGS:
+                        warnings.warn("Couldn't determine display %s" % prop)
             else:
                 # these values are usually not defined as properties, so we stick to the -1 set
                 # before
@@ -856,7 +872,8 @@ class ViewClient:
                 else:
                     self.build[prop] = device.shell('getprop ro.build.' + prop)[:-2]
             except:
-                warnings.warn("Couldn't determine build %s" % prop)
+                if WARNINGS:
+                    warnings.warn("Couldn't determine build %s" % prop)
                 
             if prop == VERSION_SDK_PROPERTY:
                 # we expect it to be an int
@@ -865,7 +882,7 @@ class ViewClient:
         if self.build[VERSION_SDK_PROPERTY] > 0 and self.build[VERSION_SDK_PROPERTY] <= 10: # gingerbread 2.3.3
             global TEXT_PROPERTY
             TEXT_PROPERTY = TEXT_PROPERTY_API_10
-        elif self.build[VERSION_SDK_PROPERTY] > 16: # jelly bean 4.2
+        elif self.build[VERSION_SDK_PROPERTY] >= 16: # jelly bean 4.1 & 4.2
             global USE_UI_AUTOMATOR
             global TEXT_PROPERTY
             global ID_PROPERTY
@@ -1027,7 +1044,11 @@ class ViewClient:
             print 'Connected to device with serialno=%s' % serialno
         secure = device.getSystemProperty('ro.secure')
         debuggable = device.getSystemProperty('ro.debuggable')
-        if secure == '1' and debuggable == '0' and not ignoresecuredevice:
+        version = int(device.getProperty('build.' + VERSION_SDK_PROPERTY))
+
+        # we are going to use UiAutomator for versions >= 16 that's why we ignore if the device
+        # is secure if this is true
+        if secure == '1' and debuggable == '0' and not ignoresecuredevice and version < 16:
             print >> sys.stderr, "%s: ERROR: Device is secure, AndroidViewClient won't work." % progname
             sys.exit(2)
         if re.search("[.*()+]", serialno):
@@ -1061,11 +1082,24 @@ class ViewClient:
         
         @type view: I{View}
         @param view: the View
-        @return: the string containing class, id, and text if available 
+        @return: the string containing class, id, and text if available and unique Id
         '''
         
         return ViewClient.traverseShowClassIdAndText(view, View.getUniqueId)
 
+    @staticmethod
+    def traverseShowClassIdTextAndContentDescription(view):
+        '''
+        Shows the View class, id, text if available and unique id.
+        This function can be used as a transform function to L{ViewClient.traverse()}
+        
+        @type view: I{View}
+        @param view: the View
+        @return: the string containing class, id, and text if available and the content description
+        '''
+        
+        return ViewClient.traverseShowClassIdAndText(view, View.getContentDescription)
+    
     @staticmethod
     def traverseShowClassIdTextAndCenter(view):
         '''
@@ -1097,6 +1131,8 @@ class ViewClient:
     ''' An alias for L{traverseShowClassIdAndText(view)} '''
     TRAVERSE_CITUI = traverseShowClassIdTextAndUniqueId
     ''' An alias for L{traverseShowClassIdTextAndUniqueId(view)} '''
+    TRAVERSE_CITCD = traverseShowClassIdTextAndContentDescription
+    ''' An alias for L{traverseShowClassIdTextAndContentDescription(view)} '''
     TRAVERSE_CITC = traverseShowClassIdTextAndCenter
     ''' An alias for L{traverseShowClassIdTextAndCenter(view)} '''
     TRAVERSE_CITPS = traverseShowClassIdTextPositionAndSize
@@ -1564,6 +1600,20 @@ class ViewClient:
             return view
         else:
             raise ViewNotFoundException("Coulnd't find View with text='%s' in tree with root=%s" % (text, root))
+    
+    def findViewWithContentDescription(self, contentdescription, root="ROOT"):
+        '''
+        Finds the View with the specified content description
+        '''
+        
+        return self.__findViewWithAttributeInTree('content-desc', contentdescription, root)
+      
+    def findViewWithContentDescriptionOrRaise(self, contentdescription, root="ROOT"):
+        '''
+        Finds the View with the specified content description
+        '''
+        
+        return self.__findViewWithAttributeInTreeOrRaise('content-desc', contentdescription, root)
     
     def getViewIds(self):
         '''
