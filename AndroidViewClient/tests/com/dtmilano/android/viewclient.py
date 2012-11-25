@@ -95,18 +95,12 @@ class ViewTest(unittest.TestCase):
         self.assertEqual('id/button_with_id', self.view.getId())
     
     def testTextPropertyForDifferentSdkVersions(self):
-        TEXT_PROPERTY = 'text:mText'
-        TEXT_PROPERTY_API_10 = 'mText'
-        TEXT_PROPERTY_UI_AUTOMATOR = 'text'
         VTP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
         for version, textProperty in VTP.items():
             view = View(None, None, version)
             self.assertEqual(textProperty, view.textProperty, msg='version %d' % version)
     
     def testTextPropertyForDifferentSdkVersions_device(self):
-        TEXT_PROPERTY = 'text:mText'
-        TEXT_PROPERTY_API_10 = 'mText'
-        TEXT_PROPERTY_UI_AUTOMATOR = 'text'
         VTP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
         for version, textProperty in VTP.items():
             device = MockDevice(version=version)
