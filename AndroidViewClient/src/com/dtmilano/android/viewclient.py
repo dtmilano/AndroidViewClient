@@ -54,8 +54,8 @@ OFFSET = 25
     and touches it at M{(x+OFFSET, y+OFFSET)} '''
 
 USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES = True
-
-USE_UI_AUTOMATOR = False
+''' Use monkeyrunner (C{MonkeyDevice.getProperty()}) to obtain the needed properties. If this is
+    C{False} then C{adb shell getprop} is used '''
 
 SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED = False
 ''' Skips some classes related with the Action Bar and the PhoneWindow$DecorView in the
@@ -67,8 +67,10 @@ VERSION_SDK_PROPERTY = 'version.sdk'
 
 # some constants for the attributes
 ID_PROPERTY = 'mID'
+ID_PROPERTY_UI_AUTOMATOR = 'uniqueId'
 TEXT_PROPERTY = 'text:mText'
 TEXT_PROPERTY_API_10 = 'mText'
+TEXT_PROPERTY_UI_AUTOMATOR = 'text'
 WS = "\xfe" # the whitespace replacement char for TEXT_PROPERTY
 GET_VISIBILITY_PROPERTY = 'getVisibility()'
 LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
@@ -214,7 +216,29 @@ class View:
                     self.build[VERSION_SDK_PROPERTY] = int(device.shell('getprop ro.build.' + VERSION_SDK_PROPERTY)[:-2])
             except:
                 self.build[VERSION_SDK_PROPERTY] = -1
-
+        
+        version = self.build[VERSION_SDK_PROPERTY]
+        self.useUiAutomator = (version >= 16)
+        ''' Whether to use UIAutomator or ViewServer '''
+        self.idProperty = None
+        ''' The id property depending on the View attribute format '''
+        self.textProperty = None
+        ''' The text property depending on the View attribute format '''
+        if version >= 16:
+            self.idProperty = ID_PROPERTY_UI_AUTOMATOR
+            self.textProperty = TEXT_PROPERTY_UI_AUTOMATOR
+        elif version > 10 and version < 16:
+            self.idProperty = ID_PROPERTY
+            self.textProperty = TEXT_PROPERTY
+        elif version > 0 and version <= 10:
+            self.idProperty = ID_PROPERTY
+            self.textProperty = TEXT_PROPERTY_API_10
+        elif version == -1:
+            self.idProperty = ID_PROPERTY
+            self.textProperty = TEXT_PROPERTY
+        else:
+            self.idProperty = ID_PROPERTY
+            self.textProperty = TEXT_PROPERTY
         
     def __getitem__(self, key):
         return self.map[key]
@@ -287,7 +311,7 @@ class View:
         '''
         
         try:
-            return self.map[ID_PROPERTY]
+            return self.map[self.idProperty]
         except:
             return None
 
@@ -312,12 +336,12 @@ class View:
         '''
         
         try:
-            return self.map[TEXT_PROPERTY]
+            return self.map[self.textProperty]
         except Exception:
             return None
 
     def getHeight(self):
-        if USE_UI_AUTOMATOR:
+        if self.useUiAutomator:
             return self.map['bounds'][1][1] - self.map['bounds'][0][1]
         else:
             try:
@@ -326,7 +350,7 @@ class View:
                 return 0
 
     def getWidth(self):
-        if USE_UI_AUTOMATOR:
+        if self.useUiAutomator:
             return self.map['bounds'][1][0] - self.map['bounds'][0][0]
         else:
             try:
@@ -372,7 +396,7 @@ class View:
             print >>sys.stderr, "getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         x = 0
         
-        if USE_UI_AUTOMATOR:
+        if self.useUiAutomator:
             x = self.map['bounds'][0][0]
         else:
             try:
@@ -394,7 +418,7 @@ class View:
             print >>sys.stderr, "getY(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         y = 0
         
-        if USE_UI_AUTOMATOR:
+        if self.useUiAutomator:
             y = self.map['bounds'][0][1]
         else:
             try:
@@ -424,7 +448,7 @@ class View:
         hx = 0
         hy = 0
         
-        if not USE_UI_AUTOMATOR:
+        if not self.useUiAutomator:
             while parent != None:
                 if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId())
                 if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
@@ -879,18 +903,10 @@ class ViewClient:
                 # we expect it to be an int
                 self.build[prop] = int(self.build[prop] if self.build[prop] else -1)
 
-        if self.build[VERSION_SDK_PROPERTY] > 0 and self.build[VERSION_SDK_PROPERTY] <= 10: # gingerbread 2.3.3
-            global TEXT_PROPERTY
-            TEXT_PROPERTY = TEXT_PROPERTY_API_10
-        elif self.build[VERSION_SDK_PROPERTY] >= 16: # jelly bean 4.1 & 4.2
-            global USE_UI_AUTOMATOR
-            global TEXT_PROPERTY
-            global ID_PROPERTY
-            USE_UI_AUTOMATOR = True
-            TEXT_PROPERTY = 'text'
-            ID_PROPERTY = 'uniqueId'
+        self.useUiAutomator = (self.build[VERSION_SDK_PROPERTY] >= 16) # jelly bean 4.1 & 4.2
+        ''' If UIAutomator is supported by the device it will be used '''
 
-        if not USE_UI_AUTOMATOR:
+        if not self.useUiAutomator:
             if startviewserver:
                 if not self.serviceResponse(device.shell('service call window 3')):
                     try:
@@ -1217,6 +1233,8 @@ class ViewClient:
         @return: Returns the attributes map.
         '''
         
+        if self.useUiAutomator:
+            raise RuntimeError("This method is not compatible with UIAutomator")
         # replace the spaces in text:mText to preserve them in later split
         # they are translated back after the attribute matches
         textRE = re.compile('%s=%s,' % (TEXT_PROPERTY, __nd('len')))
@@ -1398,12 +1416,15 @@ class ViewClient:
         if sleep > 0:
             MonkeyRunner.sleep(sleep)
             
-        if USE_UI_AUTOMATOR:
-            if not re.search('dumped', self.device.shell('uiautomator dump /mnt/sdcard/window_dump.xml')):
+        if self.useUiAutomator:
+            windowDump = '/mnt/sdcard/window_dump.xml'
+            if not re.search('dumped', self.device.shell('uiautomator dump %s' % windowDump)):
                 raise RuntimeError('ERROR: Getting UIAutomator dump')
-            received = self.device.shell('cat /mnt/sdcard/window_dump.xml')
+            received = self.device.shell('cat %s 2>/dev/null' % windowDump)
             if received:
                 received = received.encode('ascii', 'ignore')
+            else:
+                raise RuntimeError("ERROR: Received empty UIAutomator dump")
             if DEBUG:
                 self.received = received
             if DEBUG_RECEIVED:

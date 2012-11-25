@@ -33,7 +33,7 @@ POSITION = 'position'
 CONTENT_DESCRIPTION = 'content-description'
 MAP = {'u':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        'x':ViewClient.TRAVERSE_CITPS, POSITION:ViewClient.TRAVERSE_CITPS,
-       'd':ViewClient.TRAVERSE_CITPS, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
+       'd':ViewClient.TRAVERSE_CITCD, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
        }
 
 def usage():

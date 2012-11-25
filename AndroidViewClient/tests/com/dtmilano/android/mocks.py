@@ -310,6 +310,65 @@ DUMPSYS_WINDOW_WINDOWS_SAMPLE_UI = """WINDOW MANAGER WINDOWS (dumpsys window win
   mStartingIconInTransition=false, mSkipAppTransitionAnimation=false
 """
 
+WINDOW_DUMP = """<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<hierarchy rotation="0">
+    <node index="0" text="" class="android.widget.FrameLayout"
+        package="com.android.launcher" content-desc="" checkable="false"
+        checked="false" clickable="false" enabled="true" focusable="false"
+        focused="false" scrollable="false" long-clickable="false" password="false"
+        selected="false" bounds="[0,0][480,800]">
+        <node index="0" text="" class="android.widget.LinearLayout"
+            package="com.android.launcher" content-desc="" checkable="false"
+            checked="false" clickable="false" enabled="true" focusable="false"
+            focused="false" scrollable="false" long-clickable="false" password="false"
+            selected="false" bounds="[0,0][480,800]">
+            <node index="0" text="" class="android.widget.FrameLayout"
+                package="com.android.launcher" content-desc="" checkable="false"
+                checked="false" clickable="false" enabled="true" focusable="false"
+                focused="false" scrollable="false" long-clickable="false" password="false"
+                selected="false" bounds="[0,38][480,800]">
+                <node index="0" text="" class="android.widget.FrameLayout"
+                    package="com.android.launcher" content-desc="" checkable="false"
+                    checked="false" clickable="false" enabled="true" focusable="false"
+                    focused="false" scrollable="false" long-clickable="false" password="false"
+                    selected="false" bounds="[0,38][480,800]">
+                    <node index="0" text="" class="android.widget.TabHost"
+                        package="com.android.launcher" content-desc="" checkable="false"
+                        checked="false" clickable="false" enabled="true" focusable="true"
+                        focused="true" scrollable="false" long-clickable="false" password="false"
+                        selected="false" bounds="[0,38][480,800]">
+                        <node index="0" text="" class="android.widget.LinearLayout"
+                            package="com.android.launcher" content-desc="" checkable="false"
+                            checked="false" clickable="false" enabled="true" focusable="false"
+                            focused="false" scrollable="false" long-clickable="false"
+                            password="false" selected="false" bounds="[0,38][480,800]">
+                            <node index="0" text="" class="android.widget.FrameLayout"
+                                package="com.android.launcher" content-desc="" checkable="false"
+                                checked="false" clickable="false" enabled="true" focusable="false"
+                                focused="false" scrollable="false" long-clickable="false"
+                                password="false" selected="false" bounds="[1,38][479,116]">
+                                <node index="0" text="" class="android.widget.TabWidget"
+                                    package="com.android.launcher" content-desc="" checkable="false"
+                                    checked="false" clickable="false" enabled="true" focusable="true"
+                                    focused="false" scrollable="false" long-clickable="false"
+                                    password="false" selected="false" bounds="[1,38][479,116]">
+                                    <node index="0" text="Apps" class="android.widget.TextView"
+                                        package="com.android.launcher" content-desc="Apps" checkable="false"
+                                        checked="false" clickable="true" enabled="true" focusable="true"
+                                        focused="false" scrollable="false" long-clickable="false"
+                                        password="false" selected="true" bounds="[1,38][105,116]" />
+                                </node>
+                            </node>
+                        </node>
+                    </node>
+                </node>
+            </node>
+        </node>
+    </node>
+</hierarchy>
+"""
+
+
 RUNNING = 1
 STOPPED = 0
 
@@ -341,6 +400,13 @@ class MockDevice(object):
         elif cmd == 'dumpsys window windows':
             return DUMPSYS_WINDOW_WINDOWS
         
+        m = re.match('uiautomator dump (\S+)', cmd)
+        if m and self.version >= 16:
+            return 'dumped %s' % m.group(1)
+        m = re.match('cat (\S+) .*', cmd)
+        if m:
+            return WINDOW_DUMP
+                
     def getProperty(self, property):
         if property == 'ro.serialno':
             return self.serialno

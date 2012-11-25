@@ -60,12 +60,17 @@ class ViewTest(unittest.TestCase):
         self.assertTrue(isinstance(view, EditText))
     
     def testView_notSpecifiedSdkVersion(self):
-        view = View(VIEW_MAP, MockDevice(), -1)
-        self.assertEqual(15, view.build[VERSION_SDK_PROPERTY])
+        device = MockDevice()
+        view = View(VIEW_MAP, device, -1)
+        self.assertEqual(device.version, view.build[VERSION_SDK_PROPERTY])
         
-    def testView_specifiedSdkVersion(self):
+    def testView_specifiedSdkVersion_10(self):
         view = View(VIEW_MAP, MockDevice(), 10)
         self.assertEqual(10, view.build[VERSION_SDK_PROPERTY])
+        
+    def testView_specifiedSdkVersion_16(self):
+        view = View(VIEW_MAP, MockDevice(), 16)
+        self.assertEqual(16, view.build[VERSION_SDK_PROPERTY])
         
     def testInnerMethod(self):
         v = View({'isChecked()':'true'}, None)
@@ -89,6 +94,25 @@ class ViewTest(unittest.TestCase):
     def testGetId(self):
         self.assertEqual('id/button_with_id', self.view.getId())
     
+    def testTextPropertyForDifferentSdkVersions(self):
+        TEXT_PROPERTY = 'text:mText'
+        TEXT_PROPERTY_API_10 = 'mText'
+        TEXT_PROPERTY_UI_AUTOMATOR = 'text'
+        VTP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
+        for version, textProperty in VTP.items():
+            view = View(None, None, version)
+            self.assertEqual(textProperty, view.textProperty, msg='version %d' % version)
+    
+    def testTextPropertyForDifferentSdkVersions_device(self):
+        TEXT_PROPERTY = 'text:mText'
+        TEXT_PROPERTY_API_10 = 'mText'
+        TEXT_PROPERTY_UI_AUTOMATOR = 'text'
+        VTP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
+        for version, textProperty in VTP.items():
+            device = MockDevice(version=version)
+            view = View(None, device, -1)
+            self.assertEqual(textProperty, view.textProperty, msg='version %d' % version)
+                
     def testGetText(self):
         self.assertTrue(self.view.map.has_key('text:mText'))
         self.assertEqual('Button with ID', self.view.getText())
@@ -183,7 +207,7 @@ class ViewClientTest(unittest.TestCase):
         sys.argv = ['']
         os.environ['ANDROID_SERIAL'] = 'ABC123'
         try:
-            ViewClient.connectToDeviceOrExit(verbose=True)
+            ViewClient.connectToDeviceOrExit(timeout=1, verbose=True)
         except exceptions.SystemExit, e:
             self.assertEquals(3, e.code)
         
@@ -498,6 +522,10 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
+        
+    def testUiAutomatorDump(self):
+        device = MockDevice(version=16)
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True)
 
          
 if __name__ == "__main__":
