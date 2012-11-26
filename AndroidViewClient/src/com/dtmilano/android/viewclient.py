@@ -906,7 +906,11 @@ class ViewClient:
         self.useUiAutomator = (self.build[VERSION_SDK_PROPERTY] >= 16) # jelly bean 4.1 & 4.2
         ''' If UIAutomator is supported by the device it will be used '''
 
-        if not self.useUiAutomator:
+        if self.useUiAutomator:
+            self.textProperty = TEXT_PROPERTY_UI_AUTOMATOR
+        else:
+            # FIXME: not true for API <= 10
+            self.textProperty = TEXT_PROPERTY
             if startviewserver:
                 if not self.serviceResponse(device.shell('service call window 3')):
                     try:
@@ -1595,7 +1599,7 @@ class ViewClient:
         
     def findViewWithText(self, text, root="ROOT"):
         if type(text).__name__ == 'PatternObject':
-            return self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text, root)
+            return self.findViewWithAttributeThatMatches(self.textProperty, text, root)
             #l = self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text)
             #ll = len(l)
             #if ll == 0:
@@ -1606,7 +1610,7 @@ class ViewClient:
             #    print >>sys.stderr, "WARNING: findViewWithAttributeThatMatches invoked by findViewWithText returns %d items." % ll
             #    return l
         else:
-            return self.findViewWithAttribute(TEXT_PROPERTY, text, root)
+            return self.findViewWithAttribute(self.textProperty, text, root)
 
     def findViewWithTextOrRaise(self, text, root="ROOT"):
         '''
