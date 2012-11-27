@@ -31,6 +31,6 @@ from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 vc = ViewClient(*ViewClient.connectToDeviceOrExit())
 
-button = vc.findViewWithText('Show Dialog')
+button = vc.findViewWithTextOrRaise('Show Dialog')
 print "button: ", button.getClass(), button.getId(), button.getCoords()
 

@@ -25,7 +25,7 @@ try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
     pass
-from com.dtmilano.android.viewclient import ViewClient
+from com.dtmilano.android.viewclient import ViewClient, ViewNotFoundException
 
 vc = ViewClient(*ViewClient.connectToDeviceOrExit())
 
@@ -33,9 +33,8 @@ vc = ViewClient(*ViewClient.connectToDeviceOrExit())
 # we use a regex to find them.
 # Once found, we touch them changing their state
 for t in [re.compile('Button 1 .*'), re.compile('Button 2 .*'), 'Button with ID']:
-    view = vc.findViewWithText(t)
-    if view:
-        view.touch()
-    else:
+    try:
+        vc.findViewWithTextOrRaise(t).touch()
+    except ViewNotFoundException:
         print >>sys.stderr, "Couldn't find button with text=", t
 

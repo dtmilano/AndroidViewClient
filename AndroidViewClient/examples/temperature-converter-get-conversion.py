@@ -35,7 +35,6 @@ from com.dtmilano.android.viewclient import ViewClient
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
-print sys.argv
 localViewServer = False
 if len(sys.argv) > 1 and sys.argv[1] == '--localViewServer':
     localViewServer = True
