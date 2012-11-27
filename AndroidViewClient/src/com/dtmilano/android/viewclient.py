@@ -449,6 +449,7 @@ class View:
         hy = 0
         
         if not self.useUiAutomator:
+            if DEBUG_COORDS: print >> sys.stderr, "   getXY: not using UiAutomator, calculating parent coordinates"
             while parent != None:
                 if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId())
                 if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
