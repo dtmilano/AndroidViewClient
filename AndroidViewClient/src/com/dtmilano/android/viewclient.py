@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3'
+__version__ = '2.3.1'
 
 import sys
 import subprocess
