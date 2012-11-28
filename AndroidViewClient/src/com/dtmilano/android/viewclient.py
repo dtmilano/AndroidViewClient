@@ -1015,7 +1015,7 @@ class ViewClient:
         return serialno
 
     @staticmethod
-    def connectToDeviceOrExit(timeout=60, verbose=False, ignoresecuredevice=False):
+    def connectToDeviceOrExit(timeout=60, verbose=False, ignoresecuredevice=False, serialno=None):
         '''
         Connects to a device which serial number is obtained from the script arguments if available
         or using the default regex C{.*}.
@@ -1031,17 +1031,20 @@ class ViewClient:
         @param verbose: Verbose output
         @type ignoresecuredevice: bool
         @param ignoresecuredevice: Ignores the check for a secure device
+        @type serialno: str
+        @param serialno: The device or emulator serial number 
         
         @return: the device and serialno used for the connection
         '''
         
         progname = os.path.basename(sys.argv[0])
-        # eat all the extra options the invoking script may have added
-        while len(sys.argv) > 1 and sys.argv[1][0] == '-':
-            sys.argv.pop(1)
-        serialno = sys.argv[1] if len(sys.argv) > 1 else \
-                os.environ['ANDROID_SERIAL'] if os.environ.has_key('ANDROID_SERIAL') \
-                else '.*'
+        if serialno is None:
+            # eat all the extra options the invoking script may have added
+            while len(sys.argv) > 1 and sys.argv[1][0] == '-':
+                sys.argv.pop(1)
+                serialno = sys.argv[1] if len(sys.argv) > 1 else \
+                    os.environ['ANDROID_SERIAL'] if os.environ.has_key('ANDROID_SERIAL') \
+                    else '.*'
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
