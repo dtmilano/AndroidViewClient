@@ -42,7 +42,10 @@ class ViewTest(unittest.TestCase):
         self.view = View(VIEW_MAP, None, -1)
 
     def tearDown(self):
-        pass
+        try:
+            del os.environ['ANDROID_SERIAL']
+        except:
+            pass
 
     def testViewFactory_View(self):
         attrs = {'class': 'android.widget.AnyView', 'text:mText': 'Button with ID'}
@@ -204,7 +207,18 @@ class ViewClientTest(unittest.TestCase):
             ViewClient.connectToDeviceOrExit(timeout=1, verbose=True)
         except exceptions.SystemExit, e:
             self.assertEquals(3, e.code)
-        
+        except java.lang.NullPointerException:
+            self.fail('Serialno was not taken from environment')
+       
+    def testConnectToDeviceOrExit_serialno(self):
+        sys.argv = ['']
+        try:
+            ViewClient.connectToDeviceOrExit(timeout=1, verbose=True, serialno='ABC123')
+        except exceptions.SystemExit, e:
+            self.assertEquals(3, e.code)
+        except java.lang.NullPointerException:
+            self.fail('Serialno was not taken from argument')
+     
     def testConstructor(self):
         device = MockDevice()
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)

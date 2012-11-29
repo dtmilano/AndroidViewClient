@@ -1040,9 +1040,10 @@ class ViewClient:
         progname = os.path.basename(sys.argv[0])
         if serialno is None:
             # eat all the extra options the invoking script may have added
+            # FIXME: perhaps we should restore the popped arguments
             while len(sys.argv) > 1 and sys.argv[1][0] == '-':
                 sys.argv.pop(1)
-                serialno = sys.argv[1] if len(sys.argv) > 1 else \
+            serialno = sys.argv[1] if len(sys.argv) > 1 else \
                     os.environ['ANDROID_SERIAL'] if os.environ.has_key('ANDROID_SERIAL') \
                     else '.*'
         if verbose:
@@ -1081,7 +1082,7 @@ class ViewClient:
         return device, serialno
         
     @staticmethod
-    def traverseShowClassIdAndText(view, extraInfo=None):
+    def traverseShowClassIdAndText(view, extraInfo=None, noextrainfo=None):
         '''
         Shows the View class, id and text if available.
         This function can be used as a transform function to L{ViewClient.traverse()}
@@ -1094,7 +1095,14 @@ class ViewClient:
         '''
         
         try:
-            return "%s %s %s%s" % (view.getClass(), view.getId(), view.getText(), " " + extraInfo(view).__str__() if extraInfo != None else '')
+            eis = ''
+            if extraInfo:
+                eis = extraInfo(view).__str__()
+                if not eis and noextrainfo:
+                    eis = noextrainfo
+            if eis:
+                eis = ' ' + eis
+            return "%s %s %s%s" % (view.getClass(), view.getId(), view.getText(), eis)
         except Exception, e:
             return "Exception in view=%s: %s" % (view.__smallStr__(), e)
         
@@ -1122,7 +1130,7 @@ class ViewClient:
         @return: the string containing class, id, and text if available and the content description
         '''
         
-        return ViewClient.traverseShowClassIdAndText(view, View.getContentDescription)
+        return ViewClient.traverseShowClassIdAndText(view, View.getContentDescription, 'NAF')
     
     @staticmethod
     def traverseShowClassIdTextAndCenter(view):
