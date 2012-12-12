@@ -571,7 +571,7 @@ class View:
         dww = self.device.shell('dumpsys window windows')
         if DEBUG_WINDOWS: print >> sys.stderr, dww
         lines = dww.split('\n')
-        widRE = re.compile('^ *Window #%s Window{%s %s.*}:' %
+        widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s.*}:' %
                             (__nd('num'), __nh('winId'), __ns('activity', greedy=True)))
         currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % __nh('winId'))
         viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % __nh('visibility'))
