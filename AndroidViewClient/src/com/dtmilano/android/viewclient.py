@@ -571,7 +571,7 @@ class View:
         dww = self.device.shell('dumpsys window windows')
         if DEBUG_WINDOWS: print >> sys.stderr, dww
         lines = dww.split('\n')
-        widRE = re.compile('^ *Window #%s Window{%s %s.*}:' %
+        widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s.*}:' %
                             (__nd('num'), __nh('winId'), __ns('activity', greedy=True)))
         currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % __nh('winId'))
         viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % __nh('visibility'))
@@ -1076,7 +1076,7 @@ class ViewClient:
         if secure == '1' and debuggable == '0' and not ignoresecuredevice and version < 16:
             print >> sys.stderr, "%s: ERROR: Device is secure, AndroidViewClient won't work." % progname
             sys.exit(2)
-        if re.search("[.*()+]", serialno):
+        if re.search("[.*()+]", serialno) and not re.search("(\d{1,3}\.){3}\d{1,3}"):
             # if a regex was used we have to determine the serialno used
             serialno = ViewClient.__obtainDeviceSerialNumber(device)
         return device, serialno
