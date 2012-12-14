@@ -753,6 +753,11 @@ class EditText(TextView):
         self.device.type(text)
         MonkeyRunner.sleep(1)
 
+    def backspace(self):
+        self.touch()
+        MonkeyRunner.sleep(1)
+        self.device.press('KEYCODE_DEL', MonkeyDevice.DOWN_AND_UP)
+
 class UiAutomator2AndroidViewClient():
     '''
     UiAutomator XML to AndroidViewClient
