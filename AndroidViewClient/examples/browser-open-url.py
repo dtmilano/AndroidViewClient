@@ -31,8 +31,8 @@ from com.dtmilano.android.viewclient import ViewClient
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 # Starting: Intent { act=android.intent.action.MAIN flg=0x10000000 cmp=com.android.browser/.BrowserActivity }
-package = 'com.android.browser'                                          
-activity = '.BrowserActivity'                           
+package = 'com.android.browser'
+activity = '.BrowserActivity'
 component = package + "/" + activity
 uri = 'http://dtmilano.blogspot.com'
 
