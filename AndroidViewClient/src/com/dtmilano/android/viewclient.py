@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.1'
+__version__ = '2.3.2'
 
 import sys
 import subprocess
@@ -164,7 +164,7 @@ class View:
     '''
 
     @staticmethod
-    def factory(attrs, device, version=-1):
+    def factory(attrs, device, version=-1, forceviewserveruse=False):
         '''
         View factory
         '''
@@ -172,15 +172,15 @@ class View:
         if attrs.has_key('class'):
             clazz = attrs['class']
             if clazz == 'android.widget.TextView':
-                return TextView(attrs, device, version)
+                return TextView(attrs, device, version, forceviewserveruse)
             elif clazz == 'android.widget.EditText':
-                return EditText(attrs, device, version)
+                return EditText(attrs, device, version, forceviewserveruse)
             else:
-                return View(attrs, device, version)
+                return View(attrs, device, version, forceviewserveruse)
         else:
-            return View(attrs, device, version)
+            return View(attrs, device, version, forceviewserveruse)
     
-    def __init__(self, map, device, version=-1):
+    def __init__(self, map, device, version=-1, forceviewserveruse=False):
         '''
         Constructor
         
@@ -192,6 +192,9 @@ class View:
         @param version: the Android SDK version number of the platform where this View belongs. If
                         this is C{-1} then the Android SDK version will be obtained in this
                         constructor.
+        @type forceviewserveruse: boolean
+        @param forceviewserveruse: Force the use of C{ViewServer} even if the conditions were given
+                        to use C{UiAutomator}.
         '''
         
         self.map = map
@@ -205,6 +208,7 @@ class View:
         self.windows = {}
         self.currentFocus = None
         self.build = {}
+        ''' Build properties '''
 
         if version != -1:
             self.build[VERSION_SDK_PROPERTY] = version
@@ -218,16 +222,16 @@ class View:
                 self.build[VERSION_SDK_PROPERTY] = -1
         
         version = self.build[VERSION_SDK_PROPERTY]
-        self.useUiAutomator = (version >= 16)
+        self.useUiAutomator = (version >= 16) and not forceviewserveruse
         ''' Whether to use UIAutomator or ViewServer '''
         self.idProperty = None
         ''' The id property depending on the View attribute format '''
         self.textProperty = None
         ''' The text property depending on the View attribute format '''
-        if version >= 16:
+        if version >= 16 and self.useUiAutomator:
             self.idProperty = ID_PROPERTY_UI_AUTOMATOR
             self.textProperty = TEXT_PROPERTY_UI_AUTOMATOR
-        elif version > 10 and version < 16:
+        elif version > 10 and (version < 16 or self.useUiAutomator):
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
         elif version > 0 and version <= 10:
@@ -835,7 +839,7 @@ class ViewClient:
     mapping is created.
     '''
 
-    def __init__(self, device, serialno, adb=None, autodump=True, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True):
+    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True):
         '''
         Constructor
         
@@ -852,8 +856,8 @@ class ViewClient:
         @type remoteport: int
         @param remoteport: the remote port used to start the C{ViewServer} in the device or
                            emulator
-        @type startviewserverparam: boolean
-        @param startviewserverparam: Whether to start the B{global} ViewServer
+        @type startviewserver: boolean
+        @param startviewserver: Whether to start the B{global} ViewServer
         '''
 
         if not device:
@@ -909,7 +913,9 @@ class ViewClient:
                 # we expect it to be an int
                 self.build[prop] = int(self.build[prop] if self.build[prop] else -1)
 
-        self.useUiAutomator = (self.build[VERSION_SDK_PROPERTY] >= 16) # jelly bean 4.1 & 4.2
+        self.forceViewServerUse = forceviewserveruse
+        ''' Force the use of ViewServer even if the conditions to use UiAutomator are satisfied '''
+        self.useUiAutomator = (self.build[VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse # jelly bean 4.1 & 4.2
         ''' If UIAutomator is supported by the device it will be used '''
 
         if self.useUiAutomator:
@@ -1346,7 +1352,7 @@ class ViewClient:
             if not self.root:
                 if v[0] == ' ':
                     raise Exception("Unexpected root element starting with ' '.")
-                self.root = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY])
+                self.root = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse)
                 if DEBUG: self.root.raw = v
                 treeLevel = 0
                 newLevel = 0
@@ -1357,7 +1363,7 @@ class ViewClient:
                 newLevel = (len(v) - len(v.lstrip()))
                 if newLevel == 0:
                     raise Exception("newLevel==0 treeLevel=%d but tree can have only one root, v=%s" % (treeLevel, v))
-                child = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY])
+                child = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse)
                 if DEBUG: child.raw = v
                 if newLevel == treeLevel:
                     parent.add(child)
