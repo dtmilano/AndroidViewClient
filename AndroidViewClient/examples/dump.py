@@ -31,18 +31,21 @@ from com.dtmilano.android.viewclient import ViewClient
 UNIQUE_ID = 'uniqueId'
 POSITION = 'position'
 CONTENT_DESCRIPTION = 'content-description'
+CENTER = 'center'
 MAP = {'u':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        'x':ViewClient.TRAVERSE_CITPS, POSITION:ViewClient.TRAVERSE_CITPS,
        'd':ViewClient.TRAVERSE_CITCD, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
+       'c':ViewClient.TRAVERSE_CITC, CENTER:ViewClient.TRAVERSE_CITC,
        }
 
 def usage():
-    print >> sys.stderr, 'usage: dump.py [-u|--%s] [-x|--%s] [-d|--%s] [serialno]' % \
-        (UNIQUE_ID, POSITION, CONTENT_DESCRIPTION)
+    print >> sys.stderr, 'usage: dump.py [-u|--%s] [-x|--%s] [-d|--%s] [-c|--%s] [serialno]' % \
+        (UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER)
     sys.exit(1)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'uxd', [UNIQUE_ID, POSITION, CONTENT_DESCRIPTION])
+    opts, args = getopt.getopt(sys.argv[1:], 'uxdc',
+                        [UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER])
 except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
