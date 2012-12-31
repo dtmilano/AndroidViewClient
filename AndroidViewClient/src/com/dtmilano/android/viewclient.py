@@ -874,7 +874,7 @@ class ViewClient:
         
         if adb:
             if not os.access(adb, os.X_OK):
-                raise Exception('adb="%s" is not executable')
+                raise Exception('adb="%s" is not executable' % adb)
         else:
             adb = ViewClient.__obtainAdbPath()
 
@@ -1018,11 +1018,18 @@ class ViewClient:
         if not serialno:
             serialno = device.shell('getprop ro.serialno')[:-2]
         if not serialno:
-            if int(device.shell('getprop ro.kernel.qemu')[:-2]) == 1:
+            qemu = device.shell('getprop ro.kernel.qemu')[:-2]
+            if qemu and int(qemu) == 1:
                 # FIXME !!!!!
                 # this must be calculated from somewhere, though using a fixed serialno for now
                 warnings.warn("Running on emulator but no serial number was specified then 'emulator-5554' is used")
                 serialno = 'emulator-5554'
+        if not serialno:
+            # If there's only one device connected get its serialno
+            adb = ViewClient.__obtainAdbPath()
+            s = subprocess.Popen([adb, 'get-serialno'], stdout=subprocess.PIPE).communicate()[0][:-1]
+            if s != 'unknown':
+                serialno = s
         return serialno
 
     @staticmethod
