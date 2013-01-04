@@ -851,6 +851,9 @@ class ViewClient:
         @param adb: the path of the C{adb} executable or None and C{ViewClient} will try to find it
         @type autodump: boolean
         @param autodump: whether an automatic dump is performed at the end of this constructor
+        @type forceviewserveruse: boolean
+        @param forceviewserveruse: Force the use of C{ViewServer} even if the conditions to use
+                            C{UiAutomator} are satisfied 
         @type localport: int
         @param localport: the local port used in the redirection
         @type remoteport: int
