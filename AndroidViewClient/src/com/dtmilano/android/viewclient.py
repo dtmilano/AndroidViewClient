@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.2'
+__version__ = '2.3.4'
 
 import sys
 import subprocess
@@ -33,7 +33,7 @@ import xml.parsers.expat
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
 DEBUG = False
-DEBUG_DEVICE = DEBUG and False
+DEBUG_DEVICE = DEBUG and True
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
 DEBUG_GETATTR = DEBUG and False
@@ -48,6 +48,7 @@ WARNINGS = False
 VIEW_SERVER_HOST = 'localhost'
 VIEW_SERVER_PORT = 4939
 
+ADB_DEFAULT_PORT = 5555
 
 OFFSET = 25
 ''' This assumes the smallest touchable view on the screen is approximately 50px x 50px
@@ -79,6 +80,8 @@ LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
 VISIBLE = 0x0
 INVISIBLE = 0x4
 GONE = 0x8
+
+IP_RE = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
 
 def __nd(name):
     '''
@@ -956,8 +959,10 @@ class ViewClient:
         '''
         
         osName = java.lang.System.getProperty('os.name')
+        isWindows = False
         if osName.startswith('Windows'):
             adb = 'adb.exe'
+            isWindows = True
         else:
             adb = 'adb'
 
@@ -993,17 +998,17 @@ class ViewClient:
 
         for path in os.environ["PATH"].split(os.pathsep):
             exeFile = os.path.join(path, adb)
-            if exeFile != None and os.access(exeFile, os.X_OK):
+            if exeFile != None and (isWindows or os.access(exeFile, os.X_OK)):
                 return exeFile
 
         raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
 
     @staticmethod
     def __mapSerialNo(serialno):
-        ipRE = re.compile('^\d+\.\d+.\d+.\d+$')
-        if ipRE.match(serialno):
-            if DEBUG_DEVICE: print >>sys.stderr, "ViewClient: adding default port to serialno", serialno, '5555'
-            return serialno + ':5555'
+        #ipRE = re.compile('^\d+\.\d+.\d+.\d+$')
+        if IP_RE.match(serialno):
+            if DEBUG_DEVICE: print >>sys.stderr, "ViewClient: adding default port to serialno", serialno, ADB_DEFAULT_PORT
+            return serialno + ':%d' % ADB_DEFAULT_PORT
         
         ipPortRE = re.compile('^\d+\.\d+.\d+.\d+:\d+$')
         if ipPortRE.match(serialno):
@@ -1017,6 +1022,7 @@ class ViewClient:
     
     @staticmethod
     def __obtainDeviceSerialNumber(device):
+        if DEBUG_DEVICE: print >>sys.stderr, "ViewClient: obtaining serial number for connected device"
         serialno = device.getProperty('ro.serialno')
         if not serialno:
             serialno = device.shell('getprop ro.serialno')[:-2]
@@ -1030,9 +1036,13 @@ class ViewClient:
         if not serialno:
             # If there's only one device connected get its serialno
             adb = ViewClient.__obtainAdbPath()
-            s = subprocess.Popen([adb, 'get-serialno'], stdout=subprocess.PIPE).communicate()[0][:-1]
+            if DEBUG_DEVICE: print >>sys.stderr, "    using adb=%s" % adb
+            s = subprocess.Popen([adb, 'get-serialno'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={}).communicate()[0][:-1]
             if s != 'unknown':
                 serialno = s
+        if DEBUG_DEVICE: print >>sys.stderr, "    serialno=%s" % serialno
+        if not serialno:
+            warnings.warn("Couldn't obtain the serialno of the connected device")
         return serialno
 
     @staticmethod
@@ -1067,6 +1077,9 @@ class ViewClient:
             serialno = sys.argv[1] if len(sys.argv) > 1 else \
                     os.environ['ANDROID_SERIAL'] if os.environ.has_key('ANDROID_SERIAL') \
                     else '.*'
+        if IP_RE.match(serialno):
+            # If matches an IP address format and port was not specified add the default
+            serialno += ':%d' % ADB_DEFAULT_PORT
         if verbose:
             print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
         # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
@@ -1090,12 +1103,21 @@ class ViewClient:
             print 'Connected to device with serialno=%s' % serialno
         secure = device.getSystemProperty('ro.secure')
         debuggable = device.getSystemProperty('ro.debuggable')
-        version = int(device.getProperty('build.' + VERSION_SDK_PROPERTY))
+        versionProperty = device.getProperty('build.' + VERSION_SDK_PROPERTY)
+        if versionProperty:
+            version = int(versionProperty)
+        else:
+            if verbose:
+                print "Couldn't obtain device SDK version"
+            version = -1
 
         # we are going to use UiAutomator for versions >= 16 that's why we ignore if the device
         # is secure if this is true
         if secure == '1' and debuggable == '0' and not ignoresecuredevice and version < 16:
             print >> sys.stderr, "%s: ERROR: Device is secure, AndroidViewClient won't work." % progname
+            if verbose:
+                print >> sys.stderr, "    secure=%s debuggable=%s version=%d ignoresecuredevice=%s" % \
+                    (secure, debuggable, version, ignoresecuredevice)
             sys.exit(2)
         if re.search("[.*()+]", serialno) and not re.search("(\d{1,3}\.){3}\d{1,3}", serialno):
             # if a regex was used we have to determine the serialno used
