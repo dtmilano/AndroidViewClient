@@ -28,6 +28,7 @@ except:
 
 from com.dtmilano.android.viewclient import ViewClient
 
+VERBOSE = 'verbose'
 UNIQUE_ID = 'uniqueId'
 POSITION = 'position'
 CONTENT_DESCRIPTION = 'content-description'
@@ -39,19 +40,24 @@ MAP = {'u':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        }
 
 def usage():
-    print >> sys.stderr, 'usage: dump.py [-u|--%s] [-x|--%s] [-d|--%s] [-c|--%s] [serialno]' % \
-        (UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER)
+    print >> sys.stderr, 'usage: dump.py [-V|--%s] [-u|--%s] [-x|--%s] [-d|--%s] [-c|--%s] [serialno]' % \
+        (VERBOSE, UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER)
     sys.exit(1)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'uxdc',
-                        [UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER])
+    opts, args = getopt.getopt(sys.argv[1:], 'Vuxdc',
+                        [VERBOSE, UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER])
 except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
 
+verbose = True
 transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
-    transform = MAP[o.strip('-')]
+    o = o.strip('-')
+    if o in ['V', VERBOSE]:
+        verbose = True
+        continue
+    transform = MAP[o]
 
-ViewClient(*ViewClient.connectToDeviceOrExit()).traverse(transform=transform)
+ViewClient(*ViewClient.connectToDeviceOrExit(verbose=verbose)).traverse(transform=transform)
