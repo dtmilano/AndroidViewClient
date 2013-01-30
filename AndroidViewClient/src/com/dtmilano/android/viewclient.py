@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.4'
+__version__ = '2.3.5'
 
 import sys
 import subprocess
@@ -1477,8 +1477,11 @@ class ViewClient:
             
         if self.useUiAutomator:
             windowDump = '/mnt/sdcard/window_dump.xml'
-            if not re.search('dumped', self.device.shell('uiautomator dump %s' % windowDump)):
+            output = self.device.shell('uiautomator dump %s' % windowDump)
+            if not output:
                 raise RuntimeError('ERROR: Getting UIAutomator dump')
+            if not re.search('dumped', output):
+                raise RuntimeError("ERROR: UIAutomator dump doesn't containt 'dumped'")
             received = self.device.shell('cat %s 2>/dev/null' % windowDump)
             if received:
                 received = received.encode('ascii', 'ignore')
