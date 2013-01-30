@@ -51,7 +51,7 @@ except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
 
-verbose = True
+verbose = False
 transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
     o = o.strip('-')
