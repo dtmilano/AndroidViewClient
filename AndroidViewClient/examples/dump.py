@@ -29,6 +29,7 @@ except:
 from com.dtmilano.android.viewclient import ViewClient
 
 VERBOSE = 'verbose'
+FORCE_VIEW_SERVER_USE = 'force-view-server-use'
 UNIQUE_ID = 'uniqueId'
 POSITION = 'position'
 CONTENT_DESCRIPTION = 'content-description'
@@ -40,24 +41,27 @@ MAP = {'u':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        }
 
 def usage():
-    print >> sys.stderr, 'usage: dump.py [-V|--%s] [-u|--%s] [-x|--%s] [-d|--%s] [-c|--%s] [serialno]' % \
-        (VERBOSE, UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER)
+    print >> sys.stderr, 'usage: dump.py [-V|--%s] [-F|--%s] [-u|--%s] [-x|--%s] [-d|--%s] [-c|--%s] [serialno]' % \
+        (VERBOSE, FORCE_VIEW_SERVER_USE, UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER)
     sys.exit(1)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'Vuxdc',
-                        [VERBOSE, UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER])
+    opts, args = getopt.getopt(sys.argv[1:], 'VFuxdc',
+                        [VERBOSE, FORCE_VIEW_SERVER_USE, UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER])
 except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
 
 verbose = False
+kwargs = {'forceviewserveruse': False}
 transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
     o = o.strip('-')
     if o in ['V', VERBOSE]:
         verbose = True
-        continue
-    transform = MAP[o]
+    elif o in ['F', FORCE_VIEW_SERVER_USE]:
+        kwargs['forceviewserveruse'] = True
+    else:
+        transform = MAP[o]
 
-ViewClient(*ViewClient.connectToDeviceOrExit(verbose=verbose)).traverse(transform=transform)
+ViewClient(*ViewClient.connectToDeviceOrExit(verbose=verbose), **kwargs).traverse(transform=transform)
