@@ -23,8 +23,9 @@ except:
     pass
 
 from com.dtmilano.android.viewclient import *
+from mocks import MockDevice
 
-VERBOSE = False
+VERBOSE = True
 
 # NOTE:
 # Because there's no way of disconnect a MonkeyDevice and there's no
@@ -32,7 +33,7 @@ VERBOSE = False
 # this is the only alternative
 SERIALNO = 'emulator-5554'
 sys.argv = ['ViewClientConnectedTest', SERIALNO]
-device, serialno = ViewClient.connectToDeviceOrExit(verbose=True)
+device, serialno = ViewClient.connectToDeviceOrExit(verbose=VERBOSE, serialno=SERIALNO)
        
 class ViewClientConnectedTest(unittest.TestCase):
 
@@ -49,11 +50,11 @@ class ViewClientConnectedTest(unittest.TestCase):
     
     def testInit_adbNone(self):
         device = MockDevice()
-        vc = ViewClient(device, adb=None, autodump=False)
+        vc = ViewClient(device, serialno, adb=None, autodump=False)
         self.assertNotEqual(None, vc)
         
     def testAutodumpVsDump(self):
-        vc = ViewClient(self.device, self.serialno)
+        vc = ViewClient(self.device, self.serialno, forceviewserveruse=True)
         ids = vc.getViewIds()
         views = vc.dump()
         self.assertEquals(len(ids), len(views))
@@ -65,7 +66,7 @@ class ViewClientConnectedTest(unittest.TestCase):
         d = {}
         
         for i in range(10):
-            vc[i] = ViewClient(self.device, self.serialno)
+            vc[i] = ViewClient(self.device, self.serialno, forceviewserveruse=True)
             n[i] = len(vc[i].getViewIds())
             m[i] = len(vc[i].dump())
             d[i] = len(vc[i].getViewIds())

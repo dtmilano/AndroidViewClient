@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.5'
+__version__ = '2.3.6'
 
 import sys
 import subprocess
@@ -1481,7 +1481,7 @@ class ViewClient:
             if not output:
                 raise RuntimeError('ERROR: Getting UIAutomator dump')
             if not re.search('dumped', output):
-                raise RuntimeError("ERROR: UIAutomator dump doesn't containt 'dumped'")
+                raise RuntimeError("ERROR: UIAutomator dump output doesn't containt 'dumped' (%s)" % output)
             received = self.device.shell('cat %s 2>/dev/null' % windowDump)
             if received:
                 received = received.encode('ascii', 'ignore')
