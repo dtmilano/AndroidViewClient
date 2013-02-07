@@ -40,23 +40,30 @@ URI = 'http://dtmilano.blogspot.com'
 device, serialno = ViewClient.connectToDeviceOrExit()
 
 device.startActivity(component=COMPONENT, uri=URI)
-MonkeyRunner.sleep(3)
+MonkeyRunner.sleep(5)
 
 vc = ViewClient(device=device, serialno=serialno)
+sdkVersion = vc.getSdkVersion()
 
-device.drag((240, 180), (240, 420), 10, 10)
+if sdkVersion > 10:
+    device.drag((240, 180), (240, 420), 1, 20)
+else:
+    for i in range(10):
+        device.press('KEYCODE_DPAD_UP', MonkeyDevice.DOWN_AND_UP)
+        MonkeyRunner.sleep(1)
 
-url = vc.findViewByIdOrRaise('id/url')
+url = vc.findViewByIdOrRaise('id/url' if sdkVersion > 10 else 'id/title')
 url.touch()
 MonkeyRunner.sleep(1)
 
 device.press('KEYCODE_DEL', MonkeyDevice.DOWN_AND_UP)
 for c in VPS:
-    device.type(c)   
+    device.type(c)
+MonkeyRunner.sleep(1)
 device.press('KEYCODE_ENTER', MonkeyDevice.DOWN_AND_UP)
 MonkeyRunner.sleep(3)
 
 vc.dump()
 print vc.findViewByIdOrRaise('id/message').getText().replace('\\n', "\n")
 
-device.press('KEYCODE_BACK', MonkeyDevice.DOWN_AND_UP)
+device.press('KEYCODE_BACK' if sdkVersion > 10 else 'KEYCODE_ENTER', MonkeyDevice.DOWN_AND_UP)

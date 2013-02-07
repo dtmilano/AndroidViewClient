@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.6'
+__version__ = '2.3.7'
 
 import sys
 import subprocess
@@ -33,11 +33,11 @@ import xml.parsers.expat
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
 DEBUG = False
-DEBUG_DEVICE = DEBUG and True
-DEBUG_RECEIVED = DEBUG and False
+DEBUG_DEVICE = DEBUG and False
+DEBUG_RECEIVED = DEBUG and True
 DEBUG_TREE = DEBUG and False
 DEBUG_GETATTR = DEBUG and False
-DEBUG_COORDS = DEBUG and True
+DEBUG_COORDS = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_STATUSBAR = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
@@ -927,8 +927,10 @@ class ViewClient:
         if self.useUiAutomator:
             self.textProperty = TEXT_PROPERTY_UI_AUTOMATOR
         else:
-            # FIXME: not true for API <= 10
-            self.textProperty = TEXT_PROPERTY
+            if self.build[VERSION_SDK_PROPERTY] <= 10:
+                self.textProperty = TEXT_PROPERTY_API_10
+            else:
+                self.textProperty = TEXT_PROPERTY
             if startviewserver:
                 if not self.serviceResponse(device.shell('service call window 3')):
                     try:
@@ -1296,7 +1298,7 @@ class ViewClient:
             raise RuntimeError("This method is not compatible with UIAutomator")
         # replace the spaces in text:mText to preserve them in later split
         # they are translated back after the attribute matches
-        textRE = re.compile('%s=%s,' % (TEXT_PROPERTY, __nd('len')))
+        textRE = re.compile('%s=%s,' % (self.textProperty, __nd('len')))
         m = textRE.search(strArgs)
         if m:
             __textStart = m.end()
@@ -1316,7 +1318,7 @@ class ViewClient:
         if m:
             viewId = m.group('viewId')
             if DEBUG:
-                print >>sys.stderr, "found %s" % viewId
+                print >>sys.stderr, "found view with id=%s" % viewId
 
         for attr in strArgs.split():
             m = attrRE.match(attr)
@@ -1327,7 +1329,7 @@ class ViewClient:
                 __val = m.group('val')
                 if WARNINGS and __len != len(__val):
                     warnings.warn("Invalid len: expected: %d   found: %d   s=%s   e=%s" % (__len, len(__val), __val[:50], __val[-50:]))
-                if __attr == TEXT_PROPERTY:
+                if __attr == self.textProperty:
                     # restore spaces that have been replaced
                     __val = __val.replace(WS, ' ')
                 attrs[__attr + __parens] = __val
@@ -1476,6 +1478,7 @@ class ViewClient:
             MonkeyRunner.sleep(sleep)
             
         if self.useUiAutomator:
+            # FIXME: this might not be the path on some devices
             windowDump = '/mnt/sdcard/window_dump.xml'
             output = self.device.shell('uiautomator dump %s' % windowDump)
             if not output:
@@ -1486,7 +1489,12 @@ class ViewClient:
             if received:
                 received = received.encode('ascii', 'ignore')
             else:
-                raise RuntimeError("ERROR: Received empty UIAutomator dump")
+                msg = ''
+                output = self.device.shell('mount')
+                if output:
+                    if not re.search('sdcard', output):
+                        msg = ", it seems there's no sdcard mounted and uiautomator creates dump there."
+                raise RuntimeError("ERROR: Received empty UIAutomator dump" + msg)
             if DEBUG:
                 self.received = received
             if DEBUG_RECEIVED:
@@ -1707,6 +1715,9 @@ class ViewClient:
     
     def __getFocusedWindowPosition(self):
         return self.__getFocusedWindowId()
+    
+    def getSdkVersion(self):
+        return self.build[VERSION_SDK_PROPERTY]
 
 
 if __name__ == "__main__":
