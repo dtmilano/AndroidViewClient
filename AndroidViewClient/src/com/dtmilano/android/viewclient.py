@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.7'
+__version__ = '2.3.8'
 
 import sys
 import subprocess
@@ -757,7 +757,11 @@ class EditText(TextView):
     def type(self, text):
         self.touch()
         MonkeyRunner.sleep(1)
-        self.device.type(text)
+        for c in text:
+            if c != ' ':
+                self.device.type(c)
+            else:
+                self.device.press('KEYCODE_SPACE', MonkeyDevice.DOWN_AND_UP)
         MonkeyRunner.sleep(1)
 
     def backspace(self):
