@@ -1611,7 +1611,14 @@ class ViewClient:
                     return v
         
         return None
-         
+   
+    def __findViewWithAttributeInTreeOrRaise(self, attr, val, root):
+        view = self.__findViewWithAttributeInTree(attr, val, root)
+        if view:
+            return view
+        else:
+            raise ViewNotFoundException("Couldn't find View with %s='%s' in tree with root=%s" % (attr, val, root))
+      
     def __findViewWithAttributeInTreeThatMatches(self, attr, regex, root, rlist=[]):
         if not self.root:
             print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
