@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.8'
+__version__ = '2.3.9'
 
 import sys
 import subprocess
@@ -34,7 +34,7 @@ from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
 DEBUG = False
 DEBUG_DEVICE = DEBUG and False
-DEBUG_RECEIVED = DEBUG and True
+DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
 DEBUG_GETATTR = DEBUG and False
 DEBUG_COORDS = DEBUG and False
@@ -503,6 +503,8 @@ class View:
             
         if DEBUG_COORDS or DEBUG_STATUSBAR:
             print >>sys.stderr, "   getXY: returning (%d, %d) ***" % (x+hx+wvx+pwx, y+hy+wvy-statusBarOffset+pwy)
+            print >>sys.stderr, "                     x=%d+%d+%d+%d" % (x,hx,wvx,pwx)
+            print >>sys.stderr, "                     y=%d+%d+%d-%d+%d" % (y,hy,wvy,statusBarOffset,pwy)
         return (x+hx+wvx+pwx, y+hy+wvy-statusBarOffset+pwy)
 
     def getCoords(self):
@@ -618,6 +620,9 @@ class View:
                     if m:
                         visibility = int(m.group('visibility'))
                         if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: visibility=", visibility
+                    if self.build[VERSION_SDK_PROPERTY] >= 17:
+                        wvx, wvy = (0, 0)
+                        wvw, wvh = (0, 0)
                     if self.build[VERSION_SDK_PROPERTY] >= 16:
                         m = framesRE.search(lines[l2])
                         if m:
