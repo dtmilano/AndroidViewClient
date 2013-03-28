@@ -37,7 +37,8 @@ UNIQUE_ID = 'uniqueId'
 POSITION = 'position'
 CONTENT_DESCRIPTION = 'content-description'
 CENTER = 'center'
-MAP = {'u':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
+# -u,-s,-p,-v eaten by monkeyrunner
+MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        'x':ViewClient.TRAVERSE_CITPS, POSITION:ViewClient.TRAVERSE_CITPS,
        'd':ViewClient.TRAVERSE_CITCD, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
        'c':ViewClient.TRAVERSE_CITC, CENTER:ViewClient.TRAVERSE_CITC,
@@ -46,12 +47,12 @@ LONG_OPTS =  [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT
                 UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER]
 
 def usage(exitVal=1):
-    print >> sys.stderr, 'usage: dump.py [-H|--%s] [-V|--%s] [-I|--%s] [-F|--%s] [-S|--%s] [-u|--%s] [-x|--%s] [-d|--%s] [-c|--%s] [serialno]' % \
+    print >> sys.stderr, 'usage: dump.py [-H|--%s] [-V|--%s] [-I|--%s] [-F|--%s] [-S|--%s] [-i|--%s] [-x|--%s] [-d|--%s] [-c|--%s] [serialno]' % \
         tuple(LONG_OPTS)
     sys.exit(exitVal)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'HVIFSuxdc', LONG_OPTS)
+    opts, args = getopt.getopt(sys.argv[1:], 'HVIFSixdc', LONG_OPTS)
 except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
