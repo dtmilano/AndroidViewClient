@@ -27,7 +27,7 @@ except:
 
 from com.dtmilano.android.viewclient import *
 from mocks import MockDevice
-from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, RUNNING, STOPPED
+from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, VIEW_MAP_API_8, RUNNING, STOPPED
 
 # this is probably the only reliable way of determining the OS in monkeyrunner
 os_name = java.lang.System.getProperty('os.name')
@@ -67,6 +67,10 @@ class ViewTest(unittest.TestCase):
         view = View(VIEW_MAP, device, -1)
         self.assertEqual(device.version, view.build[VERSION_SDK_PROPERTY])
         
+    def testView_specifiedSdkVersion_8(self):
+        view = View(VIEW_MAP_API_8, MockDevice(), 8)
+        self.assertEqual(8, view.build[VERSION_SDK_PROPERTY])
+    
     def testView_specifiedSdkVersion_10(self):
         view = View(VIEW_MAP, MockDevice(), 10)
         self.assertEqual(10, view.build[VERSION_SDK_PROPERTY])
@@ -98,23 +102,69 @@ class ViewTest(unittest.TestCase):
         self.assertEqual('id/button_with_id', self.view.getId())
     
     def testTextPropertyForDifferentSdkVersions(self):
-        VTP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
-        for version, textProperty in VTP.items():
+        VP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
+        for version, textProperty in VP.items():
             view = View(None, None, version)
-            self.assertEqual(textProperty, view.textProperty, msg='version %d' % version)
+            self.assertEqual(textProperty, view.textProperty, msg='version %d: expected: %s actual: %s' % (version, textProperty, view.textProperty))
     
     def testTextPropertyForDifferentSdkVersions_device(self):
-        VTP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
-        for version, textProperty in VTP.items():
+        VP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
+        for version, textProperty in VP.items():
             device = MockDevice(version=version)
             view = View(None, device, -1)
             self.assertEqual(textProperty, view.textProperty, msg='version %d' % version)
-                
+    
+    def testLeftPropertyForDifferentSdkVersions(self):
+        VP = { -1:LEFT_PROPERTY, 8:LEFT_PROPERTY_API_8, 10:LEFT_PROPERTY, 15:LEFT_PROPERTY, 16:LEFT_PROPERTY, 17:LEFT_PROPERTY}
+        for version, leftProperty in VP.items():
+            view = View(None, None, version)
+            self.assertEqual(leftProperty, view.leftProperty, msg='version %d' % version)
+    
+    def testLeftPropertyForDifferentSdkVersions_device(self):
+        VP = { -1:LEFT_PROPERTY, 8:LEFT_PROPERTY_API_8, 10:LEFT_PROPERTY, 15:LEFT_PROPERTY, 16:LEFT_PROPERTY, 17:LEFT_PROPERTY}
+        for version, leftProperty in VP.items():
+            device = MockDevice(version=version)
+            view = View(None, device, -1)
+            self.assertEqual(leftProperty, view.leftProperty, msg='version %d' % version)
+    
+    def testTopPropertyForDifferentSdkVersions(self):
+        VP = { -1:TOP_PROPERTY, 8:TOP_PROPERTY_API_8, 10:TOP_PROPERTY, 15:TOP_PROPERTY, 16:TOP_PROPERTY, 17:TOP_PROPERTY}
+        for version, topProperty in VP.items():
+            view = View(None, None, version)
+            self.assertEqual(topProperty, view.topProperty, msg='version %d' % version)
+    
+    def testTopPropertyForDifferentSdkVersions_device(self):
+        VP = { -1:TOP_PROPERTY, 8:TOP_PROPERTY_API_8, 10:TOP_PROPERTY, 15:TOP_PROPERTY, 16:TOP_PROPERTY, 17:TOP_PROPERTY}
+        for version, topProperty in VP.items():
+            device = MockDevice(version=version)
+            view = View(None, device, -1)
+            self.assertEqual(topProperty, view.topProperty, msg='version %d' % version)
+    
     def testGetText(self):
         self.assertTrue(self.view.map.has_key('text:mText'))
         self.assertEqual('Button with ID', self.view.getText())
         self.assertEqual('Button with ID', self.view['text:mText'])
-       
+    
+    def testGetX_specifiedSdkVersion_8(self):
+        view = View(VIEW_MAP_API_8, MockDevice(), 8)
+        self.assertEqual(8, view.build[VERSION_SDK_PROPERTY])
+        self.assertEqual(50, view.getX())
+    
+    def testGetX_specifiedSdkVersion_10(self):
+        view = View(VIEW_MAP, MockDevice(), 10)
+        self.assertEqual(10, view.build[VERSION_SDK_PROPERTY])
+        self.assertEqual(50, view.getX())
+    
+    def testGetY_specifiedSdkVersion_8(self):
+        view = View(VIEW_MAP_API_8, MockDevice(), 8)
+        self.assertEqual(8, view.build[VERSION_SDK_PROPERTY])
+        self.assertEqual(316, view.getY())
+    
+    def testGetY_specifiedSdkVersion_10(self):
+        view = View(VIEW_MAP, MockDevice(), 10)
+        self.assertEqual(10, view.build[VERSION_SDK_PROPERTY])
+        self.assertEqual(316, view.getY())
+    
     def testGetWidth(self):
         self.assertEqual(1140, self.view.getWidth())
     
