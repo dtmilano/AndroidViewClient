@@ -32,7 +32,7 @@ import warnings
 import xml.parsers.expat
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
-DEBUG = True
+DEBUG = False
 DEBUG_DEVICE = DEBUG and False
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
