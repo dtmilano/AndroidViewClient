@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.9'
+__version__ = '2.3.10'
 
 import sys
 import subprocess
@@ -37,7 +37,7 @@ DEBUG_DEVICE = DEBUG and False
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
 DEBUG_GETATTR = DEBUG and False
-DEBUG_COORDS = DEBUG and False
+DEBUG_COORDS = DEBUG and True
 DEBUG_TOUCH = DEBUG and False
 DEBUG_STATUSBAR = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
@@ -73,6 +73,10 @@ TEXT_PROPERTY = 'text:mText'
 TEXT_PROPERTY_API_10 = 'mText'
 TEXT_PROPERTY_UI_AUTOMATOR = 'text'
 WS = "\xfe" # the whitespace replacement char for TEXT_PROPERTY
+LEFT_PROPERTY = 'layout:mLeft'
+LEFT_PROPERTY_API_8 = 'mLeft'
+TOP_PROPERTY = 'layout:mTop'
+TOP_PROPERTY_API_8 = 'mTop'
 GET_VISIBILITY_PROPERTY = 'getVisibility()'
 LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
 
@@ -231,21 +235,45 @@ class View:
         ''' The id property depending on the View attribute format '''
         self.textProperty = None
         ''' The text property depending on the View attribute format '''
+        self.leftProperty = None
+        ''' The left property depending on the View attribute format '''
+        self.topProperty = None
+        ''' The top property depending on the View attribute format '''
         if version >= 16 and self.useUiAutomator:
             self.idProperty = ID_PROPERTY_UI_AUTOMATOR
             self.textProperty = TEXT_PROPERTY_UI_AUTOMATOR
+            self.leftProperty = LEFT_PROPERTY
+            self.topProperty = TOP_PROPERTY
         elif version > 10 and (version < 16 or self.useUiAutomator):
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
-        elif version > 0 and version <= 10:
+            self.leftProperty = LEFT_PROPERTY
+            self.topProperty = TOP_PROPERTY
+        elif version == 10:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
+            self.leftProperty = LEFT_PROPERTY
+            self.topProperty = TOP_PROPERTY
+        elif version >= 8 and version < 10:
+            self.idProperty = ID_PROPERTY
+            self.textProperty = TEXT_PROPERTY_API_10
+            self.leftProperty = LEFT_PROPERTY_API_8
+            self.topProperty = TOP_PROPERTY_API_8
+        elif version > 0 and version < 8:
+            self.idProperty = ID_PROPERTY
+            self.textProperty = TEXT_PROPERTY_API_10
+            self.leftProperty = LEFT_PROPERTY
+            self.topProperty = TOP_PROPERTY
         elif version == -1:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
+            self.leftProperty = LEFT_PROPERTY
+            self.topProperty = TOP_PROPERTY
         else:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
+            self.leftProperty = LEFT_PROPERTY
+            self.topProperty = TOP_PROPERTY
         
     def __getitem__(self, key):
         return self.map[key]
@@ -408,10 +436,11 @@ class View:
         else:
             try:
                 if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
-                    if DEBUG_COORDS: print >>sys.stderr, "   getX: VISIBLE adding %d" % int(self.map['layout:mLeft'])
-                    x += int(self.map['layout:mLeft'])
+                    _x = int(self.map[self.leftProperty])
+                    if DEBUG_COORDS: print >>sys.stderr, "   getX: VISIBLE adding %d" % _x
+                    x += _x
             except:
-                warnings.warn("View %s has no 'layout:mLeft' property" % self.getId())
+                warnings.warn("View %s has no '%s' property" % (self.getId(), self.leftProperty))
         
         if DEBUG_COORDS: print >>sys.stderr, "   getX: returning %d" % (x)
         return x
@@ -430,10 +459,11 @@ class View:
         else:
             try:
                 if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
-                    if DEBUG_COORDS: print >>sys.stderr, "   getY: VISIBLE adding %d" % int(self.map['layout:mTop'])
-                    y += int(self.map['layout:mTop'])
+                    _y = int(self.map[self.topProperty])
+                    if DEBUG_COORDS: print >>sys.stderr, "   getY: VISIBLE adding %d" % _y
+                    y += _y
             except:
-                warnings.warn("View %s has no 'layout:mTop' property" % self.getId())
+                warnings.warn("View %s has no '%s' property" % (self.getId(), self.topProperty))
 
         if DEBUG_COORDS: print >>sys.stderr, "   getY: returning %d" % (y)
         return y
