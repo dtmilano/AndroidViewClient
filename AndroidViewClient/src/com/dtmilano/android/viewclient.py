@@ -1016,6 +1016,7 @@ class ViewClient:
 
     @staticmethod
     def __mapSerialNo(serialno):
+        serialno = serialno.strip()
         #ipRE = re.compile('^\d+\.\d+.\d+.\d+$')
         if IP_RE.match(serialno):
             if DEBUG_DEVICE: print >>sys.stderr, "ViewClient: adding default port to serialno", serialno, ADB_DEFAULT_PORT
