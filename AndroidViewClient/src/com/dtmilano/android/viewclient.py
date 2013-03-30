@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.10'
+__version__ = '2.3.11'
 
 import sys
 import subprocess
@@ -1123,7 +1123,8 @@ class ViewClient:
             # If matches an IP address format and port was not specified add the default
             serialno += ':%d' % ADB_DEFAULT_PORT
         if verbose:
-            print 'Connecting to a device with serialno=%s with a timeout of %d secs...' % (serialno, timeout)
+            print >> sys.stderr, 'Connecting to a device with serialno=%s with a timeout of %d secs...' % \
+                (serialno, timeout)
         # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
         # handle it here
         setAlarm = True
@@ -1142,7 +1143,7 @@ class ViewClient:
             print >> sys.stderr, "%s: ERROR: Couldn't connect to %s: %s" % (progname, serialno, e)
             sys.exit(3)
         if verbose:
-            print 'Connected to device with serialno=%s' % serialno
+            print >> sys.stderr, 'Connected to device with serialno=%s' % serialno
         secure = device.getSystemProperty('ro.secure')
         debuggable = device.getSystemProperty('ro.debuggable')
         versionProperty = device.getProperty('build.' + VERSION_SDK_PROPERTY)
@@ -1586,7 +1587,7 @@ class ViewClient:
         if root.getId() == viewId:
             return root
 
-        if re.match('^id/no_id', viewId):
+        if re.match('^id/no_id', viewId) or re.match('^id/.+/.+', viewId):
             if root.getUniqueId() == viewId:
                 return root;
         
