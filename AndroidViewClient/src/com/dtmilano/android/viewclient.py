@@ -1165,6 +1165,8 @@ class ViewClient:
         if re.search("[.*()+]", serialno) and not re.search("(\d{1,3}\.){3}\d{1,3}", serialno):
             # if a regex was used we have to determine the serialno used
             serialno = ViewClient.__obtainDeviceSerialNumber(device)
+        if verbose:
+            print >> sys.stderr, 'Actual device serialno=%s' % serialno
         return device, serialno
         
     @staticmethod
@@ -1738,7 +1740,11 @@ class ViewClient:
         if view:
             return view
         else:
-            raise ViewNotFoundException("Coulnd't find View with text='%s' in tree with root=%s" % (text, root))
+            if type(text).__name__ == 'PatternObject':
+                msg = "Couldn't find View with text that matches '%s' in tree with root=%s" % (text.pattern, root)
+            else:
+                msg = "Couldn't find View with text='%s' in tree with root=%s" % (text, root)
+            raise ViewNotFoundException(msg)
     
     def findViewWithContentDescription(self, contentdescription, root="ROOT"):
         '''
