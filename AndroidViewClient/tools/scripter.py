@@ -47,10 +47,11 @@ FIND_VIEWS_BY_ID = 'find-views-by-id'
 FIND_VIEWS_WITH_TEXT = 'find-views-with-text'
 USE_REGEXPS = 'use-regexps'
 VERBOSE_COMMENTS = 'verbose-comments'
+UNIT_TEST = 'unit-test'
 # -u,-s,-p,-v eaten by monkeyrunner
-SHORT_OPTS = 'HVIFSitrC'
+SHORT_OPTS = 'HVIFSitrCU'
 LONG_OPTS =  [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
-              FIND_VIEWS_BY_ID, FIND_VIEWS_WITH_TEXT,  USE_REGEXPS, VERBOSE_COMMENTS]
+              FIND_VIEWS_BY_ID, FIND_VIEWS_WITH_TEXT,  USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST]
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 
 def shortAndLongOptions():
@@ -153,7 +154,7 @@ except getopt.GetoptError, e:
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True}
-options = {USE_REGEXPS: False, VERBOSE_COMMENTS: False}
+options = {USE_REGEXPS: False, VERBOSE_COMMENTS: False, UNIT_TEST: False}
 transform = traverseAndPrintFindViewById
 for o, a in opts:
     o = o.strip('-')
@@ -175,6 +176,9 @@ for o, a in opts:
         options[USE_REGEXPS] = True
     elif o in ['C', VERBOSE_COMMENTS]:
         options[VERBOSE_COMMENTS] = True
+    elif o in ['U', UNIT_TEST]:
+        warnings.warn('Not implemented yet: %s' % o)
+        options[UNIT_TEST] = True
 
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 vc = ViewClient(device, serialno, **kwargs2)
