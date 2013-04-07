@@ -10,7 +10,7 @@ modified to suit more specific needs.
 @author: diego
 '''
 
-__version__ = '0.9.2'
+__version__ = '0.9.3'
 
 import re
 import sys
@@ -48,10 +48,18 @@ FIND_VIEWS_WITH_TEXT = 'find-views-with-text'
 USE_REGEXPS = 'use-regexps'
 VERBOSE_COMMENTS = 'verbose-comments'
 UNIT_TEST = 'unit-test'
+USAGE = 'usage: %s [OPTION]... [serialno]'
 # -u,-s,-p,-v eaten by monkeyrunner
-SHORT_OPTS = 'HVIFSitrCU'
+SHORT_OPTS = 'HVIFSi:t:rCU'
 LONG_OPTS =  [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
-              FIND_VIEWS_BY_ID, FIND_VIEWS_WITH_TEXT,  USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST]
+              FIND_VIEWS_BY_ID+'=', FIND_VIEWS_WITH_TEXT+'=',  USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST]
+LONG_OPTS_ARG = {FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL'}
+OPTS_HELP = {
+    'H': 'prints this help',
+    'i': 'whether to use findViewById() in script',
+    't': 'whether to use findViewWithText() in script',
+    'U': 'generates unit test script',
+    }
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 
 def shortAndLongOptions():
@@ -59,9 +67,10 @@ def shortAndLongOptions():
     @return: the list of corresponding (short-option, long-option) tuples
     '''
 
-    if len(SHORT_OPTS) != len(LONG_OPTS):
+    short_opts = SHORT_OPTS.replace(':', '')
+    if len(short_opts) != len(LONG_OPTS):
         raise Exception('There is a mismatch between short and long options')
-    t = tuple(SHORT_OPTS) + tuple(LONG_OPTS)
+    t = tuple(short_opts) + tuple(LONG_OPTS)
     l2 = len(t)/2
     sl = []
     for i in range(l2):
@@ -69,28 +78,44 @@ def shortAndLongOptions():
     return sl
 
 def usage(exitVal=1):
-    print >> sys.stderr, 'usage: scripter.py ',
-    for so, lo in shortAndLongOptions():
-        print >> sys.stderr, '[-%c|--%s]' % (so, lo),
-    print >> sys.stderr, '[serialno]'
+    print >> sys.stderr, USAGE % progname
+    print >> sys.stderr, "Try '%s --help' for more information." % progname
     sys.exit(exitVal)
 
-def verboseComments(view):
-    if options[VERBOSE_COMMENTS]:
-        print '\n# class=%s' % view.getClass(),
+def help():
+    print >> sys.stderr, USAGE % progname
+    print >> sys.stderr
+    print >> sys.stderr, "Options:"
+    for so, lo in shortAndLongOptions():
+        o = '  -%c, --%s' % (so, lo)
+        if lo[-1] == '=':
+            o += LONG_OPTS_ARG[lo[:-1]]
         try:
-            text = view.getText()
-            if text:
-                print 'text="%s"' % text,
+            o = '%-35s %-44s' % (o, OPTS_HELP[so])
         except:
             pass
-        try:
-            tag = view.getTag()
-            if tab != 'null':
-                print 'tag=%s' % tag
-        except:
-            pass
-        print
+        print >> sys.stderr, o
+    sys.exit(0)
+
+def printVerboseComments(view):
+    '''
+    Prints the verbose comments for view.
+    '''
+
+    print '\n# class=%s' % view.getClass(),
+    try:
+        text = view.getText()
+        if text:
+            print 'text="%s"' % text,
+    except:
+        pass
+    try:
+        tag = view.getTag()
+        if tab != 'null':
+            print 'tag=%s' % tag
+    except:
+        pass
+    print
 
 def variableNameFromId(id):
     '''
@@ -112,22 +137,9 @@ def variableNameFromId(id):
     else:
         raise Exception('Not an id: %s' % id)
 
-def traverseAndPrintFindViewById(view):
+def printFindViewWithText(view, useregexp):
     '''
-    Traverses the View tree and prints the corresponding statement.
-    
-    @type view: L{View}
-    @param view: the View
-    '''
-    
-    id = view.getUniqueId()
-    var = variableNameFromId(id)
-    verboseComments(view)
-    print '%s = vc.findViewByIdOrRaise("%s")' % (var, id)
-
-def traverseAndPrintFindViewWithText(view):
-    '''
-    Traverses the View tree and prints the corresponding statement.
+    Prints the corresponding statement.
     
     @type view: L{View}
     @param view: the View
@@ -136,9 +148,8 @@ def traverseAndPrintFindViewWithText(view):
     id = view.getUniqueId()
     text = view.getText()
     if text:
-        verboseComments(view)
         var = variableNameFromId(id)
-        if options[USE_REGEXPS]:
+        if useregexp:
             text = "re.compile('%s')" % text
         else:
             text = "'%s'" % text
@@ -146,20 +157,52 @@ def traverseAndPrintFindViewWithText(view):
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no text' % id)
 
+def printFindViewById(view):
+    '''
+    Prints the corresponding statement.
+    
+    @type view: L{View}
+    @param view: the View
+    '''
+    
+    id = view.getUniqueId()
+    var = variableNameFromId(id)
+    print '%s = vc.findViewByIdOrRaise("%s")' % (var, id)
+    
+def traverseAndPrint(view):
+    '''
+    Traverses the View tree and prints the corresponding statement.
+    
+    @type view: L{View}
+    @param view: the View
+    '''
+    
+    if options[VERBOSE_COMMENTS]:
+        printVerboseComments(view)
+    if options[FIND_VIEWS_BY_ID]:
+        printFindViewById(view)
+    if options[FIND_VIEWS_WITH_TEXT]:
+        printFindViewWithText(view, options[USE_REGEXPS])
+
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1", "on")
+
+# __main__
+progname = os.path.basename(sys.argv[0])
 try:
-    opts, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
+    optlist, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
 except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True}
-options = {USE_REGEXPS: False, VERBOSE_COMMENTS: False, UNIT_TEST: False}
-transform = traverseAndPrintFindViewById
-for o, a in opts:
+options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, USE_REGEXPS: False, VERBOSE_COMMENTS: False, UNIT_TEST: False}
+transform = traverseAndPrint
+for o, a in optlist:
     o = o.strip('-')
     if o in ['H', HELP]:
-        usage(0)
+        help()
     elif o in ['V', VERBOSE]:
         kwargs1[VERBOSE] = True
     elif o in ['I', IGNORE_SECURE_DEVICE]:
@@ -169,9 +212,9 @@ for o, a in opts:
     elif o in ['S', DO_NOT_START_VIEW_SERVER]:
         kwargs2['startviewserver'] = False
     elif o in ['i', FIND_VIEWS_BY_ID]:
-        transform = traverseAndPrintFindViewById
+        options[FIND_VIEWS_BY_ID] = str2bool(a)
     elif o in ['t', FIND_VIEWS_WITH_TEXT]:
-        transform = traverseAndPrintFindViewWithText
+        options[FIND_VIEWS_WITH_TEXT] = str2bool(a)
     elif o in ['r', USE_REGEXPS]:
         options[USE_REGEXPS] = True
     elif o in ['C', VERBOSE_COMMENTS]:
@@ -179,6 +222,12 @@ for o, a in opts:
     elif o in ['U', UNIT_TEST]:
         warnings.warn('Not implemented yet: %s' % o)
         options[UNIT_TEST] = True
+
+if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT]):
+    if not options[VERBOSE_COMMENTS]:
+        warnings.warn('All printing options disabled. Output will be empty.')
+    else:
+        warnings.warn('Only verbose comments will be printed')
 
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 vc = ViewClient(device, serialno, **kwargs2)
