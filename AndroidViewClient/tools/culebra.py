@@ -6,11 +6,18 @@ Created on Mar 28, 2013
 
 Scripter helps you create AndroidViewClient scripts generating a working template that can be
 modified to suit more specific needs.
-
+                      __    __    __    __
+                     /  \  /  \  /  \  /  \ 
+____________________/  __\/  __\/  __\/  __\_____________________________
+___________________/  /__/  /__/  /__/  /________________________________
+                   | / \   / \   / \   / \  \____
+                   |/   \_/   \_/   \_/   \    o \ 
+                                           \_____/--<
 @author: diego
+@author: Jennifer E. Swofford (ascii art snake)
 '''
 
-__version__ = '0.9.3'
+__version__ = '0.9.4'
 
 import re
 import sys
@@ -195,6 +202,7 @@ except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
 
+sys.argv[1:] = args
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, USE_REGEXPS: False, VERBOSE_COMMENTS: False, UNIT_TEST: False}
@@ -236,8 +244,16 @@ print '''#! /usr/bin/env monkeyrunner
 \'\'\'
 Copyright (C) 2013  Diego Torres Milano
 Created on %s by Scripter v%s
-  
+
+                      __    __    __    __
+                     /  \  /  \  /  \  /  \ 
+____________________/  __\/  __\/  __\/  __\_____________________________
+___________________/  /__/  /__/  /__/  /________________________________
+                   | / \   / \   / \   / \  \____
+                   |/   \_/   \_/   \_/   \    o \ 
+                                           \_____/--<
 @author: diego
+@author: Jennifer E. Swofford (ascii art snake)
 \'\'\'
 
 
