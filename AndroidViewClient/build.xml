@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Culebra" default="jar">
+    <property file="ant.properties" />
+    <loadproperties srcFile="project.properties" />
+
+    <target name="jar" >
+        <jar destfile="bin/${avc.jarname}-${avc.jarversion}.jar" basedir="src/" />
+    </target>
+</project>
