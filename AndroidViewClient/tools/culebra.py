@@ -1,3 +1,4 @@
+#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-2.3.11.jar @!
 #! /usr/bin/env monkeyrunner
 # -*- coding: utf-8 -*-
 '''
@@ -10,14 +11,14 @@ modified to suit more specific needs.
                      /  \  /  \  /  \  /  \ 
 ____________________/  __\/  __\/  __\/  __\_____________________________
 ___________________/  /__/  /__/  /__/  /________________________________
-                   | / \   / \   / \   / \  \____
+                   | / \   / \   / \   / \   \___
                    |/   \_/   \_/   \_/   \    o \ 
                                            \_____/--<
 @author: diego
 @author: Jennifer E. Swofford (ascii art snake)
 '''
 
-__version__ = '0.9.4'
+__version__ = '0.9.5'
 
 import re
 import sys
@@ -52,22 +53,41 @@ FORCE_VIEW_SERVER_USE = 'force-view-server-use'
 DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
 FIND_VIEWS_BY_ID = 'find-views-by-id'
 FIND_VIEWS_WITH_TEXT = 'find-views-with-text'
+FIND_VIEWS_WITH_CONTENT_DESCRIPTION = 'find-views-with-content-description'
 USE_REGEXPS = 'use-regexps'
 VERBOSE_COMMENTS = 'verbose-comments'
 UNIT_TEST = 'unit-test'
+USE_JAR = 'use-jar'
+USE_DICTIONARY = 'use-dictionary'
+AUTO_REGEXPS = 'auto-regexps'
+
 USAGE = 'usage: %s [OPTION]... [serialno]'
 # -u,-s,-p,-v eaten by monkeyrunner
-SHORT_OPTS = 'HVIFSi:t:rCU'
-LONG_OPTS =  [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
-              FIND_VIEWS_BY_ID+'=', FIND_VIEWS_WITH_TEXT+'=',  USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST]
-LONG_OPTS_ARG = {FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL'}
+SHORT_OPTS = 'HVIFSi:t:d:rCUj:D:R:'
+
+LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
+              FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
+              USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST,
+              USE_JAR + '=', USE_DICTIONARY + '=', AUTO_REGEXPS + '=']
+LONG_OPTS_ARG = {FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
+                  USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', AUTO_REGEXPS: 'LIST'}
 OPTS_HELP = {
     'H': 'prints this help',
     'i': 'whether to use findViewById() in script',
     't': 'whether to use findViewWithText() in script',
+    'd': 'whether to sue findViewWithContentDescription',
+    'r': 'use regexps in matches',
     'U': 'generates unit test script',
+    'j': 'use jar and appropriate shebang to run script',
+    'D': 'use a dictionary to store the Views found',
+    'R': 'auto regexps (i.e. clock)',
     }
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
+AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
+SHEBANG = {
+    'no-jar': '#! /usr/bin/env monkeyrunner',
+    'jar': '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-2.3.11.jar @!'
+    }
 
 def shortAndLongOptions():
     '''
@@ -98,12 +118,17 @@ def help():
         if lo[-1] == '=':
             o += LONG_OPTS_ARG[lo[:-1]]
         try:
-            o = '%-35s %-44s' % (o, OPTS_HELP[so])
+            o = '%-34s %-45s' % (o, OPTS_HELP[so])
         except:
             pass
         print >> sys.stderr, o
     sys.exit(0)
 
+def error(msg, fatal=False):
+    print >>sys.stderr, "%s: ERROR: %s" % (progname, msg)
+    if fatal:
+        sys.exit(1)
+    
 def printVerboseComments(view):
     '''
     Prints the verbose comments for view.
@@ -140,7 +165,10 @@ def variableNameFromId(id):
             var += m.group(3)
         if re.match('^\d', var):
             var = 'id_' + var
-        return var
+        if options[USE_DICTIONARY]:
+            return 'views[\'%s\']' % var
+        else:
+            return var
     else:
         raise Exception('Not an id: %s' % id)
 
@@ -164,6 +192,32 @@ def printFindViewWithText(view, useregexp):
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no text' % id)
 
+def printFindViewWithContentDescription(view, useregexp):
+    '''
+    Prints the corresponding statement.
+    
+    @type view: L{View}
+    @param view: the View
+    '''
+    
+    id = view.getUniqueId()
+    contentDescription = view.getContentDescription()
+    if contentDescription:
+        var = variableNameFromId(id)
+        if useregexp:
+            if options[AUTO_REGEXPS]:
+                for r in options[AUTO_REGEXPS]:
+                    autoRegexp = AUTO_REGEXPS_RES[r]
+                    if autoRegexp.match(contentDescription):
+                        contentDescription = autoRegexp.pattern
+                        break
+            contentDescription = "re.compile('%s')" % contentDescription
+        else:
+            contentDescription = "'%s'" % contentDescription
+        print '%s = vc.findViewWithContentDescriptionOrRaise(%s)' % (var, contentDescription)
+    elif kwargs1[VERBOSE]:
+        warnings.warn('View with id=%s has no content-description' % id)
+        
 def printFindViewById(view):
     '''
     Prints the corresponding statement.
@@ -190,6 +244,8 @@ def traverseAndPrint(view):
         printFindViewById(view)
     if options[FIND_VIEWS_WITH_TEXT]:
         printFindViewWithText(view, options[USE_REGEXPS])
+    if options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
+        printFindViewWithContentDescription(view, options[USE_REGEXPS])
 
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1", "on")
@@ -205,7 +261,9 @@ except getopt.GetoptError, e:
 sys.argv[1:] = args
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True}
-options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, USE_REGEXPS: False, VERBOSE_COMMENTS: False, UNIT_TEST: False}
+options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
+        USE_REGEXPS: False, VERBOSE_COMMENTS: False,
+        UNIT_TEST: False, USE_JAR: True, USE_DICTIONARY: False, AUTO_REGEXPS: None}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -223,6 +281,8 @@ for o, a in optlist:
         options[FIND_VIEWS_BY_ID] = str2bool(a)
     elif o in ['t', FIND_VIEWS_WITH_TEXT]:
         options[FIND_VIEWS_WITH_TEXT] = str2bool(a)
+    elif o in ['d', FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
+        options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION] = str2bool(a)
     elif o in ['r', USE_REGEXPS]:
         options[USE_REGEXPS] = True
     elif o in ['C', VERBOSE_COMMENTS]:
@@ -230,6 +290,16 @@ for o, a in optlist:
     elif o in ['U', UNIT_TEST]:
         warnings.warn('Not implemented yet: %s' % o)
         options[UNIT_TEST] = True
+    elif o in ['j', USE_JAR]:
+        options[USE_JAR] = str2bool(a)
+    elif o in ['D', USE_DICTIONARY]:
+        options[USE_DICTIONARY] = str2bool(a)
+    elif o in ['R', AUTO_REGEXPS]:
+        options[AUTO_REGEXPS] = a.split(',')
+        for r in options[AUTO_REGEXPS]:
+            if r not in AUTO_REGEXPS_RES:
+                error("invalid auto regexp: %s\n" % (r))
+                usage()
 
 if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT]):
     if not options[VERBOSE_COMMENTS]:
@@ -239,7 +309,7 @@ if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT]):
 
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 vc = ViewClient(device, serialno, **kwargs2)
-print '''#! /usr/bin/env monkeyrunner
+print '''%s
 # -*- coding: utf-8 -*-
 \'\'\'
 Copyright (C) 2013  Diego Torres Milano
@@ -249,7 +319,7 @@ Created on %s by Scripter v%s
                      /  \  /  \  /  \  /  \ 
 ____________________/  __\/  __\/  __\/  __\_____________________________
 ___________________/  /__/  /__/  /__/  /________________________________
-                   | / \   / \   / \   / \  \____
+                   | / \   / \   / \   / \   \___
                    |/   \_/   \_/   \_/   \    o \ 
                                            \_____/--<
 @author: diego
@@ -260,7 +330,10 @@ ___________________/  /__/  /__/  /__/  /________________________________
 import re
 import sys
 import os
+''' % (SHEBANG['jar' if options[USE_JAR] else 'no-jar'], date.today(), __version__)
 
+if not options[USE_JAR]:
+    print '''
 # This must be imported before MonkeyRunner and MonkeyDevice,
 # otherwise the import fails.
 # PyDev sets PYTHONPATH, use it
@@ -275,13 +348,18 @@ try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
     pass
+'''
 
+print '''
 from com.dtmilano.android.viewclient import ViewClient
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
   
 device, serialno = ViewClient.connectToDeviceOrExit()
 vc = ViewClient(device, serialno)
-''' % (date.today(), __version__)
+'''
+
+if options[USE_DICTIONARY]:
+    print '''views = dict()'''
 
 vc.traverse(transform=transform)
