@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.11'
+__version__ = '2.3.12'
 
 import sys
 import subprocess
@@ -163,7 +163,12 @@ class Window:
 
 
 class ViewNotFoundException(Exception):
-    pass
+    def __init__(self, attr, value, root):
+        if type(value).__name__ == 'PatternObject':
+            msg = "Couldn't find View with %s that matches '%s' in tree with root=%s" % (attr, value.pattern, root)
+        else:
+            msg = "Couldn't find View with %s='%s' in tree with root=%s" % (attr, value, root)
+        super(Exception, self).__init__(msg)
 
 class View:
     '''
@@ -1067,14 +1072,18 @@ class ViewClient:
         if DEBUG_DEVICE: print >>sys.stderr, "ViewClient: obtaining serial number for connected device"
         serialno = device.getProperty('ro.serialno')
         if not serialno:
-            serialno = device.shell('getprop ro.serialno')[:-2]
+            serialno = device.shell('getprop ro.serialno')
+            if serialno:
+                serialno = serialno[:-2]
         if not serialno:
-            qemu = device.shell('getprop ro.kernel.qemu')[:-2]
-            if qemu and int(qemu) == 1:
-                # FIXME !!!!!
-                # this must be calculated from somewhere, though using a fixed serialno for now
-                warnings.warn("Running on emulator but no serial number was specified then 'emulator-5554' is used")
-                serialno = 'emulator-5554'
+            qemu = device.shell('getprop ro.kernel.qemu')
+            if qemu:
+                qemu = qemu[:-2]
+                if qemu and int(qemu) == 1:
+                    # FIXME !!!!!
+                    # this must be calculated from somewhere, though using a fixed serialno for now
+                    warnings.warn("Running on emulator but no serial number was specified then 'emulator-5554' is used")
+                    serialno = 'emulator-5554'
         if not serialno:
             # If there's only one device connected get its serialno
             adb = ViewClient.__obtainAdbPath()
@@ -1575,42 +1584,75 @@ class ViewClient:
             
         return self.views
 
-    def findViewById(self, viewId, root="ROOT"):
+    def findViewById(self, viewId, root="ROOT", viewFilter=None):
         '''
         Finds the View with the specified viewId.
+        
+        @type viewId: str
+        @param viewId: the ID of the view to find
+        @type root: str or View
+        @param root: the root node of the tree where the View will be searched
+        @type: viewFilter: function
+        @param viewFilter: a function that will be invoked providing the candidate View as a parameter
+                           and depending on the return value (C{True} or C{False}) the View will be
+                           selected and returned as the result of C{findViewById()} or ignored.
+                           This can be C{None} and no extra filtering is applied.
+        @return the C{View} found or C{None}
         '''
 
         if not root:
             return None
 
         if type(root) == types.StringType and root == "ROOT":
-            return self.findViewById(viewId, self.root)
+            return self.findViewById(viewId, self.root, viewFilter)
 
         if root.getId() == viewId:
-            return root
+            if viewFilter:
+                if viewFilter(root):
+                    return root
+            else:
+                return root
 
         if re.match('^id/no_id', viewId) or re.match('^id/.+/.+', viewId):
             if root.getUniqueId() == viewId:
-                return root;
+                if viewFilter:
+                    if viewFilter(root):
+                        return root;
+                else:
+                    return root
+                    
         
         for ch in root.children:
-            foundView = self.findViewById(viewId, ch)
+            foundView = self.findViewById(viewId, ch, viewFilter)
             if foundView:
-                return foundView
+                if viewFilter:
+                    if viewFilter(foundView):
+                        return foundView
+                else:
+                    return foundView
 
-    def findViewByIdOrRaise(self, viewId, root="ROOT"):
+    def findViewByIdOrRaise(self, viewId, root="ROOT", viewFilter=None):
         '''
         Finds the View or raise a ViewNotFoundException.
         
+        @type viewId: str
+        @param viewId: the ID of the view to find
+        @type root: str or View
+        @param root: the root node of the tree where the View will be searched
+        @type: viewFilter: function
+        @param viewFilter: a function that will be invoked providing the candidate View as a parameter
+                           and depending on the return value (C{True} or C{False}) the View will be
+                           selected and returned as the result of C{findViewById()} or ignored.
+                           This can be C{None} and no extra filtering is applied.
         @return: the View found
         @raise ViewNotFoundException: raise the exception if View not found
         '''
         
-        view = self.findViewById(viewId, root)
+        view = self.findViewById(viewId, root, viewFilter)
         if view:
             return view
         else:
-            raise ViewNotFoundException("Couldn't find view with ID=%s in tree with root=%s" % (viewId, root))
+            raise ViewNotFoundException("ID", viewId, root)
         
     def findViewByTag(self, tag, root="ROOT"):
         '''
@@ -1628,7 +1670,7 @@ class ViewClient:
         if view:
             return view
         else:
-            raise ViewNotFoundException("Couldn't find view with tag=%s in tree with root=%s" % (tag, root))
+            raise ViewNotFoundException("tag", tag, root)
     
     def __findViewWithAttributeInTree(self, attr, val, root):
         if not self.root:
@@ -1640,14 +1682,17 @@ class ViewClient:
 
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
         
-        if root and attr in root.map and root.map[attr] == val:
-            if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
-            return root
+        if type(val).__name__ == 'PatternObject':
+            return self.__findViewWithAttributeInTreeThatMatches(attr, val, root)
         else:
-            for ch in root.children:
-                v = self.__findViewWithAttributeInTree(attr, val, ch)
-                if v:
-                    return v
+            if root and attr in root.map and root.map[attr] == val:
+                if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
+                return root
+            else:
+                for ch in root.children:
+                    v = self.__findViewWithAttributeInTree(attr, val, ch)
+                    if v:
+                        return v
         
         return None
    
@@ -1656,7 +1701,7 @@ class ViewClient:
         if view:
             return view
         else:
-            raise ViewNotFoundException("Couldn't find View with %s='%s' in tree with root=%s" % (attr, val, root))
+            raise ViewNotFoundException(attr, val, root)
       
     def __findViewWithAttributeInTreeThatMatches(self, attr, regex, root, rlist=[]):
         if not self.root:
@@ -1703,7 +1748,7 @@ class ViewClient:
         if view:
             return view
         else:
-            raise ViewNotFoundException("Couldn't find View with %s='%s' in tree with root=%s" % (attr, val, root))
+            raise ViewNotFoundException(attr, val, root)
         
     def findViewWithAttributeThatMatches(self, attr, regex, root="ROOT"):
         '''
@@ -1740,11 +1785,7 @@ class ViewClient:
         if view:
             return view
         else:
-            if type(text).__name__ == 'PatternObject':
-                msg = "Couldn't find View with text that matches '%s' in tree with root=%s" % (text.pattern, root)
-            else:
-                msg = "Couldn't find View with text='%s' in tree with root=%s" % (text, root)
-            raise ViewNotFoundException(msg)
+            raise ViewNotFoundException("text", text, root)
     
     def findViewWithContentDescription(self, contentdescription, root="ROOT"):
         '''

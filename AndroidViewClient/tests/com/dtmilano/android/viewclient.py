@@ -483,6 +483,20 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertNotEqual(v5, None)
         self.assertEqual('v35', v5.getTag())
         
+    def testFindViewById_viewFilter(self):
+        vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
+        def vf(view):
+            return view.getClass() == 'android.widget.ImageView'
+        view = vc.findViewById('id/up', viewFilter=vf)
+        self.assertNotEqual(view, None)
+        
+    def testFindViewById_viewFilterUnmatched(self):
+        vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
+        def vf(view):
+            return view.getClass() == 'android.widget.TextView'
+        view = vc.findViewById('id/up', viewFilter=vf)
+        self.assertEqual(view, None)
+        
     def testFindViewByIdOrRaise_root(self):
         device = None
         root = View({'mID':'0'}, device)
@@ -507,6 +521,21 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         v5 = vc.findViewByIdOrRaise('5', root=v3)
         self.assertEqual('v35', v5.getTag())
         
+    def testFindViewByIdOrRaise_viewFilter(self):
+        vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
+        def vf(view):
+            return view.getClass() == 'android.widget.ImageView'
+        view = vc.findViewByIdOrRaise('id/up', viewFilter=vf)
+        
+    def testFindViewByIdOrRaise_viewFilterUnmatched(self):
+        vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
+        def vf(view):
+            return view.getClass() == 'android.widget.TextView'
+        try:
+            view = vc.findViewByIdOrRaise('id/up', viewFilter=vf)
+        except ViewNotFoundException:
+            pass
+
     def testFindViewWithText_root(self):
         device = None
         root = View({'text:mText':'0'}, device)
@@ -531,6 +560,33 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertNotEqual(v5, None)
         self.assertEqual('v45', v5.getTag())
         v5 = vc.findViewWithText('5', root=v3)
+        self.assertNotEqual(v5, None)
+        self.assertEqual('v35', v5.getTag())
+    
+    def testFindViewWithText_regexRoot(self):
+        device = None
+        root = View({'text:mText':'0'}, device)
+        root.add(View({'text:mText':'1'}, device))
+        root.add(View({'text:mText':'2'}, device))
+        v3 = View({'text:mText':'3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
+        v4.add(v45)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        v5 = vc.findViewWithText(re.compile('[5]'))
+        self.assertNotEqual(v5, None)
+        self.assertEqual('v35', v5.getTag())
+        v5 = vc.findViewWithText(re.compile('[5]'), root=v4)
+        self.assertNotEqual(v5, None)
+        self.assertEqual('v45', v5.getTag())
+        v5 = vc.findViewWithText(re.compile('[5]'), root=v3)
         self.assertNotEqual(v5, None)
         self.assertEqual('v35', v5.getTag())
         
@@ -580,7 +636,131 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
-        
+    
+    def testFindViewWithContentDescription_root(self):
+        device = None
+        root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
+        root.add(View({'text:mText':'1', 'content-desc':'CD1'}, device))
+        root.add(View({'text:mText':'2', 'content-desc':'CD2'}, device))
+        v3 = View({'text:mText':'3', 'content-desc':'CD3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'35', 'content-desc':'CD35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4', 'conent-desc':'CD4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'45', 'content-desc':'CD45'}, device)
+        v4.add(v45)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        v45 = vc.findViewWithContentDescription('CD45')
+        self.assertNotEqual(v45, None)
+        self.assertEqual('45', v45.getText())
+        v45 = vc.findViewWithContentDescription('CD45', root=v4)
+        self.assertNotEqual(v45, None)
+        self.assertEqual('45', v45.getText())
+        v35 = vc.findViewWithContentDescription('CD35', root=v3)
+        self.assertNotEqual(v35, None)
+        self.assertEqual('35', v35.getText())
+    
+    def testFindViewWithContentDescription_regexRoot(self):
+        device = None
+        root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
+        root.add(View({'text:mText':'1', 'content-desc':'CD1'}, device))
+        root.add(View({'text:mText':'2', 'content-desc':'CD2'}, device))
+        v3 = View({'text:mText':'3', 'content-desc':'CD3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'35', 'content-desc':'CD35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4', 'conent-desc':'CD4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'45', 'content-desc':'CD45'}, device)
+        v4.add(v45)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        v45 = vc.findViewWithContentDescription(re.compile('CD4\d'))
+        self.assertNotEqual(v45, None)
+        self.assertEqual('45', v45.getText())
+        v45 = vc.findViewWithContentDescription(re.compile('CD4\d'), root=v4)
+        self.assertNotEqual(v45, None)
+        self.assertEqual('45', v45.getText())
+        v35 = vc.findViewWithContentDescription(re.compile('CD3\d'), root=v3)
+        self.assertNotEqual(v35, None)
+        self.assertEqual('35', v35.getText())
+    
+    def testFindViewWithContentDescriptionOrRaise_root(self):
+        device = None
+        root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
+        root.add(View({'text:mText':'1', 'content-desc':'CD1'}, device))
+        root.add(View({'text:mText':'2', 'content-desc':'CD2'}, device))
+        v3 = View({'text:mText':'3', 'content-desc':'CD3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'35', 'content-desc':'CD35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4', 'conent-desc':'CD4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'45', 'content-desc':'CD45'}, device)
+        v4.add(v45)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        v45 = vc.findViewWithContentDescriptionOrRaise('CD45')
+        self.assertEqual('45', v45.getText())
+        v45 = vc.findViewWithContentDescriptionOrRaise('CD45', root=v4)
+        self.assertEqual('45', v45.getText())
+        v35 = vc.findViewWithContentDescriptionOrRaise('CD35', root=v3)
+        self.assertEqual('35', v35.getText())
+   
+    def testFindViewWithContentDescriptionOrRaise_rootNonExistent(self):
+        device = None
+        root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
+        root.add(View({'text:mText':'1', 'content-desc':'CD1'}, device))
+        root.add(View({'text:mText':'2', 'content-desc':'CD2'}, device))
+        v3 = View({'text:mText':'3', 'content-desc':'CD3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'35', 'content-desc':'CD35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4', 'conent-desc':'CD4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'45', 'content-desc':'CD45'}, device)
+        v4.add(v45)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        try:
+            vc.findViewWithContentDescriptionOrRaise('Non Existent', root=v4)
+            self.fail()
+        except ViewNotFoundException:
+            pass
+    
+    def testFindViewWithContentDescriptionOrRaiseExceptionMessage_regexpRoot(self):
+        device = None
+        root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
+        root.add(View({'text:mText':'1', 'content-desc':'CD1'}, device))
+        root.add(View({'text:mText':'2', 'content-desc':'CD2'}, device))
+        v3 = View({'text:mText':'3', 'content-desc':'CD3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'35', 'content-desc':'CD35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4', 'conent-desc':'CD4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'45', 'content-desc':'CD45'}, device)
+        v4.add(v45)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        try:
+            vc.findViewWithContentDescriptionOrRaise(re.compile('Non Existent'), root=v4)
+            self.fail()
+        except ViewNotFoundException, e:
+            self.assertNotEquals(None, re.search("that matches 'Non Existent'", e.message))
+    
     def testUiAutomatorDump(self):
         device = MockDevice(version=16)
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True)
