@@ -5,7 +5,7 @@
 Copyright (C) 2013  Diego Torres Milano
 Created on Mar 28, 2013
 
-Scripter helps you create AndroidViewClient scripts generating a working template that can be
+Culebra helps you create AndroidViewClient scripts generating a working template that can be
 modified to suit more specific needs.
                       __    __    __    __
                      /  \  /  \  /  \  /  \ 
@@ -313,7 +313,7 @@ print '''%s
 # -*- coding: utf-8 -*-
 \'\'\'
 Copyright (C) 2013  Diego Torres Milano
-Created on %s by Scripter v%s
+Created on %s by Culebra v%s
 
                       __    __    __    __
                      /  \  /  \  /  \  /  \ 
