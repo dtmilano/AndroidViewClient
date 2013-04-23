@@ -14,7 +14,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
                    | / \   / \   / \   / \   \___
                    |/   \_/   \_/   \_/   \    o \ 
                                            \_____/--<
-@author: diego
+@author: Diego Torres Milano
 @author: Jennifer E. Swofford (ascii art snake)
 '''
 
@@ -60,17 +60,20 @@ UNIT_TEST = 'unit-test'
 USE_JAR = 'use-jar'
 USE_DICTIONARY = 'use-dictionary'
 AUTO_REGEXPS = 'auto-regexps'
+OUTPUT = 'output'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
 # -u,-s,-p,-v eaten by monkeyrunner
-SHORT_OPTS = 'HVIFSi:t:d:rCUj:D:R:'
+SHORT_OPTS = 'HVIFSi:t:d:rCUj:D:R:o:'
 
 LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
               USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST,
-              USE_JAR + '=', USE_DICTIONARY + '=', AUTO_REGEXPS + '=']
+              USE_JAR + '=', USE_DICTIONARY + '=', AUTO_REGEXPS + '=',
+              OUTPUT + '=']
 LONG_OPTS_ARG = {FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
-                  USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', AUTO_REGEXPS: 'LIST'}
+                  USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', AUTO_REGEXPS: 'LIST',
+                  OUTPUT: 'STR'}
 OPTS_HELP = {
     'H': 'prints this help',
     'i': 'whether to use findViewById() in script',
@@ -81,6 +84,7 @@ OPTS_HELP = {
     'j': 'use jar and appropriate shebang to run script',
     'D': 'use a dictionary to store the Views found',
     'R': 'auto regexps (i.e. clock)',
+    'o': 'output filename',
     }
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
@@ -184,6 +188,9 @@ def printFindViewWithText(view, useregexp):
     text = view.getText()
     if text:
         var = variableNameFromId(id)
+        if text.find("\n") > 0:
+            # 2 quotes + 1 quote = 3 quotes
+            text = "''%s''" % text
         if useregexp:
             text = "re.compile('%s')" % text
         else:
@@ -263,7 +270,7 @@ kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
-        UNIT_TEST: False, USE_JAR: True, USE_DICTIONARY: False, AUTO_REGEXPS: None}
+        UNIT_TEST: False, USE_JAR: True, USE_DICTIONARY: False, AUTO_REGEXPS: None, OUTPUT: None}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -300,6 +307,8 @@ for o, a in optlist:
             if r not in AUTO_REGEXPS_RES:
                 error("invalid auto regexp: %s\n" % (r))
                 usage()
+    elif o in ['o', OUTPUT]:
+        options[OUTPUT] = a
 
 if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT]):
     if not options[VERBOSE_COMMENTS]:
@@ -309,6 +318,12 @@ if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT]):
 
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 vc = ViewClient(device, serialno, **kwargs2)
+if options[OUTPUT]:
+    sys.stdout = open(options[OUTPUT], 'w')
+    import stat
+    st = os.stat(options[OUTPUT])
+    os.chmod(options[OUTPUT], st.st_mode | stat.S_IEXEC)
+
 print '''%s
 # -*- coding: utf-8 -*-
 \'\'\'
