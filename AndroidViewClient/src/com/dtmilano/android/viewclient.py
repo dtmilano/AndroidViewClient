@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.12'
+__version__ = '2.3.13'
 
 import sys
 import subprocess
@@ -1511,15 +1511,18 @@ class ViewClient:
         for ch in root.children:
             self.traverse(ch, indent=indent+"   ", transform=transform, stream=stream)
 
-    def dump(self, windowId=-1, sleep=1):
+    def dump(self, window=-1, sleep=1):
         '''
         Dumps the window content.
         
         Sleep is useful to wait some time before obtaining the new content when something in the
         window has changed.
         
-        @type windowId: int
-        @param windowId: the window id of the window to dump or -1 to dump all windows
+        @type window: int or str
+        @param window: the window id or name of the window to dump.
+                    The name is the package name or the window name (i.e. StatusBar) for
+                    system windows.
+                    Use -1 to dump all windows.
         @type sleep: int
         @param sleep: sleep in seconds before proceeding to dump the content
         
@@ -1556,19 +1559,32 @@ class ViewClient:
                 print >>sys.stderr
             self.setViewsFromUiAutomatorDump(received)
         else:
+            if type(window).__name__ == 'str':
+                self.list(sleep=0)
+                found = False
+                for wId in self.windows:
+                    if window == self.windows[wId]:
+                        window = wId
+                        found = True
+                        break
+                if not found:
+                    raise RuntimeError("ERROR: Cannot find window '%s'" % window)
+            
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 s.connect((VIEW_SERVER_HOST, self.localPort))
             except socket.error, ex:
                 raise RuntimeError("ERROR: Connecting to %s:%d: %s" % (VIEW_SERVER_HOST, self.localPort, ex))
-            s.send('dump %d\r\n' % windowId)
+            cmd = 'dump %x\r\n' % window
+            if DEBUG:
+                print >>sys.stderr, "executing: '%s'" % cmd
+            s.send(cmd)
             received = ""
             doneRE = re.compile("DONE")
             while True:
                 received += s.recv(1024)
                 if doneRE.search(received[-7:]):
                     break
-
             s.close()
             if DEBUG:
                 self.received = received     
@@ -1584,6 +1600,58 @@ class ViewClient:
             
         return self.views
 
+    def list(self, sleep=1):
+        '''
+        List the windows.
+        
+        Sleep is useful to wait some time before obtaining the new content when something in the
+        window has changed.
+        This also sets L{self.windows} as the list of windows.
+        
+        @type sleep: int
+        @param sleep: sleep in seconds before proceeding to dump the content
+        
+        @return: the list of windows
+        '''
+        
+        if sleep > 0:
+            MonkeyRunner.sleep(sleep)
+            
+        if self.useUiAutomator:
+            raise Exception("Not implemented yet")
+        else:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                s.connect((VIEW_SERVER_HOST, self.localPort))
+            except socket.error, ex:
+                raise RuntimeError("ERROR: Connecting to %s:%d: %s" % (VIEW_SERVER_HOST, self.localPort, ex))
+            s.send('list\r\n')
+            received = ""
+            doneRE = re.compile("DONE")
+            while True:
+                received += s.recv(1024)
+                if doneRE.search(received[-7:]):
+                    break
+            s.close()
+            if DEBUG:
+                self.received = received     
+            if DEBUG_RECEIVED:
+                print >>sys.stderr, "received %d chars" % len(received)
+                print >>sys.stderr
+                print >>sys.stderr, received
+                print >>sys.stderr
+
+            self.windows = {}
+            for line in received.split('\n'):
+                if not line:
+                    break
+                if doneRE.search(line):
+                    break
+                (wid, package) = line.split()
+                self.windows[int('0x' + wid, 16)] = package
+            return self.windows
+
+        
     def findViewById(self, viewId, root="ROOT", viewFilter=None):
         '''
         Finds the View with the specified viewId.
