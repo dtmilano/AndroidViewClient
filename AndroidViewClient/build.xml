@@ -3,7 +3,21 @@
     <property file="ant.properties" />
     <loadproperties srcFile="project.properties" />
 
+    <property name="versionRE" value="^\s*__version__\s*=\s*'(.*)'\s*$" />
+    <loadfile srcfile="src/com/dtmilano/android/viewclient.py" property="avc.version">
+        <filterchain>
+            <linecontainsregexp>
+                <regexp pattern="${versionRE}" />
+            </linecontainsregexp>
+            <tokenfilter>
+                <replaceregex pattern="${versionRE}" replace="\1" />
+            </tokenfilter>
+            <striplinebreaks />
+        </filterchain>
+    </loadfile>
+
     <target name="jar" >
-        <jar destfile="bin/${avc.jarname}-${avc.jarversion}.jar" basedir="src/" />
+        <echo message="Creating ${avc.jarname} ${avc.version} jar ..." />
+        <jar destfile="bin/${avc.jarname}-${avc.version}.jar" basedir="src/" />
     </target>
 </project>
