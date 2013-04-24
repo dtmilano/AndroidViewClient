@@ -1,4 +1,4 @@
-#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-2.3.11.jar @!
+#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!
 #! /usr/bin/env monkeyrunner
 # -*- coding: utf-8 -*-
 '''
@@ -18,7 +18,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 @author: Jennifer E. Swofford (ascii art snake)
 '''
 
-__version__ = '0.9.5'
+__version__ = '0.9.6'
 
 import re
 import sys
@@ -90,7 +90,7 @@ ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
 SHEBANG = {
     'no-jar': '#! /usr/bin/env monkeyrunner',
-    'jar': '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-2.3.11.jar @!'
+    'jar': '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!'
     }
 
 def shortAndLongOptions():
@@ -337,7 +337,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
                    | / \   / \   / \   / \   \___
                    |/   \_/   \_/   \_/   \    o \ 
                                            \_____/--<
-@author: diego
+@author: Diego Torres Milano
 @author: Jennifer E. Swofford (ascii art snake)
 \'\'\'
 
