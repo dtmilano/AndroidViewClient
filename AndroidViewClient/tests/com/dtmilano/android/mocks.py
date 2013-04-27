@@ -370,6 +370,7 @@ WINDOW_DUMP = """<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 </hierarchy>
 """
 
+WINDOWS = {1:'Window1', 2: 'com.example.window', 3:'StatusBar'}
 
 RUNNING = 1
 STOPPED = 0

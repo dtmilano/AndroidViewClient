@@ -1122,10 +1122,10 @@ class ViewClient:
         progname = os.path.basename(sys.argv[0])
         if serialno is None:
             # eat all the extra options the invoking script may have added
-            # FIXME: perhaps we should restore the popped arguments
-            while len(sys.argv) > 1 and sys.argv[1][0] == '-':
-                sys.argv.pop(1)
-            serialno = sys.argv[1] if len(sys.argv) > 1 else \
+            args = sys.argv
+            while len(args) > 1 and args[1][0] == '-':
+                args.pop(1)
+            serialno = args[1] if len(args) > 1 else \
                     os.environ['ANDROID_SERIAL'] if os.environ.has_key('ANDROID_SERIAL') \
                     else '.*'
         if IP_RE.match(serialno):
@@ -1498,11 +1498,12 @@ class ViewClient:
         @type transform: method
         @param transform: a method to use to transform the node before is printed  
         '''
-        if not root:
-            return
 
         if type(root) == types.StringType and root == "ROOT":
             root = self.root
+
+        if not root:
+            return
 
         s = transform(root)
         if s:
@@ -1563,10 +1564,13 @@ class ViewClient:
                 self.list(sleep=0)
                 found = False
                 for wId in self.windows:
-                    if window == self.windows[wId]:
-                        window = wId
-                        found = True
-                        break
+                    try:
+                        if window == self.windows[wId] or int(window) == wId:
+                            window = wId
+                            found = True
+                            break
+                    except ValueError:
+                        pass
                 if not found:
                     raise RuntimeError("ERROR: Cannot find window '%s'" % window)
             

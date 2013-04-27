@@ -27,7 +27,7 @@ except:
 
 from com.dtmilano.android.viewclient import *
 from mocks import MockDevice
-from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, VIEW_MAP_API_8, RUNNING, STOPPED
+from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, VIEW_MAP_API_8, RUNNING, STOPPED, WINDOWS
 
 # this is probably the only reliable way of determining the OS in monkeyrunner
 os_name = java.lang.System.getProperty('os.name')
@@ -311,6 +311,13 @@ class ViewClientTest(unittest.TestCase):
         vc.setViews(dump)
         return vc
 
+    def __mockWindows(self, windows=WINDOWS):
+        device = MockDevice()
+        vc = ViewClient(device, serialno=device.serialno, adb=TRUE, autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.windows = windows
+        return vc
+
     def testRoot(self):
         vc = self.__mockTree()
         root = vc.root
@@ -443,6 +450,10 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             vc.__del__()
         # Perhpas there are other ViewClients using the same server, we cannot expect it stops
         #self.assertTrue(device.service == STOPPED)
+
+    def testList(self):
+        vc = self.__mockWindows()
+        self.assertNotEqual(None, vc.windows)
 
     def testFindViewByIdOrRaise(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)

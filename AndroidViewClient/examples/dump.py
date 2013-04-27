@@ -56,6 +56,7 @@ def usage(exitVal=1):
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
+    sys.argv[1:] = args
 except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
