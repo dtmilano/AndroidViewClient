@@ -952,6 +952,7 @@ class ViewClient:
                 # these values are usually not defined as properties, so we stick to the -1 set
                 # before
                 pass
+
         self.build = {}
         ''' The map containing the device's build properties: version.sdk, version.release '''
         for prop in [VERSION_SDK_PROPERTY, 'version.release']:
@@ -968,6 +969,16 @@ class ViewClient:
             if prop == VERSION_SDK_PROPERTY:
                 # we expect it to be an int
                 self.build[prop] = int(self.build[prop] if self.build[prop] else -1)
+
+        self.ro = {}
+        ''' The map containing the device's ro properties: secure, debuggable '''
+        for prop in ['secure', 'debuggable']:
+            try:
+                self.ro[prop] = device.shell('getprop ro.' + prop)[:-2]
+            except:
+                if WARNINGS:
+                    warnings.warn("Couldn't determine ro %s" % prop)
+                self.ro[prop] = 'UNKNOWN'
 
         self.forceViewServerUse = forceviewserveruse
         ''' Force the use of ViewServer even if the conditions to use UiAutomator are satisfied '''
@@ -987,9 +998,14 @@ class ViewClient:
                         self.assertServiceResponse(device.shell('service call window 1 i32 %d' %
                                                         remoteport))
                     except:
-                        raise Exception('Cannot start View server.\n'
-                                        'This only works on emulator and devices running developer versions.\n'
-                                        'Does hierarchyviewer work on your device ?')
+                        msg = 'Cannot start View server.\n' \
+                            'This only works on emulator and devices running developer versions.\n' \
+                            'Does hierarchyviewer work on your device?\n' \
+                            'See https://github.com/dtmilano/AndroidViewClient/wiki/Secure-mode\n\n' \
+                            'Device properties:\n' \
+                            '    ro.secure=%s\n' \
+                            '    ro.debuggable=%s\n' % (self.ro['secure'], self.ro['debuggable'])
+                        raise Exception(msg)
 
             self.localPort = localport
             self.remotePort = remoteport
