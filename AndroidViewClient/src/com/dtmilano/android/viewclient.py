@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.13'
+__version__ = '2.3.14'
 
 import sys
 import subprocess
@@ -1053,7 +1053,7 @@ class ViewClient:
 
         for path in os.environ["PATH"].split(os.pathsep):
             exeFile = os.path.join(path, adb)
-            if exeFile != None and (isWindows or os.access(exeFile, os.X_OK)):
+            if exeFile != None and os.access(exeFile, os.X_OK if not isWindows else os.F_OK)):
                 return exeFile
 
         raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
