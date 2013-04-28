@@ -882,8 +882,14 @@ class ViewClient:
     '''
     ViewClient is a I{ViewServer} client.
     
+    ViewServer backend
+    ==================
     If not running the ViewServer is started on the target device or emulator and then the port
     mapping is created.
+    
+    UiAutomator backend
+    ===================
+    No service is started.
     '''
 
     def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True):
@@ -931,7 +937,7 @@ class ViewClient:
         self.root = None
         ''' The root node '''
         self.viewsById = {}
-        ''' The map containing all the L{View}s indexed by their L{uniqueId} '''
+        ''' The map containing all the L{View}s indexed by their L{View.getUniqueId()} '''
         self.display = {}
         ''' The map containing the device's display properties: width, height and density '''
         for prop in [ 'width', 'height', 'density' ]:
@@ -991,6 +997,9 @@ class ViewClient:
             subprocess.check_call([adb, '-s', self.serialno, 'forward', 'tcp:%d' % self.localPort,
                                     'tcp:%d' % self.remotePort])
 
+        self.windows = None
+        ''' The list of windows as obtained by L{ViewClient.list()} '''
+        
         if autodump:
             self.dump()
     
@@ -1287,6 +1296,7 @@ class ViewClient:
         '''
         
         PARCEL_TRUE = "Result: Parcel(00000000 00000001   '........')\r\n"
+        ''' The TRUE response parcel '''
         if DEBUG:
             print >>sys.stderr, "serviceResponse: comparing '%s' vs Parcel(%s)" % (response, PARCEL_TRUE)
         return response == PARCEL_TRUE
@@ -1524,6 +1534,8 @@ class ViewClient:
                     The name is the package name or the window name (i.e. StatusBar) for
                     system windows.
                     Use -1 to dump all windows.
+                    This parameter only is used when the backend is B{ViewServer} and it's
+                    ignored for B{UiAutomator}.
         @type sleep: int
         @param sleep: sleep in seconds before proceeding to dump the content
         
@@ -1662,14 +1674,16 @@ class ViewClient:
         
         @type viewId: str
         @param viewId: the ID of the view to find
-        @type root: str or View
+        @type root: str
+        @type root: View
         @param root: the root node of the tree where the View will be searched
         @type: viewFilter: function
         @param viewFilter: a function that will be invoked providing the candidate View as a parameter
                            and depending on the return value (C{True} or C{False}) the View will be
                            selected and returned as the result of C{findViewById()} or ignored.
                            This can be C{None} and no extra filtering is applied.
-        @return the C{View} found or C{None}
+                           
+        @return: the C{View} found or C{None}
         '''
 
         if not root:
@@ -1709,7 +1723,8 @@ class ViewClient:
         
         @type viewId: str
         @param viewId: the ID of the view to find
-        @type root: str or View
+        @type root: str
+        @type root: View
         @param root: the root node of the tree where the View will be searched
         @type: viewFilter: function
         @param viewFilter: a function that will be invoked providing the candidate View as a parameter

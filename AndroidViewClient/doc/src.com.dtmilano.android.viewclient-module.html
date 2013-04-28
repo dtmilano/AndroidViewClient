@@ -87,7 +87,7 @@ limitations under the License.
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        2.2
+        2.3.13
       </p>
 </div><!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -143,6 +143,14 @@ limitations under the License.
     </td><td class="summary">
         <a href="src.com.dtmilano.android.viewclient.EditText-class.html" class="summary-name">EditText</a><br />
       EditText class.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="src.com.dtmilano.android.viewclient.UiAutomator2AndroidViewClient-class.html" class="summary-name">UiAutomator2AndroidViewClient</a><br />
+      UiAutomator XML to AndroidViewClient
     </td>
   </tr>
 <tr>
@@ -247,14 +255,14 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG"></a><span class="summary-name">DEBUG</span> = <code title="True">True</code>
+        <a name="DEBUG"></a><span class="summary-name">DEBUG</span> = <code title="False">False</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG_DEVICE"></a><span class="summary-name">DEBUG_DEVICE</span> = <code title="DEBUG and True">DEBUG and True</code>
+        <a name="DEBUG_DEVICE"></a><span class="summary-name">DEBUG_DEVICE</span> = <code title="DEBUG and False">DEBUG and False</code>
     </td>
   </tr>
 <tr>
@@ -282,7 +290,7 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="DEBUG_COORDS"></a><span class="summary-name">DEBUG_COORDS</span> = <code title="DEBUG and False">DEBUG and False</code>
+        <a name="DEBUG_COORDS"></a><span class="summary-name">DEBUG_COORDS</span> = <code title="DEBUG and True">DEBUG and True</code>
     </td>
   </tr>
 <tr>
@@ -310,17 +318,14 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="WARNINGS"></a><span class="summary-name">WARNINGS</span> = <code title="False">False</code>
+        <a name="DEBUG_BOUNDS"></a><span class="summary-name">DEBUG_BOUNDS</span> = <code title="DEBUG and False">DEBUG and False</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="src.com.dtmilano.android.viewclient-module.html#ANDROID_HOME" class="summary-name">ANDROID_HOME</a> = <code title="os.environ ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else\
- '/opt/android-sdk'">os.environ ['ANDROID_HOME'] if os.environ.has_k<code class="variable-ellipsis">...</code></code><br />
-      This environment variable is used to locate the <i>Android SDK</i> 
-      components needed.
+        <a name="WARNINGS"></a><span class="summary-name">WARNINGS</span> = <code title="False">False</code>
     </td>
   </tr>
 <tr>
@@ -341,14 +346,7 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="os_name"></a><span class="summary-name">os_name</span> = <code title="java.lang.System.getProperty('os.name')">java.lang.System.getProperty('os.name')</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="ADB"></a><span class="summary-name">ADB</span> = <code title="'adb'">'adb'</code>
+        <a name="ADB_DEFAULT_PORT"></a><span class="summary-name">ADB_DEFAULT_PORT</span> = <code title="5555">5555</code>
     </td>
   </tr>
 <tr>
@@ -365,7 +363,9 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES"></a><span class="summary-name">USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES</span> = <code title="True">True</code>
+        <a href="src.com.dtmilano.android.viewclient-module.html#USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES" class="summary-name">USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES</a> = <code title="True">True</code><br />
+      Use monkeyrunner (<code>MonkeyDevice.getProperty()</code>) to obtain 
+      the needed properties.
     </td>
   </tr>
 <tr>
@@ -375,6 +375,27 @@ limitations under the License.
         <a href="src.com.dtmilano.android.viewclient-module.html#SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED" class="summary-name">SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED</a> = <code title="False">False</code><br />
       Skips some classes related with the Action Bar and the 
       PhoneWindow$DecorView in the coordinates calculation
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="VERSION_SDK_PROPERTY"></a><span class="summary-name">VERSION_SDK_PROPERTY</span> = <code title="'version.sdk'">'version.sdk'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="ID_PROPERTY"></a><span class="summary-name">ID_PROPERTY</span> = <code title="'mID'">'mID'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="ID_PROPERTY_UI_AUTOMATOR"></a><span class="summary-name">ID_PROPERTY_UI_AUTOMATOR</span> = <code title="'uniqueId'">'uniqueId'</code>
     </td>
   </tr>
 <tr>
@@ -395,7 +416,42 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="TEXT_PROPERTY_UI_AUTOMATOR"></a><span class="summary-name">TEXT_PROPERTY_UI_AUTOMATOR</span> = <code title="'text'">'text'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="WS"></a><span class="summary-name">WS</span> = <code title="&quot;\xfe&quot;">&quot;\xfe&quot;</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="LEFT_PROPERTY"></a><span class="summary-name">LEFT_PROPERTY</span> = <code title="'layout:mLeft'">'layout:mLeft'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="LEFT_PROPERTY_API_8"></a><span class="summary-name">LEFT_PROPERTY_API_8</span> = <code title="'mLeft'">'mLeft'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="TOP_PROPERTY"></a><span class="summary-name">TOP_PROPERTY</span> = <code title="'layout:mTop'">'layout:mTop'</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="TOP_PROPERTY_API_8"></a><span class="summary-name">TOP_PROPERTY_API_8</span> = <code title="'mTop'">'mTop'</code>
     </td>
   </tr>
 <tr>
@@ -410,13 +466,6 @@ limitations under the License.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="LAYOUT_TOP_MARGIN_PROPERTY"></a><span class="summary-name">LAYOUT_TOP_MARGIN_PROPERTY</span> = <code title="'layout:layout_topMargin'">'layout:layout_topMargin'</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="VERSION_SDK_PROPERTY"></a><span class="summary-name">VERSION_SDK_PROPERTY</span> = <code title="'version.sdk'">'version.sdk'</code>
     </td>
   </tr>
 <tr>
@@ -438,6 +487,13 @@ limitations under the License.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="GONE"></a><span class="summary-name">GONE</span> = <code title="0x8">0x8</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="IP_RE"></a><span class="summary-name">IP_RE</span> = <code title="re.compile('^(\d{1,3}\.){3}\d{1,3}$')">re.compile('^(\d{1,3}\.){3}\d{1,3}$')</code>
     </td>
   </tr>
 </table>
@@ -547,22 +603,21 @@ limitations under the License.
   </td>
 </tr>
 </table>
-<a name="ANDROID_HOME"></a>
+<a name="USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
-  <h3 class="epydoc">ANDROID_HOME</h3>
-  <p>This environment variable is used to locate the <i>Android SDK</i> 
-  components needed. Set <code>ANDROID_HOME</code> in the process 
-  environment to point to the <i>Android SDK</i> installation.</p>
+  <h3 class="epydoc">USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES</h3>
+  <p>Use monkeyrunner (<code>MonkeyDevice.getProperty()</code>) to obtain 
+  the needed properties. If this is <code>False</code> then <code>adb shell
+  getprop</code> is used</p>
   <dl class="fields">
   </dl>
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-os.environ ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
- '/opt/android-sdk'
+True
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -623,7 +678,7 @@ False
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Nov  5 23:14:19 2012
+    Generated by Epydoc 3.0.1 on Sat Apr 27 21:03:49 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

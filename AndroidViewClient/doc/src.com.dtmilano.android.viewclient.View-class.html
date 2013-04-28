@@ -93,7 +93,8 @@
           <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.View-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">map</span>,
         <span class="summary-sig-arg">device</span>,
-        <span class="summary-sig-arg">version</span>=<span class="summary-sig-default">-1</span>)</span><br />
+        <span class="summary-sig-arg">version</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">forceviewserveruse</span>=<span class="summary-sig-default">False</span>)</span><br />
       Constructor</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#View.__init__">source&nbsp;code</a></span>
@@ -183,6 +184,23 @@
       Gets the View Id</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#View.getId">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getContentDescription"></a><span class="summary-sig-name">getContentDescription</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Gets the content description</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#View.getContentDescription">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -619,7 +637,8 @@
         <tr>
           <td><span class="summary-sig"><a name="factory"></a><span class="summary-sig-name">factory</span>(<span class="summary-sig-arg">attrs</span>,
         <span class="summary-sig-arg">device</span>,
-        <span class="summary-sig-arg">version</span>=<span class="summary-sig-default">-1</span>)</span><br />
+        <span class="summary-sig-arg">version</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">forceviewserveruse</span>=<span class="summary-sig-default">False</span>)</span><br />
       View factory</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#View.factory">source&nbsp;code</a></span>
@@ -680,6 +699,54 @@
       The parent of this View
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="build"></a><span class="summary-name">build</span><br />
+      Build properties
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="useUiAutomator"></a><span class="summary-name">useUiAutomator</span><br />
+      Whether to use UIAutomator or ViewServer
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="idProperty"></a><span class="summary-name">idProperty</span><br />
+      The id property depending on the View attribute format
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="textProperty"></a><span class="summary-name">textProperty</span><br />
+      The text property depending on the View attribute format
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="leftProperty"></a><span class="summary-name">leftProperty</span><br />
+      The left property depending on the View attribute format
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="topProperty"></a><span class="summary-name">topProperty</span><br />
+      The top property depending on the View attribute format
+    </td>
+  </tr>
 </table>
 <!-- ==================== METHOD DETAILS ==================== -->
 <a name="section-MethodDetails"></a>
@@ -709,7 +776,8 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">map</span>,
         <span class="sig-arg">device</span>,
-        <span class="sig-arg">version</span>=<span class="sig-default">-1</span>)</span>
+        <span class="sig-arg">version</span>=<span class="sig-default">-1</span>,
+        <span class="sig-arg">forceviewserveruse</span>=<span class="sig-default">False</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -726,6 +794,8 @@
         <li><strong class="pname"><code>version</code></strong> (int) - the Android SDK version number of the platform where this View 
           belongs. If this is <code>-1</code> then the Android SDK version 
           will be obtained in this constructor.</li>
+        <li><strong class="pname"><code>forceviewserveruse</code></strong> (boolean) - Force the use of <code>ViewServer</code> even if the conditions 
+          were given to use <code>UiAutomator</code>.</li>
     </ul></dd>
   </dl>
 </td></tr></table>
@@ -923,7 +993,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Nov  5 23:14:19 2012
+    Generated by Epydoc 3.0.1 on Sat Apr 27 21:03:50 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
