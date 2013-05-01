@@ -1,87 +1,9 @@
 #! /usr/bin/env monkeyrunner
+
+print '''
+Notice:
+-------
+'dump.py' was moved to the 'tools' directory and renamed 'dump'.
+A simpler example is now in 'dump-simple.py'.
+
 '''
-Copyright (C) 2012  Diego Torres Milano
-Created on Feb 3, 2012
-
-@author: diego
-'''
-
-
-import sys
-import os
-import getopt
-
-# This must be imported before MonkeyRunner and MonkeyDevice,
-# otherwise the import fails.
-# PyDev sets PYTHONPATH, use it
-try:
-    for p in os.environ['PYTHONPATH'].split(':'):
-        if not p in sys.path:
-            sys.path.append(p)
-except:
-    pass
-    
-try:
-    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
-except:
-    pass
-
-from com.dtmilano.android.viewclient import ViewClient
-
-HELP = 'help'
-VERBOSE = 'verbose'
-IGNORE_SECURE_DEVICE = 'ignore-secure-device'
-FORCE_VIEW_SERVER_USE = 'force-view-server-use'
-DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
-WINDOW = 'window'
-UNIQUE_ID = 'uniqueId'
-POSITION = 'position'
-CONTENT_DESCRIPTION = 'content-description'
-CENTER = 'center'
-# -u,-s,-p,-v eaten by monkeyrunner
-MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
-       'x':ViewClient.TRAVERSE_CITPS, POSITION:ViewClient.TRAVERSE_CITPS,
-       'd':ViewClient.TRAVERSE_CITCD, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
-       'c':ViewClient.TRAVERSE_CITC, CENTER:ViewClient.TRAVERSE_CITC,
-       }
-SHORT_OPTS = 'HVIFSw:ixdc'
-LONG_OPTS =  [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE,
-              DO_NOT_START_VIEW_SERVER, WINDOW + '=',
-              UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER]
-
-def usage(exitVal=1):
-    print >> sys.stderr, 'usage: dump.py [-H|--%s] [-V|--%s] [-I|--%s] [-F|--%s] [-S|--%s] [-w|--%s=WINDOW] [-i|--%s] [-x|--%s] [-d|--%s] [-c|--%s] [serialno]' % \
-        tuple(LONG_OPTS)
-    sys.exit(exitVal)
-
-try:
-    opts, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
-    sys.argv[1:] = args
-except getopt.GetoptError, e:
-    print >>sys.stderr, 'ERROR:', str(e)
-    usage()
-
-kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
-kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False}
-options = {WINDOW: -1}
-transform = ViewClient.TRAVERSE_CIT
-for o, a in opts:
-    o = o.strip('-')
-    if o in ['H', HELP]:
-        usage(0)
-    elif o in ['V', VERBOSE]:
-        kwargs1[VERBOSE] = True
-    elif o in ['I', IGNORE_SECURE_DEVICE]:
-        kwargs1['ignoresecuredevice'] = True
-    elif o in ['F', FORCE_VIEW_SERVER_USE]:
-        kwargs2['forceviewserveruse'] = True
-    elif o in ['S', DO_NOT_START_VIEW_SERVER]:
-        kwargs2['startviewserver'] = False
-    elif o in ['w', WINDOW]:
-        options[WINDOW] = a
-    else:
-        transform = MAP[o]
-
-vc = ViewClient(*ViewClient.connectToDeviceOrExit(**kwargs1), **kwargs2)
-vc.dump(window=options[WINDOW])
-vc.traverse(transform=transform)

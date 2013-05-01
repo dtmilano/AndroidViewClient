@@ -1,23 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Culebra" default="jar">
-    <property file="ant.properties" />
-    <loadproperties srcFile="project.properties" />
+	<property file="ant.properties" />
+	<loadproperties srcFile="project.properties" />
 
-    <property name="versionRE" value="^\s*__version__\s*=\s*'(.*)'\s*$" />
-    <loadfile srcfile="src/com/dtmilano/android/viewclient.py" property="avc.version">
-        <filterchain>
-            <linecontainsregexp>
-                <regexp pattern="${versionRE}" />
-            </linecontainsregexp>
-            <tokenfilter>
-                <replaceregex pattern="${versionRE}" replace="\1" />
-            </tokenfilter>
-            <striplinebreaks />
-        </filterchain>
-    </loadfile>
+	<property name="versionRE" value="^\s*__version__\s*=\s*'(.*)'\s*$" />
+	<loadfile srcfile="src/com/dtmilano/android/viewclient.py"
+		property="avc.version">
+		<filterchain>
+			<linecontainsregexp>
+				<regexp pattern="${versionRE}" />
+			</linecontainsregexp>
+			<tokenfilter>
+				<replaceregex pattern="${versionRE}" replace="\1" />
+			</tokenfilter>
+			<striplinebreaks />
+		</filterchain>
+	</loadfile>
 
-    <target name="jar" >
-        <echo message="Creating ${avc.jarname} ${avc.version} jar ..." />
-        <jar destfile="bin/${avc.jarname}-${avc.version}.jar" basedir="src/" />
-    </target>
+	<target name="jar" depends="compile">
+		<echo message="Creating ${avc.jarname} ${avc.version} jar ..." />
+		<jar destfile="bin/${avc.jarname}-${avc.version}.jar">
+			<fileset dir="src/" excludes="**/*.java" />
+			<fileset dir="." includes="tools/*" />
+			<fileset dir="bin/classes" />
+			<manifest>
+				<attribute name="Main-Class"
+					value="com.dtmilano.android.viewclient.ViewClient" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="clean">
+		<delete dir="bin" />
+	</target>
+
+	<target name="compile">
+		<mkdir dir="bin/classes" />
+		<javac srcdir="src" destdir="bin/classes" />
+	</target>
+
 </project>
