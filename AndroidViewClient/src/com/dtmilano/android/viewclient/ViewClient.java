@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -21,6 +22,9 @@ public class ViewClient {
 
     private static final int DELAY = 500;
 
+    /**
+     * The <em>tools</em> directory in the jar.
+     */
     private static final String TOOLS = "tools";
 
     private enum Command {
@@ -29,11 +33,17 @@ public class ViewClient {
 
     private volatile boolean mProcessFinished = false;
 
+    /**
+     * The destination file as command is extracted from jar.
+     */
     private File mDest = null;
 
     private boolean mIsDestCreated = false;
 
-    private String mArgs = "";
+    /**
+     * Command arguments.
+     */
+    private String[] mArgs = null;
 
     private JarFile mJar;
 
@@ -112,9 +122,9 @@ public class ViewClient {
      * 
      * @throws IOException
      */
-    public ViewClient(Command cmd, String args) throws IOException {
-        if (args != null && !"".equals(args)) {
-            mArgs = " " + args;
+    public ViewClient(Command cmd, String[] args) throws IOException {
+        if (args != null && args.length > 0) {
+            mArgs = args;
         }
         final File file = new File(ViewClient.class.getProtectionDomain().getCodeSource()
                 .getLocation().getPath());
@@ -128,7 +138,7 @@ public class ViewClient {
             error("Tools should be started using the jar file.");
             usage();
         }
-        
+
         final String entry = TOOLS + "/" + cmd.name().toLowerCase();
         final JarEntry jarEntry = mJar.getJarEntry(entry);
         if (jarEntry != null) {
@@ -162,17 +172,31 @@ public class ViewClient {
             throw new IllegalStateException("Destination was not extracted successfully");
         }
         final Runtime runtime = Runtime.getRuntime();
-        StringBuilder cmd = new StringBuilder();
+        final ArrayList<String> cmdList = new ArrayList<String>();
         final String monkeyrunner = locateMonkeyRunner();
         if (monkeyrunner != null) {
-            cmd.append(monkeyrunner).append(" ").append("-plugin").append(" ")
-                    .append(mJar.getName()).append(" ");
+            cmdList.add(monkeyrunner);
+            cmdList.add("-plugin");
+            cmdList.add(mJar.getName());
         }
-        cmd.append(mDest.getAbsolutePath()).append(mArgs);
+        else {
+            final String os = System.getProperty("os.name");
+            if (os.toUpperCase().contains("WINDOWS")) {
+                fatal(String.format(
+                        "%s was not found and %s does not support shebang in scripts. Aborting.",
+                        MONKEYRUNNER, os));
+            }
+        }
+        cmdList.add(mDest.getAbsolutePath());
+        if (mArgs != null) {
+            for (String arg : mArgs) {
+                cmdList.add(arg);
+            }
+        }
         if (DEBUG) {
-            System.err.println("executing: '" + cmd + "'");
+            System.err.println("executing: " + cmdList);
         }
-        final Process process = runtime.exec(cmd.toString());
+        final Process process = runtime.exec(cmdList.toArray(new String[] {}));
         if (process != null) {
             mProcessFinished = false;
             new OutputStreamReaderThread(process.getInputStream()).start();
@@ -231,14 +255,17 @@ public class ViewClient {
      * is assumed to be in args[0]).
      * 
      * @param args the arguments
-     * @return The string obtained concatenating the arguments
+     * @return The string array obtained from the arguments
      */
-    private static String obtainExtraArgs(String[] args) {
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 1; i < args.length; i++) {
-            sb.append(args[i]).append(" ");
+    private static String[] obtainExtraArgs(String[] args) {
+        if (args.length > 1) {
+            final String[] extras = new String[args.length - 1];
+            for (int i = 1; i < args.length; i++) {
+                extras[i - 1] = args[i];
+            }
+            return extras;
         }
-        return sb.toString();
+        return null;
     }
 
     private static void error(String msg) {
@@ -257,17 +284,16 @@ public class ViewClient {
         }
 
         final String cmdStr = args[0];
-        final String extras = obtainExtraArgs(args);
+        final String[] extras = obtainExtraArgs(args);
 
         if (DEBUG) {
-            System.err.println("cmd=" + cmdStr + "    extras=" + extras);
-            System.err.println(Command.DUMP.name());
+            System.err.println("main: cmd=" + cmdStr + "    extras=" + extras);
         }
 
         try {
             System.exit(new ViewClient(Command.valueOf(cmdStr.toUpperCase()), extras).execute());
         } catch (IllegalArgumentException e) {
-            error("unknown command: '" + cmdStr + "'");
+            error("Unknown command: '" + cmdStr + "'");
             usage();
         }
 
