@@ -40,6 +40,8 @@ public class ViewClient {
 
     private boolean mIsDestCreated = false;
 
+    private boolean mKeep = false;
+
     /**
      * Command arguments.
      */
@@ -143,6 +145,7 @@ public class ViewClient {
         final JarEntry jarEntry = mJar.getJarEntry(entry);
         if (jarEntry != null) {
             final InputStream is = mJar.getInputStream(jarEntry);
+            // We cannot use /tmp or similar because sometimes it's mounted noexec
             mDest = new File(System.getProperty("user.home") + File.separator
                     + cmd.name().toLowerCase());
             final FileOutputStream fos = new java.io.FileOutputStream(mDest);
@@ -153,6 +156,9 @@ public class ViewClient {
             is.close();
             mDest.setExecutable(true);
             mIsDestCreated = true;
+            if (!mKeep) {
+                mDest.deleteOnExit();
+            }
         }
         else {
             fatal("Cannot extract " + entry + " from jar");
