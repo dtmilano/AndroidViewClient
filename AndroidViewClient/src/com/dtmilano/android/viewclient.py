@@ -1650,7 +1650,7 @@ class ViewClient:
             MonkeyRunner.sleep(sleep)
             
         if self.useUiAutomator:
-            raise Exception("Not implemented yet")
+            raise Exception("Not implemented yet: listing windows with UiAutomator")
         else:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
