@@ -18,7 +18,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 @author: Jennifer E. Swofford (ascii art snake)
 '''
 
-__version__ = '0.9.6'
+__version__ = '0.9.7'
 
 import re
 import sys
@@ -65,7 +65,6 @@ OUTPUT = 'output'
 USAGE = 'usage: %s [OPTION]... [serialno]'
 # -u,-s,-p,-v eaten by monkeyrunner
 SHORT_OPTS = 'HVIFSi:t:d:rCUj:D:R:o:'
-
 LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
               USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST,
@@ -78,7 +77,7 @@ OPTS_HELP = {
     'H': 'prints this help',
     'i': 'whether to use findViewById() in script',
     't': 'whether to use findViewWithText() in script',
-    'd': 'whether to sue findViewWithContentDescription',
+    'd': 'whether to use findViewWithContentDescription',
     'r': 'use regexps in matches',
     'U': 'generates unit test script',
     'j': 'use jar and appropriate shebang to run script',
@@ -86,6 +85,7 @@ OPTS_HELP = {
     'R': 'auto regexps (i.e. clock)',
     'o': 'output filename',
     }
+
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
 SHEBANG = {
@@ -261,11 +261,11 @@ def str2bool(v):
 progname = os.path.basename(sys.argv[0])
 try:
     optlist, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
+    sys.argv[1:] = args
 except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
 
-sys.argv[1:] = args
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,

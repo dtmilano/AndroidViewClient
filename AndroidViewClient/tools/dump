@@ -6,6 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
+__version__ = '0.9.7'
 
 import sys
 import os
@@ -44,16 +45,64 @@ MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        'd':ViewClient.TRAVERSE_CITCD, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
        'c':ViewClient.TRAVERSE_CITC, CENTER:ViewClient.TRAVERSE_CITC,
        }
+
+USAGE = 'usage: %s [OPTION]... [serialno]'
+# -u,-s,-p,-v eaten by monkeyrunner
 SHORT_OPTS = 'HVIFSw:ixdc'
 LONG_OPTS =  [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, WINDOW + '=',
               UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER]
+LONG_OPTS_ARG = {WINDOW: 'WINDOW'}
+OPTS_HELP = {
+    'H': 'prints this help',
+    'V': 'verbose comments',
+    'I': 'ignore secure device',
+    'F': 'force view server use (even if UiAutomator present)',
+    'S': 'dont start ViewServer',
+    'w': 'dump WINDOW content (default: -1)',
+    'i': 'dump View unique IDs',
+    'x': 'dump View positions',
+    'd': 'dump View content descriptions',
+    'c': 'dump View centers'
+    }
+
+def shortAndLongOptions():
+    '''
+    @return: the list of corresponding (short-option, long-option) tuples
+    '''
+
+    short_opts = SHORT_OPTS.replace(':', '')
+    if len(short_opts) != len(LONG_OPTS):
+        raise Exception('There is a mismatch between short and long options')
+    t = tuple(short_opts) + tuple(LONG_OPTS)
+    l2 = len(t)/2
+    sl = []
+    for i in range(l2):
+        sl.append((t[i], t[i+l2]))
+    return sl
 
 def usage(exitVal=1):
-    print >> sys.stderr, 'usage: dump [-H|--%s] [-V|--%s] [-I|--%s] [-F|--%s] [-S|--%s] [-w|--%s=WINDOW] [-i|--%s] [-x|--%s] [-d|--%s] [-c|--%s] [serialno]' % \
-        tuple(LONG_OPTS)
+    print >> sys.stderr, USAGE % progname
+    print >> sys.stderr, "Try '%s --help' for more information." % progname
     sys.exit(exitVal)
 
+def help():
+    print >> sys.stderr, USAGE % progname
+    print >> sys.stderr
+    print >> sys.stderr, "Options:"
+    for so, lo in shortAndLongOptions():
+        o = '  -%c, --%s' % (so, lo)
+        if lo[-1] == '=':
+            o += LONG_OPTS_ARG[lo[:-1]]
+        try:
+            o = '%-34s %-45s' % (o, OPTS_HELP[so])
+        except:
+            pass
+        print >> sys.stderr, o
+    sys.exit(0)
+
+# __main__
+progname = os.path.basename(sys.argv[0])
 try:
     opts, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
     sys.argv[1:] = args
@@ -68,7 +117,7 @@ transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
     o = o.strip('-')
     if o in ['H', HELP]:
-        usage(0)
+        help()
     elif o in ['V', VERBOSE]:
         kwargs1[VERBOSE] = True
     elif o in ['I', IGNORE_SECURE_DEVICE]:
