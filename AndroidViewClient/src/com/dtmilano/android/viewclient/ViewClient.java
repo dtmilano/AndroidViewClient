@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.jar.JarEntry;
@@ -128,16 +129,17 @@ public class ViewClient {
         if (args != null && args.length > 0) {
             mArgs = args;
         }
-        final File file = new File(ViewClient.class.getProtectionDomain().getCodeSource()
-                .getLocation().getPath());
+        final File file = new File(URLDecoder.decode(ViewClient.class.getProtectionDomain()
+                .getCodeSource()
+                .getLocation().getPath(), "UTF-8"));
         if (DEBUG) {
-            System.err.println("jar=" + file);
+            System.err.println("jar=" + file.getCanonicalPath() + "    exists? " + file.exists());
         }
 
         try {
             mJar = new JarFile(file);
         } catch (ZipException e) {
-            error("Tools should be started using the jar file.");
+            error("Tools should be started using the jar file.", e);
             usage();
         }
 
@@ -145,7 +147,8 @@ public class ViewClient {
         final JarEntry jarEntry = mJar.getJarEntry(entry);
         if (jarEntry != null) {
             final InputStream is = mJar.getInputStream(jarEntry);
-            // We cannot use /tmp or similar because sometimes it's mounted noexec
+            // We cannot use /tmp or similar because sometimes it's mounted
+            // noexec
             mDest = new File(System.getProperty("user.home") + File.separator
                     + cmd.name().toLowerCase());
             final FileOutputStream fos = new java.io.FileOutputStream(mDest);
@@ -277,6 +280,11 @@ public class ViewClient {
     private static void error(String msg) {
         System.err.print("ERROR: ");
         System.err.println(msg);
+    }
+
+    private void error(String msg, Exception e) {
+        error(msg);
+        e.printStackTrace(System.err);
     }
 
     private static void fatal(String msg) {

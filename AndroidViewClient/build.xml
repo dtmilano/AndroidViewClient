@@ -17,9 +17,10 @@
 		</filterchain>
 	</loadfile>
 
+	<property name="avc.jar" value="bin/${avc.jarname}-${avc.version}.jar" />
 	<target name="jar" depends="compile">
 		<echo message="Creating ${avc.jarname} ${avc.version} jar ..." />
-		<jar destfile="bin/${avc.jarname}-${avc.version}.jar">
+		<jar destfile="${avc.jar}">
 			<fileset dir="src/" excludes="**/*.java" />
 			<fileset dir="." includes="tools/*" />
 			<fileset dir="bin/classes" />
@@ -39,4 +40,8 @@
 		<javac srcdir="src" destdir="bin/classes" />
 	</target>
 
+    <target name="install" depends="jar">
+        <mkdir dir="${gdrive.dest.dir}" />
+        <copy file="${avc.jar}" todir="${gdrive.dest.dir}" />
+    </target>
 </project>
