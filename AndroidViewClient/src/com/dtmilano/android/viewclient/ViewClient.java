@@ -189,11 +189,10 @@ public class ViewClient {
             cmdList.add(mJar.getName());
         }
         else {
-            final String os = System.getProperty("os.name");
-            if (os.toUpperCase().contains("WINDOWS")) {
+            if (isWindows()) {
                 fatal(String.format(
                         "%s was not found and %s does not support shebang in scripts. Aborting.",
-                        MONKEYRUNNER, os));
+                        MONKEYRUNNER, System.getProperty("os.name")));
             }
         }
         cmdList.add(mDest.getAbsolutePath());
@@ -227,6 +226,14 @@ public class ViewClient {
     }
 
     /**
+     * @return
+     */
+    private static boolean isWindows() {
+        final String os = System.getProperty("os.name");
+        return os.toUpperCase().contains("WINDOWS");
+    }
+
+    /**
      * Locates <code>monkeyrunner</code> executable in path.
      * 
      * @return the absolute path of <code>monkeyrunner</code> or
@@ -237,7 +244,10 @@ public class ViewClient {
                 File.pathSeparator);
         while (tokenizer.hasMoreTokens()) {
             final String dir = tokenizer.nextToken();
-            File monkeyrunner = new File(dir + File.separator + MONKEYRUNNER);
+            File monkeyrunner = new File(dir + File.separator + MONKEYRUNNER + (isWindows() ? ".bat" : ""));
+            if (DEBUG) {
+                System.err.println("searching for " + monkeyrunner + "    exist? " + monkeyrunner.exists());
+            }
             if (monkeyrunner.exists()) {
                 return monkeyrunner.getAbsolutePath();
             }
