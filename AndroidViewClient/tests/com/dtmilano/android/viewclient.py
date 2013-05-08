@@ -140,6 +140,32 @@ class ViewTest(unittest.TestCase):
             view = View(None, device, -1)
             self.assertEqual(topProperty, view.topProperty, msg='version %d' % version)
     
+    def testWidthPropertyForDifferentSdkVersions(self):
+        VP = { -1:WIDTH_PROPERTY, 8:WIDTH_PROPERTY_API_8, 10:WIDTH_PROPERTY, 15:WIDTH_PROPERTY, 16:WIDTH_PROPERTY, 17:WIDTH_PROPERTY}
+        for version, widthProperty in VP.items():
+            view = View(None, None, version)
+            self.assertEqual(widthProperty, view.widthProperty, msg='version %d' % version)
+    
+    def testWidthPropertyForDifferentSdkVersions_device(self):
+        VP = { -1:WIDTH_PROPERTY, 8:WIDTH_PROPERTY_API_8, 10:WIDTH_PROPERTY, 15:WIDTH_PROPERTY, 16:WIDTH_PROPERTY, 17:WIDTH_PROPERTY}
+        for version, widthProperty in VP.items():
+            device = MockDevice(version=version)
+            view = View(None, device, -1)
+            self.assertEqual(widthProperty, view.widthProperty, msg='version %d' % version)
+        
+    def testHeightPropertyForDifferentSdkVersions(self):
+        VP = { -1:HEIGHT_PROPERTY, 8:HEIGHT_PROPERTY_API_8, 10:HEIGHT_PROPERTY, 15:HEIGHT_PROPERTY, 16:HEIGHT_PROPERTY, 17:HEIGHT_PROPERTY}
+        for version, heightProperty in VP.items():
+            view = View(None, None, version)
+            self.assertEqual(heightProperty, view.heightProperty, msg='version %d' % version)
+    
+    def testHeightPropertyForDifferentSdkVersions_device(self):
+        VP = { -1:HEIGHT_PROPERTY, 8:HEIGHT_PROPERTY_API_8, 10:HEIGHT_PROPERTY, 15:HEIGHT_PROPERTY, 16:HEIGHT_PROPERTY, 17:HEIGHT_PROPERTY}
+        for version, heightProperty in VP.items():
+            device = MockDevice(version=version)
+            view = View(None, device, -1)
+            self.assertEqual(heightProperty, view.heightProperty, msg='version %d' % version)
+    
     def testGetText(self):
         self.assertTrue(self.view.map.has_key('text:mText'))
         self.assertEqual('Button with ID', self.view.getText())
