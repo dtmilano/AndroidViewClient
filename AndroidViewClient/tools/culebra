@@ -1,5 +1,8 @@
-#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!
 #! /usr/bin/env monkeyrunner
+# Linux
+#! /usr/local/bin/shebang monkeyrunner -plugin $AVC_HOME/bin/androidviewclient-$AVC_VERSION.jar @!
+# Mac OS X
+#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!
 # -*- coding: utf-8 -*-
 '''
 Copyright (C) 2013  Diego Torres Milano
@@ -18,7 +21,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 @author: Jennifer E. Swofford (ascii art snake)
 '''
 
-__version__ = '0.9.7'
+__version__ = '0.9.8'
 
 import re
 import sys
@@ -61,20 +64,23 @@ USE_JAR = 'use-jar'
 USE_DICTIONARY = 'use-dictionary'
 AUTO_REGEXPS = 'auto-regexps'
 OUTPUT = 'output'
+WINDOW = 'window'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
 # -u,-s,-p,-v eaten by monkeyrunner
-SHORT_OPTS = 'HVIFSi:t:d:rCUj:D:R:o:'
+SHORT_OPTS = 'HVIFSw:i:t:d:rCUj:D:R:o:'
 LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
+              WINDOW + '=',
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
               USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST,
               USE_JAR + '=', USE_DICTIONARY + '=', AUTO_REGEXPS + '=',
               OUTPUT + '=']
-LONG_OPTS_ARG = {FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
+LONG_OPTS_ARG = {WINDOW: 'WINDOW', FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
                   USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', AUTO_REGEXPS: 'LIST',
                   OUTPUT: 'STR'}
 OPTS_HELP = {
     'H': 'prints this help',
+    'w': 'use WINDOW content (defualt: -1, all windows)',
     'i': 'whether to use findViewById() in script',
     't': 'whether to use findViewWithText() in script',
     'd': 'whether to use findViewWithContentDescription',
@@ -90,7 +96,8 @@ ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
 SHEBANG = {
     'no-jar': '#! /usr/bin/env monkeyrunner',
-    'jar': '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!'
+    'jar': '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!',
+    'jar-linux': '#! /usr/local/bin/shebang monkeyrunner -plugin $AVC_HOME/bin/androidviewclient-$AVC_VERSION.jar @!'
     }
 
 def shortAndLongOptions():
@@ -257,6 +264,17 @@ def traverseAndPrint(view):
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1", "on")
 
+def getShebangJar():
+    if options[USE_JAR]:
+        import java
+        osName = java.lang.System.getProperty('os.name')
+        if osName == 'Linux':
+            return SHEBANG['jar-linux']
+        else:
+            return SHABANG['jar']
+    else:
+        return SHEBANG['no-jar']
+
 # __main__
 progname = os.path.basename(sys.argv[0])
 try:
@@ -267,10 +285,11 @@ except getopt.GetoptError, e:
     usage()
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
-kwargs2 = {'forceviewserveruse': False, 'startviewserver': True}
+kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
-        UNIT_TEST: False, USE_JAR: True, USE_DICTIONARY: False, AUTO_REGEXPS: None, OUTPUT: None}
+        UNIT_TEST: False, USE_JAR: True, USE_DICTIONARY: False, AUTO_REGEXPS: None, OUTPUT: None,
+        WINDOW: -1}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -284,6 +303,8 @@ for o, a in optlist:
         kwargs2['forceviewserveruse'] = True
     elif o in ['S', DO_NOT_START_VIEW_SERVER]:
         kwargs2['startviewserver'] = False
+    elif o in ['w', WINDOW]:
+         options[WINDOW] = a
     elif o in ['i', FIND_VIEWS_BY_ID]:
         options[FIND_VIEWS_BY_ID] = str2bool(a)
     elif o in ['t', FIND_VIEWS_WITH_TEXT]:
@@ -345,7 +366,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 import re
 import sys
 import os
-''' % (SHEBANG['jar' if options[USE_JAR] else 'no-jar'], date.today(), __version__)
+''' % (getShebangJar(), date.today(), __version__)
 
 if not options[USE_JAR]:
     print '''
@@ -371,10 +392,12 @@ from com.dtmilano.android.viewclient import ViewClient
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
   
 device, serialno = ViewClient.connectToDeviceOrExit()
-vc = ViewClient(device, serialno)
-'''
+vc = ViewClient(device, serialno, autodump=False)
+vc.dump(window=%s)
+''' % (options[WINDOW] if type(options[WINDOW]).__name__ == 'str' and options[WINDOW][0] in '-0123456789' else "'%s'" % options[WINDOW])
 
 if options[USE_DICTIONARY]:
     print '''views = dict()'''
 
+vc.dump(window=options[WINDOW])
 vc.traverse(transform=transform)

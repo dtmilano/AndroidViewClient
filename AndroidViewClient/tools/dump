@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '0.9.7'
+__version__ = '0.9.8'
 
 import sys
 import os
@@ -59,7 +59,7 @@ OPTS_HELP = {
     'I': 'ignore secure device',
     'F': 'force view server use (even if UiAutomator present)',
     'S': 'dont start ViewServer',
-    'w': 'dump WINDOW content (default: -1)',
+    'w': 'dump WINDOW content (default: -1, all windows)',
     'i': 'dump View unique IDs',
     'x': 'dump View positions',
     'd': 'dump View content descriptions',

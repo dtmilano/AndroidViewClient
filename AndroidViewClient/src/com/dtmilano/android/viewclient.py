@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.16'
+__version__ = '2.3.17'
 
 import sys
 import subprocess
@@ -77,6 +77,10 @@ LEFT_PROPERTY = 'layout:mLeft'
 LEFT_PROPERTY_API_8 = 'mLeft'
 TOP_PROPERTY = 'layout:mTop'
 TOP_PROPERTY_API_8 = 'mTop'
+WIDTH_PROPERTY = 'layout:getWidth()'
+WIDTH_PROPERTY_API_8 = 'getWidth()'
+HEIGHT_PROPERTY = 'layout:getHeight()'
+HEIGHT_PROPERTY_API_8 = 'getHeight()'
 GET_VISIBILITY_PROPERTY = 'getVisibility()'
 LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
 
@@ -244,41 +248,59 @@ class View:
         ''' The left property depending on the View attribute format '''
         self.topProperty = None
         ''' The top property depending on the View attribute format '''
+        self.widthProperty = None
+        ''' The width property depending on the View attribute format '''
+        self.heightProperty = None
+        ''' The height property depending on the View attribute format '''
         if version >= 16 and self.useUiAutomator:
             self.idProperty = ID_PROPERTY_UI_AUTOMATOR
             self.textProperty = TEXT_PROPERTY_UI_AUTOMATOR
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
+            self.widthProperty = WIDTH_PROPERTY
+            self.heightProperty = HEIGHT_PROPERTY
         elif version > 10 and (version < 16 or self.useUiAutomator):
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
+            self.widthProperty = WIDTH_PROPERTY
+            self.heightProperty = HEIGHT_PROPERTY
         elif version == 10:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
+            self.widthProperty = WIDTH_PROPERTY
+            self.heightProperty = HEIGHT_PROPERTY
         elif version >= 8 and version < 10:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
             self.leftProperty = LEFT_PROPERTY_API_8
             self.topProperty = TOP_PROPERTY_API_8
+            self.widthProperty = WIDTH_PROPERTY_API_8
+            self.heightProperty = HEIGHT_PROPERTY_API_8
         elif version > 0 and version < 8:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
+            self.widthProperty = WIDTH_PROPERTY
+            self.heightProperty = HEIGHT_PROPERTY
         elif version == -1:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
+            self.widthProperty = WIDTH_PROPERTY
+            self.heightProperty = HEIGHT_PROPERTY
         else:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
+            self.widthProperty = WIDTH_PROPERTY
+            self.heightProperty = HEIGHT_PROPERTY
         
     def __getitem__(self, key):
         return self.map[key]
@@ -385,7 +407,7 @@ class View:
             return self.map['bounds'][1][1] - self.map['bounds'][0][1]
         else:
             try:
-                return int(self.map['layout:getHeight()'])
+                return int(self.map[self.heightProperty])
             except:
                 return 0
 
@@ -394,7 +416,7 @@ class View:
             return self.map['bounds'][1][0] - self.map['bounds'][0][0]
         else:
             try:
-                return int(self.map['layout:getWidth()'])
+                return int(self.map[self.widthProperty])
             except:
                 return 0
 
