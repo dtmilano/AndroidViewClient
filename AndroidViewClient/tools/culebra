@@ -271,7 +271,7 @@ def getShebangJar():
         if osName == 'Linux':
             return SHEBANG['jar-linux']
         else:
-            return SHABANG['jar']
+            return SHEBANG['jar']
     else:
         return SHEBANG['no-jar']
 
