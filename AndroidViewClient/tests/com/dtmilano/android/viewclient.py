@@ -8,6 +8,7 @@ Created on Feb 5, 2012
 
 import sys
 import os
+import time
 import StringIO
 import unittest
 import exceptions
@@ -26,7 +27,7 @@ except:
     pass
 
 from com.dtmilano.android.viewclient import *
-from mocks import MockDevice
+from mocks import MockDevice, MockViewServer
 from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, VIEW_MAP_API_8, RUNNING, STOPPED, WINDOWS
 
 # this is probably the only reliable way of determining the OS in monkeyrunner
@@ -801,8 +802,52 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
     def testUiAutomatorDump(self):
         device = MockDevice(version=16)
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True)
-
-         
+    
+    def testUiViewServerDump(self):
+        try:
+            device = MockDevice(version=15, startviewserver=True)
+            vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+            vc.dump()
+            vc.findViewByIdOrRaise('id/home')
+        finally:
+            device.shutdownMockViewServer()
+        
+    def testUiViewServerDump_windowStr(self):
+        try:
+            device = MockDevice(version=15, startviewserver=True)
+            vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+            vc.dump(window='StatusBar')
+            vc.findViewByIdOrRaise('id/status_bar')
+        finally:
+            device.shutdownMockViewServer()
+        
+    def testUiViewServerDump_windowInt(self):
+        try:
+            device = MockDevice(version=15, startviewserver=True)
+            vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+            vc.dump(window=0xb52f7c88)
+            vc.findViewByIdOrRaise('id/status_bar')
+        finally:
+            device.shutdownMockViewServer()
+        
+    def testUiViewServerDump_windowIntStr(self):
+        try:
+            device = MockDevice(version=15, startviewserver=True)
+            vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+            vc.dump(window='0xb52f7c88')
+            vc.findViewByIdOrRaise('id/status_bar')
+        finally:
+            device.shutdownMockViewServer()
+            
+    def testUiViewServerDump_windowIntM1(self):
+        try:
+            device = MockDevice(version=15, startviewserver=True)
+            vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+            vc.dump(window=-1)
+            vc.findViewByIdOrRaise('id/home')
+        finally:
+            device.shutdownMockViewServer()
+            
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

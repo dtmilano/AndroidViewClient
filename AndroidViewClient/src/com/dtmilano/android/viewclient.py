@@ -30,6 +30,7 @@ import time
 import signal
 import warnings
 import xml.parsers.expat
+import org.python.modules.sre.PatternObject
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
 
 DEBUG = False
@@ -168,7 +169,7 @@ class Window:
 
 class ViewNotFoundException(Exception):
     def __init__(self, attr, value, root):
-        if type(value).__name__ == 'PatternObject':
+        if isinstance(value, org.python.modules.sre.PatternObject):
             msg = "Couldn't find View with %s that matches '%s' in tree with root=%s" % (attr, value.pattern, root)
         else:
             msg = "Couldn't find View with %s='%s' in tree with root=%s" % (attr, value, root)
@@ -1569,8 +1570,10 @@ class ViewClient:
         
         @type window: int or str
         @param window: the window id or name of the window to dump.
-                    The name is the package name or the window name (i.e. StatusBar) for
+                    The B{name} is the package name or the window name (i.e. StatusBar) for
                     system windows.
+                    The window id can be provided as C{int} or C{str}. The C{str} should represent
+                    and C{int} in either base 10 or 16.
                     Use -1 to dump all windows.
                     This parameter only is used when the backend is B{ViewServer} and it's
                     ignored for B{UiAutomator}.
@@ -1590,7 +1593,7 @@ class ViewClient:
             if not output:
                 raise RuntimeError('ERROR: Getting UIAutomator dump')
             if not re.search('dumped', output):
-                raise RuntimeError("ERROR: UIAutomator dump output doesn't containt 'dumped' (%s)" % output)
+                raise RuntimeError("ERROR: UIAutomator dump output doesn't contain 'dumped' (%s)" % output)
             received = self.device.shell('cat %s 2>/dev/null' % windowDump)
             if received:
                 received = received.encode('ascii', 'ignore')
@@ -1610,19 +1613,34 @@ class ViewClient:
                 print >>sys.stderr
             self.setViewsFromUiAutomatorDump(received)
         else:
-            if type(window).__name__ == 'str':
+            if isinstance(window, str):
                 self.list(sleep=0)
                 found = False
                 for wId in self.windows:
                     try:
-                        if window == self.windows[wId] or int(window) == wId:
+                        if window == self.windows[wId]:
                             window = wId
                             found = True
                             break
-                    except ValueError:
+                    except:
                         pass
+                    try:
+                        if int(window) == wId:
+                            window = wId
+                            found = True
+                            break
+                    except:
+                        pass
+                    try:
+                        if int(window, 16) == wId:
+                            window = wId
+                            found = True
+                            break
+                    except:
+                        pass
+
                 if not found:
-                    raise RuntimeError("ERROR: Cannot find window '%s'" % window)
+                    raise RuntimeError("ERROR: Cannot find window '%s' in %s" % (window, self.windows))
             
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
@@ -1807,7 +1825,7 @@ class ViewClient:
 
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
         
-        if type(val).__name__ == 'PatternObject':
+        if isinstance(val, org.python.modules.sre.PatternObject):
             return self.__findViewWithAttributeInTreeThatMatches(attr, val, root)
         else:
             if root and attr in root.map and root.map[attr] == val:
@@ -1884,7 +1902,7 @@ class ViewClient:
         return self.__findViewWithAttributeInTreeThatMatches(attr, regex, root)
         
     def findViewWithText(self, text, root="ROOT"):
-        if type(text).__name__ == 'PatternObject':
+        if isinstance(text, org.python.modules.sre.PatternObject):
             return self.findViewWithAttributeThatMatches(self.textProperty, text, root)
             #l = self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text)
             #ll = len(l)
