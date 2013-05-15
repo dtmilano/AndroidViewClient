@@ -17,7 +17,7 @@ limitations under the License.
 @author: diego
 '''
 
-__version__ = '2.3.17'
+__version__ = '2.3.18'
 
 import sys
 import subprocess
@@ -957,6 +957,8 @@ class ViewClient:
         else:
             adb = ViewClient.__obtainAdbPath()
 
+        self.adb = adb
+        ''' The adb command '''
         self.root = None
         ''' The root node '''
         self.viewsById = {}
@@ -1033,7 +1035,7 @@ class ViewClient:
             self.localPort = localport
             self.remotePort = remoteport
             # FIXME: it seems there's no way of obtaining the serialno from the MonkeyDevice
-            subprocess.check_call([adb, '-s', self.serialno, 'forward', 'tcp:%d' % self.localPort,
+            subprocess.check_call([self.adb, '-s', self.serialno, 'forward', 'tcp:%d' % self.localPort,
                                     'tcp:%d' % self.remotePort])
 
         self.windows = None
@@ -1314,6 +1316,10 @@ class ViewClient:
     ''' An alias for L{traverseShowClassIdTextAndCenter(view)} '''
     TRAVERSE_CITPS = traverseShowClassIdTextPositionAndSize
     ''' An alias for L{traverseShowClassIdTextPositionAndSize(view)} '''
+    
+    @staticmethod
+    def sleep(secs=1):
+        time.sleep(secs)
     
     def assertServiceResponse(self, response):
         '''
@@ -1955,7 +1961,22 @@ class ViewClient:
         return self.__getFocusedWindowId()
     
     def getSdkVersion(self):
+        '''
+        Gets the SDK version.
+        '''
+        
         return self.build[VERSION_SDK_PROPERTY]
+    
+    def isKeyboardShown(self):
+        '''
+        Whether the keyboard is displayed.
+        '''
+        
+        dim = self.device.shell('dumpsys input_method')
+        if dim:
+            # FIXME: API >= 15 ?
+            return "mInputShown=true" in dim
+        return False
 
 
 if __name__ == "__main__":
