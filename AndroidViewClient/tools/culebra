@@ -63,24 +63,27 @@ UNIT_TEST = 'unit-test'
 USE_JAR = 'use-jar'
 USE_DICTIONARY = 'use-dictionary'
 AUTO_REGEXPS = 'auto-regexps'
+START_ACTIVITY = 'start-activity'
 OUTPUT = 'output'
 WINDOW = 'window'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
 # -u,-s,-p,-v eaten by monkeyrunner
-SHORT_OPTS = 'HVIFSw:i:t:d:rCUj:D:R:o:'
+SHORT_OPTS = 'HVIFSw:i:t:d:rCUj:D:R:a:o:'
 LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               WINDOW + '=',
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
               USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST,
               USE_JAR + '=', USE_DICTIONARY + '=', AUTO_REGEXPS + '=',
+              START_ACTIVITY + '=',
               OUTPUT + '=']
 LONG_OPTS_ARG = {WINDOW: 'WINDOW', FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
                   USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', AUTO_REGEXPS: 'LIST',
+                  START_ACTIVITY: 'ACTIVITY',
                   OUTPUT: 'STR'}
 OPTS_HELP = {
     'H': 'prints this help',
-    'w': 'use WINDOW content (defualt: -1, all windows)',
+    'w': 'use WINDOW content (default: -1, all windows)',
     'i': 'whether to use findViewById() in script',
     't': 'whether to use findViewWithText() in script',
     'd': 'whether to use findViewWithContentDescription',
@@ -89,6 +92,7 @@ OPTS_HELP = {
     'j': 'use jar and appropriate shebang to run script',
     'D': 'use a dictionary to store the Views found',
     'R': 'auto regexps (i.e. clock)',
+    'a': 'starts Activity before dump',
     'o': 'output filename',
     }
 
@@ -328,6 +332,8 @@ for o, a in optlist:
             if r not in AUTO_REGEXPS_RES:
                 error("invalid auto regexp: %s\n" % (r))
                 usage()
+    elif o in ['a', START_ACTIVITY]:
+        options[START_ACTIVITY] = a
     elif o in ['o', OUTPUT]:
         options[OUTPUT] = a
 
@@ -391,7 +397,15 @@ from com.dtmilano.android.viewclient import ViewClient
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
   
-device, serialno = ViewClient.connectToDeviceOrExit()
+device, serialno = ViewClient.connectToDeviceOrExit()\
+'''
+
+if options[START_ACTIVITY]:
+    print '''
+device.startActivity(component='%s')\
+''' % options[START_ACTIVITY]
+    
+print '''\
 vc = ViewClient(device, serialno, autodump=False)
 vc.dump(window=%s)
 ''' % (options[WINDOW] if type(options[WINDOW]).__name__ == 'str' and options[WINDOW][0] in '-0123456789' else "'%s'" % options[WINDOW])
