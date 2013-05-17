@@ -47,6 +47,7 @@ src.com.dtmilano.android.viewclient.View.getPositionAndSize	src.com.dtmilano.and
 src.com.dtmilano.android.viewclient.View.getClass	src.com.dtmilano.android.viewclient.View-class.html#getClass
 src.com.dtmilano.android.viewclient.View.getCoords	src.com.dtmilano.android.viewclient.View-class.html#getCoords
 src.com.dtmilano.android.viewclient.View.__str__	src.com.dtmilano.android.viewclient.View-class.html#__str__
+src.com.dtmilano.android.viewclient.View.currentFocus	src.com.dtmilano.android.viewclient.View-class.html#currentFocus
 src.com.dtmilano.android.viewclient.View.textProperty	src.com.dtmilano.android.viewclient.View-class.html#textProperty
 src.com.dtmilano.android.viewclient.View.getWidth	src.com.dtmilano.android.viewclient.View-class.html#getWidth
 src.com.dtmilano.android.viewclient.View.leftProperty	src.com.dtmilano.android.viewclient.View-class.html#leftProperty
@@ -89,6 +90,7 @@ src.com.dtmilano.android.viewclient.View.getPositionAndSize	src.com.dtmilano.and
 src.com.dtmilano.android.viewclient.View.getClass	src.com.dtmilano.android.viewclient.View-class.html#getClass
 src.com.dtmilano.android.viewclient.View.getCoords	src.com.dtmilano.android.viewclient.View-class.html#getCoords
 src.com.dtmilano.android.viewclient.View.__str__	src.com.dtmilano.android.viewclient.View-class.html#__str__
+src.com.dtmilano.android.viewclient.View.currentFocus	src.com.dtmilano.android.viewclient.View-class.html#currentFocus
 src.com.dtmilano.android.viewclient.View.textProperty	src.com.dtmilano.android.viewclient.View-class.html#textProperty
 src.com.dtmilano.android.viewclient.View.getWidth	src.com.dtmilano.android.viewclient.View-class.html#getWidth
 src.com.dtmilano.android.viewclient.View.leftProperty	src.com.dtmilano.android.viewclient.View-class.html#leftProperty
@@ -136,6 +138,7 @@ src.com.dtmilano.android.viewclient.View.getClass	src.com.dtmilano.android.viewc
 src.com.dtmilano.android.viewclient.View.__obtainVwVh	src.com.dtmilano.android.viewclient.View-class.html#__obtainVwVh
 src.com.dtmilano.android.viewclient.View.getCoords	src.com.dtmilano.android.viewclient.View-class.html#getCoords
 src.com.dtmilano.android.viewclient.View.__str__	src.com.dtmilano.android.viewclient.View-class.html#__str__
+src.com.dtmilano.android.viewclient.View.currentFocus	src.com.dtmilano.android.viewclient.View-class.html#currentFocus
 src.com.dtmilano.android.viewclient.View.textProperty	src.com.dtmilano.android.viewclient.View-class.html#textProperty
 src.com.dtmilano.android.viewclient.View.getWidth	src.com.dtmilano.android.viewclient.View-class.html#getWidth
 src.com.dtmilano.android.viewclient.View.device	src.com.dtmilano.android.viewclient.View-class.html#device
