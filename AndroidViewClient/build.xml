@@ -40,8 +40,25 @@
 		<javac srcdir="src" destdir="bin/classes" />
 	</target>
 
-    <target name="install" depends="jar">
-        <mkdir dir="${gdrive.dest.dir}" />
-        <copy file="${avc.jar}" todir="${gdrive.dest.dir}" />
+    <target name="install" depends="jar,doc-jar">
+        <mkdir dir="${gdrive.bin.dest.dir}" />
+        <copy file="${avc.jar}" todir="${gdrive.bin.dest.dir}" />
+        <mkdir dir="${gdrive.doc.dest.dir}" />
+        <copy file="${avc.doc.jar}" todir="${gdrive.doc.dest.dir}" />
+    </target>
+
+    <target name="doc" >
+        <mkdir dir="doc" />
+        <exec executable="epydoc">
+            <arg value="--config=viewclient.epydoc" />
+        </exec>
+    </target>
+
+	<property name="avc.doc.jar" value="bin/${avc.doc.jarname}-${avc.version}.jar" />
+    <target name="doc-jar" depends="doc">
+		<echo message="Creating ${avc.doc.jarname} ${avc.version} jar ..." />
+		<jar destfile="${avc.doc.jar}">
+            <fileset dir="doc/" />
+        </jar>
     </target>
 </project>
