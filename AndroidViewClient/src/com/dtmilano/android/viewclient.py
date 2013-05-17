@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2012  Diego Torres Milano
+Copyright (C) 2012-2013  Diego Torres Milano
 Created on Feb 2, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-@author: diego
+@author: Diego Torres Milano
 '''
 
 __version__ = '2.3.18'
@@ -94,13 +94,13 @@ IP_RE = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
 
 def __nd(name):
     '''
-    @return: Returns a named decimal
+    @return: Returns a named decimal regex
     '''
     return '(?P<%s>\d+)' % name
 
 def __nh(name):
     '''
-    @return: Returns a named hex
+    @return: Returns a named hex regex
     '''
     return '(?P<%s>[0-9a-f]+)' % name
 
@@ -113,7 +113,7 @@ def __ns(name, greedy=False):
     @type greedy: bool
     @param greedy: Whether the regex is greedy or not
     
-    @return: Returns a named string (only non-whitespace characters allowed)
+    @return: Returns a named string regex (only non-whitespace characters allowed)
     '''
     return '(?P<%s>\S+%s)' % (name, '' if greedy else '?')
 
@@ -140,11 +140,11 @@ class Window:
         @type wvw: int
         @param wvw: window's virtual width
         @type wvh: int
+        @param wvh: window's virtual height
         @type px: int
         @param px: parent's X
         @type py: int
         @param py: parent's Y
-        @param wvh: window's virtual height
         @type visibility: int
         @param visibility: visibility of the window
         '''
@@ -168,6 +168,10 @@ class Window:
 
 
 class ViewNotFoundException(Exception):
+    '''
+    ViewNotFoundException is raised when a View is not found.
+    '''
+    
     def __init__(self, attr, value, root):
         if isinstance(value, org.python.modules.sre.PatternObject):
             msg = "Couldn't find View with %s that matches '%s' in tree with root=%s" % (attr, value.pattern, root)
@@ -224,6 +228,7 @@ class View:
         ''' The parent of this View '''
         self.windows = {}
         self.currentFocus = None
+        ''' The current focus '''
         self.build = {}
         ''' Build properties '''
 
@@ -355,9 +360,9 @@ class View:
             
     def getClass(self):
         '''
-        Gets the View class
+        Gets the L{View} class
         
-        @return:  the View class or None if not defined
+        @return:  the L{View} class or C{None} if not defined
         '''
         
         try:
@@ -367,9 +372,9 @@ class View:
 
     def getId(self):
         '''
-        Gets the View Id
+        Gets the L{View} Id
         
-        @return: the View Id or None if not defined
+        @return: the L{View} C{Id} or C{None} if not defined
         @see: L{getUniqueId()}
         '''
         
@@ -380,7 +385,7 @@ class View:
 
     def getContentDescription(self):
         '''
-        Gets the content description
+        Gets the content description.
         '''
         
         try:
@@ -389,13 +394,17 @@ class View:
             return None
     
     def getParent(self):
+        '''
+        Gets the parent.
+        '''
+        
         return self.parent
     
     def getText(self):
         '''
-        Gets the text attribute
+        Gets the text attribute.
         
-        @return: the text attribute or None if not defined
+        @return: the text attribute or C{None} if not defined
         '''
         
         try:
@@ -404,6 +413,10 @@ class View:
             return None
 
     def getHeight(self):
+        '''
+        Gets the height.
+        '''
+        
         if self.useUiAutomator:
             return self.map['bounds'][1][1] - self.map['bounds'][0][1]
         else:
@@ -413,6 +426,10 @@ class View:
                 return 0
 
     def getWidth(self):
+        '''
+        Gets the width.
+        '''
+        
         if self.useUiAutomator:
             return self.map['bounds'][1][0] - self.map['bounds'][0][0]
         else:
@@ -568,6 +585,8 @@ class View:
     def getCoords(self):
         '''
         Gets the coords of the View
+        
+        @return: A tuple containing the View's coordinates (L, T, R, B)
         '''
         
         if DEBUG_COORDS:
@@ -581,6 +600,8 @@ class View:
     def getPositionAndSize(self):
         '''
         Gets the position and size (X,Y, W, H)
+        
+        @return: A tuple containing the View's coordinates (X, Y, W, H)
         '''
         
         (x, y) = self.getXY();
@@ -1237,7 +1258,10 @@ class ViewClient:
         @type view: I{View}
         @param view: the View
         @type extraInfo: method
-        @param extraInfo: the View method to add extra info  
+        @param extraInfo: the View method to add extra info
+        @type noextrainfo: bool
+        @param noextrainfo: Don't add extra info
+        
         @return: the string containing class, id, and text if available 
         '''
         
@@ -1318,7 +1342,13 @@ class ViewClient:
     ''' An alias for L{traverseShowClassIdTextPositionAndSize(view)} '''
     
     @staticmethod
-    def sleep(secs=1):
+    def sleep(secs=1.0):
+        '''
+        Sleeps for the specified number of seconds.
+        
+        @type secs: float
+        @param secs: number of seconds
+        '''
         time.sleep(secs)
     
     def assertServiceResponse(self, response):
@@ -1327,6 +1357,7 @@ class ViewClient:
         
         @type response: str
         @param response: Response received from the server
+        
         @raise Exception: If the response received from the server is invalid
         '''
         
@@ -1351,7 +1382,7 @@ class ViewClient:
         Sets L{self.views} to the received value splitting it into lines.
         
         @type received: str
-        @param received: the string received from the I{View server}
+        @param received: the string received from the I{View Server}
         '''
         
         if not received or received == "":
