@@ -777,6 +777,10 @@ class View:
     def intersection(self, l1, l2):
         return list(set(l1) & set(l2))
     
+    def containsPoint(self, (x, y)):
+        (X, Y, W, H) = self.getPositionAndSize()
+        return (((x >= X) and (x <= (X+W)) and ((y >= Y) and (y <= (Y+H)))))
+    
     def add(self, child):
         '''
         Adds a child
@@ -1506,11 +1510,15 @@ class ViewClient:
     
     def __parseTree(self, receivedLines):
         '''
-        Parses the View tree contained in L{self.views}. The tree is created and the root node assigned to L{self.root}.
+        Parses the View tree contained in L{receivedLines}. The tree is created and the root node assigned to L{self.root}.
+        
+        @type receivedLines: str
+        @param receivedLines: the string received from B{View Server}
         '''
         
         self.root = None
         self.viewsById = {}
+        self.views = []
         parent = None
         parents = []
         treeLevel = -1
@@ -1519,7 +1527,6 @@ class ViewClient:
         for v in receivedLines:
             if v == '' or v == 'DONE' or v == 'DONE.':
                 break
-            self.views.append(v)
             attrs = self.__splitAttrs(v, addViewToViewsById=True)
             if not self.root:
                 if v[0] == ' ':
@@ -1556,6 +1563,7 @@ class ViewClient:
                     parent.add(child)
                     treeLevel = newLevel
                     lastView = child
+            self.views.append(lastView)
     
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY])
@@ -1981,6 +1989,13 @@ class ViewClient:
         
         return self.__findViewWithAttributeInTreeOrRaise('content-desc', contentdescription, root)
     
+    def findViewsContainingPoint(self, (x, y)):
+        '''
+        Finds the list of Views that contain the point (x, y).
+        '''
+        
+        return [v for v in self.views if v.containsPoint((x,y))]
+        
     def getViewIds(self):
         '''
         Returns the Views map.

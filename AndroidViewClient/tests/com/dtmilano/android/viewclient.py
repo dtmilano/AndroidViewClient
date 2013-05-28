@@ -248,6 +248,15 @@ class ViewTest(unittest.TestCase):
         
         for ch in root.children:
             self.assertTrue(ch.parent == root)
+            
+    def testContainsPoint(self):
+        v = View(VIEW_MAP, MockDevice(), 15)
+        (X, Y, W, H) = v.getPositionAndSize()
+        self.assertEqual(X, v.getX())
+        self.assertEqual(Y, v.getY())
+        self.assertEqual(W, v.getWidth())
+        self.assertEqual(H, v.getHeight())
+        self.assertTrue(v.containsPoint((v.getCenter())))
 
 class ViewClientTest(unittest.TestCase):
 
@@ -847,7 +856,24 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             vc.findViewByIdOrRaise('id/home')
         finally:
             device.shutdownMockViewServer()
-            
+        
+    def testFindViewsContainingPoint_api15(self):
+        try:
+            device = MockDevice(version=15, startviewserver=True)
+            vc = ViewClient(device, device.serialno, adb=TRUE)
+            list = vc.findViewsContainingPoint((200, 200))
+            self.assertNotEquals(None, list)
+            self.assertNotEquals(0, len(list))
+        finally:
+            device.shutdownMockViewServer()
+        
+    def testFindViewsContainingPoint_api17(self):
+        device = MockDevice(version=17)
+        vc = ViewClient(device, device.serialno, adb=TRUE)
+        list = vc.findViewsContainingPoint((200, 200))
+        self.assertNotEquals(None, list)
+        self.assertNotEquals(0, len(list))
+             
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
