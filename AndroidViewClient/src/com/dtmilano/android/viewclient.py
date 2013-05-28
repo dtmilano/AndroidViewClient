@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.18'
+__version__ = '2.3.19'
 
 import sys
 import subprocess
@@ -940,7 +940,7 @@ class ViewClient:
     No service is started.
     '''
 
-    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True):
+    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True, ignoreuiautomatorkilled=False):
         '''
         Constructor
         
@@ -962,6 +962,8 @@ class ViewClient:
                            emulator
         @type startviewserver: boolean
         @param startviewserver: Whether to start the B{global} ViewServer
+        @type ignoreuiautomatorkilled: boolean
+        @param ignoreuiautomatorkilled: Ignores received B{Killed} message from C{uiautomator}
         '''
 
         if not device:
@@ -1034,6 +1036,11 @@ class ViewClient:
         ''' Force the use of ViewServer even if the conditions to use UiAutomator are satisfied '''
         self.useUiAutomator = (self.build[VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse # jelly bean 4.1 & 4.2
         ''' If UIAutomator is supported by the device it will be used '''
+        self.ignoreUiAutomatorKilled = ignoreuiautomatorkilled
+        ''' On some devices (i.e. Nexus 7 running 4.2.2) uiautomator is killed just after generating
+        the dump file. In many cases the file is already complete so we can ask to ignore the 'Killed'
+        message by setting L{ignoreuiautomatorkilled} to C{True}
+        '''
 
         if self.useUiAutomator:
             self.textProperty = TEXT_PROPERTY_UI_AUTOMATOR
@@ -1638,7 +1645,10 @@ class ViewClient:
             if not output:
                 raise RuntimeError('ERROR: Getting UIAutomator dump')
             if not re.search('dumped', output):
-                raise RuntimeError("ERROR: UIAutomator dump output doesn't contain 'dumped' (%s)" % output)
+                if re.search('Killed', output) and self.ignoreUiAutomatorKilled:
+                    pass
+                else:
+                    raise RuntimeError("ERROR: UIAutomator dump output doesn't contain 'dumped' (%s)" % output)
             received = self.device.shell('cat %s 2>/dev/null' % windowDump)
             if received:
                 received = received.encode('ascii', 'ignore')
