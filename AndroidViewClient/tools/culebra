@@ -19,9 +19,10 @@ ___________________/  /__/  /__/  /__/  /________________________________
                                            \_____/--<
 @author: Diego Torres Milano
 @author: Jennifer E. Swofford (ascii art snake)
+
 '''
 
-__version__ = '0.9.8'
+__version__ = '0.9.10'
 
 import re
 import sys
@@ -101,10 +102,13 @@ OPTS_HELP = {
 
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
+SB_NO_JAR = 'no-jar'
+SB_JAR = 'jar'
+SB_JAR_LINUX = 'jar-linux'
 SHEBANG = {
-    'no-jar': '#! /usr/bin/env monkeyrunner',
-    'jar': '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!',
-    'jar-linux': '#! /usr/local/bin/shebang monkeyrunner -plugin $AVC_HOME/bin/androidviewclient-$AVC_VERSION.jar @!'
+    SB_NO_JAR: '#! /usr/bin/env monkeyrunner',
+    SB_JAR: '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!',
+    SB_JAR_LINUX: '#! /usr/local/bin/shebang monkeyrunner -plugin $AVC_HOME/bin/androidviewclient-$AVC_VERSION.jar @!'
     }
 
 def shortAndLongOptions():
@@ -301,11 +305,14 @@ def getShebangJar():
         import java
         osName = java.lang.System.getProperty('os.name')
         if osName == 'Linux':
-            return SHEBANG['jar-linux']
+            return SHEBANG[SB_JAR_LINUX]
         else:
-            return SHEBANG['jar']
+            return SHEBANG[SB_JAR]
     else:
-        return SHEBANG['no-jar']
+        return SHEBANG[SB_NO_JAR]
+
+def getWindowOption():
+    return options[WINDOW] if isinstance(options[WINDOW], str) and options[WINDOW][0] in '-0123456789' else "'%s'" % options[WINDOW]
 
 # __main__
 progname = os.path.basename(sys.argv[0])
@@ -321,7 +328,7 @@ kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': Fal
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
         UNIT_TEST: False, USE_JAR: True, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
-        AUTO_REGEXPS: None, OUTPUT: None,
+        AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None,
         WINDOW: -1}
 transform = traverseAndPrint
 for o, a in optlist:
@@ -441,7 +448,7 @@ device.startActivity(component='%s')
 print '''\
 vc = ViewClient(device, serialno, autodump=False)
 vc.dump(window=%s)
-''' % (options[WINDOW] if type(options[WINDOW]).__name__ == 'str' and options[WINDOW][0] in '-0123456789' else "'%s'" % options[WINDOW])
+''' % getWindowOption()
 
 if options[USE_DICTIONARY]:
     print '''views = dict()'''
