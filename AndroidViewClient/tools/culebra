@@ -22,7 +22,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '0.9.10'
+__version__ = '0.9.11'
 
 import re
 import sys
@@ -324,7 +324,7 @@ except getopt.GetoptError, e:
     usage()
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
-kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False}
+kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
         UNIT_TEST: False, USE_JAR: True, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
@@ -436,9 +436,10 @@ print '''\
 from com.dtmilano.android.viewclient import ViewClient
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
-  
-device, serialno = ViewClient.connectToDeviceOrExit()
-''',
+
+kwargs1 = %s
+device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
+''' % kwargs1,
 
 if options[START_ACTIVITY]:
     print '''\
@@ -446,9 +447,10 @@ device.startActivity(component='%s')
 ''' % options[START_ACTIVITY],
     
 print '''\
-vc = ViewClient(device, serialno, autodump=False)
+kwargs2 = %s
+vc = ViewClient(device, serialno, **kwargs2)
 vc.dump(window=%s)
-''' % getWindowOption()
+''' % (kwargs2, getWindowOption())
 
 if options[USE_DICTIONARY]:
     print '''views = dict()'''

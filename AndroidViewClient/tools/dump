@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '0.9.8'
+__version__ = '0.9.11'
 
 import sys
 import os
@@ -111,7 +111,7 @@ except getopt.GetoptError, e:
     usage()
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
-kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False}
+kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
 options = {WINDOW: -1}
 transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
