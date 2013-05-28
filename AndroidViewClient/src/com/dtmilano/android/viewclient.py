@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.18'
+__version__ = '2.3.19'
 
 import sys
 import subprocess
@@ -958,6 +958,8 @@ class ViewClient:
                            emulator
         @type startviewserver: boolean
         @param startviewserver: Whether to start the B{global} ViewServer
+        @type ignoreuiautomatorkilled: boolean
+        @param ignoreuiautomatorkilled: Ignores received B{Killed} message from C{uiautomator}
         '''
 
         if not device:
