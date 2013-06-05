@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.19'
+__version__ = '2.3.20'
 
 import sys
 import subprocess
@@ -279,14 +279,14 @@ class View:
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
-        elif version >= 8 and version < 10:
+        elif version >= 7 and version < 10:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
             self.leftProperty = LEFT_PROPERTY_API_8
             self.topProperty = TOP_PROPERTY_API_8
             self.widthProperty = WIDTH_PROPERTY_API_8
             self.heightProperty = HEIGHT_PROPERTY_API_8
-        elif version > 0 and version < 8:
+        elif version > 0 and version < 7:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
             self.leftProperty = LEFT_PROPERTY
