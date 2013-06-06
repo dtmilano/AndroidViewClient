@@ -28,7 +28,7 @@ except:
 
 from com.dtmilano.android.viewclient import *
 from mocks import MockDevice, MockViewServer
-from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, VIEW_MAP_API_8, RUNNING, STOPPED, WINDOWS
+from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, VIEW_MAP_API_8, VIEW_MAP_API_17, RUNNING, STOPPED, WINDOWS
 
 # this is probably the only reliable way of determining the OS in monkeyrunner
 os_name = java.lang.System.getProperty('os.name')
@@ -249,7 +249,7 @@ class ViewTest(unittest.TestCase):
         for ch in root.children:
             self.assertTrue(ch.parent == root)
             
-    def testContainsPoint(self):
+    def testContainsPoint_api15(self):
         v = View(VIEW_MAP, MockDevice(), 15)
         (X, Y, W, H) = v.getPositionAndSize()
         self.assertEqual(X, v.getX())
@@ -257,6 +257,23 @@ class ViewTest(unittest.TestCase):
         self.assertEqual(W, v.getWidth())
         self.assertEqual(H, v.getHeight())
         self.assertTrue(v.containsPoint((v.getCenter())))
+    
+    def testContainsPoint_api17(self):
+        v = View(VIEW_MAP_API_17, MockDevice(), 17)
+        (X, Y, W, H) = v.getPositionAndSize()
+        self.assertEqual(X, v.getX())
+        self.assertEqual(Y, v.getY())
+        self.assertEqual(W, v.getWidth())
+        self.assertEqual(H, v.getHeight())
+        self.assertTrue(v.containsPoint((v.getCenter())))
+         
+    def testIsClickable_api15(self):
+        v = View(VIEW_MAP, MockDevice(), 15)
+        self.assertTrue(v.isClickable())
+        
+    def testIsClickable_api17(self):
+        v = View(VIEW_MAP_API_17, MockDevice(), 17)
+        self.assertTrue(v.isClickable())
 
 class ViewClientTest(unittest.TestCase):
 
@@ -856,7 +873,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             vc.findViewByIdOrRaise('id/home')
         finally:
             device.shutdownMockViewServer()
-        
+    
     def testFindViewsContainingPoint_api15(self):
         try:
             device = MockDevice(version=15, startviewserver=True)
@@ -870,7 +887,24 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
     def testFindViewsContainingPoint_api17(self):
         device = MockDevice(version=17)
         vc = ViewClient(device, device.serialno, adb=TRUE)
-        list = vc.findViewsContainingPoint((200, 200))
+        list = vc.findViewsContainingPoint((55, 75))
+        self.assertNotEquals(None, list)
+        self.assertNotEquals(0, len(list))
+        
+    def testFindViewsContainingPoint_filterApi15(self):
+        try:
+            device = MockDevice(version=15, startviewserver=True)
+            vc = ViewClient(device, device.serialno, adb=TRUE)
+            list = vc.findViewsContainingPoint((200, 200), filter=View.isClickable)
+            self.assertNotEquals(None, list)
+            self.assertNotEquals(0, len(list))
+        finally:
+            device.shutdownMockViewServer()
+        
+    def testFindViewsContainingPoint_filterApi17(self):
+        device = MockDevice(version=17)
+        vc = ViewClient(device, device.serialno, adb=TRUE)
+        list = vc.findViewsContainingPoint((55, 75), filter=View.isClickable)
         self.assertNotEquals(None, list)
         self.assertNotEquals(0, len(list))
              

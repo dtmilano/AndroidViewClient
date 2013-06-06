@@ -37,7 +37,8 @@ DEBUG = False
 DEBUG_DEVICE = DEBUG and False
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
-DEBUG_GETATTR = DEBUG and False
+DEBUG_GETATTR = DEBUG and True
+DEBUG_CALL = DEBUG or True
 DEBUG_COORDS = DEBUG and True
 DEBUG_TOUCH = DEBUG and False
 DEBUG_STATUSBAR = DEBUG and False
@@ -313,8 +314,9 @@ class View:
         
     def __getattr__(self, name):
         if DEBUG_GETATTR:
-            print >>sys.stderr, "__getattr__(%s)" % (name)
-        
+            print >>sys.stderr, "__getattr__(%s)    version: %d" % (name, self.build[VERSION_SDK_PROPERTY])
+                
+        # NOTE:
         # I should try to see if 'name' is a defined method
         # but it seems that if I call locals() here an infinite loop is entered
         
@@ -326,22 +328,33 @@ class View:
         elif name.count("_") > 0:
             mangledList = self.allPossibleNamesWithColon(name)
             mangledName = self.intersection(mangledList, self.map.keys())
-            if len(mangledName) > 0:
+            if len(mangledName) > 0 and self.map.has_key(mangledName[0]):
                 r = self.map[mangledName[0]]
             else:
                 # Default behavior
                 raise AttributeError, name
         else:
-            # Default behavior
-            raise AttributeError, name
+            # try removing 'is' prefix
+            if DEBUG_GETATTR:
+                print >> sys.stderr, "    __getattr__: trying without 'is' prefix"
+            suffix = name[2:].lower()
+            if self.map.has_key(suffix):
+                r = self.map[suffix]
+            else:
+                # Default behavior
+                raise AttributeError, name
         
         # if the method name starts with 'is' let's assume its return value is boolean
-        if name[:2] == 'is':
-            r = True if r == 'true' else False
+#         if name[:2] == 'is':
+#             r = True if r == 'true' else False
+        if r == 'true':
+            r = True
+        elif r == 'false':
+            r = False
         
         # this should not cached in some way
         def innerMethod():
-            if DEBUG:
+            if DEBUG_GETATTR:
                 print >>sys.stderr, "innerMethod: %s returning %s" % (innerMethod.__name__, r)
             return r
         
@@ -355,7 +368,7 @@ class View:
         return innerMethod
     
     def __call__(self, *args, **kwargs):
-        if DEBUG:
+        if DEBUG_CALL:
             print >>sys.stderr, "__call__(%s)" % (args if args else None)
             
     def getClass(self):
@@ -790,7 +803,10 @@ class View:
         '''
         child.parent = self
         self.children.append(child)
-        
+    
+    def isClickable(self):
+        return self.__getattr__('isClickable')()
+    
     def __smallStr__(self):
         __str = "View["
         if "class" in self.map:
@@ -1999,12 +2015,15 @@ class ViewClient:
         
         return self.__findViewWithAttributeInTreeOrRaise('content-desc', contentdescription, root)
     
-    def findViewsContainingPoint(self, (x, y)):
+    def findViewsContainingPoint(self, (x, y), filter=None):
         '''
         Finds the list of Views that contain the point (x, y).
         '''
         
-        return [v for v in self.views if v.containsPoint((x,y))]
+        if not filter:
+            filter = lambda v: True
+        
+        return [v for v in self.views if (v.containsPoint((x,y)) and filter(v))]
         
     def getViewIds(self):
         '''
