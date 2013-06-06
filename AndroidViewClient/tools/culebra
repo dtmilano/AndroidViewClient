@@ -29,6 +29,7 @@ import sys
 import os
 import getopt
 import warnings
+import subprocess
 from datetime import date
 
 # This must be imported before MonkeyRunner and MonkeyDevice,
@@ -67,18 +68,19 @@ DICTIONARY_KEYS_FROM = 'dictionary-keys-from'
 AUTO_REGEXPS = 'auto-regexps'
 START_ACTIVITY = 'start-activity'
 OUTPUT = 'output'
+INTERACTIVE = 'interactive'
 WINDOW = 'window'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
 # -u,-s,-p,-v eaten by monkeyrunner
-SHORT_OPTS = 'HVIFSw:i:t:d:rCUj:D:K:R:a:o:'
+SHORT_OPTS = 'HVIFSw:i:t:d:rCUj:D:K:R:a:o:A'
 LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               WINDOW + '=',
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
               USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST,
               USE_JAR + '=', USE_DICTIONARY + '=', DICTIONARY_KEYS_FROM + '=', AUTO_REGEXPS + '=',
               START_ACTIVITY + '=',
-              OUTPUT + '=']
+              OUTPUT + '=', INTERACTIVE]
 LONG_OPTS_ARG = {WINDOW: 'WINDOW',
                   FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
                   USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', DICTIONARY_KEYS_FROM: 'VALUE', AUTO_REGEXPS: 'LIST',
@@ -98,6 +100,7 @@ OPTS_HELP = {
     'R': 'auto regexps (i.e. clock)',
     'a': 'starts Activity before dump',
     'o': 'output filename',
+    'A': 'interactive',
     }
 
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
@@ -328,7 +331,7 @@ kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': Fal
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
         UNIT_TEST: False, USE_JAR: True, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
-        AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None,
+        AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None, INTERACTIVE: False,
         WINDOW: -1}
 transform = traverseAndPrint
 for o, a in optlist:
@@ -374,6 +377,8 @@ for o, a in optlist:
         options[START_ACTIVITY] = a
     elif o in ['o', OUTPUT]:
         options[OUTPUT] = a
+    elif o in ['A', INTERACTIVE]:
+        options[INTERACTIVE] = True
 
 if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT] or options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[VERBOSE_COMMENTS]:
@@ -457,3 +462,34 @@ if options[USE_DICTIONARY]:
 
 vc.dump(window=options[WINDOW])
 vc.traverse(transform=transform)
+
+if options[INTERACTIVE]:
+    sys.path.insert(0, '/Users/diego/Work/workspace/AndroidEventRecorder/src')
+    print sys.path
+    import com.dtmilano.android.eventrecorder
+    #from com.dtmilano.android.eventrecorder import EventRecorder
+#     try:
+#         #cmdStr = "/bin/ls -l"
+#         cmdStr = "/Users/diego/Work/workspace/AndroidEventPlayer/samples/runme.sh"
+#         #cmdStr = '%(ANDROID_EVENT_PLAYER_HOME)s/src/com/dtmilano/android/eventrecorder.py -v -n -d %(TIMED)s %(DEVICE)s' % {'ANDROID_EVENT_PLAYER_HOME': '/Users/diego/Work/workspace/AndroidEventPlayer', 'TIMED': '', 'DEVICE': '/dev/input/event0'}
+#         print cmdStr
+#         cmd = cmdStr.split()
+#         
+#         pipe = subprocess.Popen(cmd, shell=False) #, stdout=subprocess.PIPE)
+#         if not pipe:
+#             print >>sys.stderr, "Cannot create pipe"
+#             sys.exit(2)
+#         print "pipe", pipe
+#         pipe.communicate()
+#         
+#         while True:
+#             print >>sys.stderr, "reading..."
+#             line = pipe.stdout.readline()
+#             if not line:
+#                 break
+#             print line
+#             self.pipe.poll()
+#             if self.pipe.returncode is not None:
+#                 break
+#     except Exception, e:
+#         print >>sys.stderr, "ERROR:", e
