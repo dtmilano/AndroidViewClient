@@ -47,7 +47,7 @@ try:
 except:
     pass
 
-from com.dtmilano.android.viewclient import ViewClient
+from com.dtmilano.android.viewclient import ViewClient, View
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
@@ -464,32 +464,23 @@ vc.dump(window=options[WINDOW])
 vc.traverse(transform=transform)
 
 if options[INTERACTIVE]:
-    sys.path.insert(0, '/Users/diego/Work/workspace/AndroidEventRecorder/src')
-    print sys.path
-    import com.dtmilano.android.eventrecorder
-    #from com.dtmilano.android.eventrecorder import EventRecorder
-#     try:
-#         #cmdStr = "/bin/ls -l"
-#         cmdStr = "/Users/diego/Work/workspace/AndroidEventPlayer/samples/runme.sh"
-#         #cmdStr = '%(ANDROID_EVENT_PLAYER_HOME)s/src/com/dtmilano/android/eventrecorder.py -v -n -d %(TIMED)s %(DEVICE)s' % {'ANDROID_EVENT_PLAYER_HOME': '/Users/diego/Work/workspace/AndroidEventPlayer', 'TIMED': '', 'DEVICE': '/dev/input/event0'}
-#         print cmdStr
-#         cmd = cmdStr.split()
-#         
-#         pipe = subprocess.Popen(cmd, shell=False) #, stdout=subprocess.PIPE)
-#         if not pipe:
-#             print >>sys.stderr, "Cannot create pipe"
-#             sys.exit(2)
-#         print "pipe", pipe
-#         pipe.communicate()
-#         
-#         while True:
-#             print >>sys.stderr, "reading..."
-#             line = pipe.stdout.readline()
-#             if not line:
-#                 break
-#             print line
-#             self.pipe.poll()
-#             if self.pipe.returncode is not None:
-#                 break
-#     except Exception, e:
-#         print >>sys.stderr, "ERROR:", e
+    import socket
+    HOST = 'localhost'
+    PORT = 8900
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((HOST, PORT))
+    s.sendall("RECORD EVENTS START\n")
+    fin = open("/dev/tty")
+    while True:
+        print >>sys.stderr, "Reading events..."
+        data = s.recv(1024)
+        code = ViewClient.excerpt(data)
+        exec code
+        # unfortunately, this does not work with monkeyrunner
+        #resp = raw_input("Continue recording events? [Y/n]: ")
+        print >>sys.stderr, "Continue recording events? [Y/n]: "
+        resp = fin.readline().strip()
+        if resp in ['N', 'n']:
+            break
+    s.sendall("RECORD EVENTS STOP\n")
+    s.close()

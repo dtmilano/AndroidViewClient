@@ -919,15 +919,15 @@ class UiAutomator2AndroidViewClient():
         if name == 'hierarchy':
             pass
         elif name == 'node':
-            self.nodeStack.pop( )
+            self.nodeStack.pop()
 
     def CharacterData(self, data):
         '''
         Expat character data event handler
         '''
         
-        if data.strip( ):
-            data = data.encode( )
+        if data.strip():
+            data = data.encode()
             element = self.nodeStack[-1]
             element.cdata += data
 
@@ -941,6 +941,52 @@ class UiAutomator2AndroidViewClient():
         # Parse the XML File
         parserStatus = parser.Parse(uiautomatorxml, 1)
         return self.root
+
+class Excerpt2Code():
+    ''' Excerpt XML to code '''
+
+    def __init__(self):
+        self.data = None
+
+    def StartElement(self, name, attributes):
+        '''
+        Expat start element event handler
+        '''
+        if name == 'excerpt':
+            pass
+        else:
+            warnings.warn("Unexpected element: '%s'" % name)
+
+    def EndElement(self, name):
+        '''
+        Expat end element event handler
+        '''
+
+        if name == 'excerpt':
+            pass
+
+    def CharacterData(self, data):
+        '''
+        Expat character data event handler
+        '''
+
+        if data.strip():
+            data = data.encode()
+            if not self.data:
+                self.data = data
+            else:
+                self.data += data
+
+    def Parse(self, excerpt):
+        # Create an Expat parser
+        parser = xml.parsers.expat.ParserCreate()
+        # Set the Expat event handlers to our methods
+        parser.StartElementHandler = self.StartElement
+        parser.EndElementHandler = self.EndElement
+        parser.CharacterDataHandler = self.CharacterData
+        # Parse the XML
+        parserStatus = parser.Parse(excerpt, 1)
+        return self.data
 
 class ViewClient:
     '''
@@ -2052,6 +2098,14 @@ class ViewClient:
             # FIXME: API >= 15 ?
             return "mInputShown=true" in dim
         return False
+
+    @staticmethod
+    def excerpt(str, execute=False):
+        code = Excerpt2Code().Parse(str)
+        if execute:
+            exec code
+        else:
+            return code
 
 
 if __name__ == "__main__":
