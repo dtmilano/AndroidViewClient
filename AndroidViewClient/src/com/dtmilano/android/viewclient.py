@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.20'
+__version__ = '2.3.21'
 
 import sys
 import subprocess
@@ -1101,7 +1101,10 @@ class ViewClient:
         self.ignoreUiAutomatorKilled = ignoreuiautomatorkilled
         ''' On some devices (i.e. Nexus 7 running 4.2.2) uiautomator is killed just after generating
         the dump file. In many cases the file is already complete so we can ask to ignore the 'Killed'
-        message by setting L{ignoreuiautomatorkilled} to C{True}
+        message by setting L{ignoreuiautomatorkilled} to C{True}.
+        
+        Changes in 2.3.21 that uses C{/dev/tty} instead of a file may have turned this variable
+        unnnecessary, however it has been kept for backward compatibility.
         '''
 
         if self.useUiAutomator:
@@ -1701,26 +1704,12 @@ class ViewClient:
             MonkeyRunner.sleep(sleep)
             
         if self.useUiAutomator:
-            # FIXME: this might not be the path on some devices
-            windowDump = '/mnt/sdcard/window_dump.xml'
-            output = self.device.shell('uiautomator dump %s' % windowDump)
-            if not output:
+            # NOTICE:
+            # Using /dev/tty this works even on devices with no sdcard
+            received = self.device.shell('uiautomator dump /dev/tty >/dev/null')
+            if not received:
                 raise RuntimeError('ERROR: Getting UIAutomator dump')
-            if not re.search('dumped', output):
-                if re.search('Killed', output) and self.ignoreUiAutomatorKilled:
-                    pass
-                else:
-                    raise RuntimeError("ERROR: UIAutomator dump output doesn't contain 'dumped' (%s)" % output)
-            received = self.device.shell('cat %s 2>/dev/null' % windowDump)
-            if received:
-                received = received.encode('ascii', 'ignore')
-            else:
-                msg = ''
-                output = self.device.shell('mount')
-                if output:
-                    if not re.search('sdcard', output):
-                        msg = ", it seems there's no sdcard mounted and uiautomator creates dump there."
-                raise RuntimeError("ERROR: Received empty UIAutomator dump" + msg)
+            received = received.encode('ascii', 'ignore')
             if DEBUG:
                 self.received = received
             if DEBUG_RECEIVED:
