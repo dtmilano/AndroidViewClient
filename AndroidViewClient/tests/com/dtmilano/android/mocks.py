@@ -539,7 +539,9 @@ class MockDevice(object):
         
         m = re.match('uiautomator dump (\S+)', cmd)
         if m and self.version >= 16:
-            return 'dumped %s' % m.group(1)
+            # it was simulating a dump to sdcard before
+            #return 'dumped %s' % m.group(1)
+            return WINDOW_DUMP
         m = re.match('cat (\S+) .*', cmd)
         if m:
             return WINDOW_DUMP
