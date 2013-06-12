@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.21'
+__version__ = '2.3.22'
 
 import sys
 import subprocess
@@ -37,9 +37,9 @@ DEBUG = False
 DEBUG_DEVICE = DEBUG and False
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
-DEBUG_GETATTR = DEBUG and True
-DEBUG_CALL = DEBUG or True
-DEBUG_COORDS = DEBUG and True
+DEBUG_GETATTR = DEBUG and False
+DEBUG_CALL = DEBUG and False
+DEBUG_COORDS = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_STATUSBAR = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
@@ -164,7 +164,7 @@ class Window:
         self.visibility = visibility
 
     def __str__(self):
-        return "Window(%d, %s, %s, %d, %d, %d, %d, %d, %d, %d)" % \
+        return "Window(%d, wid=%s, a=%s, x=%d, y=%d, w=%d, h=%d, px=%d, py=%d, v=%d)" % \
                 (self.num, self.winId, self.activity, self.wvx, self.wvy, self.wvw, self.wvh, self.px, self.py, self.visibility)
 
 
@@ -526,70 +526,81 @@ class View:
         if DEBUG_COORDS: print >>sys.stderr, "   getY: returning %d" % (y)
         return y
     
-    def getXY(self):
+    def getXY(self, debug=False):
         '''
         Returns the I{screen} coordinates of this C{View}.
         
         @return: The I{screen} coordinates of this C{View}
         '''
         
-        if DEBUG_COORDS:
-            print >> sys.stderr, "getXY(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
+        if DEBUG_COORDS or debug:
+            try:
+                id = self.getId()
+            except:
+                id = "NO_ID"
+            print >> sys.stderr, "getXY(%s %s ## %s)" % (self.getClass(), id, self.getUniqueId())
 
         x = self.getX()
         y = self.getY()
         parent = self.parent
-        if DEBUG_COORDS: print >> sys.stderr, "   getXY: x=%s y=%s parent=%s" % (x, y, parent.getId() if parent else "None")
+        if DEBUG_COORDS: print >> sys.stderr, "   getXY: x=%s y=%s parent=%s" % (x, y, parent.getUniqueId() if parent else "None")
         hx = 0
+        ''' Hierarchy accumulated X '''
         hy = 0
+        ''' Hierarchy accumulated Y '''
         
         if not self.useUiAutomator:
-            if DEBUG_COORDS: print >> sys.stderr, "   getXY: not using UiAutomator, calculating parent coordinates"
+            if DEBUG_COORDS: print >> sys.stderr, "   getXY: not using UiAutomator, calculating ancestors coordinates"
             while parent != None:
-                if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId())
+                if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass() if parent else "None", parent.getUniqueId() if parent else "None")
                 if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
                     if parent.getClass() in [ 'com.android.internal.widget.ActionBarView',
                                        'com.android.internal.widget.ActionBarContextView',
                                        'com.android.internal.view.menu.ActionMenuView',
                                        'com.android.internal.policy.impl.PhoneWindow$DecorView' ]:
-                        if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.getX(), parent.getY())
+                        if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getUniqueId(), parent.getX(), parent.getY())
                         parent = parent.parent
                         continue
-                if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy)
+                if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getUniqueId(), parent.getX(), hx, parent.getY(), hy)
                 hx += parent.getX()
                 hy += parent.getY()
                 parent = parent.parent
+            if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s hx=%d hy=%d (end of loop)" % (parent.getUniqueId() if parent else "None", hx, hy)
 
         (wvx, wvy) = self.__dumpWindowsInformation()
-        if DEBUG_COORDS:
-            print >>sys.stderr, "   getXY: wv=(%d, %d)" % (wvx, wvy)
+        if DEBUG_COORDS or debug:
+            print >>sys.stderr, "   getXY: wv=(%d, %d) (windows information)" % (wvx, wvy)
         try:
             fw = self.windows[self.currentFocus]
             if DEBUG_STATUSBAR:
-                print >> sys.stderr, "focused window=", fw
-                print >> sys.stderr, "deciding whether to consider statusbar offset because current focused windows is at", (fw.wvx, fw.wvy), "parent", (fw.px, fw.py)
+                print >> sys.stderr, "    getXY: focused window=", fw
+                print >> sys.stderr, "    getXY: deciding whether to consider statusbar offset because current focused windows is at", (fw.wvx, fw.wvy), "parent", (fw.px, fw.py)
         except KeyError:
             fw = None
         (sbw, sbh) = self.__obtainStatusBarDimensionsIfVisible()
+        if DEBUG_COORDS or debug:
+            print >>sys.stderr, "   getXY: sb=(%d, %d) (statusbar dimensions)" % (sbw, sbh)
         statusBarOffset = 0
         pwx = 0
         pwy = 0
         
         if fw:
+            if DEBUG_COORDS:
+                print >>sys.stderr, "    getXY: focused window=", fw, "sb=", (sbw, sbh)
             if fw.wvy <= sbh: # it's very unlikely that fw.wvy < sbh, that is a window over the statusbar
-                if DEBUG_STATUSBAR: print >>sys.stderr, "yes, considering offset=", sbh
+                if DEBUG_STATUSBAR: print >>sys.stderr, "        getXY: yes, considering offset=", sbh
                 statusBarOffset = sbh
             else:
-                if DEBUG_STATUSBAR: print >>sys.stderr, "no, ignoring statusbar offset fw.wvy=", fw.wvy, ">", sbh
+                if DEBUG_STATUSBAR: print >>sys.stderr, "        getXY: no, ignoring statusbar offset fw.wvy=", fw.wvy, ">", sbh
                 
             if fw.py == fw.wvy:
-                if DEBUG_STATUSBAR: print >>sys.stderr, "but wait, fw.py == fw.wvy so we are adjusting by ", (fw.px, fw.py)
+                if DEBUG_STATUSBAR: print >>sys.stderr, "        getXY: but wait, fw.py == fw.wvy so we are adjusting by ", (fw.px, fw.py)
                 pwx = fw.px
                 pwy = fw.py
             else:
-                if DEBUG_STATUSBAR: print >>sys.stderr, "fw.py=%d <= fw.wvy=%d, no adjustment" % (fw.py, fw.wvy)
+                if DEBUG_STATUSBAR: print >>sys.stderr, "    getXY: fw.py=%d <= fw.wvy=%d, no adjustment" % (fw.py, fw.wvy)
             
-        if DEBUG_COORDS or DEBUG_STATUSBAR:
+        if DEBUG_COORDS or DEBUG_STATUSBAR or debug:
             print >>sys.stderr, "   getXY: returning (%d, %d) ***" % (x+hx+wvx+pwx, y+hy+wvy-statusBarOffset+pwy)
             print >>sys.stderr, "                     x=%d+%d+%d+%d" % (x,hx,wvx,pwx)
             print >>sys.stderr, "                     y=%d+%d+%d-%d+%d" % (y,hy,wvy,statusBarOffset,pwy)
@@ -672,7 +683,7 @@ class View:
         dww = self.device.shell('dumpsys window windows')
         if DEBUG_WINDOWS: print >> sys.stderr, dww
         lines = dww.split('\n')
-        widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s.*}:' %
+        widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s?.*}:' %
                             (__nd('num'), __nh('winId'), __ns('activity', greedy=True)))
         currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % __nh('winId'))
         viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % __nh('visibility'))
@@ -1244,6 +1255,13 @@ class ViewClient:
         return serialno
 
     @staticmethod
+    def setAlarm(timeout):
+        osName = java.lang.System.getProperty('os.name')
+        if osName.startswith('Windows'): # alarm is not implemented in Windows
+            return
+        signal.alarm(timeout)
+
+    @staticmethod
     def connectToDeviceOrExit(timeout=60, verbose=False, ignoresecuredevice=False, serialno=None):
         '''
         Connects to a device which serial number is obtained from the script arguments if available
@@ -1283,16 +1301,9 @@ class ViewClient:
                 (serialno, timeout)
         # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
         # handle it here
-        setAlarm = True
-        osName = java.lang.System.getProperty('os.name')
-        if osName.startswith('Windows'):
-            # alarm is not implemented in Windows
-            setAlarm = False
-        if setAlarm:
-            signal.alarm(timeout+5)
+        ViewClient.setAlarm(timeout+5)
         device = MonkeyRunner.waitForConnection(timeout, serialno)
-        if setAlarm:
-            signal.alarm(0)
+        ViewClient.setAlarm(0)
         try:
             device.wake()
         except java.lang.NullPointerException, e:
@@ -1759,11 +1770,15 @@ class ViewClient:
             s.send(cmd)
             received = ""
             doneRE = re.compile("DONE")
+            ViewClient.setAlarm(120)
             while True:
+                if DEBUG_RECEIVED:
+                    print >>sys.stderr, "    reading from socket..."
                 received += s.recv(1024)
                 if doneRE.search(received[-7:]):
                     break
             s.close()
+            ViewClient.setAlarm(0)
             if DEBUG:
                 self.received = received     
             if DEBUG_RECEIVED:
