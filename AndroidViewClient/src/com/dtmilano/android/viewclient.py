@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.22'
+__version__ = '2.3.23'
 
 import sys
 import subprocess
@@ -92,6 +92,7 @@ INVISIBLE = 0x4
 GONE = 0x8
 
 IP_RE = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
+ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 
 def __nd(name):
     '''
@@ -567,7 +568,7 @@ class View:
                 parent = parent.parent
             if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s hx=%d hy=%d (end of loop)" % (parent.getUniqueId() if parent else "None", hx, hy)
 
-        (wvx, wvy) = self.__dumpWindowsInformation()
+        (wvx, wvy) = self.__dumpWindowsInformation(debug=debug)
         if DEBUG_COORDS or debug:
             print >>sys.stderr, "   getXY: wv=(%d, %d) (windows information)" % (wvx, wvy)
         try:
@@ -677,11 +678,11 @@ class View:
         py = int(m.group('py'))
         return (px, py)
     
-    def __dumpWindowsInformation(self):
+    def __dumpWindowsInformation(self, debug=False):
         self.windows = {}
         self.currentFocus = None
         dww = self.device.shell('dumpsys window windows')
-        if DEBUG_WINDOWS: print >> sys.stderr, dww
+        if DEBUG_WINDOWS or debug: print >> sys.stderr, dww
         lines = dww.split('\n')
         widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s?.*}:' %
                             (__nd('num'), __nh('winId'), __ns('activity', greedy=True)))
@@ -732,6 +733,10 @@ class View:
                             px, py = self.__obtainPxPy(m)
                             m = contentRE.search(lines[l2+1])
                             if m:
+                                # FIXME: the information provided by 'dumpsys window windows' in 4.2.1 (API 16)
+                                # when there's a system dialog may not be correct and causes the View coordinates
+                                # be offset by this amount, see
+                                # https://github.com/dtmilano/AndroidViewClient/issues/29
                                 wvx, wvy = self.__obtainVxVy(m)
                                 wvw, wvh = self.__obtainVwVh(m)
                     elif self.build[VERSION_SDK_PROPERTY] == 15:
@@ -765,7 +770,7 @@ class View:
                     self.currentFocus = m.group('winId')
         
         if self.currentFocus in self.windows and self.windows[self.currentFocus].visibility == 0:
-            if DEBUG_COORDS:
+            if DEBUG_COORDS or debug:
                 print >> sys.stderr, "__dumpWindowsInformation: focus=", self.currentFocus
                 print >> sys.stderr, "__dumpWindowsInformation:", self.windows[self.currentFocus]
             w = self.windows[self.currentFocus]
@@ -818,6 +823,36 @@ class View:
     def isClickable(self):
         return self.__getattr__('isClickable')()
     
+    def variableNameFromId(self):
+        m = ID_RE.match(self.getUniqueId())
+        if m:
+            var = m.group(1)
+            if m.group(3):
+                var += m.group(3)
+            if re.match('^\d', var):
+                var = 'id_' + var
+        return var
+            
+    def writeImageToFile(self, filename, format="PNG"):
+        '''
+        Write the View image to the specified filename in the specified format.
+        
+        @type filename: str
+        @param filename: Absolute path and optional filename receiving the image. If this points to
+                         a directory, then the filename is determined by this View unique ID and
+                         format extension.
+        @type format: str
+        @param format: Image format (default format is PNG)
+        '''
+        
+        if not os.path.isabs(filename):
+             raise ValueError("writeImageToFile expects an absolute path") 
+        if os.path.isdir(filename):
+            filename = os.path.join(filename, self.variableNameFromId() + '.' + format.lower())
+        if DEBUG:
+            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, format) 
+        self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, format)
+
     def __smallStr__(self):
         __str = "View["
         if "class" in self.map:
@@ -2103,6 +2138,26 @@ class ViewClient:
             return "mInputShown=true" in dim
         return False
 
+    def writeImageToFile(self, filename, format="PNG"):
+        '''
+        Write the View image to the specified filename in the specified format.
+        
+        @type filename: str
+        @param filename: Absolute path and optional filename receiving the image. If this points to
+                         a directory, then the filename is determined by the serialno of the device and
+                         format extension.
+        @type format: str
+        @param format: Image format (default format is PNG)
+        '''
+        
+        if not os.path.isabs(filename):
+             raise ValueError("writeImageToFile expects an absolute path") 
+        if os.path.isdir(filename):
+            filename = os.path.join(filename, self.serialno + '.' + format.lower())
+        if DEBUG:
+            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, format) 
+        self.device.takeSnapshot().writeToFile(filename, format)
+        
     @staticmethod
     def excerpt(str, execute=False):
         code = Excerpt2Code().Parse(str)

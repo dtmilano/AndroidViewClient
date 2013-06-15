@@ -103,7 +103,6 @@ OPTS_HELP = {
     'A': 'interactive',
     }
 
-ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
 SB_NO_JAR = 'no-jar'
 SB_JAR = 'jar'
@@ -189,20 +188,11 @@ def variableNameFromIdOrKey(view):
     @return: the variable name from the id
     '''
     
-    id = view.getUniqueId()
-    m = ID_RE.match(id)
-    if m:
-        var = m.group(1)
-        if m.group(3):
-            var += m.group(3)
-        if re.match('^\d', var):
-            var = 'id_' + var
-        if options[USE_DICTIONARY]:
-            return 'views[\'%s\']' % notNull(dictionaryKeyFrom(options[DICTIONARY_KEYS_FROM], view), var)
-        else:
-            return var
+    var = view.variableNameFromId()
+    if options[USE_DICTIONARY]:
+        return 'views[\'%s\']' % notNull(dictionaryKeyFrom(options[DICTIONARY_KEYS_FROM], view), var)
     else:
-        raise Exception('Not an id: %s' % id)
+        return var
 
 def dictionaryKeyFrom(key, view):
     if key == 'id':
