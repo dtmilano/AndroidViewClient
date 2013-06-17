@@ -1763,6 +1763,10 @@ class ViewClient:
                 print >>sys.stderr
                 print >>sys.stderr, received
                 print >>sys.stderr
+            if re.search('\[: not found', received):
+                raise RuntimeError('''ERROR: Some emulator images (i.e. android 4.1.2 API 16 generic_x86) does not include the '[' command.
+While UiAutomator back-end might be supported 'uiautomator' command fails.
+You should force ViewServer back-end.''')
             self.setViewsFromUiAutomatorDump(received)
         else:
             if isinstance(window, str):
