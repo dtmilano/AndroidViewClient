@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '0.9.11'
+__version__ = '0.9.12'
 
 import sys
 import os
@@ -34,6 +34,7 @@ VERBOSE = 'verbose'
 IGNORE_SECURE_DEVICE = 'ignore-secure-device'
 FORCE_VIEW_SERVER_USE = 'force-view-server-use'
 DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
+DO_NOT_IGNORE_UIAUTOMATOR_KILLED = 'do-not-ignore-uiautomator-killed'
 WINDOW = 'window'
 UNIQUE_ID = 'uniqueId'
 POSITION = 'position'
@@ -48,9 +49,9 @@ MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
 # -u,-s,-p,-v eaten by monkeyrunner
-SHORT_OPTS = 'HVIFSw:ixdc'
+SHORT_OPTS = 'HVIFSkw:ixdc'
 LONG_OPTS =  [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE,
-              DO_NOT_START_VIEW_SERVER, WINDOW + '=',
+              DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
               UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER]
 LONG_OPTS_ARG = {WINDOW: 'WINDOW'}
 OPTS_HELP = {
@@ -58,7 +59,8 @@ OPTS_HELP = {
     'V': 'verbose comments',
     'I': 'ignore secure device',
     'F': 'force view server use (even if UiAutomator present)',
-    'S': 'dont start ViewServer',
+    'S': 'don\'t start ViewServer',
+    'k': 'don\'t ignore UiAutomator killed',
     'w': 'dump WINDOW content (default: -1, all windows)',
     'i': 'dump View unique IDs',
     'x': 'dump View positions',
@@ -126,6 +128,8 @@ for o, a in opts:
         kwargs2['forceviewserveruse'] = True
     elif o in ['S', DO_NOT_START_VIEW_SERVER]:
         kwargs2['startviewserver'] = False
+    elif o in ['k', DO_NOT_IGNORE_UIAUTOMATOR_KILLED]:
+        kwargs2['ignoreuiautomatorkilled'] = False
     elif o in ['w', WINDOW]:
         options[WINDOW] = a
     else:

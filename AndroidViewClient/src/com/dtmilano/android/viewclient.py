@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.23'
+__version__ = '2.3.24'
 
 import sys
 import subprocess
@@ -1763,6 +1763,8 @@ class ViewClient:
                 print >>sys.stderr
                 print >>sys.stderr, received
                 print >>sys.stderr
+            if self.ignoreUiAutomatorKilled:
+                received = re.sub('</hierarchy>Killed', '</hierarchy>', received, re.MULTILINE)
             if re.search('\[: not found', received):
                 raise RuntimeError('''ERROR: Some emulator images (i.e. android 4.1.2 API 16 generic_x86) does not include the '[' command.
 While UiAutomator back-end might be supported 'uiautomator' command fails.
