@@ -829,6 +829,10 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         device = MockDevice(version=16)
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True)
     
+    def testUiAutomatorKilled(self):
+        device = MockDevice(version=16, uiautomatorkilled=True)
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True, ignoreuiautomatorkilled=True)
+        
     def testUiViewServerDump(self):
         try:
             device = MockDevice(version=15, startviewserver=True)

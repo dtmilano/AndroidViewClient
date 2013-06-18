@@ -1764,7 +1764,15 @@ class ViewClient:
                 print >>sys.stderr, received
                 print >>sys.stderr
             if self.ignoreUiAutomatorKilled:
-                received = re.sub('</hierarchy>Killed', '</hierarchy>', received, re.MULTILINE)
+                if DEBUG_RECEIVED:
+                    print >>sys.stderr, "ignoring UiAutomator Killed"
+                killedRE = re.compile('</hierarchy>[\n\S]*Killed', re.MULTILINE)
+                if killedRE.search(received):
+                    received = re.sub(killedRE, '</hierarchy>', received)
+                elif DEBUG_RECEIVED:
+                    print "UiAutomator Killed: NOT FOUND!"
+                if DEBUG_RECEIVED:
+                    print >>sys.stderr, "received=", received
             if re.search('\[: not found', received):
                 raise RuntimeError('''ERROR: Some emulator images (i.e. android 4.1.2 API 16 generic_x86) does not include the '[' command.
 While UiAutomator back-end might be supported 'uiautomator' command fails.

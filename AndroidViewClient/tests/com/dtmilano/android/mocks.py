@@ -513,7 +513,7 @@ class MockDevice(object):
     '''
 
 
-    def __init__(self, serialno="MOCK12345678", version=15, startviewserver=False):
+    def __init__(self, serialno="MOCK12345678", version=15, startviewserver=False, uiautomatorkilled=False):
         '''
         Constructor
         '''
@@ -523,6 +523,7 @@ class MockDevice(object):
         self.service = STOPPED
         if startviewserver:
             self.viewServer = MockViewServer()
+        self.uiAutomatorKilled = uiautomatorkilled
         
     def __del__(self):
         self.shutdownMockViewServer()
@@ -543,7 +544,10 @@ class MockDevice(object):
         if m and self.version >= 16:
             # it was simulating a dump to sdcard before
             #return 'dumped %s' % m.group(1)
-            return WINDOW_DUMP
+            if not self.uiAutomatorKilled:
+                return WINDOW_DUMP
+            else:
+                return WINDOW_DUMP + "Killed"
         m = re.match('cat (\S+) .*', cmd)
         if m:
             return WINDOW_DUMP
