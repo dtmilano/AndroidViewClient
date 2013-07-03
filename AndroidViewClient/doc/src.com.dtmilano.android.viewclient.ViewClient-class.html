@@ -103,7 +103,8 @@
         <span class="summary-sig-arg">forceviewserveruse</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">localport</span>=<span class="summary-sig-default">VIEW_SERVER_PORT</span>,
         <span class="summary-sig-arg">remoteport</span>=<span class="summary-sig-default">VIEW_SERVER_PORT</span>,
-        <span class="summary-sig-arg">startviewserver</span>=<span class="summary-sig-default">True</span>)</span><br />
+        <span class="summary-sig-arg">startviewserver</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">ignoreuiautomatorkilled</span>=<span class="summary-sig-default">False</span>)</span><br />
       Constructor</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__init__">source&nbsp;code</a></span>
@@ -237,9 +238,8 @@
         <tr>
           <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#__parseTree" class="summary-sig-name" onclick="show_private();">__parseTree</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">receivedLines</span>)</span><br />
-      Parses the View tree contained in <a 
-      href="src.com.dtmilano.android.viewclient.ViewClient-class.html#views"
-      class="link">self.views</a>.</td>
+      Parses the View tree contained in <code 
+      class="link">receivedLines</code>.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__parseTree">source&nbsp;code</a></span>
             
@@ -619,6 +619,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="findViewsContainingPoint"></a><span class="summary-sig-name">findViewsContainingPoint</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">(x, y)</span>,
+        <span class="summary-sig-arg">filter</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Finds the list of Views that contain the point (x, y).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewsContainingPoint">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="getViewIds"></a><span class="summary-sig-name">getViewIds</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Returns the Views map.</td>
           <td align="right" valign="top">
@@ -673,6 +692,26 @@
       Whether the keyboard is displayed.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.isKeyboardShown">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#writeImageToFile" class="summary-sig-name">writeImageToFile</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">filename</span>,
+        <span class="summary-sig-arg">format</span>=<span class="summary-sig-default">&quot;PNG&quot;</span>)</span><br />
+      Write the View image to the specified filename in the specified 
+      format.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.writeImageToFile">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -740,6 +779,22 @@
           <td><span class="summary-sig"><a name="__obtainDeviceSerialNumber"></a><span class="summary-sig-name">__obtainDeviceSerialNumber</span>(<span class="summary-sig-arg">device</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.__obtainDeviceSerialNumber">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setAlarm"></a><span class="summary-sig-name">setAlarm</span>(<span class="summary-sig-arg">timeout</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.setAlarm">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -969,6 +1024,23 @@
       
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="excerpt"></a><span class="summary-sig-name">excerpt</span>(<span class="summary-sig-arg">str</span>,
+        <span class="summary-sig-arg">execute</span>=<span class="summary-sig-default">False</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.excerpt">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 </table>
 <!-- ==================== INSTANCE VARIABLES ==================== -->
 <a name="section-InstanceVariables"></a>
@@ -1078,6 +1150,14 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="src.com.dtmilano.android.viewclient.ViewClient-class.html#ignoreUiAutomatorKilled" class="summary-name">ignoreUiAutomatorKilled</a><br />
+      On some devices (i.e.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="windows"></a><span class="summary-name">windows</span><br />
       The list of windows as obtained by <a 
       href="src.com.dtmilano.android.viewclient.ViewClient-class.html#list"
@@ -1127,7 +1207,8 @@
         <span class="sig-arg">forceviewserveruse</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">localport</span>=<span class="sig-default">VIEW_SERVER_PORT</span>,
         <span class="sig-arg">remoteport</span>=<span class="sig-default">VIEW_SERVER_PORT</span>,
-        <span class="sig-arg">startviewserver</span>=<span class="sig-default">True</span>)</span>
+        <span class="sig-arg">startviewserver</span>=<span class="sig-default">True</span>,
+        <span class="sig-arg">ignoreuiautomatorkilled</span>=<span class="sig-default">False</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -1152,6 +1233,8 @@
         <li><strong class="pname"><code>remoteport</code></strong> (int) - the remote port used to start the <code>ViewServer</code> in the 
           device or emulator</li>
         <li><strong class="pname"><code>startviewserver</code></strong> (boolean) - Whether to start the <b>global</b> ViewServer</li>
+        <li><strong class="pname"><code>ignoreuiautomatorkilled</code></strong> (boolean) - Ignores received <b>Killed</b> message from 
+          <code>uiautomator</code></li>
     </ul></dd>
   </dl>
 </td></tr></table>
@@ -1676,13 +1759,16 @@
     </td>
   </tr></table>
   
-  <p>Parses the View tree contained in <a 
-  href="src.com.dtmilano.android.viewclient.ViewClient-class.html#views" 
-  class="link">self.views</a>. The tree is created and the root node 
+  <p>Parses the View tree contained in <code 
+  class="link">receivedLines</code>. The tree is created and the root node 
   assigned to <a 
   href="src.com.dtmilano.android.viewclient.ViewClient-class.html#root" 
   class="link">self.root</a>.</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>receivedLines</code></strong> (str) - the string received from <b>View Server</b></li>
+    </ul></dd>
   </dl>
 </td></tr></table>
 </div>
@@ -1934,6 +2020,35 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="writeImageToFile"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">writeImageToFile</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">filename</span>,
+        <span class="sig-arg">format</span>=<span class="sig-default">&quot;PNG&quot;</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="src.com.dtmilano.android.viewclient-pysrc.html#ViewClient.writeImageToFile">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Write the View image to the specified filename in the specified 
+  format.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>filename</code></strong> (str) - Absolute path and optional filename receiving the image. If this 
+          points to a directory, then the filename is determined by the 
+          serialno of the device and format extension.</li>
+        <li><strong class="pname"><code>format</code></strong> (str) - Image format (default format is PNG)</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== INSTANCE VARIABLE DETAILS ==================== -->
 <a name="section-InstanceVariableDetails"></a>
@@ -1953,6 +2068,23 @@
   </td>
 </tr>
 </table>
+<a name="ignoreUiAutomatorKilled"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">ignoreUiAutomatorKilled</h3>
+  <p>On some devices (i.e. Nexus 7 running 4.2.2) uiautomator is killed 
+  just after generating the dump file. In many cases the file is already 
+  complete so we can ask to ignore the 'Killed' message by setting <code 
+  class="link">ignoreuiautomatorkilled</code> to <code>True</code>.</p>
+  <p>Changes in 2.3.21 that uses <code>/dev/tty</code> instead of a file 
+  may have turned this variable unnnecessary, however it has been kept for 
+  backward compatibility.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="views"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1999,7 +2131,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu May 16 22:34:24 2013
+    Generated by Epydoc 3.0.1 on Wed Jun 19 00:21:23 2013
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
