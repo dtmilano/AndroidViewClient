@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.24'
+__version__ = '2.3.25'
 
 import sys
 import subprocess
@@ -29,6 +29,8 @@ import types
 import time
 import signal
 import warnings
+import copy
+import pickle
 import xml.parsers.expat
 import org.python.modules.sre.PatternObject
 from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
@@ -44,6 +46,7 @@ DEBUG_TOUCH = DEBUG and False
 DEBUG_STATUSBAR = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
 DEBUG_BOUNDS = DEBUG and False
+DEBUG_DISTANCE = DEBUG and False
 
 WARNINGS = False
 
@@ -316,7 +319,7 @@ class View:
     def __getattr__(self, name):
         if DEBUG_GETATTR:
             print >>sys.stderr, "__getattr__(%s)    version: %d" % (name, self.build[VERSION_SDK_PROPERTY])
-                
+            
         # NOTE:
         # I should try to see if 'name' is a defined method
         # but it seems that if I call locals() here an infinite loop is entered
@@ -611,7 +614,7 @@ class View:
         '''
         Gets the coords of the View
         
-        @return: A tuple containing the View's coordinates (L, T, R, B)
+        @return: A tuple containing the View's coordinates ((L, T), (R, B))
         '''
         
         if DEBUG_COORDS:
@@ -874,6 +877,19 @@ class View:
         __str += " ]"
 
         return __str
+    
+    def __microStr__(self):
+        __str = ''
+        if "class" in self.map:
+            __str += re.sub('.*\.', '', self.map['class'])
+        id = self.getId().replace('id/no_id/', '-')
+        __str += id
+        ((L, T), (R, B)) = self.getCoords()
+        __str += '@%04d%04d%04d%04d' % (L, T, R, B)
+        __str += ''
+        
+        return __str
+        
             
     def __str__(self):
         __str = "View["
@@ -1714,6 +1730,19 @@ class ViewClient:
         if type(root) == types.StringType and root == "ROOT":
             root = self.root
 
+        return ViewClient.__traverse(root, indent, transform, stream)
+#         if not root:
+#             return
+# 
+#         s = transform(root)
+#         if s:
+#             print >>stream, "%s%s" % (indent, s)
+#         
+#         for ch in root.children:
+#             self.traverse(ch, indent=indent+"   ", transform=transform, stream=stream)
+
+    @staticmethod
+    def __traverse(root, indent="", transform=View.__str__, stream=sys.stdout):
         if not root:
             return
 
@@ -1722,8 +1751,8 @@ class ViewClient:
             print >>stream, "%s%s" % (indent, s)
         
         for ch in root.children:
-            self.traverse(ch, indent=indent+"   ", transform=transform, stream=stream)
-
+            ViewClient.__traverse(ch, indent=indent+"   ", transform=transform, stream=stream)
+        
     def dump(self, window=-1, sleep=1):
         '''
         Dumps the window content.
@@ -2165,13 +2194,191 @@ You should force ViewServer back-end.''')
         '''
         
         if not os.path.isabs(filename):
-             raise ValueError("writeImageToFile expects an absolute path") 
+            raise ValueError("writeImageToFile expects an absolute path")
         if os.path.isdir(filename):
             filename = os.path.join(filename, self.serialno + '.' + format.lower())
         if DEBUG:
             print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, format) 
         self.device.takeSnapshot().writeToFile(filename, format)
+    
+    @staticmethod
+    def __pickleable(tree):
+        '''
+        Makes the tree pickleable.
+        '''
         
+        def removeDeviceReference(view):
+            '''
+            Removes the reference to a L{MonkeyDevice}.
+            '''
+            
+            view.device = None
+        
+        ###########################################################################################
+        # FIXME: Unfortunatelly deepcopy does not work with MonkeyDevice objects, which is
+        # sadly the reason why we cannot pickle the tree and we need to remove the MonkeyDevice
+        # references.
+        # We wanted to copy the tree to preserve the original and make piclkleable the copy.
+        #treeCopy = copy.deepcopy(tree)
+        treeCopy = tree
+        # IMPORTANT:
+        # This assumes that the first element in the list is the tree root
+        ViewClient.__traverse(treeCopy[0], transform=removeDeviceReference)
+        ###########################################################################################
+        return treeCopy
+    
+    def distance(self, tree):
+        '''
+        Calculates the distance between this tree and the tree passed as argument.
+        
+        @type tree: list of Views
+        @param tree: Tree of Views
+        @return: the distance
+        '''
+        ################################################################
+        #FIXME: this should copy the entire tree and then transform it #
+        ################################################################
+        pickleableViews = ViewClient.__pickleable(self.views)
+        pickleableTree = ViewClient.__pickleable(tree)
+        s1 = pickle.dumps(pickleableViews)
+        s2 = pickle.dumps(pickleableTree)
+        
+        if DEBUG_DISTANCE:
+            print >>sys.stderr, "distance: calculating distance between", s1[:20], "and", s2[:20]
+        
+        l1 = len(s1)
+        l2 = len(s2)
+        t = float(max(l1, l2))
+        
+        if l1 == l2:
+            if DEBUG_DISTANCE:
+                print >>sys.stderr, "distance: trees have same length, using Hamming distance"
+            return ViewClient.__hammingDistance(s1, s2)/t
+        else:
+            if DEBUG_DISTANCE:
+                print >>sys.stderr, "distance: trees have different length, using Levenshtein distance"
+            return ViewClient.__levenshteinDistance(s1, s2)/t
+    
+    @staticmethod  
+    def __hammingDistance(s1, s2):
+        '''
+        Finds the Hamming distance between two strings.
+        
+        @param s1: string
+        @param s2: string
+        @return: the distance
+        @raise ValueError: if the lenght of the strings differ
+        '''
+        
+        l1 = len(s1)
+        l2 = len(s2)
+        
+        if l1 != l2:
+            raise ValueError("Hamming distance requires strings of same size.")
+        
+        return sum(ch1 != ch2 for ch1, ch2 in zip(s1, s2))
+    
+    def hammingDistance(self, tree):
+        '''
+        Finds the Hamming distance between this tree and the one passed as argument.
+        '''
+        
+        s1 = ' '.join(map(View.__str__, self.views))
+        s2 = ' '.join(map(View.__str__, tree))
+        
+        return ViewClient.__hammingDistance(s1, s2)
+
+    @staticmethod
+    def __levenshteinDistance(s, t):
+        '''
+        Find the Levenshtein distance between two Strings.
+        
+        Python version of Levenshtein distance method implemented in Java at
+        U{http://www.java2s.com/Code/Java/Data-Type/FindtheLevenshteindistancebetweentwoStrings.htm}.
+        
+        This is the number of changes needed to change one String into
+        another, where each change is a single character modification (deletion,
+        insertion or substitution).
+       
+        The previous implementation of the Levenshtein distance algorithm
+        was from U{http://www.merriampark.com/ld.htm}
+       
+        Chas Emerick has written an implementation in Java, which avoids an OutOfMemoryError
+        which can occur when my Java implementation is used with very large strings.
+        This implementation of the Levenshtein distance algorithm
+        is from U{http://www.merriampark.com/ldjava.htm}::
+       
+            StringUtils.getLevenshteinDistance(null, *)             = IllegalArgumentException
+            StringUtils.getLevenshteinDistance(*, null)             = IllegalArgumentException
+            StringUtils.getLevenshteinDistance("","")               = 0
+            StringUtils.getLevenshteinDistance("","a")              = 1
+            StringUtils.getLevenshteinDistance("aaapppp", "")       = 7
+            StringUtils.getLevenshteinDistance("frog", "fog")       = 1
+            StringUtils.getLevenshteinDistance("fly", "ant")        = 3
+            StringUtils.getLevenshteinDistance("elephant", "hippo") = 7
+            StringUtils.getLevenshteinDistance("hippo", "elephant") = 7
+            StringUtils.getLevenshteinDistance("hippo", "zzzzzzzz") = 8
+            StringUtils.getLevenshteinDistance("hello", "hallo")    = 1
+       
+        @param s:  the first String, must not be null
+        @param t:  the second String, must not be null
+        @return: result distance
+        @raise ValueError: if either String input C{null}
+        '''
+        if s is None or t is None:
+            raise ValueError("Strings must not be null")
+    
+        n = len(s)
+        m = len(t)
+    
+        if n == 0:
+            return m
+        elif m == 0:
+            return n
+    
+        if n > m:
+            tmp = s
+            s = t
+            t = tmp
+            n = m;
+            m = len(t)
+    
+        p = [None]*(n+1)
+        d = [None]*(n+1)
+    
+        for i in range(0, n+1):
+            p[i] = i
+    
+        for j in range(1, m+1):
+            if DEBUG_DISTANCE:
+                if j % 100 == 0:
+                    print >>sys.stderr, "DEBUG:", int(j/(m+1.0)*100),"%\r",
+            t_j = t[j-1]
+            d[0] = j
+    
+            for i in range(1, n+1):
+                cost = 0 if s[i-1] == t_j else 1
+                #  minimum of cell to the left+1, to the top+1, diagonally left and up +cost
+                d[i] = min(min(d[i-1]+1, p[i]+1), p[i-1]+cost)
+    
+            _d = p
+            p = d
+            d = _d
+    
+        if DEBUG_DISTANCE:
+            print >> sys.stderr, "\n"
+        return p[n]
+  
+    def levenshteinDistance(self, tree):
+        '''
+        Finds the Levenshtein distance between this tree and the one passed as argument.
+        '''
+        
+        s1 = ' '.join(map(View.__microStr__, self.views))
+        s2 = ' '.join(map(View.__microStr__, tree))
+        
+        return ViewClient.__levenshteinDistance(s1, s2)
+    
     @staticmethod
     def excerpt(str, execute=False):
         code = Excerpt2Code().Parse(str)

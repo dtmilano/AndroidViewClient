@@ -4,7 +4,6 @@ src.com.dtmilano.android.viewclient	src.com.dtmilano.android.viewclient-module.h
 src.com.dtmilano.android.viewclient.HEIGHT_PROPERTY	src.com.dtmilano.android.viewclient-module.html#HEIGHT_PROPERTY
 src.com.dtmilano.android.viewclient.GONE	src.com.dtmilano.android.viewclient-module.html#GONE
 src.com.dtmilano.android.viewclient.VIEW_SERVER_PORT	src.com.dtmilano.android.viewclient-module.html#VIEW_SERVER_PORT
-src.com.dtmilano.android.viewclient.LEFT_PROPERTY_API_8	src.com.dtmilano.android.viewclient-module.html#LEFT_PROPERTY_API_8
 src.com.dtmilano.android.viewclient.TEXT_PROPERTY	src.com.dtmilano.android.viewclient-module.html#TEXT_PROPERTY
 src.com.dtmilano.android.viewclient.WIDTH_PROPERTY_API_8	src.com.dtmilano.android.viewclient-module.html#WIDTH_PROPERTY_API_8
 src.com.dtmilano.android.viewclient.__nd	src.com.dtmilano.android.viewclient-module.html#__nd
@@ -40,9 +39,11 @@ src.com.dtmilano.android.viewclient.TOP_PROPERTY_API_8	src.com.dtmilano.android.
 src.com.dtmilano.android.viewclient.VIEW_SERVER_HOST	src.com.dtmilano.android.viewclient-module.html#VIEW_SERVER_HOST
 src.com.dtmilano.android.viewclient.VERSION_SDK_PROPERTY	src.com.dtmilano.android.viewclient-module.html#VERSION_SDK_PROPERTY
 src.com.dtmilano.android.viewclient.LEFT_PROPERTY	src.com.dtmilano.android.viewclient-module.html#LEFT_PROPERTY
+src.com.dtmilano.android.viewclient.LEFT_PROPERTY_API_8	src.com.dtmilano.android.viewclient-module.html#LEFT_PROPERTY_API_8
 src.com.dtmilano.android.viewclient.WIDTH_PROPERTY	src.com.dtmilano.android.viewclient-module.html#WIDTH_PROPERTY
 src.com.dtmilano.android.viewclient.DEBUG_RECEIVED	src.com.dtmilano.android.viewclient-module.html#DEBUG_RECEIVED
 src.com.dtmilano.android.viewclient.WS	src.com.dtmilano.android.viewclient-module.html#WS
+src.com.dtmilano.android.viewclient.DEBUG_DISTANCE	src.com.dtmilano.android.viewclient-module.html#DEBUG_DISTANCE
 src.com.dtmilano.android.viewclient.DEBUG_TOUCH	src.com.dtmilano.android.viewclient-module.html#DEBUG_TOUCH
 src.com.dtmilano.android.viewclient.EditText	src.com.dtmilano.android.viewclient.EditText-class.html
 src.com.dtmilano.android.viewclient.View.getPositionAndSize	src.com.dtmilano.android.viewclient.View-class.html#getPositionAndSize
@@ -82,6 +83,7 @@ src.com.dtmilano.android.viewclient.View.getCenter	src.com.dtmilano.android.view
 src.com.dtmilano.android.viewclient.View.getText	src.com.dtmilano.android.viewclient.View-class.html#getText
 src.com.dtmilano.android.viewclient.View.device	src.com.dtmilano.android.viewclient.View-class.html#device
 src.com.dtmilano.android.viewclient.View.intersection	src.com.dtmilano.android.viewclient.View-class.html#intersection
+src.com.dtmilano.android.viewclient.View.__microStr__	src.com.dtmilano.android.viewclient.View-class.html#__microStr__
 src.com.dtmilano.android.viewclient.View.getXY	src.com.dtmilano.android.viewclient.View-class.html#getXY
 src.com.dtmilano.android.viewclient.View.getX	src.com.dtmilano.android.viewclient.View-class.html#getX
 src.com.dtmilano.android.viewclient.View.getParent	src.com.dtmilano.android.viewclient.View-class.html#getParent
@@ -133,6 +135,7 @@ src.com.dtmilano.android.viewclient.View.getCenter	src.com.dtmilano.android.view
 src.com.dtmilano.android.viewclient.View.getText	src.com.dtmilano.android.viewclient.View-class.html#getText
 src.com.dtmilano.android.viewclient.View.device	src.com.dtmilano.android.viewclient.View-class.html#device
 src.com.dtmilano.android.viewclient.View.intersection	src.com.dtmilano.android.viewclient.View-class.html#intersection
+src.com.dtmilano.android.viewclient.View.__microStr__	src.com.dtmilano.android.viewclient.View-class.html#__microStr__
 src.com.dtmilano.android.viewclient.View.getXY	src.com.dtmilano.android.viewclient.View-class.html#getXY
 src.com.dtmilano.android.viewclient.View.getX	src.com.dtmilano.android.viewclient.View-class.html#getX
 src.com.dtmilano.android.viewclient.View.getParent	src.com.dtmilano.android.viewclient.View-class.html#getParent
@@ -188,6 +191,7 @@ src.com.dtmilano.android.viewclient.View.getCenter	src.com.dtmilano.android.view
 src.com.dtmilano.android.viewclient.View.getText	src.com.dtmilano.android.viewclient.View-class.html#getText
 src.com.dtmilano.android.viewclient.View.leftProperty	src.com.dtmilano.android.viewclient.View-class.html#leftProperty
 src.com.dtmilano.android.viewclient.View.intersection	src.com.dtmilano.android.viewclient.View-class.html#intersection
+src.com.dtmilano.android.viewclient.View.__microStr__	src.com.dtmilano.android.viewclient.View-class.html#__microStr__
 src.com.dtmilano.android.viewclient.View.getXY	src.com.dtmilano.android.viewclient.View-class.html#getXY
 src.com.dtmilano.android.viewclient.View.getX	src.com.dtmilano.android.viewclient.View-class.html#getX
 src.com.dtmilano.android.viewclient.View.getParent	src.com.dtmilano.android.viewclient.View-class.html#getParent
@@ -200,13 +204,17 @@ src.com.dtmilano.android.viewclient.View.containsPoint	src.com.dtmilano.android.
 src.com.dtmilano.android.viewclient.View.getVisibility	src.com.dtmilano.android.viewclient.View-class.html#getVisibility
 src.com.dtmilano.android.viewclient.ViewClient	src.com.dtmilano.android.viewclient.ViewClient-class.html
 src.com.dtmilano.android.viewclient.ViewClient.__findViewWithAttributeInTree	src.com.dtmilano.android.viewclient.ViewClient-class.html#__findViewWithAttributeInTree
+src.com.dtmilano.android.viewclient.ViewClient.__pickleable	src.com.dtmilano.android.viewclient.ViewClient-class.html#__pickleable
 src.com.dtmilano.android.viewclient.ViewClient.traverse	src.com.dtmilano.android.viewclient.ViewClient-class.html#traverse
 src.com.dtmilano.android.viewclient.ViewClient.TRAVERSE_CIT	src.com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CIT
-src.com.dtmilano.android.viewclient.ViewClient.dump	src.com.dtmilano.android.viewclient.ViewClient-class.html#dump
+src.com.dtmilano.android.viewclient.ViewClient.__findViewWithAttributeInTreeThatMatches	src.com.dtmilano.android.viewclient.ViewClient-class.html#__findViewWithAttributeInTreeThatMatches
+src.com.dtmilano.android.viewclient.ViewClient.__traverse	src.com.dtmilano.android.viewclient.ViewClient-class.html#__traverse
 src.com.dtmilano.android.viewclient.ViewClient.findViewWithAttribute	src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithAttribute
+src.com.dtmilano.android.viewclient.ViewClient.hammingDistance	src.com.dtmilano.android.viewclient.ViewClient-class.html#hammingDistance
 src.com.dtmilano.android.viewclient.ViewClient.excerpt	src.com.dtmilano.android.viewclient.ViewClient-class.html#excerpt
 src.com.dtmilano.android.viewclient.ViewClient.findViewByTag	src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewByTag
 src.com.dtmilano.android.viewclient.ViewClient.ignoreUiAutomatorKilled	src.com.dtmilano.android.viewclient.ViewClient-class.html#ignoreUiAutomatorKilled
+src.com.dtmilano.android.viewclient.ViewClient.distance	src.com.dtmilano.android.viewclient.ViewClient-class.html#distance
 src.com.dtmilano.android.viewclient.ViewClient.__parseTree	src.com.dtmilano.android.viewclient.ViewClient-class.html#__parseTree
 src.com.dtmilano.android.viewclient.ViewClient.traverseShowClassIdTextAndCenter	src.com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndCenter
 src.com.dtmilano.android.viewclient.ViewClient.sleep	src.com.dtmilano.android.viewclient.ViewClient-class.html#sleep
@@ -218,7 +226,7 @@ src.com.dtmilano.android.viewclient.ViewClient.__init__	src.com.dtmilano.android
 src.com.dtmilano.android.viewclient.ViewClient.findViewWithTextOrRaise	src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithTextOrRaise
 src.com.dtmilano.android.viewclient.ViewClient.traverseShowClassIdTextPositionAndSize	src.com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextPositionAndSize
 src.com.dtmilano.android.viewclient.ViewClient.TRAVERSE_CITC	src.com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITC
-src.com.dtmilano.android.viewclient.ViewClient.__findViewWithAttributeInTreeThatMatches	src.com.dtmilano.android.viewclient.ViewClient-class.html#__findViewWithAttributeInTreeThatMatches
+src.com.dtmilano.android.viewclient.ViewClient.dump	src.com.dtmilano.android.viewclient.ViewClient-class.html#dump
 src.com.dtmilano.android.viewclient.ViewClient.TRAVERSE_CITUI	src.com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITUI
 src.com.dtmilano.android.viewclient.ViewClient.TRAVERSE_CITPS	src.com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITPS
 src.com.dtmilano.android.viewclient.ViewClient.views	src.com.dtmilano.android.viewclient.ViewClient-class.html#views
@@ -226,6 +234,7 @@ src.com.dtmilano.android.viewclient.ViewClient.isKeyboardShown	src.com.dtmilano.
 src.com.dtmilano.android.viewclient.ViewClient.__obtainAdbPath	src.com.dtmilano.android.viewclient.ViewClient-class.html#__obtainAdbPath
 src.com.dtmilano.android.viewclient.ViewClient.adb	src.com.dtmilano.android.viewclient.ViewClient-class.html#adb
 src.com.dtmilano.android.viewclient.ViewClient.build	src.com.dtmilano.android.viewclient.ViewClient-class.html#build
+src.com.dtmilano.android.viewclient.ViewClient.__levenshteinDistance	src.com.dtmilano.android.viewclient.ViewClient-class.html#__levenshteinDistance
 src.com.dtmilano.android.viewclient.ViewClient.__parseTreeFromUiAutomatorDump	src.com.dtmilano.android.viewclient.ViewClient-class.html#__parseTreeFromUiAutomatorDump
 src.com.dtmilano.android.viewclient.ViewClient.ro	src.com.dtmilano.android.viewclient.ViewClient-class.html#ro
 src.com.dtmilano.android.viewclient.ViewClient.TRAVERSE_CITCD	src.com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITCD
@@ -241,6 +250,7 @@ src.com.dtmilano.android.viewclient.ViewClient.traverseShowClassIdTextAndUniqueI
 src.com.dtmilano.android.viewclient.ViewClient.findViewById	src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewById
 src.com.dtmilano.android.viewclient.ViewClient.findViewsContainingPoint	src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewsContainingPoint
 src.com.dtmilano.android.viewclient.ViewClient.__findViewWithAttributeInTreeOrRaise	src.com.dtmilano.android.viewclient.ViewClient-class.html#__findViewWithAttributeInTreeOrRaise
+src.com.dtmilano.android.viewclient.ViewClient.levenshteinDistance	src.com.dtmilano.android.viewclient.ViewClient-class.html#levenshteinDistance
 src.com.dtmilano.android.viewclient.ViewClient.device	src.com.dtmilano.android.viewclient.ViewClient-class.html#device
 src.com.dtmilano.android.viewclient.ViewClient.getSdkVersion	src.com.dtmilano.android.viewclient.ViewClient-class.html#getSdkVersion
 src.com.dtmilano.android.viewclient.ViewClient.findViewWithAttributeOrRaise	src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithAttributeOrRaise
@@ -259,6 +269,7 @@ src.com.dtmilano.android.viewclient.ViewClient.list	src.com.dtmilano.android.vie
 src.com.dtmilano.android.viewclient.ViewClient.traverseShowClassIdTextAndContentDescription	src.com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndContentDescription
 src.com.dtmilano.android.viewclient.ViewClient.findViewWithContentDescription	src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithContentDescription
 src.com.dtmilano.android.viewclient.ViewClient.useUiAutomator	src.com.dtmilano.android.viewclient.ViewClient-class.html#useUiAutomator
+src.com.dtmilano.android.viewclient.ViewClient.__hammingDistance	src.com.dtmilano.android.viewclient.ViewClient-class.html#__hammingDistance
 src.com.dtmilano.android.viewclient.ViewClient.root	src.com.dtmilano.android.viewclient.ViewClient-class.html#root
 src.com.dtmilano.android.viewclient.ViewClient.display	src.com.dtmilano.android.viewclient.ViewClient-class.html#display
 src.com.dtmilano.android.viewclient.ViewClient.findViewWithContentDescriptionOrRaise	src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithContentDescriptionOrRaise
