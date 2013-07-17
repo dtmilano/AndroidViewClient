@@ -316,7 +316,7 @@ DUMPSYS_WINDOW_WINDOWS_SAMPLE_UI = """WINDOW MANAGER WINDOWS (dumpsys window win
   mStartingIconInTransition=false, mSkipAppTransitionAnimation=false
 """
 
-WINDOW_DUMP = """<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+UIAUTOMATOR_WINDOW_DUMP = """<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <hierarchy rotation="0">
     <node index="0" text="" class="android.widget.FrameLayout"
         package="com.android.launcher" content-desc="" checkable="false"
@@ -541,16 +541,20 @@ class MockDevice(object):
             return DUMPSYS_WINDOW_WINDOWS
         
         m = re.match('uiautomator dump (\S+)', cmd)
-        if m and self.version >= 16:
-            # it was simulating a dump to sdcard before
-            #return 'dumped %s' % m.group(1)
-            if not self.uiAutomatorKilled:
-                return WINDOW_DUMP
+        if m:
+            if self.version >= 16:
+                # it was simulating a dump to sdcard before
+                #return 'dumped %s' % m.group(1)
+                if not self.uiAutomatorKilled:
+                    return UIAUTOMATOR_WINDOW_DUMP
+                else:
+                    return UIAUTOMATOR_WINDOW_DUMP + "Killed"
             else:
-                return WINDOW_DUMP + "Killed"
+                return "uiautomator: command not found"
+        
         m = re.match('cat (\S+) .*', cmd)
         if m:
-            return WINDOW_DUMP
+            return UIAUTOMATOR_WINDOW_DUMP
                 
     def getProperty(self, property):
         if property == 'ro.serialno':
