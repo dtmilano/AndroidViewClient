@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.25'
+__version__ = '2.3.26'
 
 import sys
 import subprocess
@@ -946,7 +946,7 @@ class UiAutomator2AndroidViewClient():
         self.root = None
         self.nodeStack = []
         self.parent = None
-        self.viewsById = []
+        self.views = []
         self.idCount = 1
 
     def StartElement(self, name, attributes):
@@ -964,7 +964,7 @@ class UiAutomator2AndroidViewClient():
                 print >> sys.stderr, "bounds=", attributes['bounds']
             self.idCount += 1 
             child = View.factory(attributes, self.device, self.version)
-            self.viewsById.append(child)
+            self.views.append(child)
             # Push element onto the stack and make it a child of parent
             if not self.nodeStack:
                 self.root = child
@@ -1702,7 +1702,10 @@ class ViewClient:
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY])
         self.root = parser.Parse(receivedXml)
-        self.views = parser.viewsById
+        self.views = parser.views
+        self.viewsById = {}
+        for v in self.views:
+            self.viewsById[v.getUniqueId()] = v
 
     def getRoot(self):
         '''

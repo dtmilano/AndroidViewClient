@@ -357,11 +357,14 @@ class ViewClientTest(unittest.TestCase):
         except ValueError:
             pass
         
-    def __mockTree(self, dump=DUMP):
-        device = MockDevice()
+    def __mockTree(self, dump=DUMP, version=15):
+        device = MockDevice(version=version)
         vc = ViewClient(device, serialno=device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
-        vc.setViews(dump)
+        if version <= 15:
+            vc.setViews(dump)
+        else:
+            vc.dump()
         return vc
 
     def __mockWindows(self, windows=WINDOWS):
@@ -382,9 +385,30 @@ class ViewClientTest(unittest.TestCase):
         vc = self.__mockTree()
         # eat all the output
         vc.traverse(vc.root, transform=self.__eatIt)
-        # We know there are 23 views in mock tree
+        # We know there are 23 views in ViewServer mock tree
         self.assertEqual(23, len(vc.getViewIds()))
         
+    def testParsetree_api17(self):
+        vc = self.__mockTree(version=17)
+        # eat all the output
+        vc.traverse(vc.root, transform=self.__eatIt)
+        # We know there are 9 views in UiAutomator mock tree
+        self.assertEqual(9, len(vc.getViewIds()))
+    
+    def testGetViewsById(self):
+        vc = self.__mockTree()
+        viewsbyId = vc.getViewIds()
+        self.assertNotEquals(None, viewsbyId)
+        for v in viewsbyId:
+            self.assertTrue(re.match("id/.*", v.getUniqueid()) != None)
+        
+    def testGetViewsById_api17(self):
+        vc = self.__mockTree(version=17)
+        viewsbyId = vc.getViewIds()
+        self.assertNotEquals(None, viewsbyId)
+        for v in viewsbyId:
+            self.assertTrue(re.match("id/.*", v.getUniqueid()) != None)
+               
     def testNewViewClientInstancesDontDuplicateTree(self):
         vc = {}
         n = {}
