@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '2.3.26'
+__version__ = '3.0.0'
 
 import sys
 import subprocess
@@ -849,7 +849,7 @@ class View:
         '''
         
         if not os.path.isabs(filename):
-             raise ValueError("writeImageToFile expects an absolute path") 
+            raise ValueError("writeImageToFile expects an absolute path") 
         if os.path.isdir(filename):
             filename = os.path.join(filename, self.variableNameFromId() + '.' + format.lower())
         if DEBUG:
@@ -1548,24 +1548,20 @@ class ViewClient:
             print >>sys.stderr, "there are %d views in this dump" % len(self.views)
         
         
-    def __splitAttrs(self, strArgs, addViewToViewsById=False):
+    def __splitAttrs(self, strArgs):
         '''
         Splits the C{View} attributes in C{strArgs} and optionally adds the view id to the C{viewsById} list.
         
         Unique Ids
         ==========
         It is very common to find C{View}s having B{NO_ID} as the Id. This turns very difficult to 
-        use L{self.findViewById()}. To help in this situation this method assigns B{unique Ids} if
-        C{addViewToViewsById} is C{True}.
+        use L{self.findViewById()}. To help in this situation this method assigns B{unique Ids}.
         
         The B{unique Ids} are generated using the pattern C{id/no_id/<number>} with C{<number>} starting
         at 1.
         
         @type strArgs: str
         @param strArgs: the string containing the raw list of attributes and values
-        @type addViewToViewsById: boolean
-        @param addViewToViewsById: whether to add the parsed list of attributes and values to the
-                                   map C{self.viewsById}
         
         @return: Returns the attributes map.
         '''
@@ -1618,7 +1614,7 @@ class ViewClient:
                     if DEBUG:
                         print >>sys.stderr, attr, "doesn't match"
         
-        if addViewToViewsById:
+        if True: # was assignViewById
             if not viewId:
                 # If the view has NO_ID we are assigning a default id here (id/no_id) which is
                 # immediately incremented if another view with no id was found before to generate
@@ -1638,13 +1634,13 @@ class ViewClient:
             # We are assigning a new attribute to keep the original id preserved, which could have
             # been NO_ID repeated multiple times
             attrs['uniqueId'] = viewId
-            self.viewsById[viewId] = attrs
                           
         return attrs
     
     def __parseTree(self, receivedLines):
         '''
         Parses the View tree contained in L{receivedLines}. The tree is created and the root node assigned to L{self.root}.
+        This method also assigns L{self.viewsById} values using L{View.getUniqueId} as the key.
         
         @type receivedLines: str
         @param receivedLines: the string received from B{View Server}
@@ -1661,7 +1657,7 @@ class ViewClient:
         for v in receivedLines:
             if v == '' or v == 'DONE' or v == 'DONE.':
                 break
-            attrs = self.__splitAttrs(v, addViewToViewsById=True)
+            attrs = self.__splitAttrs(v)
             if not self.root:
                 if v[0] == ' ':
                     raise Exception("Unexpected root element starting with ' '.")
@@ -1698,6 +1694,7 @@ class ViewClient:
                     treeLevel = newLevel
                     lastView = child
             self.views.append(lastView)
+            self.viewsById[lastView.getUniqueId()] = lastView
     
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY])

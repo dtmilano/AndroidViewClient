@@ -362,6 +362,7 @@ class ViewClientTest(unittest.TestCase):
         vc = ViewClient(device, serialno=device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         if version <= 15:
+            # We don't want to invoke the ViewServer or MockViewServer for this
             vc.setViews(dump)
         else:
             vc.dump()
@@ -395,19 +396,23 @@ class ViewClientTest(unittest.TestCase):
         # We know there are 9 views in UiAutomator mock tree
         self.assertEqual(9, len(vc.getViewIds()))
     
-    def testGetViewsById(self):
-        vc = self.__mockTree()
+
+    def __testViewByIds_apiIndependent(self, vc):
         viewsbyId = vc.getViewIds()
         self.assertNotEquals(None, viewsbyId)
-        for v in viewsbyId:
-            self.assertTrue(re.match("id/.*", v.getUniqueid()) != None)
+        for k, v in viewsbyId.items():
+            self.assertTrue(isinstance(k, str))
+            self.assertTrue(isinstance(v, View), "v=" + str(v) + " is not a View")
+            self.assertTrue(re.match("id/.*", v.getUniqueId()) != None)
+            self.assertEquals(k, v.getUniqueId())
+
+    def testGetViewsById(self):
+        vc = self.__mockTree()
+        self.__testViewByIds_apiIndependent(vc)
         
     def testGetViewsById_api17(self):
         vc = self.__mockTree(version=17)
-        viewsbyId = vc.getViewIds()
-        self.assertNotEquals(None, viewsbyId)
-        for v in viewsbyId:
-            self.assertTrue(re.match("id/.*", v.getUniqueid()) != None)
+        self.__testViewByIds_apiIndependent(vc) 
                
     def testNewViewClientInstancesDontDuplicateTree(self):
         vc = {}
