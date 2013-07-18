@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '3.0.0'
+__version__ = '3.0.1'
 
 import sys
 import subprocess
@@ -2155,7 +2155,16 @@ You should force ViewServer back-end.''')
         
     def getViewIds(self):
         '''
+        @deprecated: Use L{getViewsById} instead.
+        
         Returns the Views map.
+        '''
+
+        return self.viewsById
+    
+    def getViewsById(self):
+        '''
+        Returns the Views map. The keys are C{uniqueIds} and the values are C{View}s.
         '''
 
         return self.viewsById

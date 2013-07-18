@@ -398,7 +398,7 @@ class ViewClientTest(unittest.TestCase):
     
 
     def __testViewByIds_apiIndependent(self, vc):
-        viewsbyId = vc.getViewIds()
+        viewsbyId = vc.getViewsById()
         self.assertNotEquals(None, viewsbyId)
         for k, v in viewsbyId.items():
             self.assertTrue(isinstance(k, str))
