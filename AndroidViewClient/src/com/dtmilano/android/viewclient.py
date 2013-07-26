@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '3.1.0'
+__version__ = '3.1.1'
 
 import sys
 import subprocess
@@ -1801,7 +1801,7 @@ class ViewClient:
                 elif DEBUG_RECEIVED:
                     print "UiAutomator Killed: NOT FOUND!"
                 # It seems that API18 uiautomator spits this message to stdout
-                dumpedToDevTtyRE = re,compile('</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
+                dumpedToDevTtyRE = re.compile('</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
                 if dumpedToDevTtyRE.search(received):
                     received = re.sub(dumpedToDevTtyRE, '</hierarchy>', received)
                 if DEBUG_RECEIVED:
