@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '3.0.1'
+__version__ = '3.1.0'
 
 import sys
 import subprocess
@@ -1783,8 +1783,8 @@ class ViewClient:
             # Using /dev/tty this works even on devices with no sdcard
             received = self.device.shell('uiautomator dump /dev/tty >/dev/null')
             if not received:
-                raise RuntimeError('ERROR: Getting UIAutomator dump')
-            received = received.encode('ascii', 'ignore')
+                raise RuntimeError('ERROR: Empty UIAutomator dump was received')
+            received = received.encode('utf-8', 'ignore')
             if DEBUG:
                 self.received = received
             if DEBUG_RECEIVED:
@@ -1800,6 +1800,10 @@ class ViewClient:
                     received = re.sub(killedRE, '</hierarchy>', received)
                 elif DEBUG_RECEIVED:
                     print "UiAutomator Killed: NOT FOUND!"
+                # It seems that API18 uiautomator spits this message to stdout
+                dumpedToDevTtyRE = re,compile('</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
+                if dumpedToDevTtyRE.search(received):
+                    received = re.sub(dumpedToDevTtyRE, '</hierarchy>', received)
                 if DEBUG_RECEIVED:
                     print >>sys.stderr, "received=", received
             if re.search('\[: not found', received):
@@ -2022,6 +2026,7 @@ You should force ViewServer back-end.''')
         if type(root) == types.StringType and root == "ROOT":
             root = self.root
 
+        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: type val=", type(val)
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
         
         if isinstance(val, org.python.modules.sre.PatternObject):
@@ -2101,6 +2106,8 @@ You should force ViewServer back-end.''')
         return self.__findViewWithAttributeInTreeThatMatches(attr, regex, root)
         
     def findViewWithText(self, text, root="ROOT"):
+        if DEBUG:
+            print >>sys.stderr, "findViewWithText(%s, %s)" % (text, root)
         if isinstance(text, org.python.modules.sre.PatternObject):
             return self.findViewWithAttributeThatMatches(self.textProperty, text, root)
             #l = self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text)
@@ -2123,6 +2130,8 @@ You should force ViewServer back-end.''')
         @raise ViewNotFoundException: raise the exception if View not found
         '''
         
+        if DEBUG:
+            print >>sys.stderr, "findViewWithTextOrRaise(%s, %s)" % (text, root)
         view = self.findViewWithText(text, root)
         if view:
             return view

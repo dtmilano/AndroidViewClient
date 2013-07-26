@@ -1,9 +1,9 @@
 #! /usr/bin/env monkeyrunner
+# -*- coding: utf-8 -*-
 # Linux
 #! /usr/local/bin/shebang monkeyrunner -plugin $AVC_HOME/bin/androidviewclient-$AVC_VERSION.jar @!
 # Mac OS X
 #! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!
-# -*- coding: utf-8 -*-
 '''
 Copyright (C) 2013  Diego Torres Milano
 Created on Mar 28, 2013
@@ -22,7 +22,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '0.9.12'
+__version__ = '1.0.0'
 
 import re
 import sys
@@ -30,6 +30,7 @@ import os
 import getopt
 import warnings
 import subprocess
+import codecs
 from datetime import date
 
 # This must be imported before MonkeyRunner and MonkeyDevice,
@@ -170,13 +171,14 @@ def printVerboseComments(view):
     try:
         text = view.getText()
         if text:
-            print 'text="%s"' % text,
+            u = 'u' if isinstance(text, unicode) else ''
+            print "text=%c'%s'" % (u, text),
     except:
         pass
     try:
         tag = view.getTag()
         if tab != 'null':
-            print 'tag=%s' % tag
+            print 'tag=%s' % tag,
     except:
         pass
     print
@@ -216,15 +218,17 @@ def printFindViewWithText(view, useregexp):
     '''
     
     text = view.getText()
+    isUnicode = isinstance(text, unicode)
+    u = 'u' if isUnicode else ''
     if text:
         var = variableNameFromIdOrKey(view)
-        if text.find("\n") > 0:
+        if text.find(u"\n") > 0:
             # 2 quotes + 1 quote = 3 quotes
             text = "''%s''" % text
         if useregexp:
-            text = "re.compile('%s')" % text
+            text = "re.compile(%c'%s')" % (u, text)
         else:
-            text = "'%s'" % text
+            text = "%c'%s'" % (u, text)
         print '%s = vc.findViewWithTextOrRaise(%s)' % (var, text)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no text' %  view.getUniqueId())
@@ -386,7 +390,7 @@ if options[START_ACTIVITY]:
     device.startActivity(component=options[START_ACTIVITY])
 vc = ViewClient(device, serialno, **kwargs2)
 if options[OUTPUT]:
-    sys.stdout = open(options[OUTPUT], 'w')
+    sys.stdout = codecs.open(options[OUTPUT], mode='w', encoding='utf-8', errors='replace')
     import stat
     st = os.stat(options[OUTPUT])
     os.chmod(options[OUTPUT], st.st_mode | stat.S_IEXEC)
@@ -471,7 +475,7 @@ if options[INTERACTIVE]:
         data = s.recv(1024)
         code = ViewClient.excerpt(data)
         exec code
-        # unfortunately, this does not work with monkeyrunner
+        # unfortunately, this does not work with monkeyrunner (OS X <= 22.0.1)
         #resp = raw_input("Continue recording events? [Y/n]: ")
         print >>sys.stderr, "Continue recording events? [Y/n]: "
         resp = fin.readline().strip()
