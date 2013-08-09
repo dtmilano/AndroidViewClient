@@ -1797,8 +1797,11 @@ class ViewClient:
             if DEBUG_RECEIVED:
                 print >>sys.stderr, "received %d chars" % len(received)
                 print >>sys.stderr
-                print >>sys.stderr, received
+                print >>sys.stderr, repr(received)
                 print >>sys.stderr
+            onlyKilledRE = re.compile('[\n\S]*Killed[\n\r\S]*', re.MULTILINE)
+            if onlyKilledRE.search(received):
+                raise RuntimeError('''ERROR: UiAutomator output contains no valid information. UiAutomator was killed, no reason given.''')
             if self.ignoreUiAutomatorKilled:
                 if DEBUG_RECEIVED:
                     print >>sys.stderr, "ignoring UiAutomator Killed"
