@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Feb 6, 2012
@@ -316,7 +317,7 @@ DUMPSYS_WINDOW_WINDOWS_SAMPLE_UI = """WINDOW MANAGER WINDOWS (dumpsys window win
   mStartingIconInTransition=false, mSkipAppTransitionAnimation=false
 """
 
-UIAUTOMATOR_WINDOW_DUMP = """<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+UIAUTOMATOR_DUMP = """<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <hierarchy rotation="0">
     <node index="0" text="" class="android.widget.FrameLayout"
         package="com.android.launcher" content-desc="" checkable="false"
@@ -374,6 +375,139 @@ UIAUTOMATOR_WINDOW_DUMP = """<?xml version='1.0' encoding='UTF-8' standalone='ye
 </hierarchy>
 """
 
+UIAUTOMATOR_DUMP_API17_CHINESE = '''<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\' ?>
+<hierarchy rotation="0">
+    <node index="0" text="" class="android.widget.FrameLayout"
+        package="android" content-desc="" checkable="false" checked="false"
+        clickable="false" enabled="true" focusable="false" focused="false"
+        scrollable="false" long-clickable="false" password="false" selected="false"
+        bounds="[0,0][800,1216]">
+        <node index="0" text="" class="android.widget.FrameLayout"
+            package="android" content-desc="" checkable="false" checked="false"
+            clickable="false" enabled="true" focusable="false" focused="false"
+            scrollable="false" long-clickable="false" password="false" selected="false"
+            bounds="[0,33][800,1216]">
+            <node index="0" text="" class="android.view.View" package="android"
+                content-desc="" checkable="false" checked="false" clickable="false"
+                enabled="true" focusable="false" focused="false" scrollable="false"
+                long-clickable="false" password="false" selected="false" bounds="[0,33][800,1216]">
+                <node index="0" text="" class="android.view.View" package="android"
+                    content-desc="" checkable="false" checked="false" clickable="false"
+                    enabled="true" focusable="false" focused="false" scrollable="true"
+                    long-clickable="false" password="false" selected="false" bounds="[0,0][800,1216]">
+                    <node index="0" text="" class="android.widget.FrameLayout"
+                        package="android"
+                        content-desc="\xe7\xa9\xba\xe7\x99\xbd\xe5\xb0\x8f\xe9\x83\xa8\xe4\xbb\xb6\xe3\x80\x82"
+                        checkable="false" checked="false" clickable="false" enabled="true"
+                        focusable="false" focused="false" scrollable="false"
+                        long-clickable="true" password="false" selected="false" bounds="[0,66][100,625]" />
+                    <node index="1" text="" class="android.widget.FrameLayout"
+                        package="android"
+                        content-desc="\xe7\x8a\xb6\xe6\x80\x81\xe5\xb0\x8f\xe9\x83\xa8\xe4\xbb\xb6\xe3\x80\x82"
+                        checkable="false" checked="false" clickable="false" enabled="true"
+                        focusable="false" focused="false" scrollable="false"
+                        long-clickable="true" password="false" selected="false"
+                        bounds="[113,66][686,625]">
+                        <node index="0" text="" class="android.widget.GridLayout"
+                            package="android" content-desc="\xe7\x8a\xb6\xe6\x80\x81"
+                            checkable="false" checked="false" clickable="false" enabled="true"
+                            focusable="false" focused="false" scrollable="false"
+                            long-clickable="false" password="false" selected="false"
+                            bounds="[123,76][676,615]">
+                            <node index="0" text="" class="android.widget.LinearLayout"
+                                package="android" content-desc="" checkable="false" checked="false"
+                                clickable="false" enabled="true" focusable="true" focused="false"
+                                scrollable="false" long-clickable="false" password="false"
+                                selected="false" bounds="[123,76][676,351]">
+                                <node index="0" text="" class="android.widget.RelativeLayout"
+                                    package="android" content-desc="" checkable="false" checked="false"
+                                    clickable="false" enabled="true" focusable="false" focused="false"
+                                    scrollable="false" long-clickable="false" password="false"
+                                    selected="false" bounds="[267,76][609,324]">
+                                    <node index="0" text="6:40" class="android.widget.TextView"
+                                        package="android" content-desc="" checkable="false" checked="false"
+                                        clickable="false" enabled="true" focusable="false" focused="false"
+                                        scrollable="false" long-clickable="false" password="false"
+                                        selected="false" bounds="[267,76][609,324]" />
+                                </node>
+                                <node index="1" text="" class="android.widget.LinearLayout"
+                                    package="android" content-desc="" checkable="false" checked="false"
+                                    clickable="false" enabled="true" focusable="false" focused="false"
+                                    scrollable="false" long-clickable="false" password="false"
+                                    selected="false" bounds="[401,304][676,351]">
+                                    <node index="0"
+                                        text="语言"
+                                        class="android.widget.TextView" package="android"
+                                        content-desc="" checkable="false" checked="false" clickable="false"
+                                        enabled="true" focusable="false" focused="false" scrollable="false"
+                                        long-clickable="false" password="false" selected="true"
+                                        bounds="[401,304][609,351]" />
+                                </node>
+                            </node>
+                        </node>
+                    </node>
+                </node>
+                <node index="1" text="" class="android.widget.FrameLayout"
+                    package="android" content-desc="" checkable="false" checked="false"
+                    clickable="false" enabled="true" focusable="false" focused="false"
+                    scrollable="false" long-clickable="false" password="false"
+                    selected="false" bounds="[120,654][679,1187]">
+                    <node index="0" text="" class="android.widget.ViewFlipper"
+                        package="android" content-desc="" checkable="false" checked="false"
+                        clickable="false" enabled="true" focusable="false" focused="false"
+                        scrollable="false" long-clickable="false" password="false"
+                        selected="false" bounds="[120,654][679,1187]">
+                        <node index="0" text="" class="android.widget.LinearLayout"
+                            package="android"
+                            content-desc="\xe6\xbb\x91\xe5\x8a\xa8\xe8\xa7\xa3\xe9\x94\x81\xe3\x80\x82"
+                            checkable="false" checked="false" clickable="false" enabled="true"
+                            focusable="false" focused="false" scrollable="false"
+                            long-clickable="false" password="false" selected="false"
+                            bounds="[136,670][663,1171]">
+                            <node index="0" text="" class="android.widget.FrameLayout"
+                                package="android" content-desc="" checkable="false" checked="false"
+                                clickable="false" enabled="true" focusable="false" focused="false"
+                                scrollable="false" long-clickable="false" password="false"
+                                selected="false" bounds="[136,670][663,1171]">
+                                <node index="0" text="" class="android.view.View" package="android"
+                                    content-desc="\xe6\xbb\x91\xe5\x8a\xa8\xe5\x8c\xba\xe5\x9f\x9f\xe3\x80\x82"
+                                    checkable="false" checked="false" clickable="false" enabled="true"
+                                    focusable="false" focused="false" scrollable="false"
+                                    long-clickable="false" password="false" selected="false"
+                                    bounds="[136,670][663,1171]" />
+                                <node index="1"
+                                    text="\xe6\xad\xa3\xe5\x9c\xa8\xe5\x85\x85\xe7\x94\xb5\xef\xbc\x8c50%"
+                                    class="android.widget.TextView" package="android" content-desc=""
+                                    checkable="false" checked="false" clickable="true" enabled="true"
+                                    focusable="false" focused="false" scrollable="false"
+                                    long-clickable="false" password="false" selected="true"
+                                    bounds="[136,670][663,699]" />
+                                <node index="2" text="" class="android.widget.LinearLayout"
+                                    package="android" content-desc="" checkable="false" checked="false"
+                                    clickable="true" enabled="true" focusable="false" focused="false"
+                                    scrollable="false" long-clickable="false" password="false"
+                                    selected="false" bounds="[136,1107][663,1171]">
+                                    <node index="1" text="ANDROID" class="android.widget.TextView"
+                                        package="android" content-desc="" checkable="false" checked="false"
+                                        clickable="false" enabled="true" focusable="false" focused="false"
+                                        scrollable="false" long-clickable="false" password="false"
+                                        selected="true" bounds="[355,1124][444,1153]" />
+                                </node>
+                                <node index="3" text="" class="android.view.View" package="android"
+                                    content-desc="" checkable="false" checked="false" clickable="false"
+                                    enabled="true" focusable="false" focused="false" scrollable="false"
+                                    long-clickable="false" password="false" selected="false"
+                                    bounds="[157,670][642,1171]" />
+                            </node>
+                        </node>
+                    </node>
+                </node>
+            </node>
+        </node>
+    </node>
+</hierarchy>
+'''
+ 
 WINDOWS = {1:'Window1', 2: 'com.example.window', 0xb523d938: 'com.android.launcher', 0xb52f7c88:'StatusBar'}
 
 LIST = '''\
@@ -513,7 +647,7 @@ class MockDevice(object):
     '''
 
 
-    def __init__(self, serialno="MOCK12345678", version=15, startviewserver=False, uiautomatorkilled=False):
+    def __init__(self, serialno="MOCK12345678", version=15, startviewserver=False, uiautomatorkilled=False, language='en'):
         '''
         Constructor
         '''
@@ -524,6 +658,11 @@ class MockDevice(object):
         if startviewserver:
             self.viewServer = MockViewServer()
         self.uiAutomatorKilled = uiautomatorkilled
+        self.language = language
+        self.uiAutomatorDump = {}
+        self.uiAutomatorDump['en'] = UIAUTOMATOR_DUMP
+        # FIXME: MockDevice could not be API17
+        self.uiAutomatorDump['zh'] = UIAUTOMATOR_DUMP_API17_CHINESE
         
     def __del__(self):
         self.shutdownMockViewServer()
@@ -546,15 +685,15 @@ class MockDevice(object):
                 # it was simulating a dump to sdcard before
                 #return 'dumped %s' % m.group(1)
                 if not self.uiAutomatorKilled:
-                    return UIAUTOMATOR_WINDOW_DUMP
+                    return self.uiAutomatorDump[self.language]
                 else:
-                    return UIAUTOMATOR_WINDOW_DUMP + "Killed"
+                    return self.uiAutomatorDump[self.language] + "Killed\r\n"
             else:
                 return "uiautomator: command not found"
         
         m = re.match('cat (\S+) .*', cmd)
         if m:
-            return UIAUTOMATOR_WINDOW_DUMP
+            return self.uiAutomatorDump[self.language]
                 
     def getProperty(self, property):
         if property == 'ro.serialno':

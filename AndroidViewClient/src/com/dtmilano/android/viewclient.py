@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Copyright (C) 2012-2013  Diego Torres Milano
 Created on Feb 2, 2012
@@ -17,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '3.1.1'
+__version__ = '3.2.0'
 
 import sys
 import subprocess
@@ -857,7 +858,7 @@ class View:
         self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, format)
 
     def __smallStr__(self):
-        __str = "View["
+        __str = unicode("View[", 'utf-8', 'replace')
         if "class" in self.map:
             __str += " class=" + self.map['class']
         __str += " id=%s" % self.getId()
@@ -870,7 +871,7 @@ class View:
         return __str
             
     def __tinyStr__(self):
-        __str = "View["
+        __str = unicode("View[", 'utf-8', 'replace')
         if "class" in self.map:
             __str += " class=" + re.sub('.*\.', '', self.map['class'])
         __str += " id=%s" % self.getId()
@@ -879,7 +880,7 @@ class View:
         return __str
     
     def __microStr__(self):
-        __str = ''
+        __str = unicode('', 'utf-8', 'replace')
         if "class" in self.map:
             __str += re.sub('.*\.', '', self.map['class'])
         id = self.getId().replace('id/no_id/', '-')
@@ -892,11 +893,11 @@ class View:
         
             
     def __str__(self):
-        __str = "View["
+        __str = unicode("View[", 'utf-8', 'replace')
         if "class" in self.map:
             __str += " class=" + self.map["class"].__str__() + " "
         for a in self.map:
-            __str += a + "=" + self.map[a].__str__() + " "
+            __str += a + "=" + unicode(self.map[a], 'utf-8', 'replace') + " "
         __str += "]   parent="
         if self.parent:
             if "class" in self.parent.map:
@@ -1001,7 +1002,11 @@ class UiAutomator2AndroidViewClient():
         parser.EndElementHandler = self.EndElement
         parser.CharacterDataHandler = self.CharacterData
         # Parse the XML File
-        parserStatus = parser.Parse(uiautomatorxml, 1)
+        try:
+            parserStatus = parser.Parse(uiautomatorxml, 1)
+        except xml.parsers.expat.ExpatError, ex:
+            print >>sys.stderr, "ERROR: Offending XML:\n", repr(uiautomatorxml)
+            raise RuntimeError(ex)
         return self.root
 
 class Excerpt2Code():
@@ -1748,7 +1753,9 @@ class ViewClient:
 
         s = transform(root)
         if s:
-            print >>stream, "%s%s" % (indent, s)
+            us = s.encode('utf-8', 'replace')
+            ius = unicode("%s%s" % (indent, us), 'utf-8', 'replace')
+            print >>stream, ius.encode('utf-8', 'replace')
         
         for ch in root.children:
             ViewClient.__traverse(ch, indent=indent+"   ", transform=transform, stream=stream)
@@ -1783,7 +1790,7 @@ class ViewClient:
             # Using /dev/tty this works even on devices with no sdcard
             received = self.device.shell('uiautomator dump /dev/tty >/dev/null')
             if not received:
-                raise RuntimeError('ERROR: Empty UIAutomator dump was received')
+                raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             received = received.encode('utf-8', 'ignore')
             if DEBUG:
                 self.received = received

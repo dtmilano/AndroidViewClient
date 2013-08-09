@@ -1,4 +1,5 @@
 #! /usr/bin/env monkeyrunner
+# -*- coding: utf-8 -*-
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Feb 5, 2012
@@ -357,8 +358,8 @@ class ViewClientTest(unittest.TestCase):
         except ValueError:
             pass
         
-    def __mockTree(self, dump=DUMP, version=15):
-        device = MockDevice(version=version)
+    def __mockTree(self, dump=DUMP, version=15, language='en'):
+        device = MockDevice(version=version, language=language)
         vc = ViewClient(device, serialno=device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
         if version <= 15:
@@ -396,7 +397,13 @@ class ViewClientTest(unittest.TestCase):
         # We know there are 9 views in UiAutomator mock tree
         self.assertEqual(9, len(vc.getViewIds()))
     
-
+    def testParsetree_api17_zh(self):
+        vc = self.__mockTree(version=17, language='zh')
+        # eat all the output
+        vc.traverse(vc.root, transform=self.__eatIt)
+        # We know there are 21 views in UiAutomator mock tree
+        self.assertEqual(21, len(vc.getViewIds()))
+    
     def __testViewByIds_apiIndependent(self, vc):
         viewsbyId = vc.getViewsById()
         self.assertNotEquals(None, viewsbyId)
@@ -413,7 +420,11 @@ class ViewClientTest(unittest.TestCase):
     def testGetViewsById_api17(self):
         vc = self.__mockTree(version=17)
         self.__testViewByIds_apiIndependent(vc) 
-               
+    
+    def testGetViewsById_api17_zh(self):
+        vc = self.__mockTree(version=17, language='zh')
+        self.__testViewByIds_apiIndependent(vc)
+                
     def testNewViewClientInstancesDontDuplicateTree(self):
         vc = {}
         n = {}
@@ -540,7 +551,17 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
     def testFindViewByIdOrRaise(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
         vc.findViewByIdOrRaise('id/up')
-        
+    
+    def testFindViewByIdOrRaise_api17(self):
+        vc = self.__mockTree(version=17)
+        vc.traverse()
+        vc.findViewByIdOrRaise('id/no_id/9')
+    
+    def testFindViewByIdOrRaise_api17_zh(self):
+        vc = self.__mockTree(version=17, language='zh')
+        vc.traverse()
+        vc.findViewByIdOrRaise('id/no_id/21')
+    
     def testFindViewByIdOrRaise_nonExistentView(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
         try:
@@ -548,7 +569,23 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
-           
+    
+    def testFindViewByIdOrRaise_nonExistentView_api17(self):
+        vc = self.__mockTree(version=17)
+        try:
+            vc.findViewByIdOrRaise('id/nonexistent')
+            self.fail()
+        except ViewNotFoundException:
+            pass
+   
+    def testFindViewByIdOrRaise_nonExistentView_api17_zh(self):
+        vc = self.__mockTree(version=17, language='zh')
+        try:
+            vc.findViewByIdOrRaise('id/nonexistent')
+            self.fail()
+        except ViewNotFoundException:
+            pass
+                  
     def testFindViewById_root(self):
         device = None
         root = View({'mID':'0'}, device)
@@ -726,6 +763,31 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         vc.root = root
         try:
             vc.findViewWithTextOrRaise('Non Existent', root=v4)
+            self.fail()
+        except ViewNotFoundException:
+            pass
+    
+    def testFindViewWithTextOrRaise_api17(self):
+        vc = self.__mockTree(version=17)
+        vc.findViewWithTextOrRaise("Apps")
+        
+    def testFindViewWithTextOrRaise_api17_zh(self):
+        vc = self.__mockTree(version=17, language='zh')
+        vc.traverse(transform=ViewClient.TRAVERSE_CIT)
+        vc.findViewWithTextOrRaise(u'语言')
+        
+    def testFindViewWithTextOrRaise_nonExistent_api17(self):
+        vc = self.__mockTree(version=17)
+        try:
+            vc.findViewWithTextOrRaise('nonexistent text')
+            self.fail()
+        except ViewNotFoundException:
+            pass
+    
+    def testFindViewWithTextOrRaise_nonExistent_api17_zh(self):
+        vc = self.__mockTree(version=17, language='zh')
+        try:
+            vc.findViewWithTextOrRaise(u'不存在的文本')
             self.fail()
         except ViewNotFoundException:
             pass
@@ -940,7 +1002,10 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         list = vc.findViewsContainingPoint((55, 75), filter=View.isClickable)
         self.assertNotEquals(None, list)
         self.assertNotEquals(0, len(list))
-             
+
 if __name__ == "__main__":
+    print >> sys.stderr, "ViewClient.__main__:"
+    print >> sys.stderr, "argv=", sys.argv 
     #import sys;sys.argv = ['', 'Test.testName']
+    #sys.argv.append('ViewClientTest.testFindViewsContainingPoint_filterApi17')
     unittest.main()
