@@ -18,23 +18,22 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '3.2.0'
+__version__ = '4.0.0'
 
 import sys
 import subprocess
 import re
 import socket
 import os
-import java
 import types
 import time
 import signal
 import warnings
 import copy
 import pickle
+import platform
 import xml.parsers.expat
-import org.python.modules.sre.PatternObject
-from com.android.monkeyrunner import MonkeyDevice, MonkeyRunner
+from com.dtmilano.android.adb import adbclient
 
 DEBUG = False
 DEBUG_DEVICE = DEBUG and False
@@ -60,8 +59,8 @@ OFFSET = 25
 ''' This assumes the smallest touchable view on the screen is approximately 50px x 50px
     and touches it at M{(x+OFFSET, y+OFFSET)} '''
 
-USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES = True
-''' Use monkeyrunner (C{MonkeyDevice.getProperty()}) to obtain the needed properties. If this is
+USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES = True
+''' Use C{AdbClient} to obtain the needed properties. If this is
     C{False} then C{adb shell getprop} is used '''
 
 SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED = False
@@ -69,8 +68,13 @@ SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED = False
     coordinates calculation
     @see: L{View.getXY()} '''
 
+VIEW_CLIENT_TOUCH_WORKAROUND_ENABLED = False
+''' Under some conditions the touch event should be longer [t(DOWN) << t(UP)]. C{True} enables a
+    workaround to delay the events.'''
+
 # some device properties
-VERSION_SDK_PROPERTY = 'version.sdk'
+VERSION_SDK_PROPERTY = 'ro.build.version.sdk'
+VERSION_RELEASE_PROPERTY = 'ro.build.version.release'
 
 # some constants for the attributes
 ID_PROPERTY = 'mID'
@@ -95,22 +99,23 @@ VISIBLE = 0x0
 INVISIBLE = 0x4
 GONE = 0x8
 
+RegexType = type(re.compile(''))
 IP_RE = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
 
-def __nd(name):
+def _nd(name):
     '''
     @return: Returns a named decimal regex
     '''
     return '(?P<%s>\d+)' % name
 
-def __nh(name):
+def _nh(name):
     '''
     @return: Returns a named hex regex
     '''
     return '(?P<%s>[0-9a-f]+)' % name
 
-def __ns(name, greedy=False):
+def _ns(name, greedy=False):
     '''
     NOTICE: this is using a non-greedy (or minimal) regex
     
@@ -179,7 +184,7 @@ class ViewNotFoundException(Exception):
     '''
     
     def __init__(self, attr, value, root):
-        if isinstance(value, org.python.modules.sre.PatternObject):
+        if isinstance(value, RegexType):
             msg = "Couldn't find View with %s that matches '%s' in tree with root=%s" % (attr, value.pattern, root)
         else:
             msg = "Couldn't find View with %s='%s' in tree with root=%s" % (attr, value, root)
@@ -242,8 +247,8 @@ class View:
             self.build[VERSION_SDK_PROPERTY] = version
         else:
             try:
-                if USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES:
-                    self.build[VERSION_SDK_PROPERTY] = int(device.getProperty('build.' + VERSION_SDK_PROPERTY))
+                if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
+                    self.build[VERSION_SDK_PROPERTY] = int(device.getProperty(VERSION_SDK_PROPERTY))
                 else:
                     self.build[VERSION_SDK_PROPERTY] = int(device.shell('getprop ro.build.' + VERSION_SDK_PROPERTY)[:-2])
             except:
@@ -689,20 +694,20 @@ class View:
         if DEBUG_WINDOWS or debug: print >> sys.stderr, dww
         lines = dww.split('\n')
         widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s?.*}:' %
-                            (__nd('num'), __nh('winId'), __ns('activity', greedy=True)))
-        currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % __nh('winId'))
-        viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % __nh('visibility'))
+                            (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
+        currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % _nh('winId'))
+        viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % _nh('visibility'))
         # This is for 4.0.4 API-15
         containingFrameRE = re.compile('^   *mContainingFrame=\[%s,%s\]\[%s,%s\] mParentFrame=\[%s,%s\]\[%s,%s\]' %
-                             (__nd('cx'), __nd('cy'), __nd('cw'), __nd('ch'), __nd('px'), __nd('py'), __nd('pw'), __nd('ph')))
+                             (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'), _nd('ph')))
         contentFrameRE = re.compile('^   *mContentFrame=\[%s,%s\]\[%s,%s\] mVisibleFrame=\[%s,%s\]\[%s,%s\]' %
-                             (__nd('x'), __nd('y'), __nd('w'), __nd('h'), __nd('vx'), __nd('vy'), __nd('vx1'), __nd('vy1')))
+                             (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'), _nd('vy1')))
         # This is for 4.1 API-16
         framesRE = re.compile('^   *Frames: containing=\[%s,%s\]\[%s,%s\] parent=\[%s,%s\]\[%s,%s\]' %
-                               (__nd('cx'), __nd('cy'), __nd('cw'), __nd('ch'), __nd('px'), __nd('py'), __nd('pw'), __nd('ph')))
+                               (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'), _nd('ph')))
         contentRE = re.compile('^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]\[%s,%s\]' % 
-                               (__nd('x'), __nd('y'), __nd('w'), __nd('h'), __nd('vx'), __nd('vy'), __nd('vx1'), __nd('vy1')))
-        policyVisibilityRE = re.compile('mPolicyVisibility=%s ' % __ns('policyVisibility', greedy=True))
+                               (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'), _nd('vy1')))
+        policyVisibilityRE = re.compile('mPolicyVisibility=%s ' % _ns('policyVisibility', greedy=True))
         
         for l in range(len(lines)):
             m = widRE.search(lines[l])
@@ -783,7 +788,7 @@ class View:
             if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: (0,0)"
             return (0,0)
     
-    def touch(self, type=MonkeyDevice.DOWN_AND_UP):
+    def touch(self, type=adbclient.DOWN_AND_UP):
         '''
         Touches the center of this C{View}
         '''
@@ -791,12 +796,12 @@ class View:
         (x, y) = self.getCenter()
         if DEBUG_TOUCH:
             print >>sys.stderr, "should touch @ (%d, %d)" % (x, y)
-        if type == MonkeyDevice.DOWN_AND_UP:
+        if VIEW_CLIENT_TOUCH_WORKAROUND_ENABLED and type == adbclient.DOWN_AND_UP:
             if WARNINGS:
                 print >> sys.stderr, "ViewClient: touch workaround enabled"
-            self.device.touch(x, y, MonkeyDevice.DOWN)
+            self.device.touch(x, y, adbclient.DOWN)
             time.sleep(50/1000.0)
-            self.device.touch(x+10, y+10, MonkeyDevice.UP)
+            self.device.touch(x+10, y+10, adbclient.UP)
         else:
             self.device.touch(x, y, type)
     
@@ -897,7 +902,12 @@ class View:
         if "class" in self.map:
             __str += " class=" + self.map["class"].__str__() + " "
         for a in self.map:
-            __str += a + "=" + unicode(self.map[a], 'utf-8', 'replace') + " "
+            __str += a + "="
+            if isinstance(self.map[a], unicode):
+                __str += self.map[a].encode('utf-8', 'replace')
+            else:
+                __str += unicode(str(self.map[a]), 'utf-8', 'replace')
+            __str += " "
         __str += "]   parent="
         if self.parent:
             if "class" in self.parent.map:
@@ -923,18 +933,18 @@ class EditText(TextView):
     
     def type(self, text):
         self.touch()
-        MonkeyRunner.sleep(1)
+        time.sleep(1)
         for c in text:
             if c != ' ':
                 self.device.type(c)
             else:
-                self.device.press('KEYCODE_SPACE', MonkeyDevice.DOWN_AND_UP)
-        MonkeyRunner.sleep(1)
+                self.device.press('KEYCODE_SPACE', adbclient.DOWN_AND_UP)
+        time.sleep(1)
 
     def backspace(self):
         self.touch()
-        MonkeyRunner.sleep(1)
-        self.device.press('KEYCODE_DEL', MonkeyDevice.DOWN_AND_UP)
+        time.sleep(1)
+        self.device.press('KEYCODE_DEL', adbclient.DOWN_AND_UP)
 
 class UiAutomator2AndroidViewClient():
     '''
@@ -1003,7 +1013,7 @@ class UiAutomator2AndroidViewClient():
         parser.CharacterDataHandler = self.CharacterData
         # Parse the XML File
         try:
-            parserStatus = parser.Parse(uiautomatorxml, 1)
+            parserStatus = parser.Parse(uiautomatorxml.encode(encoding='utf-8', errors='replace'), True)
         except xml.parsers.expat.ExpatError, ex:
             print >>sys.stderr, "ERROR: Offending XML:\n", repr(uiautomatorxml)
             raise RuntimeError(ex)
@@ -1111,7 +1121,10 @@ class ViewClient:
             if not os.access(adb, os.X_OK):
                 raise Exception('adb="%s" is not executable' % adb)
         else:
-            adb = ViewClient.__obtainAdbPath()
+            # Using adbclient we don't need adb executable yet (maybe it's needed if we want to
+            # start adb if not running)
+            #adb = ViewClient.__obtainAdbPath()
+            adb = 'ADBCLIENT'
 
         self.adb = adb
         ''' The adb command '''
@@ -1123,7 +1136,7 @@ class ViewClient:
         ''' The map containing the device's display properties: width, height and density '''
         for prop in [ 'width', 'height', 'density' ]:
             self.display[prop] = -1
-            if USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES:
+            if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
                 try:
                     self.display[prop] = int(device.getProperty('display.' + prop))
                 except:
@@ -1136,11 +1149,12 @@ class ViewClient:
 
         self.build = {}
         ''' The map containing the device's build properties: version.sdk, version.release '''
-        for prop in [VERSION_SDK_PROPERTY, 'version.release']:
+        
+        for prop in [VERSION_SDK_PROPERTY, VERSION_RELEASE_PROPERTY]:
             self.build[prop] = -1
             try:
-                if USE_MONKEYRUNNER_TO_GET_BUILD_PROPERTIES:
-                    self.build[prop] = device.getProperty('build.' + prop)
+                if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
+                    self.build[prop] = device.getProperty(prop)
                 else:
                     self.build[prop] = device.shell('getprop ro.build.' + prop)[:-2]
             except:
@@ -1164,14 +1178,16 @@ class ViewClient:
         self.forceViewServerUse = forceviewserveruse
         ''' Force the use of ViewServer even if the conditions to use UiAutomator are satisfied '''
         self.useUiAutomator = (self.build[VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse # jelly bean 4.1 & 4.2
+        if DEBUG:
+            print >> sys.stderr, "    ViewClient.__init__: useUiAutomator=", self.useUiAutomator, "sdk=", self.build[VERSION_SDK_PROPERTY], "forceviewserveruse=", forceviewserveruse
         ''' If UIAutomator is supported by the device it will be used '''
         self.ignoreUiAutomatorKilled = ignoreuiautomatorkilled
         ''' On some devices (i.e. Nexus 7 running 4.2.2) uiautomator is killed just after generating
         the dump file. In many cases the file is already complete so we can ask to ignore the 'Killed'
         message by setting L{ignoreuiautomatorkilled} to C{True}.
         
-        Changes in 2.3.21 that uses C{/dev/tty} instead of a file may have turned this variable
-        unnnecessary, however it has been kept for backward compatibility.
+        Changes in v2.3.21 that uses C{/dev/tty} instead of a file may have turned this variable
+        unnecessary, however it has been kept for backward compatibility.
         '''
 
         if self.useUiAutomator:
@@ -1218,7 +1234,7 @@ class ViewClient:
         Obtains the ADB path attempting know locations for different OSs
         '''
         
-        osName = java.lang.System.getProperty('os.name')
+        osName = platform.system()
         isWindows = False
         if osName.startswith('Windows'):
             adb = 'adb.exe'
@@ -1312,7 +1328,7 @@ class ViewClient:
 
     @staticmethod
     def setAlarm(timeout):
-        osName = java.lang.System.getProperty('os.name')
+        osName = platform.system()
         if osName.startswith('Windows'): # alarm is not implemented in Windows
             return
         signal.alarm(timeout)
@@ -1355,21 +1371,14 @@ class ViewClient:
         if verbose:
             print >> sys.stderr, 'Connecting to a device with serialno=%s with a timeout of %d secs...' % \
                 (serialno, timeout)
-        # Sometimes MonkeyRunner doesn't even timeout (i.e. two connections from same process), so let's
-        # handle it here
         ViewClient.setAlarm(timeout+5)
-        device = MonkeyRunner.waitForConnection(timeout, serialno)
+        device = adbclient.AdbClient(serialno)
         ViewClient.setAlarm(0)
-        try:
-            device.wake()
-        except java.lang.NullPointerException, e:
-            print >> sys.stderr, "%s: ERROR: Couldn't connect to %s: %s" % (progname, serialno, e)
-            sys.exit(3)
         if verbose:
             print >> sys.stderr, 'Connected to device with serialno=%s' % serialno
         secure = device.getSystemProperty('ro.secure')
         debuggable = device.getSystemProperty('ro.debuggable')
-        versionProperty = device.getProperty('build.' + VERSION_SDK_PROPERTY)
+        versionProperty = device.getProperty(VERSION_SDK_PROPERTY)
         if versionProperty:
             version = int(versionProperty)
         else:
@@ -1575,7 +1584,7 @@ class ViewClient:
             raise RuntimeError("This method is not compatible with UIAutomator")
         # replace the spaces in text:mText to preserve them in later split
         # they are translated back after the attribute matches
-        textRE = re.compile('%s=%s,' % (self.textProperty, __nd('len')))
+        textRE = re.compile('%s=%s,' % (self.textProperty, _nd('len')))
         m = textRE.search(strArgs)
         if m:
             __textStart = m.end()
@@ -1586,8 +1595,8 @@ class ViewClient:
             strArgs = strArgs.replace(s1, s2, 1)
 
         idRE = re.compile("(?P<viewId>id/\S+)")
-        attrRE = re.compile('%s(?P<parens>\(\))?=%s,(?P<val>[^ ]*)' % (__ns('attr'), __nd('len')), flags=re.DOTALL)
-        hashRE = re.compile('%s@%s' % (__ns('class'), __nh('oid')))
+        attrRE = re.compile('%s(?P<parens>\(\))?=%s,(?P<val>[^ ]*)' % (_ns('attr'), _nd('len')), flags=re.DOTALL)
+        hashRE = re.compile('%s@%s' % (_ns('class'), _nh('oid')))
         
         attrs = {}
         viewId = None
@@ -1783,15 +1792,14 @@ class ViewClient:
         '''
         
         if sleep > 0:
-            MonkeyRunner.sleep(sleep)
+            time.sleep(sleep)
             
         if self.useUiAutomator:
             # NOTICE:
             # Using /dev/tty this works even on devices with no sdcard
-            received = self.device.shell('uiautomator dump /dev/tty >/dev/null')
+            received = unicode(self.device.shell('uiautomator dump /dev/tty >/dev/null'), encoding='utf-8', errors='replace')
             if not received:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
-            received = received.encode('utf-8', 'ignore')
             if DEBUG:
                 self.received = received
             if DEBUG_RECEIVED:
@@ -1900,7 +1908,7 @@ You should force ViewServer back-end.''')
         '''
         
         if sleep > 0:
-            MonkeyRunner.sleep(sleep)
+            time.sleep(sleep)
             
         if self.useUiAutomator:
             raise Exception("Not implemented yet: listing windows with UiAutomator")
@@ -2039,7 +2047,7 @@ You should force ViewServer back-end.''')
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: type val=", type(val)
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
         
-        if isinstance(val, org.python.modules.sre.PatternObject):
+        if isinstance(val, RegexType):
             return self.__findViewWithAttributeInTreeThatMatches(attr, val, root)
         else:
             if root and attr in root.map and root.map[attr] == val:
@@ -2118,7 +2126,7 @@ You should force ViewServer back-end.''')
     def findViewWithText(self, text, root="ROOT"):
         if DEBUG:
             print >>sys.stderr, "findViewWithText(%s, %s)" % (text, root)
-        if isinstance(text, org.python.modules.sre.PatternObject):
+        if isinstance(text, RegexType):
             return self.findViewWithAttributeThatMatches(self.textProperty, text, root)
             #l = self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text)
             #ll = len(l)

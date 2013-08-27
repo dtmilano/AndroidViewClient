@@ -1,4 +1,4 @@
-#! /usr/bin/env monkeyrunner
+#! /usr/bin/env python
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Apr 30, 2013
@@ -10,8 +10,6 @@ Created on Apr 30, 2013
 import sys
 import os
 
-# This must be imported before MonkeyRunner and MonkeyDevice,
-# otherwise the import fails.
 # PyDev sets PYTHONPATH, use it
 try:
     for p in os.environ['PYTHONPATH'].split(':'):
@@ -27,4 +25,4 @@ except:
 
 from com.dtmilano.android.viewclient import ViewClient
 
-ViewClient(*ViewClient.connectToDeviceOrExit()).traverse(transform=ViewClient.TRAVERSE_CIT)
+ViewClient(*ViewClient.connectToDeviceOrExit(verbose=True)).traverse(transform=ViewClient.TRAVERSE_CIT)
