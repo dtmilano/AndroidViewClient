@@ -32,7 +32,9 @@ from mocks import MockDevice, MockViewServer
 from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, VIEW_MAP_API_8, VIEW_MAP_API_17, RUNNING, STOPPED, WINDOWS
 
 # this is probably the only reliable way of determining the OS in monkeyrunner
-os_name = java.lang.System.getProperty('os.name')
+# FIXME:
+#os_name = java.lang.System.getProperty('os.name')
+os_name = os.name
 if os_name.startswith('Linux'):
     TRUE = '/bin/true'
 else:
@@ -309,19 +311,23 @@ class ViewClientTest(unittest.TestCase):
         os.environ['ANDROID_SERIAL'] = 'ABC123'
         try:
             ViewClient.connectToDeviceOrExit(timeout=1, verbose=True)
+        except RuntimeError, e:
+            self.assertTrue(re.search("couldn't find device that matches 'ABC123'", str(e)))
         except exceptions.SystemExit, e:
             self.assertEquals(3, e.code)
-        except java.lang.NullPointerException:
-            self.fail('Serialno was not taken from environment')
+        except Exception, e: #FIXME: java.lang.NullPointerException:
+            self.fail('Serialno was not taken from environment: ' + str(e))
        
     def testConnectToDeviceOrExit_serialno(self):
         sys.argv = ['']
         try:
             ViewClient.connectToDeviceOrExit(timeout=1, verbose=True, serialno='ABC123')
+        except RuntimeError, e:
+            self.assertTrue(re.search("couldn't find device that matches 'ABC123'", str(e)))
         except exceptions.SystemExit, e:
             self.assertEquals(3, e.code)
-        except java.lang.NullPointerException:
-            self.fail('Serialno was not taken from argument')
+        except Exception, e: #FIXME: java.lang.NullPointerException:
+            self.fail('Serialno was not taken from argument: ' + str(e))
      
     def testConstructor(self):
         device = MockDevice()
@@ -925,51 +931,62 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True, ignoreuiautomatorkilled=True)
         
     def testUiViewServerDump(self):
+        device = None
         try:
             device = MockDevice(version=15, startviewserver=True)
             vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
             vc.dump()
             vc.findViewByIdOrRaise('id/home')
         finally:
-            device.shutdownMockViewServer()
+            if device:
+                device.shutdownMockViewServer()
         
     def testUiViewServerDump_windowStr(self):
+        device = None
         try:
             device = MockDevice(version=15, startviewserver=True)
             vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
             vc.dump(window='StatusBar')
             vc.findViewByIdOrRaise('id/status_bar')
         finally:
-            device.shutdownMockViewServer()
+            if device:
+                device.shutdownMockViewServer()
         
     def testUiViewServerDump_windowInt(self):
+        device = None
         try:
             device = MockDevice(version=15, startviewserver=True)
             vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
             vc.dump(window=0xb52f7c88)
             vc.findViewByIdOrRaise('id/status_bar')
         finally:
-            device.shutdownMockViewServer()
+            if device:
+                device.shutdownMockViewServer()
         
     def testUiViewServerDump_windowIntStr(self):
+        device = None
         try:
             device = MockDevice(version=15, startviewserver=True)
             vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
             vc.dump(window='0xb52f7c88')
             vc.findViewByIdOrRaise('id/status_bar')
         finally:
-            device.shutdownMockViewServer()
+            if device:
+                device.shutdownMockViewServer()
             
     def testUiViewServerDump_windowIntM1(self):
+        device = None
         try:
             device = MockDevice(version=15, startviewserver=True)
             vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
             vc.dump(window=-1)
             vc.findViewByIdOrRaise('id/home')
         finally:
-            device.shutdownMockViewServer()
+            if device:
+                device.shutdownMockViewServer()
     
     def testFindViewsContainingPoint_api15(self):
+        device = None
         try:
             device = MockDevice(version=15, startviewserver=True)
             vc = ViewClient(device, device.serialno, adb=TRUE)
@@ -977,7 +994,8 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.assertNotEquals(None, list)
             self.assertNotEquals(0, len(list))
         finally:
-            device.shutdownMockViewServer()
+            if device:
+                device.shutdownMockViewServer()
         
     def testFindViewsContainingPoint_api17(self):
         device = MockDevice(version=17)
@@ -987,6 +1005,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertNotEquals(0, len(list))
         
     def testFindViewsContainingPoint_filterApi15(self):
+        device = None
         try:
             device = MockDevice(version=15, startviewserver=True)
             vc = ViewClient(device, device.serialno, adb=TRUE)
@@ -994,7 +1013,8 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.assertNotEquals(None, list)
             self.assertNotEquals(0, len(list))
         finally:
-            device.shutdownMockViewServer()
+            if device:
+                device.shutdownMockViewServer()
         
     def testFindViewsContainingPoint_filterApi17(self):
         device = MockDevice(version=17)

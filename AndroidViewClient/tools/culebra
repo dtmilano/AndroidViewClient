@@ -1,9 +1,5 @@
-#! /usr/bin/env monkeyrunner
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# Linux
-#! /usr/local/bin/shebang monkeyrunner -plugin $AVC_HOME/bin/androidviewclient-$AVC_VERSION.jar @!
-# Mac OS X
-#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!
 '''
 Copyright (C) 2013  Diego Torres Milano
 Created on Mar 28, 2013
@@ -22,7 +18,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '1.0.0'
+__version__ = '4.0.0'
 
 import re
 import sys
@@ -33,8 +29,6 @@ import subprocess
 import codecs
 from datetime import date
 
-# This must be imported before MonkeyRunner and MonkeyDevice,
-# otherwise the import fails.
 # PyDev sets PYTHONPATH, use it
 try:
     for p in os.environ['PYTHONPATH'].split(':'):
@@ -50,7 +44,6 @@ except:
 
 from com.dtmilano.android.viewclient import ViewClient, View
 
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 HELP = 'help'
 VERBOSE = 'verbose'
@@ -74,7 +67,6 @@ INTERACTIVE = 'interactive'
 WINDOW = 'window'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-# -u,-s,-p,-v eaten by monkeyrunner
 SHORT_OPTS = 'HVIFSkw:i:t:d:rCUj:D:K:R:a:o:A'
 LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -112,7 +104,7 @@ SB_NO_JAR = 'no-jar'
 SB_JAR = 'jar'
 SB_JAR_LINUX = 'jar-linux'
 SHEBANG = {
-    SB_NO_JAR: '#! /usr/bin/env monkeyrunner',
+    SB_NO_JAR: '#! /usr/bin/env python',
     SB_JAR: '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!',
     SB_JAR_LINUX: '#! /usr/local/bin/shebang monkeyrunner -plugin $AVC_HOME/bin/androidviewclient-$AVC_VERSION.jar @!'
     }
@@ -222,11 +214,11 @@ def printFindViewWithText(view, useregexp):
     u = 'u' if isUnicode else ''
     if text:
         var = variableNameFromIdOrKey(view)
-        if text.find(u"\n") > 0:
+        if text.find(u"\n") > 0 or text.find(u"'") > 0:
             # 2 quotes + 1 quote = 3 quotes
             text = "''%s''" % text
         if useregexp:
-            text = "re.compile(%c'%s')" % (u, text)
+            text = "re.compile(%c'''%s''')" % (u, text)
         else:
             text = "%c'%s'" % (u, text)
         print '%s = vc.findViewWithTextOrRaise(%s)' % (var, text)
@@ -251,9 +243,9 @@ def printFindViewWithContentDescription(view, useregexp):
                     if autoRegexp.match(contentDescription):
                         contentDescription = autoRegexp.pattern
                         break
-            contentDescription = "re.compile('%s')" % contentDescription
+            contentDescription = "re.compile('''%s''')" % contentDescription
         else:
-            contentDescription = "'%s'" % contentDescription
+            contentDescription = "'''%s'''" % contentDescription
         print '%s = vc.findViewWithContentDescriptionOrRaise(%s)' % (var, contentDescription)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no content-description' %  view.getUniqueId())
@@ -327,7 +319,7 @@ kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
-        UNIT_TEST: False, USE_JAR: True, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
+        UNIT_TEST: False, USE_JAR: False, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
         AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None, INTERACTIVE: False,
         WINDOW: -1}
 transform = traverseAndPrint
@@ -420,8 +412,6 @@ import os
 
 if not options[USE_JAR]:
     print '''
-# This must be imported before MonkeyRunner and MonkeyDevice,
-# otherwise the import fails.
 # PyDev sets PYTHONPATH, use it
 try:
     for p in os.environ['PYTHONPATH'].split(':'):
@@ -439,7 +429,6 @@ except:
 print '''\
 from com.dtmilano.android.viewclient import ViewClient
 
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 kwargs1 = %s
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
