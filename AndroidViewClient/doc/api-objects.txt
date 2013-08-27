@@ -272,6 +272,7 @@ src.com.dtmilano.android.viewclient.ViewClient.useUiAutomator	src.com.dtmilano.a
 src.com.dtmilano.android.viewclient.ViewClient.__hammingDistance	src.com.dtmilano.android.viewclient.ViewClient-class.html#__hammingDistance
 src.com.dtmilano.android.viewclient.ViewClient.root	src.com.dtmilano.android.viewclient.ViewClient-class.html#root
 src.com.dtmilano.android.viewclient.ViewClient.display	src.com.dtmilano.android.viewclient.ViewClient-class.html#display
+src.com.dtmilano.android.viewclient.ViewClient.getViewsById	src.com.dtmilano.android.viewclient.ViewClient-class.html#getViewsById
 src.com.dtmilano.android.viewclient.ViewClient.findViewWithContentDescriptionOrRaise	src.com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithContentDescriptionOrRaise
 src.com.dtmilano.android.viewclient.ViewNotFoundException	src.com.dtmilano.android.viewclient.ViewNotFoundException-class.html
 src.com.dtmilano.android.viewclient.ViewNotFoundException.__init__	src.com.dtmilano.android.viewclient.ViewNotFoundException-class.html#__init__
