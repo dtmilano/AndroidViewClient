@@ -1,4 +1,4 @@
-#! /usr/bin/env monkeyrunner
+#! /usr/bin/env python
 '''
 Created on Aug 29, 2012
 
@@ -45,5 +45,3 @@ import com.dtmilano.android
 import com.dtmilano.android.viewclient
 from com.dtmilano.android.viewclient import ViewClient, View
 print "OK"
-
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
