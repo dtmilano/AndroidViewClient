@@ -661,8 +661,6 @@ class MockDevice(object):
                 print >> sys.stderr, "\n**** Starting ViewServer... ****", self
             self.viewServer = MockViewServer()
         else:
-            if DEBUG:
-                print >> sys.stderr, "\n**** Not Starting ViewServer... ****"
             self.viewServer = None
         self.uiAutomatorKilled = uiautomatorkilled
         self.language = language
@@ -767,12 +765,16 @@ class MockViewServer():
                 print >> sys.stderr, "ServerThread: serving running=", self.running
             # In 2.5 serve_forever() never exits and there's no way of stopping the server
             #self.server.serve_forever(self.pollInterval)
-#             while self.running:
-#                 if DEBUG:
-#                     print >> sys.stderr, "ServerThread: polling (self=%s)" % self
-#                 r, w, e = select([self.server], [], [], self.pollInterval)
-#                 if r:
-#                         self.server.handle_request()
+            while self.running:
+                if DEBUG:
+                    print >> sys.stderr, "ServerThread: polling (self=%s)" % self
+                r, w, e = select.select([self.server], [], [], self.pollInterval)
+                if r:
+                    if self.server:
+                        try:
+                            self.server.handle_request()
+                        except:
+                            print >> sys.stderr, "ServerThread: the socket may have been closed"
 
             
     def __init__(self, host=HOST, port=PORT):
@@ -784,30 +786,30 @@ class MockViewServer():
         self.host = host
         self.port = port
         # In 2.5 serve_forever() never exits and there's no way of stopping the server
-        self.server.serve_forever(1)
-
+        #self.server.serve_forever(1)
+        #print >> sys.stderr, "MockViewServer: NEVER REACHED on Linux"
         # Activate the server; this will keep running until you shutdown
-        #self.serverThread = MockViewServer.ServerThread(self.server)
-        #self.serverThread.start()
+        self.serverThread = MockViewServer.ServerThread(self.server)
+        self.serverThread.start()
         
     def shutdown(self):
         if DEBUG:
             print >> sys.stderr, "**** MockViewServer.shutdown() ****"
         try:
-            #self.server.socket.shutdown(socket.SHUT_RDWR)
-            if DEBUG:
-                print >> sys.stderr, "    shutdown: shutting down the server, serve_forever() should exit"
-            self.server.shutdown()
+            self.server.socket.shutdown(socket.SHUT_RDWR)
+            #if DEBUG:
+            #    print >> sys.stderr, "    shutdown: shutting down the server, serve_forever() should exit"
+            #self.server.shutdown()
             if DEBUG:
                 print >> sys.stderr, "    shutdown: DONE"
         except Exception, ex:
             print >> sys.stderr, "ERROR", ex
             pass
         self.serverThread.running = False
-#         #self.server.socket.shutdown(socket.SHUT_RDWR)
-#         self.server.socket.close()
+        #self.server.socket.shutdown(socket.SHUT_RDWR)
+        self.server.socket.close()
 #        del(self.server.socket)
         #del(self.server)
-        #time.sleep(120)
-        #time.sleep(5)
+        time.sleep(120)
+        time.sleep(5)
     

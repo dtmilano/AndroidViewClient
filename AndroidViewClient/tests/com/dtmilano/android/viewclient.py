@@ -1,4 +1,4 @@
-#! /usr/bin/env monkeyrunner
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
 Copyright (C) 2012  Diego Torres Milano
@@ -13,6 +13,7 @@ import time
 import StringIO
 import unittest
 import exceptions
+import platform
 
 # PyDev sets PYTHONPATH, use it
 try:
@@ -31,10 +32,7 @@ from com.dtmilano.android.viewclient import *
 from mocks import MockDevice, MockViewServer
 from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, VIEW_MAP_API_8, VIEW_MAP_API_17, RUNNING, STOPPED, WINDOWS
 
-# this is probably the only reliable way of determining the OS in monkeyrunner
-# FIXME:
-#os_name = java.lang.System.getProperty('os.name')
-os_name = os.name
+os_name = platform.system()
 if os_name.startswith('Linux'):
     TRUE = '/bin/true'
 else:
@@ -928,7 +926,10 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
     
     def testUiAutomatorKilled(self):
         device = MockDevice(version=16, uiautomatorkilled=True)
-        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True, ignoreuiautomatorkilled=True)
+        try:
+            vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True, ignoreuiautomatorkilled=True)
+        except Exception, e:
+            self.assertIsNotNone(re.search('''ERROR: UiAutomator output contains no valid information. UiAutomator was killed, no reason given.''', str(e)))
         
     def testUiViewServerDump(self):
         device = None
