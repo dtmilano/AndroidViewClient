@@ -130,6 +130,32 @@ VIEW_MAP_API_8 = {'padding:mUserPaddingRight': '12', 'drawing:getSolidColor()': 
 
 VIEW_MAP_API_17 = {u'clickable': u'true', u'bounds': ((323, 725), (475, 881)), u'enabled': u'true', 'uniqueId': 'id/no_id/33', u'text': u'6', u'selected': u'false', u'scrollable': u'false', u'focused': u'false', u'long-clickable': u'false', u'class': u'android.widget.Button', u'focusable': u'true', u'content-desc': u'', u'package': u'com.android.calculator2', u'checked': u'false', u'password': u'false', u'checkable': u'false', u'index': u'2'}
 
+DUMPSYS_WINDOW_PARTIAL = '''
+
+WINDOW MANAGER LAST ANR (dumpsys window lastanr)
+  <no ANR has occurred since boot>
+
+WINDOW MANAGER POLICY STATE (dumpsys window policy)
+    mSafeMode=false mSystemReady=true mSystemBooted=true
+    mLidState=-1 mLidOpenRotation=-1 mHdmiPlugged=false
+    mLastSystemUiFlags=0x400 mResettingSystemUiFlags=0x0 mForceClearedSystemUiFlags=0x0
+    mUiMode=1 mDockMode=0 mCarDockRotation=-1 mDeskDockRotation=-1
+    mUserRotationMode=0 mUserRotation=0 mAllowAllRotations=0
+    mCurrentAppOrientation=5
+    mCarDockEnablesAccelerometer=true mDeskDockEnablesAccelerometer=true
+    mLidKeyboardAccessibility=0 mLidNavigationAccessibility=0 mLidControlsSleep=false
+    mLongPressOnPowerBehavior=-1 mHasSoftInput=true
+    mScreenOnEarly=true mScreenOnFully=true mOrientationSensorEnabled=true
+    mOverscanScreen=(0,0) 768x1280
+    mRestrictedOverscanScreen=(0,0) 768x1184
+    mUnrestrictedScreen=(0,0) 768x1280
+    mRestrictedScreen=(0,0) 768x1184
+    mStableFullscreen=(0,0)-(768,1184)
+    mStable=(0,50)-(768,1184)
+    mSystem=(0,50)-(768,1184)
+
+'''
+
 DUMPSYS_WINDOW_WINDOWS = """
 mock data
 mock data
@@ -681,6 +707,8 @@ class MockDevice(object):
         elif re.compile('service call window 2').match(cmd):
             self.service = STOPPED
             return TRUE_PARCEL
+        elif cmd == 'dumpsys window':
+            return DUMPSYS_WINDOW_PARTIAL
         elif cmd == 'dumpsys window windows':
             return DUMPSYS_WINDOW_WINDOWS
         
@@ -705,6 +733,10 @@ class MockDevice(object):
             return self.serialno
         elif property == 'build.version.sdk' or property == 'ro.build.version.sdk':
             return self.version
+        elif property == 'display.width':
+            return 768
+        elif property == 'display.height':
+            return 1184
         return None
     
     def shutdownMockViewServer(self):

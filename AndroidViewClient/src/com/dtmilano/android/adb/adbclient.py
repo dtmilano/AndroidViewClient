@@ -9,6 +9,7 @@ import time
 import re
 import signal
 import os
+import types
 import platform
 
 DEBUG = False
@@ -218,15 +219,48 @@ class AdbClient:
             #return (sin, sin)
             sout = adbClient.socket.makefile("r")
             return sout
+   
+    def __getRestrictedScreen(self):
+        ''' Gets mRestrictedScreen values from dumpsys. This is a method to obtain display dimensions '''
+        rsRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<w>\d+)x(?P<h>\d+)')
+        for line in self.shell('dumpsys window').splitlines():
+            m = rsRE.match(line)
+            if m:
+                return m.groups()
+        raise RuntimeError("Couldn't find mRestrictedScreen in dumpsys")
+    
+    def __getProp(self, key, strip=True):
+        prop = self.shell('getprop %s' % key)
+        if strip:
+            prop = prop.rstrip('\r\n')
+        return prop
+    
+    def __getDisplayWidth(self, key, strip=True):
+        (x, y, w, h) = self.__getRestrictedScreen()
+        return int(w)
+ 
+    def __getDisplayHeight(self, key, strip=True):
+        (x, y, w, h) = self.__getRestrictedScreen()
+        return int(h)
     
     def getSystemProperty(self, key, strip=True):
         return self.getProperty(key, strip)
     
     def getProperty(self, key, strip=True):
-        prop = self.shell('getprop %s' % key)
-        if strip:
-            prop = prop.rstrip('\r\n')
-        return prop
+        ''' Gets the property value for key '''
+        
+        import collections
+        MAP_KEYS = collections.OrderedDict([
+                          (re.compile('display.width'), self.__getDisplayWidth),
+                          (re.compile('display.height'), self.__getDisplayHeight),
+                          (re.compile('.*'), self.__getProp),
+                          ])
+        '''Maps properties key values (as regexps) to instance methods to obtain its values.'''
+
+        for kre in MAP_KEYS.keys():
+            if kre.match(key):
+                return MAP_KEYS[kre](key=key, strip=strip)
+        raise ValueError("key='%s' does not match any map entry")
     
     def press(self, name, eventType=DOWN_AND_UP):
         cmd = 'input keyevent %s' % name

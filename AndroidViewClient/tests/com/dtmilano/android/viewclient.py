@@ -102,7 +102,7 @@ class ViewTest(unittest.TestCase):
         
     def testGetId(self):
         self.assertEqual('id/button_with_id', self.view.getId())
-    
+
     def testTextPropertyForDifferentSdkVersions(self):
         VP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
         for version, textProperty in VP.items():
@@ -361,7 +361,15 @@ class ViewClientTest(unittest.TestCase):
             self.fail()
         except ValueError:
             pass
-        
+    
+    def testGetProperty_displayWidth(self):
+        device = MockDevice()
+        self.assertEqual(768, device.getProperty('display.width'))
+    
+    def testGetProperty_displayHeight(self):
+        device = MockDevice()
+        self.assertEqual(1184, device.getProperty('display.height'))
+           
     def __mockTree(self, dump=DUMP, version=15, language='en'):
         device = MockDevice(version=version, language=language)
         vc = ViewClient(device, serialno=device.serialno, adb=TRUE, autodump=False)
