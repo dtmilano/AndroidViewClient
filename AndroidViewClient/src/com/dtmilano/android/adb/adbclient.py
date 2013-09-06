@@ -1,8 +1,24 @@
 '''
+Copyright (C) 2012-2013  Diego Torres Milano
 Created on Dec 1, 2012
 
-@author: diego
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+@author: Diego Torres Milano
 '''
+
+__version__ = '4.2.0'
+
 import sys
 import socket
 import time
@@ -104,7 +120,7 @@ class AdbClient:
                 self.__setTransport()
         else:
             self.checkConnected()
-        self.socket.send('%04x%s' % (len(msg), msg))
+        self.socket.send('%04X%s' % (len(msg), msg))
         if checkok:
             self.__checkOk()
         if reconnect:
@@ -113,13 +129,23 @@ class AdbClient:
             self.__connect()
             self.__setTransport()
     
-    def __receive(self):
+    def __receive(self, nob=None):
         if DEBUG:
             print >> sys.stderr, "__receive()"
         self.checkConnected()
-        n = int(self.socket.recv(4), 16)
-        recv = self.socket.recv(n)
-        return recv
+        if nob is None:
+            nob = int(self.socket.recv(4), 16)
+        if DEBUG:
+            print >> sys.stderr, "    __receive: receiving", nob, "bytes"
+        recv = bytearray()
+        nr = 0
+        while nr < nob:
+            chunk = self.socket.recv(min((nob-nr), 4096))
+            recv.extend(chunk)
+            nr += len(chunk)
+        if DEBUG:
+            print >> sys.stderr, "    __receive: returning len=", len(recv)
+        return str(recv)
         
     def __checkOk(self):
         if DEBUG:
@@ -221,7 +247,8 @@ class AdbClient:
             return sout
    
     def __getRestrictedScreen(self):
-        ''' Gets mRestrictedScreen values from dumpsys. This is a method to obtain display dimensions '''
+        ''' Gets C{mRestrictedScreen} values from dumpsys. This is a method to obtain display dimensions '''
+        
         rsRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<w>\d+)x(?P<h>\d+)')
         for line in self.shell('dumpsys window').splitlines():
             m = rsRE.match(line)
@@ -277,6 +304,34 @@ class AdbClient:
         if uri:
             cmd += ' %s' % uri
         self.shell(cmd)
+    
+    def takeSnapshot(self, reconnect=False):
+        try:
+            from PIL import Image
+        except:
+            raise Exception("You have to install PIL to use takeSnapshot()")
+        self.__send('framebuffer:', checkok=True, reconnect=False)
+        import struct
+        #case 1: // version
+        #           return 12; // bpp, size, width, height, 4*(length, offset)
+        received = self.__receive(1 * 4 + 12 * 4)
+        (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen) = struct.unpack('<' + 'L' * 13, received)
+        mode = [None]*4
+        mode[roffset/rlen] = 'R'
+        mode[boffset/blen] = 'B'
+        mode[goffset/glen] = 'G'
+        mode[aoffset/alen] = 'A'
+        mode = ''.join(mode)
+        if DEBUG:
+            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen)
+        self.__send('\0', checkok=False, reconnect=False)
+        if DEBUG:
+            print >> sys.stderr, "    takeSnapshot: reading %d bytes" % (size)
+        received = self.__receive(size)
+        if reconnect:
+            self.__connect()
+            self.__setTransport()
+        return Image.frombuffer(mode, (width, height), received, 'raw', mode, 0, 1)
     
     def touch(self, x, y, eventType=DOWN_AND_UP):
         self.shell('input tap %d %d' % (x, y))
