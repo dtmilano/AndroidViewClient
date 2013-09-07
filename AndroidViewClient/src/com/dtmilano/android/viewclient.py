@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.2.0'
+__version__ = '4.2.1'
 
 import sys
 import subprocess
@@ -552,6 +552,9 @@ class View:
 
         x = self.getX()
         y = self.getY()
+        if self.useUiAutomator:
+            return (x, y)
+        
         parent = self.parent
         if DEBUG_COORDS: print >> sys.stderr, "   getXY: x=%s y=%s parent=%s" % (x, y, parent.getUniqueId() if parent else "None")
         hx = 0
@@ -559,23 +562,21 @@ class View:
         hy = 0
         ''' Hierarchy accumulated Y '''
         
-        if not self.useUiAutomator:
-            if DEBUG_COORDS: print >> sys.stderr, "   getXY: not using UiAutomator, calculating ancestors coordinates"
-            while parent != None:
-                if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass() if parent else "None", parent.getUniqueId() if parent else "None")
-                if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
-                    if parent.getClass() in [ 'com.android.internal.widget.ActionBarView',
-                                       'com.android.internal.widget.ActionBarContextView',
-                                       'com.android.internal.view.menu.ActionMenuView',
-                                       'com.android.internal.policy.impl.PhoneWindow$DecorView' ]:
-                        if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getUniqueId(), parent.getX(), parent.getY())
-                        parent = parent.parent
-                        continue
-                if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getUniqueId(), parent.getX(), hx, parent.getY(), hy)
-                hx += parent.getX()
-                hy += parent.getY()
-                parent = parent.parent
-            if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s hx=%d hy=%d (end of loop)" % (parent.getUniqueId() if parent else "None", hx, hy)
+        if DEBUG_COORDS: print >> sys.stderr, "   getXY: not using UiAutomator, calculating parent coordinates"
+        while parent != None:
+            if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId())
+            if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
+                if parent.getClass() in [ 'com.android.internal.widget.ActionBarView',
+                                   'com.android.internal.widget.ActionBarContextView',
+                                   'com.android.internal.view.menu.ActionMenuView',
+                                   'com.android.internal.policy.impl.PhoneWindow$DecorView' ]:
+                    if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.getX(), parent.getY())
+                    parent = parent.parent
+                    continue
+            if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy)
+            hx += parent.getX()
+            hy += parent.getY()
+            parent = parent.parent
 
         (wvx, wvy) = self.__dumpWindowsInformation(debug=debug)
         if DEBUG_COORDS or debug:
