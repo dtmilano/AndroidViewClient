@@ -13,7 +13,7 @@ import os
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 if len(sys.argv) < 2:
-    print >> sys.stderr, "usage: %s filename.png [serialno]" % sys.argv[0]
+    print >> sys.stderr, "usage: %s filename.png" % sys.argv[0]
     sys.exit(1)
 
 filename = sys.argv.pop(1)

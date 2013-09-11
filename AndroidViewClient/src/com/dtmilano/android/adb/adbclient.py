@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.2.0'
+__version__ = '4.2.2'
 
 import sys
 import socket
@@ -177,8 +177,9 @@ class AdbClient:
             print >> sys.stderr, "checkVersion(reconnect=%s)" % reconnect
         self.__send('host:version', reconnect=False)
         version = self.socket.recv(8)
-        if version != '0004001f':
-            raise RuntimeError("ERROR: Incorrect version %s" % (version))
+        VERSION='0004001f'
+        if version != VERSION:
+            raise RuntimeError("ERROR: Incorrect ADB server version %s (expecting %s)" % (version, VERSION))
         if reconnect:
             self.__connect()
         
