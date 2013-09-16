@@ -18,7 +18,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '4.2.0'
+__version__ = '4.2.3'
 
 import re
 import sys
@@ -164,6 +164,8 @@ def printVerboseComments(view):
         text = view.getText()
         if text:
             u = 'u' if isinstance(text, unicode) else ''
+            if '\n' in text:
+                text = re.sub(r'\n(.)', r'\n#\1', text)
             print "text=%c'%s'" % (u, text),
     except:
         pass
