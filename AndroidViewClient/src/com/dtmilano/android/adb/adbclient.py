@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.2.2'
+__version__ = '4.3.0'
 
 import sys
 import socket
@@ -307,6 +307,10 @@ class AdbClient:
         self.shell(cmd)
     
     def takeSnapshot(self, reconnect=False):
+        '''
+        Takes a snapshot of the device and return it as a PIL Image.
+        '''
+        
         try:
             from PIL import Image
         except:
@@ -343,7 +347,47 @@ class AdbClient:
     def wake(self):
         self.shell('input keyevent 26')
         
+    @staticmethod
+    def percentSame(image1, image2):
+        '''
+        Returns the percent of pixels that are equal
+        
+        @author: catshoes
+        '''
+        
+        # If the images differ in size, return 0% same.
+        size_x1, size_y1 = image1.size
+        size_x2, size_y2 = image2.size
+        if (size_x1 != size_x2 or
+            size_y1 != size_y2):
+            return 0
     
+        # Images are the same size
+        # Return the percent of pixels that are equal.
+        numPixelsSame = 0
+        numPixelsTotal = size_x1 * size_y1
+        image1Pixels = image1.load()
+        image2Pixels = image2.load()
+    
+        # Loop over all pixels, comparing pixel in image1 to image2
+        for x in range(size_x1):
+            for y in range(size_y1):
+                if (image1Pixels[x, y] == image2Pixels[x, y]):
+                    numPixelsSame += 1
+    
+        return numPixelsSame / float(numPixelsTotal)
+
+    @staticmethod
+    def sameAs(image1, image2, percent=1.0):
+        '''
+        Compares 2 images
+        
+        @author: catshoes
+        '''
+        
+        return (AdbClient.percentSame(image1, image2) >= percent)
+
+
 if __name__ == '__main__':
     adbClient = AdbClient(os.environ['ANDROID_SERIAL'])
     INTERACTIVE = False
