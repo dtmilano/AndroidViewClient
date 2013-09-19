@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.2.1'
+__version__ = '4.3.1'
 
 import sys
 import subprocess
@@ -902,26 +902,11 @@ class View:
         __str = unicode("View[", 'utf-8', 'replace')
         if "class" in self.map:
             __str += " class=" + self.map["class"].__str__() + " "
-        import chardet
         for a in self.map:
             __str += a + "="
+            # decode() works only on python's 8-bit strings
             if isinstance(self.map[a], unicode):
-                encoding = chardet.detect(self.map[a])['encoding']
-                #print >> sys.stderr, "%%%%% encoding", repr(a), repr(self.map[a]), encoding
-                if encoding:
-                    #print >> sys.stderr,"%%%%% decode", encoding, type(self.map[a])
-                    #print >> sys.stderr, "%%%%% decode", self.map[a].decode(encoding, errors='ignore')
-                    try:
-                        decoded = self.map[a].decode(encoding, errors='replace')
-                    except UnicodeEncodeError, ex:
-                        print >> sys.stderr, "%%%%%%%% ERROR", ex
-                        decoded = u'DECODE_ERROR:' + encoding
-                    try:
-                        __str += decoded.encode('utf-8', errors='replace')
-                    except UnicodeEncodeError:
-                        __str += u'UNICODE_ERROR'
-                else:
-                    __str += self.map[a].encode('utf-8', errors='replace')
+                __str += self.map[a]
             else:
                 __str += unicode(str(self.map[a]), 'utf-8', errors='replace')
             __str += " "
