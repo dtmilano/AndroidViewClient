@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.1'
+__version__ = '4.3.2'
 
 import sys
 import subprocess
@@ -1125,8 +1125,7 @@ class ViewClient:
         else:
             # Using adbclient we don't need adb executable yet (maybe it's needed if we want to
             # start adb if not running)
-            #adb = ViewClient.__obtainAdbPath()
-            adb = 'ADBCLIENT'
+            adb = ViewClient.__obtainAdbPath()
 
         self.adb = adb
         ''' The adb command '''
