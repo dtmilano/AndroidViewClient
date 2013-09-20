@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.3'
+__version__ = '4.3.4'
 
 import sys
 import socket
@@ -322,13 +322,15 @@ class AdbClient:
         received = self.__receive(1 * 4 + 12 * 4)
         (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen) = struct.unpack('<' + 'L' * 13, received)
         mode = [None]*4
+        alen = 0
         try:
             mode[roffset/rlen] = 'R'
             mode[boffset/blen] = 'B'
             mode[goffset/glen] = 'G'
             mode[aoffset/alen] = 'A'
         except ZeroDivisionError, ex:
-            raise ValueError("Unexpected 0 len in framebuffer description: " + ex)
+            raise ValueError("Unexpected 0 len in framebuffer description: %s.\nframebuffer: %s" % \
+                             (ex, ','.join([str(v) for v in (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)])))
         mode = ''.join(mode)
         if DEBUG:
             print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen)
