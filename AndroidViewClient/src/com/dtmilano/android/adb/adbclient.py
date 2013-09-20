@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.4'
+__version__ = '4.3.5'
 
 import sys
 import socket
@@ -322,7 +322,6 @@ class AdbClient:
         received = self.__receive(1 * 4 + 12 * 4)
         (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen) = struct.unpack('<' + 'L' * 13, received)
         mode = [None]*4
-        alen = 0
         try:
             mode[roffset/rlen] = 'R'
             mode[boffset/blen] = 'B'
