@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.5'
+__version__ = '4.3.6'
 
 import sys
 import socket
@@ -304,6 +304,8 @@ class AdbClient:
             cmd += ' -f %s' % flags
         if uri:
             cmd += ' %s' % uri
+        if DEBUG:
+            print >> sys.stderr, "Starting activity: %s" % cmd
         self.shell(cmd)
     
     def takeSnapshot(self, reconnect=False):
@@ -344,6 +346,9 @@ class AdbClient:
     
     def touch(self, x, y, eventType=DOWN_AND_UP):
         self.shell('input tap %d %d' % (x, y))
+    
+    def drag(self, (x0, y0), (x1, y1), duration, steps):
+        self.shell('input swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration*1000))
     
     def type(self, text):
         self.shell('input text "%s"' % text)
