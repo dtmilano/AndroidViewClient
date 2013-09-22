@@ -13,13 +13,6 @@ debug = False
 if '--debug' in sys.argv or '-X' in sys.argv:
     debug = True
 
-# PyDev sets PYTHONPATH, use it
-try:
-    for p in os.environ['PYTHONPATH'].split(':'):
-        if not p in sys.path:
-            sys.path.append(p)
-except:
-    pass
 try:
     if os.environ.has_key('ANDROID_VIEW_CLIENT_HOME'):
         avcd = os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src')
