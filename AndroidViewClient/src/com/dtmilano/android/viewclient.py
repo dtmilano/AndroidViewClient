@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.2'
+__version__ = '4.3.7'
 
 import sys
 import subprocess
@@ -1763,8 +1763,7 @@ class ViewClient:
 
         s = transform(root)
         if s:
-            us = s.encode('utf-8', 'replace')
-            ius = unicode("%s%s" % (indent, us), 'utf-8', 'replace')
+            ius = "%s%s" % (indent, s if isinstance(s, unicode) else unicode(s, 'utf-8', 'replace'))
             print >>stream, ius.encode('utf-8', 'replace')
         
         for ch in root.children:
