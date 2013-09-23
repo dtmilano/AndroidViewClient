@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.8'
+__version__ = '4.3.9'
 
 import sys
 import socket
@@ -323,20 +323,31 @@ class AdbClient:
         #           return 12; // bpp, size, width, height, 4*(length, offset)
         received = self.__receive(1 * 4 + 12 * 4)
         (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen) = struct.unpack('<' + 'L' * 13, received)
-        mode = [None]*4
-        try:
-            mode[roffset/rlen] = 'R'
-            mode[boffset/blen] = 'B'
-            mode[goffset/glen] = 'G'
-            mode[aoffset/alen] = 'A'
-        except ZeroDivisionError, ex:
-            raise ValueError("Unexpected 0 len in framebuffer description: %s.\nframebuffer: %s" % \
-                             (ex, ','.join([str(v) for v in (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)])))
+        mode = [None]*(4 if alen > 0 else 3)
+        if DEBUG:
+            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen, mode)
+        if bpp == 32:
+            try:
+                mode[roffset/rlen] = 'R'
+                mode[boffset/blen] = 'B'
+                mode[goffset/glen] = 'G'
+                mode[aoffset/alen] = 'A'
+            except ZeroDivisionError, ex:
+                raise ValueError("Unexpected 0 len in framebuffer description: %s.\nframebuffer: %s" % \
+                                 (ex, ','.join([str(v) for v in (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)])))
+        elif bpp == 16:
+            mode[0] = 'R'
+            mode[1] = 'G'
+            mode[2] = 'B'
         mode = ''.join(mode)
         if DEBUG:
             print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen, mode)
         if mode == 'BGRA':
             mode = 'RGBA'
+        if bpp == 32:
+            argMode = mode
+        else:
+            argMode = 'BGR;16'
         self.__send('\0', checkok=False, reconnect=False)
         if DEBUG:
             print >> sys.stderr, "    takeSnapshot: reading %d bytes" % (size)
@@ -344,7 +355,9 @@ class AdbClient:
         if reconnect:
             self.__connect()
             self.__setTransport()
-        return Image.frombuffer(mode, (width, height), received, 'raw', mode, 0, 1)
+        if DEBUG:
+            print >> sys.stderr, "    takeSnapshot: Image.frombuffer(%s, %s, %s, %s, %s, %s, %s)" % (mode, (width, height), 'data', 'raw', argMode, 0, 1)
+        return Image.frombuffer(mode, (width, height), received, 'raw', argMode, 0, 1)
     
     def touch(self, x, y, eventType=DOWN_AND_UP):
         self.shell('input tap %d %d' % (x, y))
