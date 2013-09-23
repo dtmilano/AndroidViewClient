@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.6'
+__version__ = '4.3.8'
 
 import sys
 import socket
@@ -334,7 +334,9 @@ class AdbClient:
                              (ex, ','.join([str(v) for v in (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)])))
         mode = ''.join(mode)
         if DEBUG:
-            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen)
+            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen, mode)
+        if mode == 'BGRA':
+            mode = 'RGBA'
         self.__send('\0', checkok=False, reconnect=False)
         if DEBUG:
             print >> sys.stderr, "    takeSnapshot: reading %d bytes" % (size)
