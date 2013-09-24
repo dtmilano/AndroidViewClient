@@ -17,9 +17,17 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.10'
+__version__ = '4.4.0'
 
 import sys
+import warnings        
+if 'monkeyrunner' in sys.executable:
+    warnings.warn(
+'''
+
+You should use a 'python' interpreter, not 'monkeyrunner' for this module
+
+''', RuntimeWarning)
 import socket
 import time
 import re

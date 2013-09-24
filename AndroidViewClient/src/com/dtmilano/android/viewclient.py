@@ -18,9 +18,17 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.7'
+__version__ = '4.4.0'
 
 import sys
+import warnings        
+if 'monkeyrunner' in sys.executable:
+    warnings.warn(
+'''
+
+You should use a 'python' interpreter, not 'monkeyrunner' for this module
+
+''', RuntimeWarning)
 import subprocess
 import re
 import socket
@@ -28,7 +36,6 @@ import os
 import types
 import time
 import signal
-import warnings
 import copy
 import pickle
 import platform
@@ -1356,7 +1363,7 @@ class ViewClient:
         
         @return: the device and serialno used for the connection
         '''
-        
+
         progname = os.path.basename(sys.argv[0])
         if serialno is None:
             # eat all the extra options the invoking script may have added
