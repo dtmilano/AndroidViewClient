@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.3.9'
+__version__ = '4.3.10'
 
 import sys
 import socket
@@ -323,31 +323,21 @@ class AdbClient:
         #           return 12; // bpp, size, width, height, 4*(length, offset)
         received = self.__receive(1 * 4 + 12 * 4)
         (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen) = struct.unpack('<' + 'L' * 13, received)
-        mode = [None]*(4 if alen > 0 else 3)
         if DEBUG:
-            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen, mode)
+            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)
+        offsets = {roffset:'R', goffset:'G', boffset:'B'}
         if bpp == 32:
-            try:
-                mode[roffset/rlen] = 'R'
-                mode[boffset/blen] = 'B'
-                mode[goffset/glen] = 'G'
-                mode[aoffset/alen] = 'A'
-            except ZeroDivisionError, ex:
-                raise ValueError("Unexpected 0 len in framebuffer description: %s.\nframebuffer: %s" % \
-                                 (ex, ','.join([str(v) for v in (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)])))
-        elif bpp == 16:
-            mode[0] = 'R'
-            mode[1] = 'G'
-            mode[2] = 'B'
-        mode = ''.join(mode)
+            offsets[aoffset] = 'A'
+        argMode = ''.join([offsets[o] for o in sorted(offsets)])
         if DEBUG:
-            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen, mode)
-        if mode == 'BGRA':
-            mode = 'RGBA'
-        if bpp == 32:
-            argMode = mode
+            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen, argMode)
+        if argMode == 'BGRA':
+            argMode = 'RGBA'
+        if bpp == 16:
+            mode = 'RGB'
+            argMode += ';16'
         else:
-            argMode = 'BGR;16'
+            mode = argMode            
         self.__send('\0', checkok=False, reconnect=False)
         if DEBUG:
             print >> sys.stderr, "    takeSnapshot: reading %d bytes" % (size)
