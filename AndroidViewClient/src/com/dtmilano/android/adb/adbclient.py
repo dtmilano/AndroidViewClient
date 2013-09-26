@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.4.0'
+__version__ = '4.4.1'
 
 import sys
 import warnings        
@@ -314,7 +314,9 @@ class AdbClient:
             cmd += ' %s' % uri
         if DEBUG:
             print >> sys.stderr, "Starting activity: %s" % cmd
-        self.shell(cmd)
+        out = self.shell(cmd)
+        if re.search(r"(Error type)|(Error: )|(Cannot find 'App')", out, re.IGNORECASE|re.MULTILINE):
+            raise RuntimeError(out)
     
     def takeSnapshot(self, reconnect=False):
         '''
