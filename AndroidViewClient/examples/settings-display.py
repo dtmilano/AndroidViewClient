@@ -1,4 +1,4 @@
-#! /usr/bin/env monkeyrunner
+#! /usr/bin/env python
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Aug 15, 2012
@@ -27,7 +27,6 @@ except:
     pass
 
 from com.dtmilano.android.viewclient import ViewClient, View
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 
 START_ACTIVITY = True
@@ -41,7 +40,7 @@ device, serialno = ViewClient.connectToDeviceOrExit()
 
 if START_ACTIVITY:
     device.startActivity(component=component, flags=FLAG_ACTIVITY_NEW_TASK)
-    MonkeyRunner.sleep(3)
+    ViewClient.sleep(3)
 
 vc = ViewClient(device, serialno)
 

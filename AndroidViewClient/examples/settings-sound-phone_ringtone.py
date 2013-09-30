@@ -1,4 +1,4 @@
-#! /usr/bin/env monkeyrunner
+#! /usr/bin/env python
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Sep 8, 2012
@@ -29,7 +29,6 @@ except:
     pass
 from com.dtmilano.android.viewclient import ViewClient, View
 
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 device, serialno = ViewClient.connectToDeviceOrExit()
 
@@ -38,7 +37,7 @@ FLAG_ACTIVITY_NEW_TASK = 0x10000000
 # We are not using Settings as the bug describes because there's no WiFi dialog in emulator
 componentName = 'com.android.settings/.Settings'
 device.startActivity(component=componentName, flags=FLAG_ACTIVITY_NEW_TASK)
-MonkeyRunner.sleep(3)
+ViewClient.sleep(3)
 
 vc = ViewClient(device=device, serialno=serialno)
 if DEBUG: vc.traverse(transform=ViewClient.TRAVERSE_CIT)
@@ -53,7 +52,7 @@ if sound:
         vespa = vc.findViewWithText('Vespa')
         if vespa:
             vespa.touch()
-        MonkeyRunner.sleep(1)
+        ViewClient.sleep(1)
         ok = vc.findViewById('id/button1')
         if ok:
             ok.touch()

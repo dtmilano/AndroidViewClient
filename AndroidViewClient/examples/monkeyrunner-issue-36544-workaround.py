@@ -1,4 +1,4 @@
-#! /usr/bin/env monkeyrunner
+#! /usr/bin/env python
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Sep 8, 2012
@@ -29,7 +29,6 @@ except:
     pass
 from com.dtmilano.android.viewclient import ViewClient, View
 
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 device, serialno = ViewClient.connectToDeviceOrExit()
 
@@ -38,7 +37,7 @@ FLAG_ACTIVITY_NEW_TASK = 0x10000000
 #componentName = 'com.android.settings/.Settings'
 componentName = 'com.dtmilano.android.sampleui/.MainActivity'
 device.startActivity(component=componentName, flags=FLAG_ACTIVITY_NEW_TASK)
-MonkeyRunner.sleep(3)
+ViewClient.sleep(3)
 
 # Set it to True or False to decide if AndroidViewClient or plain monkeyrunner is used
 USE_AVC = True
@@ -74,11 +73,11 @@ else:
     showDialogButton = By.id('id/show_dialog_button')
     if showDialogButton:
         easyDevice.touch(showDialogButton, MonkeyDevice.DOWN_AND_UP)
-        MonkeyRunner.sleep(3)
+        ViewClient.sleep(3)
         editText = By.id('id/0x123456')
         print editText
         easyDevice.type(editText, 'Donald')
-        MonkeyRunner.sleep(3)
+        ViewClient.sleep(3)
         ok = By.id('id/button1')
         if ok:
             # 09-08 20:16:41.119: D/MonkeyStub(1992): translateCommand: tap 348 268

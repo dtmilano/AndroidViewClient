@@ -1,4 +1,4 @@
-#! /usr/bin/env monkeyrunner
+#! /usr/bin/env python
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Feb 1, 2012
@@ -27,7 +27,6 @@ except:
     pass
 
 from com.dtmilano.android.viewclient import ViewClient
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 package='com.android.settings'                                          
 activity='.Settings'                           
@@ -36,9 +35,9 @@ device, serialno = ViewClient.connectToDeviceOrExit()
 
 if True:
     device.startActivity(component=component)
-    MonkeyRunner.sleep(3)
+    ViewClient.sleep(3)
     device.press('KEYCODE_DPAD_DOWN') # extra VMT setting WARNING!
-    MonkeyRunner.sleep(1)
+    ViewClient.sleep(1)
     device.press('KEYCODE_DPAD_CENTER', MonkeyDevice.DOWN_AND_UP)
     device.press('KEYCODE_DPAD_DOWN', MonkeyDevice.DOWN_AND_UP)
     #device.press('KEYCODE_DPAD_DOWN', MonkeyDevice.DOWN_AND_UP)

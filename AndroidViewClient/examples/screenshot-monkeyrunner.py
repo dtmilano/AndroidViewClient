@@ -1,4 +1,4 @@
-#! /usr/bin/env monkeyrunner
+#! /usr/bin/env python
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Set 5, 2013
@@ -10,7 +10,6 @@ Created on Set 5, 2013
 import sys
 import os
 
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 
 if len(sys.argv) < 2:
     print >> sys.stderr, "usage: %s filename.png" % sys.argv[0]
