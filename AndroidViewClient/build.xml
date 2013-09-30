@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Culebra" default="jar">
+<project name="Culebra" default="deprecated">
 	<property file="ant.properties" />
 	<loadproperties srcFile="project.properties" />
+
+    <target name="deprecated">
+        <echo message="NOTICE:" />
+		<echo message="Jar file and monkeyrunner use are deprecated as of AndroidViewClient >= 4.0.0" />
+    </target>
 
 	<property name="versionRE" value="^\s*__version__\s*=\s*'(.*)'\s*$" />
 	<loadfile srcfile="src/com/dtmilano/android/viewclient.py"
