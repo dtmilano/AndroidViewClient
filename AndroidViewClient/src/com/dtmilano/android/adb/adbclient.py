@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.4.1'
+__version__ = '4.4.2'
 
 import sys
 import warnings        
@@ -128,7 +128,8 @@ class AdbClient:
                 self.__setTransport()
         else:
             self.checkConnected()
-        self.socket.send('%04X%s' % (len(msg), msg))
+        b = bytearray(msg, 'utf-8')
+        self.socket.send('%04X%s' % (len(b), b))
         if checkok:
             self.__checkOk()
         if reconnect:
@@ -366,7 +367,7 @@ class AdbClient:
         self.shell('input swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration*1000))
     
     def type(self, text):
-        self.shell('input text "%s"' % text)
+        self.shell(u'input text "%s"' % text)
         
     def wake(self):
         self.shell('input keyevent 26')
