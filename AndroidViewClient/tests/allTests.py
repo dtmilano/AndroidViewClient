@@ -18,7 +18,7 @@ try:
             sys.path.append(p)
 except:
     pass
-    
+
 try:
     sys.path.append(os.environ['ANDROID_VIEW_CLIENT_HOME'])
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
