@@ -20,7 +20,7 @@ try:
             sys.path.append(p)
 except:
     pass
-    
+
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
@@ -28,9 +28,9 @@ except:
 
 from com.dtmilano.android.viewclient import ViewClient
 
-package='com.android.settings'                                          
-activity='.Settings'                           
-component=package + "/" + activity                        
+package='com.android.settings'
+activity='.Settings'
+component=package + "/" + activity
 device, serialno = ViewClient.connectToDeviceOrExit()
 
 if True:

@@ -7,7 +7,7 @@ This example starts the TemperatureConverter activity then type '123' into the '
 Then a ViewClient is created to obtain the view dump and the current values of the views with
 id/celsius and id/fahrenheit are obtained and the conversion printed to stdout.
 Finally, the fields are obtained by using their tags and again, conversion printed to stdout.
- 
+
 If --localViewServer is passed in the command line then LocalViewServer provided by
 TemperatureConverter is used. This is very useful when the device is secure and ViewServer
 cannot be started.
@@ -28,7 +28,7 @@ try:
             sys.path.append(p)
 except:
     pass
-    
+
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
@@ -40,12 +40,12 @@ localViewServer = False
 if len(sys.argv) > 1 and sys.argv[1] == '--localViewServer':
     localViewServer = True
     sys.argv.pop(1)
-    
+
 device, serialno = ViewClient.connectToDeviceOrExit(ignoresecuredevice=localViewServer)
 
 FLAG_ACTIVITY_NEW_TASK = 0x10000000
-package = 'com.example.i2at.tc'                                          
-activity = '.TemperatureConverterActivity'                           
+package = 'com.example.i2at.tc'
+activity = '.TemperatureConverterActivity'
 componentName = package + "/" + activity
 
 device.startActivity(component=componentName, flags=FLAG_ACTIVITY_NEW_TASK)

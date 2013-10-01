@@ -10,7 +10,7 @@ Created on Oct 1, 2012
 import re
 import sys
 import os
-    
+
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:

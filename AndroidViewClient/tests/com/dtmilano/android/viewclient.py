@@ -53,34 +53,34 @@ class ViewTest(unittest.TestCase):
         attrs = {'class': 'android.widget.AnyView', 'text:mText': 'Button with ID'}
         view = View.factory(attrs, None, -1)
         self.assertTrue(isinstance(view, View))
-        
+
     def testViewFactory_TextView(self):
         attrs = {'class': 'android.widget.TextView', 'text:mText': 'Button with ID'}
         view = View.factory(attrs, None, -1)
         self.assertTrue(isinstance(view, TextView))
-        
+
     def testViewFactory_TextView(self):
         attrs = {'class': 'android.widget.EditText', 'text:mText': 'Button with ID'}
         view = View.factory(attrs, None, -1)
         self.assertTrue(isinstance(view, EditText))
-    
+
     def testView_notSpecifiedSdkVersion(self):
         device = MockDevice()
         view = View(VIEW_MAP, device, -1)
         self.assertEqual(device.version, view.build[VERSION_SDK_PROPERTY])
-        
+
     def testView_specifiedSdkVersion_8(self):
         view = View(VIEW_MAP_API_8, MockDevice(), 8)
         self.assertEqual(8, view.build[VERSION_SDK_PROPERTY])
-    
+
     def testView_specifiedSdkVersion_10(self):
         view = View(VIEW_MAP, MockDevice(), 10)
         self.assertEqual(10, view.build[VERSION_SDK_PROPERTY])
-        
+
     def testView_specifiedSdkVersion_16(self):
         view = View(VIEW_MAP, MockDevice(), 16)
         self.assertEqual(16, view.build[VERSION_SDK_PROPERTY])
-        
+
     def testInnerMethod(self):
         v = View({'isChecked()':'true'}, None)
         self.assertTrue(v.isChecked())
@@ -99,7 +99,7 @@ class ViewTest(unittest.TestCase):
 
     def testGetClass(self):
         self.assertEqual('android.widget.ToggleButton', self.view.getClass())
-        
+
     def testGetId(self):
         self.assertEqual('id/button_with_id', self.view.getId())
 
@@ -108,107 +108,107 @@ class ViewTest(unittest.TestCase):
         for version, textProperty in VP.items():
             view = View(None, None, version)
             self.assertEqual(textProperty, view.textProperty, msg='version %d: expected: %s actual: %s' % (version, textProperty, view.textProperty))
-    
+
     def testTextPropertyForDifferentSdkVersions_device(self):
         VP = { -1:TEXT_PROPERTY, 8:TEXT_PROPERTY_API_10, 10:TEXT_PROPERTY_API_10, 15:TEXT_PROPERTY, 16:TEXT_PROPERTY_UI_AUTOMATOR, 17:TEXT_PROPERTY_UI_AUTOMATOR}
         for version, textProperty in VP.items():
             device = MockDevice(version=version)
             view = View(None, device, -1)
             self.assertEqual(textProperty, view.textProperty, msg='version %d' % version)
-    
+
     def testLeftPropertyForDifferentSdkVersions(self):
         VP = { -1:LEFT_PROPERTY, 8:LEFT_PROPERTY_API_8, 10:LEFT_PROPERTY, 15:LEFT_PROPERTY, 16:LEFT_PROPERTY, 17:LEFT_PROPERTY}
         for version, leftProperty in VP.items():
             view = View(None, None, version)
             self.assertEqual(leftProperty, view.leftProperty, msg='version %d' % version)
-    
+
     def testLeftPropertyForDifferentSdkVersions_device(self):
         VP = { -1:LEFT_PROPERTY, 8:LEFT_PROPERTY_API_8, 10:LEFT_PROPERTY, 15:LEFT_PROPERTY, 16:LEFT_PROPERTY, 17:LEFT_PROPERTY}
         for version, leftProperty in VP.items():
             device = MockDevice(version=version)
             view = View(None, device, -1)
             self.assertEqual(leftProperty, view.leftProperty, msg='version %d' % version)
-    
+
     def testTopPropertyForDifferentSdkVersions(self):
         VP = { -1:TOP_PROPERTY, 8:TOP_PROPERTY_API_8, 10:TOP_PROPERTY, 15:TOP_PROPERTY, 16:TOP_PROPERTY, 17:TOP_PROPERTY}
         for version, topProperty in VP.items():
             view = View(None, None, version)
             self.assertEqual(topProperty, view.topProperty, msg='version %d' % version)
-    
+
     def testTopPropertyForDifferentSdkVersions_device(self):
         VP = { -1:TOP_PROPERTY, 8:TOP_PROPERTY_API_8, 10:TOP_PROPERTY, 15:TOP_PROPERTY, 16:TOP_PROPERTY, 17:TOP_PROPERTY}
         for version, topProperty in VP.items():
             device = MockDevice(version=version)
             view = View(None, device, -1)
             self.assertEqual(topProperty, view.topProperty, msg='version %d' % version)
-    
+
     def testWidthPropertyForDifferentSdkVersions(self):
         VP = { -1:WIDTH_PROPERTY, 8:WIDTH_PROPERTY_API_8, 10:WIDTH_PROPERTY, 15:WIDTH_PROPERTY, 16:WIDTH_PROPERTY, 17:WIDTH_PROPERTY}
         for version, widthProperty in VP.items():
             view = View(None, None, version)
             self.assertEqual(widthProperty, view.widthProperty, msg='version %d' % version)
-    
+
     def testWidthPropertyForDifferentSdkVersions_device(self):
         VP = { -1:WIDTH_PROPERTY, 8:WIDTH_PROPERTY_API_8, 10:WIDTH_PROPERTY, 15:WIDTH_PROPERTY, 16:WIDTH_PROPERTY, 17:WIDTH_PROPERTY}
         for version, widthProperty in VP.items():
             device = MockDevice(version=version)
             view = View(None, device, -1)
             self.assertEqual(widthProperty, view.widthProperty, msg='version %d' % version)
-        
+
     def testHeightPropertyForDifferentSdkVersions(self):
         VP = { -1:HEIGHT_PROPERTY, 8:HEIGHT_PROPERTY_API_8, 10:HEIGHT_PROPERTY, 15:HEIGHT_PROPERTY, 16:HEIGHT_PROPERTY, 17:HEIGHT_PROPERTY}
         for version, heightProperty in VP.items():
             view = View(None, None, version)
             self.assertEqual(heightProperty, view.heightProperty, msg='version %d' % version)
-    
+
     def testHeightPropertyForDifferentSdkVersions_device(self):
         VP = { -1:HEIGHT_PROPERTY, 8:HEIGHT_PROPERTY_API_8, 10:HEIGHT_PROPERTY, 15:HEIGHT_PROPERTY, 16:HEIGHT_PROPERTY, 17:HEIGHT_PROPERTY}
         for version, heightProperty in VP.items():
             device = MockDevice(version=version)
             view = View(None, device, -1)
             self.assertEqual(heightProperty, view.heightProperty, msg='version %d' % version)
-    
+
     def testGetText(self):
         self.assertTrue(self.view.map.has_key('text:mText'))
         self.assertEqual('Button with ID', self.view.getText())
         self.assertEqual('Button with ID', self.view['text:mText'])
-    
+
     def testGetX_specifiedSdkVersion_8(self):
         view = View(VIEW_MAP_API_8, MockDevice(), 8)
         self.assertEqual(8, view.build[VERSION_SDK_PROPERTY])
         self.assertEqual(50, view.getX())
-    
+
     def testGetX_specifiedSdkVersion_10(self):
         view = View(VIEW_MAP, MockDevice(), 10)
         self.assertEqual(10, view.build[VERSION_SDK_PROPERTY])
         self.assertEqual(50, view.getX())
-    
+
     def testGetY_specifiedSdkVersion_8(self):
         view = View(VIEW_MAP_API_8, MockDevice(), 8)
         self.assertEqual(8, view.build[VERSION_SDK_PROPERTY])
         self.assertEqual(316, view.getY())
-    
+
     def testGetY_specifiedSdkVersion_10(self):
         view = View(VIEW_MAP, MockDevice(), 10)
         self.assertEqual(10, view.build[VERSION_SDK_PROPERTY])
         self.assertEqual(316, view.getY())
-    
+
     def testGetWidth(self):
         self.assertEqual(1140, self.view.getWidth())
-    
-    def testGetHeight(self): 
+
+    def testGetHeight(self):
         self.assertEqual(48, self.view.getHeight())
-    
+
     def testGetUniqueId(self):
         self.assertEqual('id/button_with_id', self.view.getUniqueId())
-        
+
     def testGetUniqueIdEqualsToIdWhenIdIsSpecified(self):
         self.assertEqual(self.view.getId(), self.view.getUniqueId())
-                           
+
     def testName_Layout_mLeft(self):
         v = View({'layout:mLeft':200}, None)
         self.assertEqual(200, v.layout_mLeft())
-        
+
     def testNameWithColon_this_is_a_fake_name(self):
         v = View({'this:is_a_fake_name':1}, None)
         self.assertEqual(1, v.this_is_a_fake_name())
@@ -216,11 +216,11 @@ class ViewTest(unittest.TestCase):
     def testNameWith2Colons_this_is_another_fake_name(self):
         v = View({'this:is:another_fake_name':1}, None)
         self.assertEqual(1, v.this_is_another_fake_name())
-        
+
     def testViewWithoutId(self):
         v = View({'mID':'id/NO_ID', 'text:mText':'Some text'}, None)
         self.assertEqual('id/NO_ID', v.getId())
-        
+
     def testInexistentMethodName(self):
         v = View({'foo':1}, None)
         try:
@@ -228,28 +228,28 @@ class ViewTest(unittest.TestCase):
             raise Exception("AttributeError not raised")
         except AttributeError:
             pass
-    
+
     def testViewTreeRoot(self):
         root = View({'root':1}, None)
         self.assertTrue(root.parent == None)
-        
+
     def testViewTree(self):
         root = View({'root':1}, None)
         children = ["A", "B", "C"]
         for s in children:
             root.add(View({s:1}, None))
-        
-        self.assertEquals(len(children), len(root.children)) 
+
+        self.assertEquals(len(children), len(root.children))
 
     def testViewTreeParent(self):
         root = View({'root':1}, None)
         children = ["A", "B", "C"]
         for s in children:
             root.add(View({s:1}, None))
-        
+
         for ch in root.children:
             self.assertTrue(ch.parent == root)
-            
+
     def testContainsPoint_api15(self):
         v = View(VIEW_MAP, MockDevice(), 15)
         (X, Y, W, H) = v.getPositionAndSize()
@@ -258,7 +258,7 @@ class ViewTest(unittest.TestCase):
         self.assertEqual(W, v.getWidth())
         self.assertEqual(H, v.getHeight())
         self.assertTrue(v.containsPoint((v.getCenter())))
-    
+
     def testContainsPoint_api17(self):
         v = View(VIEW_MAP_API_17, MockDevice(), 17)
         (X, Y, W, H) = v.getPositionAndSize()
@@ -267,11 +267,11 @@ class ViewTest(unittest.TestCase):
         self.assertEqual(W, v.getWidth())
         self.assertEqual(H, v.getHeight())
         self.assertTrue(v.containsPoint((v.getCenter())))
-         
+
     def testIsClickable_api15(self):
         v = View(VIEW_MAP, MockDevice(), 15)
         self.assertTrue(v.isClickable())
-        
+
     def testIsClickable_api17(self):
         v = View(VIEW_MAP_API_17, MockDevice(), 17)
         self.assertTrue(v.isClickable())
@@ -283,12 +283,12 @@ class ViewClientTest(unittest.TestCase):
 
     def tearDown(self):
         pass
-    
+
     def testInit_adb(self):
         device = MockDevice()
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEqual(None, vc)
-        
+
     def testInit_adbNone(self):
         device = MockDevice()
         try:
@@ -297,13 +297,13 @@ class ViewClientTest(unittest.TestCase):
         except subprocess.CalledProcessError:
             # This is needed because the ports cannot be forwarded if there is no device connected
             pass
-        
+
     def testExceptionDeviceNotConnected(self):
         try:
             vc = ViewClient(None, None)
         except Exception, e:
             self.assertEqual('Device is not connected', e.message)
-    
+
     def testConnectToDeviceOrExit_environ(self):
         sys.argv = ['']
         os.environ['ANDROID_SERIAL'] = 'ABC123'
@@ -315,7 +315,7 @@ class ViewClientTest(unittest.TestCase):
             self.assertEquals(3, e.code)
         except Exception, e: #FIXME: java.lang.NullPointerException:
             self.fail('Serialno was not taken from environment: ' + str(e))
-       
+
     def testConnectToDeviceOrExit_serialno(self):
         sys.argv = ['']
         try:
@@ -326,24 +326,24 @@ class ViewClientTest(unittest.TestCase):
             self.assertEquals(3, e.code)
         except Exception, e: #FIXME: java.lang.NullPointerException:
             self.fail('Serialno was not taken from argument: ' + str(e))
-     
+
     def testConstructor(self):
         device = MockDevice()
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
-    
+
     def testMapSerialNo_noPortSpecified(self):
         vc = ViewClient(MockDevice(), serialno='192.168.1.100', adb=TRUE, autodump=False)
         self.assertEqual('192.168.1.100:5555', vc.serialno)
-        
+
     def testMapSerialNo_portSpecified(self):
         vc = ViewClient(MockDevice(), serialno='192.168.1.100:5555', adb=TRUE, autodump=False)
         self.assertEqual('192.168.1.100:5555', vc.serialno)
-        
+
     def testMapSerialNo_emulator(self):
         vc = ViewClient(MockDevice(), serialno='emulator-5556', adb=TRUE, autodump=False)
         self.assertEqual('emulator-5556', vc.serialno)
-        
+
     def testMapSerialNo_regex(self):
         # This is an edge case. A regex should not be used as the serialno in ViewClient as it's
         # behavior is not well defined.
@@ -353,7 +353,7 @@ class ViewClientTest(unittest.TestCase):
             self.fail()
         except ValueError:
             pass
-        
+
     def testMapSerialNo_None(self):
         device = MockDevice()
         try:
@@ -361,15 +361,15 @@ class ViewClientTest(unittest.TestCase):
             self.fail()
         except ValueError:
             pass
-    
+
     def testGetProperty_displayWidth(self):
         device = MockDevice()
         self.assertEqual(768, device.getProperty('display.width'))
-    
+
     def testGetProperty_displayHeight(self):
         device = MockDevice()
         self.assertEqual(1184, device.getProperty('display.height'))
-           
+
     def __mockTree(self, dump=DUMP, version=15, language='en'):
         device = MockDevice(version=version, language=language)
         vc = ViewClient(device, serialno=device.serialno, adb=TRUE, autodump=False)
@@ -394,28 +394,28 @@ class ViewClientTest(unittest.TestCase):
         self.assertTrue(root != None)
         self.assertTrue(root.parent == None)
         self.assertTrue(root.getClass() == 'com.android.internal.policy.impl.PhoneWindow$DecorView')
-        
+
     def testParseTree(self):
         vc = self.__mockTree()
         # eat all the output
         vc.traverse(vc.root, transform=self.__eatIt)
         # We know there are 23 views in ViewServer mock tree
         self.assertEqual(23, len(vc.getViewIds()))
-        
+
     def testParsetree_api17(self):
         vc = self.__mockTree(version=17)
         # eat all the output
         vc.traverse(vc.root, transform=self.__eatIt)
         # We know there are 9 views in UiAutomator mock tree
         self.assertEqual(9, len(vc.getViewIds()))
-    
+
     def testParsetree_api17_zh(self):
         vc = self.__mockTree(version=17, language='zh')
         # eat all the output
         vc.traverse(vc.root, transform=self.__eatIt)
         # We know there are 21 views in UiAutomator mock tree
         self.assertEqual(21, len(vc.getViewIds()))
-    
+
     def __testViewByIds_apiIndependent(self, vc):
         viewsbyId = vc.getViewsById()
         self.assertNotEquals(None, viewsbyId)
@@ -428,25 +428,25 @@ class ViewClientTest(unittest.TestCase):
     def testGetViewsById(self):
         vc = self.__mockTree()
         self.__testViewByIds_apiIndependent(vc)
-        
+
     def testGetViewsById_api17(self):
         vc = self.__mockTree(version=17)
-        self.__testViewByIds_apiIndependent(vc) 
-    
+        self.__testViewByIds_apiIndependent(vc)
+
     def testGetViewsById_api17_zh(self):
         vc = self.__mockTree(version=17, language='zh')
         self.__testViewByIds_apiIndependent(vc)
-                
+
     def testNewViewClientInstancesDontDuplicateTree(self):
         vc = {}
         n = {}
         for i in range(10):
             vc[i] = self.__mockTree()
             n[i] = len(vc[i].getViewIds())
-        
+
         for i in range(1, 10):
             self.assertEquals(n[0], n[i])
-       
+
     def testTraverseShowClassIdAndText(self):
         device = MockDevice()
         root = View({'text:mText':'0'}, device)
@@ -467,8 +467,8 @@ class ViewClientTest(unittest.TestCase):
         citRE = re.compile(' +None None \d+')
         for l in lines[1:]:
             self.assertTrue(citRE.match(l))
-        
-    
+
+
     def testTraverseShowClassIdTextAndCenter(self):
         device = MockDevice()
         root = View({'mID':'0', 'text:mText':'0', 'layout:mLeft':0, 'layout:mTop':0}, device)
@@ -489,27 +489,27 @@ class ViewClientTest(unittest.TestCase):
         citRE = re.compile(' +None \d+ \d+ \(\d+, \d+\)')
         for l in lines[1:]:
             self.assertTrue(citRE.match(l))
-    
+
     def __getClassAndId(self, view):
         try:
             return "%s %s %s %s" % (view.getClass(), view.getId(), view.getUniqueId(), view.getCoords())
         except Exception, e:
             return "Exception in view=%s: %s" % (view.__smallStr__(), e)
-    
+
     def __eatIt(self, view):
         return ""
-    
+
     def testViewWithNoIdReceivesUniqueId(self):
         vc = self.__mockTree()
-        
+
         # We know there are 6 views without id in the mock tree
         for i in range(1, 6):
             self.assertNotEquals(None, vc.findViewById("id/no_id/%d" % i))
-     
+
     def testTextWithSpaces(self):
         vc = self.__mockTree()
         self.assertNotEqual(None, vc.findViewWithText('Medium Text'))
-        
+
     def testTextWithVeryLargeContent(self):
         TEXT = """\
 MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddingBottom=1,0 text:mText=319,[!   "   #   $   %   &   '   (   )   *   +   ,   -   .   /   0   1   2   3   4   5   6   7   8   9   :   ;   <   =   >   ?   @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _   `   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p] mViewFlags=11,-1744830336\
@@ -545,7 +545,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertEqual(ty, y)
         self.assertEqual((tsx, tsy), xy)
         self.assertEqual(((tsx, tsy), (xy[0] + w, xy[1] + h)), coords)
-        
+
     def testServiceStoppedAfterDestructor(self):
         device = MockDevice()
         self.assertTrue(device.service == STOPPED)
@@ -563,17 +563,17 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
     def testFindViewByIdOrRaise(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
         vc.findViewByIdOrRaise('id/up')
-    
+
     def testFindViewByIdOrRaise_api17(self):
         vc = self.__mockTree(version=17)
         vc.traverse()
         vc.findViewByIdOrRaise('id/no_id/9')
-    
+
     def testFindViewByIdOrRaise_api17_zh(self):
         vc = self.__mockTree(version=17, language='zh')
         vc.traverse()
         vc.findViewByIdOrRaise('id/no_id/21')
-    
+
     def testFindViewByIdOrRaise_nonExistentView(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
         try:
@@ -581,7 +581,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
-    
+
     def testFindViewByIdOrRaise_nonExistentView_api17(self):
         vc = self.__mockTree(version=17)
         try:
@@ -589,7 +589,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
-   
+
     def testFindViewByIdOrRaise_nonExistentView_api17_zh(self):
         vc = self.__mockTree(version=17, language='zh')
         try:
@@ -597,7 +597,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
-                  
+
     def testFindViewById_root(self):
         device = None
         root = View({'mID':'0'}, device)
@@ -624,21 +624,21 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         v5 = vc.findViewById('5', root=v3)
         self.assertNotEqual(v5, None)
         self.assertEqual('v35', v5.getTag())
-        
+
     def testFindViewById_viewFilter(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
         def vf(view):
             return view.getClass() == 'android.widget.ImageView'
         view = vc.findViewById('id/up', viewFilter=vf)
         self.assertNotEqual(view, None)
-        
+
     def testFindViewById_viewFilterUnmatched(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
         def vf(view):
             return view.getClass() == 'android.widget.TextView'
         view = vc.findViewById('id/up', viewFilter=vf)
         self.assertEqual(view, None)
-        
+
     def testFindViewByIdOrRaise_root(self):
         device = None
         root = View({'mID':'0'}, device)
@@ -662,13 +662,13 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertEqual('v45', v5.getTag())
         v5 = vc.findViewByIdOrRaise('5', root=v3)
         self.assertEqual('v35', v5.getTag())
-        
+
     def testFindViewByIdOrRaise_viewFilter(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
         def vf(view):
             return view.getClass() == 'android.widget.ImageView'
         view = vc.findViewByIdOrRaise('id/up', viewFilter=vf)
-        
+
     def testFindViewByIdOrRaise_viewFilterUnmatched(self):
         vc = self.__mockTree(dump=DUMP_SAMPLE_UI)
         def vf(view):
@@ -704,7 +704,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         v5 = vc.findViewWithText('5', root=v3)
         self.assertNotEqual(v5, None)
         self.assertEqual('v35', v5.getTag())
-    
+
     def testFindViewWithText_regexRoot(self):
         device = None
         root = View({'text:mText':'0'}, device)
@@ -731,7 +731,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         v5 = vc.findViewWithText(re.compile('[5]'), root=v3)
         self.assertNotEqual(v5, None)
         self.assertEqual('v35', v5.getTag())
-        
+
     def testFindViewWithTextOrRaise_root(self):
         device = None
         root = View({'text:mText':'0'}, device)
@@ -755,7 +755,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertEqual('v45', v5.getTag())
         v5 = vc.findViewWithTextOrRaise('5', root=v3)
         self.assertEqual('v35', v5.getTag())
-        
+
     def testFindViewWithTextOrRaise_rootNonExistent(self):
         device = None
         root = View({'text:mText':'0'}, device)
@@ -778,16 +778,16 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
-    
+
     def testFindViewWithTextOrRaise_api17(self):
         vc = self.__mockTree(version=17)
         vc.findViewWithTextOrRaise("Apps")
-        
+
     def testFindViewWithTextOrRaise_api17_zh(self):
         vc = self.__mockTree(version=17, language='zh')
         vc.traverse(transform=ViewClient.TRAVERSE_CIT)
         vc.findViewWithTextOrRaise(u'语言')
-        
+
     def testFindViewWithTextOrRaise_nonExistent_api17(self):
         vc = self.__mockTree(version=17)
         try:
@@ -795,7 +795,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
-    
+
     def testFindViewWithTextOrRaise_nonExistent_api17_zh(self):
         vc = self.__mockTree(version=17, language='zh')
         try:
@@ -803,7 +803,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
-    
+
     def testFindViewWithContentDescription_root(self):
         device = None
         root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
@@ -830,7 +830,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         v35 = vc.findViewWithContentDescription('CD35', root=v3)
         self.assertNotEqual(v35, None)
         self.assertEqual('35', v35.getText())
-    
+
     def testFindViewWithContentDescription_regexRoot(self):
         device = None
         root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
@@ -857,7 +857,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         v35 = vc.findViewWithContentDescription(re.compile('CD3\d'), root=v3)
         self.assertNotEqual(v35, None)
         self.assertEqual('35', v35.getText())
-    
+
     def testFindViewWithContentDescriptionOrRaise_root(self):
         device = None
         root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
@@ -881,7 +881,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertEqual('45', v45.getText())
         v35 = vc.findViewWithContentDescriptionOrRaise('CD35', root=v3)
         self.assertEqual('35', v35.getText())
-   
+
     def testFindViewWithContentDescriptionOrRaise_rootNonExistent(self):
         device = None
         root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
@@ -904,7 +904,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException:
             pass
-    
+
     def testFindViewWithContentDescriptionOrRaiseExceptionMessage_regexpRoot(self):
         device = None
         root = View({'text:mText':'0', 'content-desc':'CD0'}, device)
@@ -927,18 +927,18 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
             self.fail()
         except ViewNotFoundException, e:
             self.assertNotEquals(None, re.search("that matches 'Non Existent'", e.message))
-    
+
     def testUiAutomatorDump(self):
         device = MockDevice(version=16)
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True)
-    
+
     def testUiAutomatorKilled(self):
         device = MockDevice(version=16, uiautomatorkilled=True)
         try:
             vc = ViewClient(device, device.serialno, adb=TRUE, autodump=True, ignoreuiautomatorkilled=True)
         except Exception, e:
             self.assertIsNotNone(re.search('''ERROR: UiAutomator output contains no valid information. UiAutomator was killed, no reason given.''', str(e)))
-        
+
     def testUiViewServerDump(self):
         device = None
         try:
@@ -949,7 +949,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         finally:
             if device:
                 device.shutdownMockViewServer()
-        
+
     def testUiViewServerDump_windowStr(self):
         device = None
         try:
@@ -960,7 +960,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         finally:
             if device:
                 device.shutdownMockViewServer()
-        
+
     def testUiViewServerDump_windowInt(self):
         device = None
         try:
@@ -971,7 +971,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         finally:
             if device:
                 device.shutdownMockViewServer()
-        
+
     def testUiViewServerDump_windowIntStr(self):
         device = None
         try:
@@ -982,7 +982,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         finally:
             if device:
                 device.shutdownMockViewServer()
-            
+
     def testUiViewServerDump_windowIntM1(self):
         device = None
         try:
@@ -993,7 +993,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         finally:
             if device:
                 device.shutdownMockViewServer()
-    
+
     def testFindViewsContainingPoint_api15(self):
         device = None
         try:
@@ -1005,14 +1005,14 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         finally:
             if device:
                 device.shutdownMockViewServer()
-        
+
     def testFindViewsContainingPoint_api17(self):
         device = MockDevice(version=17)
         vc = ViewClient(device, device.serialno, adb=TRUE)
         list = vc.findViewsContainingPoint((55, 75))
         self.assertNotEquals(None, list)
         self.assertNotEquals(0, len(list))
-        
+
     def testFindViewsContainingPoint_filterApi15(self):
         device = None
         try:
@@ -1024,7 +1024,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         finally:
             if device:
                 device.shutdownMockViewServer()
-        
+
     def testFindViewsContainingPoint_filterApi17(self):
         device = MockDevice(version=17)
         vc = ViewClient(device, device.serialno, adb=TRUE)
@@ -1034,7 +1034,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
 
 if __name__ == "__main__":
     print >> sys.stderr, "ViewClient.__main__:"
-    print >> sys.stderr, "argv=", sys.argv 
+    print >> sys.stderr, "argv=", sys.argv
     #import sys;sys.argv = ['', 'Test.testName']
     #sys.argv.append('ViewClientTest.testFindViewsContainingPoint_filterApi17')
     unittest.main()
