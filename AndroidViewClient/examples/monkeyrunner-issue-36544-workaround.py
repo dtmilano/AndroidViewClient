@@ -22,7 +22,7 @@ try:
           sys.path.append(p)
 except:
     pass
-    
+
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
@@ -62,7 +62,7 @@ if USE_AVC:
             else:
                 print "FAIL"
         else:
-            print >> sys.stderr, "'hello' not found" 
+            print >> sys.stderr, "'hello' not found"
     else:
         print >> sys.stderr, "'Show Dialog' button not found"
 else:
@@ -89,5 +89,5 @@ else:
             else:
                 print "FAIL"
         else:
-            print >> sys.stderr, "'hello' not found" 
-            
+            print >> sys.stderr, "'hello' not found"
+

@@ -2,7 +2,7 @@
 '''
 Copyright (C) 2012  Diego Torres Milano
 Created on Aug 7, 2012
-  
+
 @author: diego
 '''
 
@@ -16,7 +16,7 @@ except:
 
 from com.dtmilano.android.viewclient import ViewClient
 
-                     
+
 vc = ViewClient(*ViewClient.connectToDeviceOrExit())
 
 for i in range(1, 9):

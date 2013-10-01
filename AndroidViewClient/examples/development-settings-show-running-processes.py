@@ -20,9 +20,9 @@ except:
 from com.dtmilano.android.viewclient import ViewClient
 
 # 01-04 18:23:42.000: I/ActivityManager(4288): Displayed com.android.development/.DevelopmentSettings: +379ms
-package = 'com.android.development'                                          
-activity = '.DevelopmentSettings'                           
-component = package + "/" + activity                        
+package = 'com.android.development'
+activity = '.DevelopmentSettings'
+component = package + "/" + activity
 device, serialno = ViewClient.connectToDeviceOrExit()
 device.startActivity(component=component)
 ViewClient.sleep(5)

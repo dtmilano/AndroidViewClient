@@ -7,11 +7,11 @@ Created on Mar 28, 2013
 Culebra helps you create AndroidViewClient scripts generating a working template that can be
 modified to suit more specific needs.
                       __    __    __    __
-                     /  \  /  \  /  \  /  \ 
+                     /  \  /  \  /  \  /  \
 ____________________/  __\/  __\/  __\/  __\_____________________________
 ___________________/  /__/  /__/  /__/  /________________________________
                    | / \   / \   / \   / \   \___
-                   |/   \_/   \_/   \_/   \    o \ 
+                   |/   \_/   \_/   \_/   \    o \
                                            \_____/--<
 @author: Diego Torres Milano
 @author: Jennifer E. Swofford (ascii art snake)
@@ -36,7 +36,7 @@ try:
             sys.path.append(p)
 except:
     pass
-    
+
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
@@ -153,7 +153,7 @@ def notNull(val, default):
     if val:
         return val
     return default
-    
+
 def printVerboseComments(view):
     '''
     Prints the verbose comments for view.
@@ -180,13 +180,13 @@ def printVerboseComments(view):
 def variableNameFromIdOrKey(view):
     '''
     Returns a suitable variable name from the id.
-    
+
     @type view: L{View}
     @param id: the View from where the I{uniqueId} is obtained
-    
+
     @return: the variable name from the id
     '''
-    
+
     var = view.variableNameFromId()
     if options[USE_DICTIONARY]:
         return 'views[\'%s\']' % notNull(dictionaryKeyFrom(options[DICTIONARY_KEYS_FROM], view), var)
@@ -206,11 +206,11 @@ def dictionaryKeyFrom(key, view):
 def printFindViewWithText(view, useregexp):
     '''
     Prints the corresponding statement.
-    
+
     @type view: L{View}
     @param view: the View
     '''
-    
+
     text = view.getText()
     isUnicode = isinstance(text, unicode)
     u = 'u' if isUnicode else ''
@@ -230,11 +230,11 @@ def printFindViewWithText(view, useregexp):
 def printFindViewWithContentDescription(view, useregexp):
     '''
     Prints the corresponding statement.
-    
+
     @type view: L{View}
     @param view: the View
     '''
-    
+
     contentDescription = view.getContentDescription()
     if contentDescription:
         var = variableNameFromIdOrKey(view)
@@ -251,26 +251,26 @@ def printFindViewWithContentDescription(view, useregexp):
         print '%s = vc.findViewWithContentDescriptionOrRaise(%s)' % (var, contentDescription)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no content-description' %  view.getUniqueId())
-        
+
 def printFindViewById(view):
     '''
     Prints the corresponding statement.
-    
+
     @type view: L{View}
     @param view: the View
     '''
-    
+
     var = variableNameFromIdOrKey(view)
     print '%s = vc.findViewByIdOrRaise("%s")' % (var, view.getUniqueId())
-    
+
 def traverseAndPrint(view):
     '''
     Traverses the View tree and prints the corresponding statement.
-    
+
     @type view: L{View}
     @param view: the View
     '''
-    
+
     if options[VERBOSE_COMMENTS]:
         printVerboseComments(view)
     if options[FIND_VIEWS_BY_ID]:
@@ -396,11 +396,11 @@ Copyright (C) 2013  Diego Torres Milano
 Created on %s by Culebra v%s
 
                       __    __    __    __
-                     /  \  /  \  /  \  /  \ 
+                     /  \  /  \  /  \  /  \
 ____________________/  __\/  __\/  __\/  __\_____________________________
 ___________________/  /__/  /__/  /__/  /________________________________
                    | / \   / \   / \   / \   \___
-                   |/   \_/   \_/   \_/   \    o \ 
+                   |/   \_/   \_/   \_/   \    o \
                                            \_____/--<
 @author: Diego Torres Milano
 @author: Jennifer E. Swofford (ascii art snake)
@@ -421,7 +421,7 @@ try:
             sys.path.append(p)
 except:
     pass
-    
+
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
@@ -440,7 +440,7 @@ if options[START_ACTIVITY]:
     print '''\
 device.startActivity(component='%s')
 ''' % options[START_ACTIVITY],
-    
+
 print '''\
 kwargs2 = %s
 vc = ViewClient(device, serialno, **kwargs2)

@@ -34,7 +34,7 @@ VERBOSE = True
 SERIALNO = 'emulator-5554'
 sys.argv = ['ViewClientConnectedTest', SERIALNO]
 device, serialno = ViewClient.connectToDeviceOrExit(verbose=VERBOSE, serialno=SERIALNO)
-       
+
 class ViewClientConnectedTest(unittest.TestCase):
 
     def setUp(self):
@@ -46,25 +46,25 @@ class ViewClientConnectedTest(unittest.TestCase):
         # WARNING:
         # There's no way of disconnect the device
         pass
-    
-    
+
+
     def testInit_adbNone(self):
         device = MockDevice()
         vc = ViewClient(device, serialno, adb=None, autodump=False)
         self.assertNotEqual(None, vc)
-        
+
     def testAutodumpVsDump(self):
         vc = ViewClient(self.device, self.serialno, forceviewserveruse=True)
         ids = vc.getViewIds()
         views = vc.dump()
         self.assertEquals(len(ids), len(views))
-        
+
     def testNewViewClientInstancesDontDuplicateTreeConnected(self):
         vc = {}
         n = {}
         m = {}
         d = {}
-        
+
         for i in range(10):
             vc[i] = ViewClient(self.device, self.serialno, forceviewserveruse=True)
             n[i] = len(vc[i].getViewIds())
@@ -73,7 +73,7 @@ class ViewClientConnectedTest(unittest.TestCase):
             if VERBOSE:
                 print "Pass %d: Found %d views and %d after dump with %d view Ids" % \
                     (i, n[i], m[i], d[i])
-        
+
         for i in range(1, 10):
             self.assertEquals(n[0], n[i])
             self.assertEquals(n[0], m[i])
