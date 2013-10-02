@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.4.3'
+__version__ = '4.5.0'
 
 import sys
 import warnings
@@ -37,10 +37,13 @@ import os
 import types
 import platform
 
-DEBUG = False
+DEBUG = True
 
 HOSTNAME = 'localhost'
-PORT = 5037
+try:
+    PORT = int(os.environ['ANDROID_ADB_SERVER_PORT'])
+except KeyError:
+    PORT = 5037
 
 OKAY = 'OKAY'
 FAIL = 'FAIL'
