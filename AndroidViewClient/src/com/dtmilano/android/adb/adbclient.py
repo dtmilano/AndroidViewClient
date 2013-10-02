@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.5.0'
+__version__ = '4.5.1'
 
 import sys
 import warnings
@@ -37,7 +37,7 @@ import os
 import types
 import platform
 
-DEBUG = True
+DEBUG = False
 
 HOSTNAME = 'localhost'
 try:
