@@ -6,19 +6,11 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '4.2.0'
+__version__ = '4.5.2'
 
 import sys
 import os
 import getopt
-
-# PyDev sets PYTHONPATH, use it
-try:
-    for p in os.environ['PYTHONPATH'].split(':'):
-        if not p in sys.path:
-            sys.path.append(p)
-except:
-    pass
 
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
