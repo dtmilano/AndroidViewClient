@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.5.1'
+__version__ = '4.5.3'
 
 import sys
 import warnings
@@ -368,7 +368,13 @@ class AdbClient:
         self.shell('input tap %d %d' % (x, y))
 
     def drag(self, (x0, y0), (x1, y1), duration, steps):
-        self.shell('input swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration*1000))
+        version = int(self.getProperty('ro.build.version.sdk'))
+        if version <= 15:
+            raise RuntimeError('drag: API <= 15 not supported (version=%d)' % version)
+        elif version <= 17:
+            self.shell('input swipe %d %d %d %d' % (x0, y0, x1, y1))
+        else:
+            self.shell('input swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration*1000))
 
     def type(self, text):
         self.shell(u'input text "%s"' % text)
