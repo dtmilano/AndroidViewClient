@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.6.0'
+__version__ = '4.6.1'
 
 import sys
 import warnings
@@ -390,7 +390,7 @@ class AdbClient:
         '''
 
         lockScreenRE = re.compile('mShowingLockscreen=(true|false)')
-        m = lockScreenRE.search(self.shell('(dumpsys window policy'))
+        m = lockScreenRE.search(self.shell('dumpsys window policy'))
         if m:
             return (m.group(1) == 'true')
         raise RuntimeError("Couldn't determine screen lock state")
