@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.5.3'
+__version__ = '4.6.0'
 
 import sys
 import warnings
@@ -93,7 +93,7 @@ class AdbClient:
     @staticmethod
     def setAlarm(timeout):
         osName = platform.system()
-        if osName.startswith('Windows'): # alarm is not implemented in Windows
+        if osName.startswith('Windows'):  # alarm is not implemented in Windows
             return
         if DEBUG:
             print >> sys.stderr, "setAlarm(%d)" % timeout
@@ -153,7 +153,7 @@ class AdbClient:
         recv = bytearray()
         nr = 0
         while nr < nob:
-            chunk = self.socket.recv(min((nob-nr), 4096))
+            chunk = self.socket.recv(min((nob - nr), 4096))
             recv.extend(chunk)
             nr += len(chunk)
         if DEBUG:
@@ -190,7 +190,7 @@ class AdbClient:
             print >> sys.stderr, "checkVersion(reconnect=%s)" % reconnect
         self.__send('host:version', reconnect=False)
         version = self.socket.recv(8)
-        VERSION='0004001f'
+        VERSION = '0004001f'
         if version != VERSION:
             raise RuntimeError("ERROR: Incorrect ADB server version %s (expecting %s)" % (version, VERSION))
         if reconnect:
@@ -254,9 +254,9 @@ class AdbClient:
             return out
         else:
             self.__send('shell:')
-            #sin = self.socket.makefile("rw")
-            #sout = self.socket.makefile("r")
-            #return (sin, sin)
+            # sin = self.socket.makefile("rw")
+            # sout = self.socket.makefile("r")
+            # return (sin, sin)
             sout = adbClient.socket.makefile("r")
             return sout
 
@@ -306,7 +306,7 @@ class AdbClient:
     def press(self, name, eventType=DOWN_AND_UP):
         cmd = 'input keyevent %s' % name
         if DEBUG:
-            print >>sys.stderr, "press(%s)" % cmd
+            print >> sys.stderr, "press(%s)" % cmd
         self.shell(cmd)
 
     def startActivity(self, component=None, flags=None, uri=None):
@@ -320,7 +320,7 @@ class AdbClient:
         if DEBUG:
             print >> sys.stderr, "Starting activity: %s" % cmd
         out = self.shell(cmd)
-        if re.search(r"(Error type)|(Error: )|(Cannot find 'App')", out, re.IGNORECASE|re.MULTILINE):
+        if re.search(r"(Error type)|(Error: )|(Cannot find 'App')", out, re.IGNORECASE | re.MULTILINE):
             raise RuntimeError(out)
 
     def takeSnapshot(self, reconnect=False):
@@ -334,7 +334,7 @@ class AdbClient:
             raise Exception("You have to install PIL to use takeSnapshot()")
         self.__send('framebuffer:', checkok=True, reconnect=False)
         import struct
-        #case 1: // version
+        # case 1: // version
         #           return 12; // bpp, size, width, height, 4*(length, offset)
         received = self.__receive(1 * 4 + 12 * 4)
         (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen) = struct.unpack('<' + 'L' * 13, received)
@@ -374,13 +374,27 @@ class AdbClient:
         elif version <= 17:
             self.shell('input swipe %d %d %d %d' % (x0, y0, x1, y1))
         else:
-            self.shell('input swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration*1000))
+            self.shell('input swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration * 1000))
 
     def type(self, text):
         self.shell(u'input text "%s"' % text)
 
     def wake(self):
         self.shell('input keyevent 26')
+
+    def isLocked(self):
+        '''
+        Checks if the device screen is locked.
+
+        @return True if the device screen is locked
+        '''
+
+        lockScreenRE = re.compile('mShowingLockscreen=(true|false)')
+        m = lockScreenRE.search(self.shell('(dumpsys window policy'))
+        if m:
+            return (m.group(1) == 'true')
+        raise RuntimeError("Couldn't determine screen lock state")
+
 
     @staticmethod
     def percentSame(image1, image2):
@@ -437,7 +451,7 @@ if __name__ == '__main__':
             if cmd == 'exit':
                 break
             adbClient.socket.__send(cmd + "\r\n")
-            sout.readline(4096) # eat first line, which is the command
+            sout.readline(4096)  # eat first line, which is the command
             while True:
                 line = sout.readline(4096)
                 if prompt.match(line):

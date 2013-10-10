@@ -1,2 +1,5 @@
 bin/*
 tmp/*
+build/*
+dist/*
+*.egg-info
