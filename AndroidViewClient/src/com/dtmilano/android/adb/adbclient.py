@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.6.1'
+__version__ = '4.7.0'
 
 import sys
 import warnings
@@ -380,7 +380,7 @@ class AdbClient:
         self.shell(u'input text "%s"' % text)
 
     def wake(self):
-        self.shell('input keyevent 26')
+        self.shell('input keyevent POWER')
 
     def isLocked(self):
         '''
@@ -395,6 +395,13 @@ class AdbClient:
             return (m.group(1) == 'true')
         raise RuntimeError("Couldn't determine screen lock state")
 
+    def unlock(self):
+        '''
+        Unlocks the screen of the device.
+        '''
+
+        self.shell('input keyevent MENU')
+        self.shell('input keyevent BACK')
 
     @staticmethod
     def percentSame(image1, image2):
