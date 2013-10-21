@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.7.0'
+__version__ = '4.7.1'
 
 import sys
 import warnings
@@ -342,7 +342,10 @@ class AdbClient:
             print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)
         offsets = {roffset:'R', goffset:'G', boffset:'B'}
         if bpp == 32:
-            offsets[aoffset] = 'A'
+            if alen != 0:
+                offsets[aoffset] = 'A'
+            else:
+                warnings.warn('''framebuffer is specified as 32bpp but alpha length is 0''')
         argMode = ''.join([offsets[o] for o in sorted(offsets)])
         if DEBUG:
             print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen, argMode)
