@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.7.1'
+__version__ = '4.7.2'
 
 import sys
 import warnings
@@ -168,10 +168,12 @@ class AdbClient:
         recv = self.socket.recv(4)
         if DEBUG:
             print >> sys.stderr, "    __checkOk: recv=", repr(recv)
-        if recv != OKAY:
-            error = self.socket.recv(1024)
-            raise RuntimeError("ERROR: %s %s" % (repr(recv), error))
-        self.setAlarm(0)
+        try:
+            if recv != OKAY:
+                error = self.socket.recv(1024)
+                raise RuntimeError("ERROR: %s %s" % (repr(recv), error))
+        finally:
+            self.setAlarm(0)
         if DEBUG:
             print >> sys.stderr, "    __checkOk: returning True"
         return True
