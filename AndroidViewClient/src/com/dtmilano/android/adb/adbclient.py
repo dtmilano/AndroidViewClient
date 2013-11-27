@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.7.2'
+__version__ = '4.8.0'
 
 import sys
 import warnings
@@ -262,7 +262,7 @@ class AdbClient:
             sout = adbClient.socket.makefile("r")
             return sout
 
-    def __getRestrictedScreen(self):
+    def getRestrictedScreen(self):
         ''' Gets C{mRestrictedScreen} values from dumpsys. This is a method to obtain display dimensions '''
 
         rsRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<w>\d+)x(?P<h>\d+)')
@@ -279,11 +279,11 @@ class AdbClient:
         return prop
 
     def __getDisplayWidth(self, key, strip=True):
-        (x, y, w, h) = self.__getRestrictedScreen()
+        (x, y, w, h) = self.getRestrictedScreen()
         return int(w)
 
     def __getDisplayHeight(self, key, strip=True):
-        (x, y, w, h) = self.__getRestrictedScreen()
+        (x, y, w, h) = self.getRestrictedScreen()
         return int(h)
 
     def getSystemProperty(self, key, strip=True):
