@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.4.3'
+__version__ = '4.9.0'
 
 import sys
 import warnings
@@ -943,13 +943,11 @@ class EditText(TextView):
 
     def type(self, text):
         self.touch()
-        time.sleep(1)
-        for c in text:
-            if c != ' ':
-                self.device.type(c)
-            else:
-                self.device.press('KEYCODE_SPACE', adbclient.DOWN_AND_UP)
-        time.sleep(1)
+        time.sleep(0.5)
+        escaped = text.replace('%s', '\\%s')
+        encoded = escaped.replace(' ', '%s')
+        self.device.type(encoded)
+        time.sleep(0.5)
 
     def backspace(self):
         self.touch()
