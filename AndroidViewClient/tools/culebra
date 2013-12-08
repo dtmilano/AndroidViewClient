@@ -18,7 +18,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '4.5.2'
+__version__ = '4.10.0'
 
 import re
 import sys
@@ -100,6 +100,9 @@ SHEBANG = {
     SB_JAR: '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!',
     SB_JAR_LINUX: '#! /usr/local/bin/shebang monkeyrunner -plugin $AVC_HOME/bin/androidviewclient-$AVC_VERSION.jar @!'
     }
+
+indent = ''
+prefix = ''
 
 def shortAndLongOptions():
     '''
@@ -240,7 +243,7 @@ def printFindViewWithContentDescription(view, useregexp):
             contentDescription = "re.compile('''%s''')" % contentDescription
         else:
             contentDescription = "'''%s'''" % contentDescription
-        print '%s = vc.findViewWithContentDescriptionOrRaise(%s)' % (var, contentDescription)
+        print '%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (var, prefix, contentDescription)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no content-description' %  view.getUniqueId())
 
@@ -253,7 +256,7 @@ def printFindViewById(view):
     '''
 
     var = variableNameFromIdOrKey(view)
-    print '%s = vc.findViewByIdOrRaise("%s")' % (var, view.getUniqueId())
+    print '%s = %svc.findViewByIdOrRaise("%s")' % (var, prefix, view.getUniqueId())
 
 def traverseAndPrint(view):
     '''
@@ -263,6 +266,8 @@ def traverseAndPrint(view):
     @param view: the View
     '''
 
+    if indent:
+        print indent,
     if options[VERBOSE_COMMENTS]:
         printVerboseComments(view)
     if options[FIND_VIEWS_BY_ID]:
@@ -344,7 +349,7 @@ for o, a in optlist:
     elif o in ['C', VERBOSE_COMMENTS]:
         options[VERBOSE_COMMENTS] = True
     elif o in ['U', UNIT_TEST]:
-        warnings.warn('Not implemented yet: %s' % o)
+        #warnings.warn('Not implemented yet: %s' % o)
         options[UNIT_TEST] = True
     elif o in ['j', USE_JAR]:
         options[USE_JAR] = str2bool(a)
@@ -404,6 +409,11 @@ import sys
 import os
 ''' % (getShebangJar(), date.today(), __version__)
 
+if options[UNIT_TEST]:
+    print '''\
+import unittest
+'''
+
 if not options[USE_JAR]:
     print '''
 try:
@@ -414,28 +424,84 @@ except:
 
 print '''\
 from com.dtmilano.android.viewclient import ViewClient
+'''
 
+if options[UNIT_TEST]:
+    print '''
+class CulebraTests(unittest.TestCase):
 
-kwargs1 = %s
-device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
-''' % kwargs1,
+    kwargs1 = None
+    kwargs2 = None
+    
+    @classmethod
+    def setUpClass(cls):
+        cls.kwargs1 = %s
+        cls.kwargs2 = %s
+    
+    def setUp(self):
+        self.device, self.serialno = ViewClient.connectToDeviceOrExit(**CulebraTests.kwargs1)
+''' % (kwargs1, kwargs2),
 
-if options[START_ACTIVITY]:
-    print '''\
-device.startActivity(component='%s')
+    if options[START_ACTIVITY]:
+        print '''\
+        self.device.startActivity(component='%s')
 ''' % options[START_ACTIVITY],
+    
+    print '''\
+        self.vc = ViewClient(self.device, self.serialno, **CulebraTests.kwargs2)
 
-print '''\
-kwargs2 = %s
-vc = ViewClient(device, serialno, **kwargs2)
-vc.dump(window=%s)
-''' % (kwargs2, getWindowOption())
+    def tearDown(self):
+        pass
 
-if options[USE_DICTIONARY]:
-    print '''views = dict()'''
+    def preconditions(self):
+        return True
+        
+    def testSomething(self):
+        if not self.preconditions():
+            self.fail('Preconditions failed')
+        self.vc.dump(%s)
+    ''' % (getWindowOption())
+    
+    if options[USE_DICTIONARY]:
+        print '''\
+        self.views = dict()'''
+            
+    vc.dump(window=options[WINDOW])
+    indent = ' ' * 7
+    prefix = 'self.'
+    vc.traverse(transform=transform)
+    
+    print '''
+    @staticmethod
+    def main():
+        unittest.main()
 
-vc.dump(window=options[WINDOW])
-vc.traverse(transform=transform)
+
+if __name__ == '__main__':
+    CulebraTests.main()
+'''
+else:
+    print '''
+    kwargs1 = %s
+    device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
+    ''' % kwargs1,
+    
+    if options[START_ACTIVITY]:
+        print '''\
+    device.startActivity(component='%s')
+    ''' % options[START_ACTIVITY],
+    
+    print '''\
+    kwargs2 = %s
+    vc = ViewClient(device, serialno, **kwargs2)
+    vc.dump(window=%s)
+    ''' % (kwargs2, getWindowOption())
+    
+    if options[USE_DICTIONARY]:
+        print '''views = dict()'''
+    
+    vc.dump(window=options[WINDOW])
+    vc.traverse(transform=transform)
 
 if options[INTERACTIVE]:
     import socket
