@@ -18,7 +18,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '4.10.0'
+__version__ = '4.10.1'
 
 import re
 import sys
@@ -482,20 +482,20 @@ if __name__ == '__main__':
 '''
 else:
     print '''
-    kwargs1 = %s
-    device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
-    ''' % kwargs1,
+kwargs1 = %s
+device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
+''' % kwargs1,
     
     if options[START_ACTIVITY]:
         print '''\
-    device.startActivity(component='%s')
+device.startActivity(component='%s')
     ''' % options[START_ACTIVITY],
     
     print '''\
-    kwargs2 = %s
-    vc = ViewClient(device, serialno, **kwargs2)
-    vc.dump(window=%s)
-    ''' % (kwargs2, getWindowOption())
+kwargs2 = %s
+vc = ViewClient(device, serialno, **kwargs2)
+vc.dump(window=%s)
+''' % (kwargs2, getWindowOption())
     
     if options[USE_DICTIONARY]:
         print '''views = dict()'''
