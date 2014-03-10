@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.9.0'
+__version__ = '4.10.2'
 
 import sys
 import warnings
@@ -43,7 +43,7 @@ import platform
 import xml.parsers.expat
 from com.dtmilano.android.adb import adbclient
 
-DEBUG = False
+DEBUG = True
 DEBUG_DEVICE = DEBUG and False
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False
@@ -869,7 +869,16 @@ class View:
             filename = os.path.join(filename, self.variableNameFromId() + '.' + format.lower())
         if DEBUG:
             print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, format)
-        self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, format)
+        #self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, format)
+        # crop:
+        # im.crop(box) ⇒ image
+        # Returns a copy of a rectangular region from the current image.
+        # The box is a 4-tuple defining the left, upper, right, and lower pixel coordinate.
+        ((l, t), (r, b)) = self.getCoords()
+        box = (l, t, r, b)
+        if DEBUG:
+            print >> sys.stderr, "writeImageToFile: cropping", box
+        self.device.takeSnapshot().crop(box).save(filename, format)
 
     def __smallStr__(self):
         __str = unicode("View[", 'utf-8', 'replace')
