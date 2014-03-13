@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.10.2'
+__version__ = '5.0.0'
 
 import sys
 import warnings
@@ -43,7 +43,7 @@ import platform
 import xml.parsers.expat
 from com.dtmilano.android.adb import adbclient
 
-DEBUG = True
+DEBUG = False
 DEBUG_DEVICE = DEBUG and False
 DEBUG_RECEIVED = DEBUG and False
 DEBUG_TREE = DEBUG and False

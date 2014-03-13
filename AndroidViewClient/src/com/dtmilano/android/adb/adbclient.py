@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.8.0'
+__version__ = '5.0.0'
 
 import sys
 import warnings
@@ -75,9 +75,7 @@ class Device:
 
 class AdbClient:
 
-    def __init__(self, serialno, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True):
-        if not serialno:
-            raise ValueError("serialno must not be empty or None")
+    def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True):
         self.serialno = serialno
         self.hostname = hostname
         self.port = port
@@ -87,7 +85,7 @@ class AdbClient:
 
         self.checkVersion()
         self.isTransportSet = False
-        if settransport:
+        if settransport and serialno != None:
             self.__setTransport()
 
     @staticmethod
@@ -99,6 +97,12 @@ class AdbClient:
             print >> sys.stderr, "setAlarm(%d)" % timeout
         signal.alarm(timeout)
 
+    def setSerialno(self, serialno):
+        if self.isTransportSet:
+            raise ValueError("Transport is already set, serialno cannot be set once this is done.")
+        self.serialno = serialno
+        self.__setTransport()
+        
     def setReconnect(self, val):
         self.reconnect = val
 
@@ -201,6 +205,8 @@ class AdbClient:
     def __setTransport(self):
         if DEBUG:
             print >> sys.stderr, "__setTransport()"
+        if not self.serialno:
+            raise ValueError("serialno not set, empty or None")
         self.checkConnected()
         serialnoRE = re.compile(self.serialno)
         found = False

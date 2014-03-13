@@ -18,7 +18,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '4.10.1'
+__version__ = '5.0.0'
 
 import re
 import sys
@@ -57,9 +57,10 @@ START_ACTIVITY = 'start-activity'
 OUTPUT = 'output'
 INTERACTIVE = 'interactive'
 WINDOW = 'window'
+APPEND_TO_SYS_PATH = 'append-to-sys-path'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVIFSkw:i:t:d:rCUj:D:K:R:a:o:A'
+SHORT_OPTS = 'HVIFSkw:i:t:d:rCUj:D:K:R:a:o:Ap'
 LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
               WINDOW + '=',
@@ -67,7 +68,7 @@ LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_
               USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST,
               USE_JAR + '=', USE_DICTIONARY + '=', DICTIONARY_KEYS_FROM + '=', AUTO_REGEXPS + '=',
               START_ACTIVITY + '=',
-              OUTPUT + '=', INTERACTIVE]
+              OUTPUT + '=', INTERACTIVE, APPEND_TO_SYS_PATH]
 LONG_OPTS_ARG = {WINDOW: 'WINDOW',
                   FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
                   USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', DICTIONARY_KEYS_FROM: 'VALUE', AUTO_REGEXPS: 'LIST',
@@ -89,6 +90,7 @@ OPTS_HELP = {
     'a': 'starts Activity before dump',
     'o': 'output filename',
     'A': 'interactive',
+    'p': 'append environment variables values to sys.path'
     }
 
 AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
@@ -320,7 +322,7 @@ options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
         UNIT_TEST: False, USE_JAR: False, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
         AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None, INTERACTIVE: False,
-        WINDOW: -1}
+        WINDOW: -1, APPEND_TO_SYS_PATH: False}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -369,6 +371,8 @@ for o, a in optlist:
         options[OUTPUT] = a
     elif o in ['A', INTERACTIVE]:
         options[INTERACTIVE] = True
+    elif o in ['p', APPEND_TO_SYS_PATH]:
+        options[APPEND_TO_SYS_PATH] = True
 
 if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT] or options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[VERBOSE_COMMENTS]:
@@ -414,7 +418,7 @@ if options[UNIT_TEST]:
 import unittest
 '''
 
-if not options[USE_JAR]:
+if options[APPEND_TO_SYS_PATH]:
     print '''
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
