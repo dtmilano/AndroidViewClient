@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.0.0'
+__version__ = '5.1.0'
 
 import sys
 import warnings
@@ -391,7 +391,8 @@ class AdbClient:
         self.shell(u'input text "%s"' % text)
 
     def wake(self):
-        self.shell('input keyevent POWER')
+        if not self.isScreenOn():
+            self.shell('input keyevent POWER')
 
     def isLocked(self):
         '''
@@ -406,6 +407,19 @@ class AdbClient:
             return (m.group(1) == 'true')
         raise RuntimeError("Couldn't determine screen lock state")
 
+    def isScreenOn(self):
+        '''
+        Checks if the screen is ON.
+
+        @return True if the device screen is ON
+        '''
+
+        screenOnRE = re.compile('mScreenOnFully=(true|false)')
+        m = screenOnRE.search(self.shell('dumpsys window policy'))
+        if m:
+            return (m.group(1) == 'true')
+        raise RuntimeError("Couldn't determine screen ON state")
+        
     def unlock(self):
         '''
         Unlocks the screen of the device.
