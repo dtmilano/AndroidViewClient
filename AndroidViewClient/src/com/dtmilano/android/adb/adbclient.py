@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.1.0'
+__version__ = '5.1.1'
 
 import sys
 import warnings
@@ -378,14 +378,23 @@ class AdbClient:
     def touch(self, x, y, eventType=DOWN_AND_UP):
         self.shell('input tap %d %d' % (x, y))
 
-    def drag(self, (x0, y0), (x1, y1), duration, steps):
+    def drag(self, (x0, y0), (x1, y1), duration, steps=1):
+        '''
+        Sends drag event (actually it's using C{input swipe} command.
+
+        @param (x0, y0): starting point
+        @param (x1, y1): ending point
+        @param duration: duration of the event in ms
+        @param steps: number of steps (currently ignored by @{input swipe}
+        '''
+
         version = int(self.getProperty('ro.build.version.sdk'))
         if version <= 15:
             raise RuntimeError('drag: API <= 15 not supported (version=%d)' % version)
         elif version <= 17:
             self.shell('input swipe %d %d %d %d' % (x0, y0, x1, y1))
         else:
-            self.shell('input swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration * 1000))
+            self.shell('input swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration))
 
     def type(self, text):
         self.shell(u'input text "%s"' % text)
