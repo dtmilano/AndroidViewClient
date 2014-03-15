@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.0.0'
+__version__ = '5.2.0'
 
 import sys
 import warnings
@@ -204,12 +204,28 @@ class View:
     '''
 
     @staticmethod
-    def factory(attrs, device, version=-1, forceviewserveruse=False):
+    def factory(arg1, arg2, version=-1, forceviewserveruse=False):
         '''
         View factory
+
+        @type arg1: ClassType or dict
+        @type arg2: View instance or AdbClient
         '''
 
-        if attrs.has_key('class'):
+        if type(arg1) == types.ClassType:
+            cls = arg1
+            attrs = None
+        else:
+            cls = None
+            attrs = arg1
+        if isinstance(arg2, View):
+            view = arg2
+            device = None
+        else:
+            device = arg2
+            view = None
+
+        if attrs and attrs.has_key('class'):
             clazz = attrs['class']
             if clazz == 'android.widget.TextView':
                 return TextView(attrs, device, version, forceviewserveruse)
@@ -217,8 +233,23 @@ class View:
                 return EditText(attrs, device, version, forceviewserveruse)
             else:
                 return View(attrs, device, version, forceviewserveruse)
+        elif cls:
+            if view:
+                return cls.__copy(view)
+            else:
+                return cls(attrs, device, version, forceviewserveruse)
+        elif view:
+            return copy.copy(view)
         else:
             return View(attrs, device, version, forceviewserveruse)
+
+    @classmethod
+    def __copy(cls, view):
+        '''
+        Copy constructor
+        '''
+
+        return cls(view.map, view.device, view.version, view.forceviewserveruse)
 
     def __init__(self, map, device, version=-1, forceviewserveruse=False):
         '''
@@ -250,6 +281,10 @@ class View:
         ''' The current focus '''
         self.build = {}
         ''' Build properties '''
+        self.version = version
+        ''' API version number '''
+        self.forceviewserveruse = forceviewserveruse
+        ''' Force ViewServer use '''
 
         if version != -1:
             self.build[VERSION_SDK_PROPERTY] = version
@@ -326,7 +361,7 @@ class View:
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
-
+        
     def __getitem__(self, key):
         return self.map[key]
 
@@ -949,7 +984,7 @@ class EditText(TextView):
     '''
     EditText class.
     '''
-
+    
     def type(self, text):
         self.touch()
         time.sleep(0.5)

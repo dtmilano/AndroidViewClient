@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='androidviewclient',
-    version='5.1.1',
+    version='5.2.0',
     description='''AndroidViewClient is a 100% pure python tool that
         simplifies test script creation providing higher level operations and the ability of
         obtaining the tree of Views present at any given moment on the device or emulator screen.
