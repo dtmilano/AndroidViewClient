@@ -13,12 +13,13 @@ ___________________/  /__/  /__/  /__/  /________________________________
                    | / \   / \   / \   / \   \___
                    |/   \_/   \_/   \_/   \    o \ 
                                            \_____/--<
+
 @author: Diego Torres Milano
 @author: Jennifer E. Swofford (ascii art snake)
 
 '''
 
-__version__ = '5.3.0'
+__version__ = '5.3.1'
 
 import re
 import sys
@@ -86,7 +87,7 @@ OPTS_HELP = {
     'j': 'use jar and appropriate shebang to run script (deprecated)',
     'D': 'use a dictionary to store the Views found',
     'K': 'dictionary keys from: id, text, content-description',
-    'R': 'auto regexps (i.e. clock)',
+    'R': 'auto regexps (i.e. clock), implies -r. help list options',
     'a': 'starts Activity before dump',
     'o': 'output filename',
     'A': 'interactive',
@@ -115,10 +116,10 @@ def shortAndLongOptions():
     if len(short_opts) != len(LONG_OPTS):
         raise Exception('There is a mismatch between short and long options')
     t = tuple(short_opts) + tuple(LONG_OPTS)
-    l2 = len(t)/2
+    l2 = len(t) / 2
     sl = []
     for i in range(l2):
-        sl.append((t[i], t[i+l2]))
+        sl.append((t[i], t[i + l2]))
     return sl
 
 def usage(exitVal=1):
@@ -141,8 +142,15 @@ def help():
         print >> sys.stderr, o
     sys.exit(0)
 
+def autoRegexpsHelp():
+    print >> sys.stderr, "Available %s options:" % AUTO_REGEXPS
+    for r in AUTO_REGEXPS_RES:
+        print >> sys.stderr, "\t%s: %s" % (r, AUTO_REGEXPS_RES[r].pattern)
+    print >> sys.stderr
+    sys.exit(0)
+
 def error(msg, fatal=False):
-    print >>sys.stderr, "%s: ERROR: %s" % (progname, msg)
+    print >> sys.stderr, "%s: ERROR: %s" % (progname, msg)
     if fatal:
         sys.exit(1)
 
@@ -217,12 +225,12 @@ def printFindViewWithText(view, useregexp):
             # 2 quotes + 1 quote = 3 quotes
             text = "''%s''" % text
         if useregexp:
-            text = "re.compile(%c'''%s''')" % (u, text)
+            text = "re.compile(%c'%s)" % (u, text)
         else:
             text = "%c'%s'" % (u, text)
         print '%s = vc.findViewWithTextOrRaise(%s)' % (var, text)
     elif kwargs1[VERBOSE]:
-        warnings.warn('View with id=%s has no text' %  view.getUniqueId())
+        warnings.warn('View with id=%s has no text' % view.getUniqueId())
 
 def printFindViewWithContentDescription(view, useregexp):
     '''
@@ -247,7 +255,7 @@ def printFindViewWithContentDescription(view, useregexp):
             contentDescription = "u'''%s'''" % contentDescription
         print '%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (var, prefix, contentDescription)
     elif kwargs1[VERBOSE]:
-        warnings.warn('View with id=%s has no content-description' %  view.getUniqueId())
+        warnings.warn('View with id=%s has no content-description' % view.getUniqueId())
 
 def printFindViewById(view):
     '''
@@ -323,7 +331,7 @@ options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
         UNIT_TEST: False, USE_JAR: False, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
         AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None, INTERACTIVE: False,
-        WINDOW: -1, APPEND_TO_SYS_PATH: False}
+        WINDOW:-1, APPEND_TO_SYS_PATH: False}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -352,7 +360,7 @@ for o, a in optlist:
     elif o in ['C', VERBOSE_COMMENTS]:
         options[VERBOSE_COMMENTS] = True
     elif o in ['U', UNIT_TEST]:
-        #warnings.warn('Not implemented yet: %s' % o)
+        # warnings.warn('Not implemented yet: %s' % o)
         options[UNIT_TEST] = True
     elif o in ['j', USE_JAR]:
         options[USE_JAR] = str2bool(a)
@@ -363,9 +371,13 @@ for o, a in optlist:
     elif o in ['R', AUTO_REGEXPS]:
         options[AUTO_REGEXPS] = a.split(',')
         for r in options[AUTO_REGEXPS]:
+            if r == 'help':
+                autoRegexpsHelp()
             if r not in AUTO_REGEXPS_RES:
                 error("invalid auto regexp: %s\n" % (r))
                 usage()
+            # AUTO_REGEPXS implies USE_REGEXPS
+            options[USE_REGEXPS] = True
     elif o in ['a', START_ACTIVITY]:
         options[START_ACTIVITY] = a
     elif o in ['o', OUTPUT]:
@@ -437,12 +449,12 @@ class CulebraTests(unittest.TestCase):
 
     kwargs1 = None
     kwargs2 = None
-    
+
     @classmethod
     def setUpClass(cls):
         cls.kwargs1 = %s
         cls.kwargs2 = %s
-    
+
     def setUp(self):
         self.device, self.serialno = ViewClient.connectToDeviceOrExit(**CulebraTests.kwargs1)
 ''' % (kwargs1, kwargs2),
@@ -451,7 +463,7 @@ class CulebraTests(unittest.TestCase):
         print '''\
         self.device.startActivity(component='%s')
 ''' % options[START_ACTIVITY],
-    
+
     print '''\
         self.vc = ViewClient(self.device, self.serialno, **CulebraTests.kwargs2)
 
@@ -460,22 +472,22 @@ class CulebraTests(unittest.TestCase):
 
     def preconditions(self):
         return True
-        
+
     def testSomething(self):
         if not self.preconditions():
             self.fail('Preconditions failed')
         self.vc.dump(%s)
     ''' % (getWindowOption())
-    
+
     if options[USE_DICTIONARY]:
         print '''\
         self.views = dict()'''
-            
+
     vc.dump(window=options[WINDOW])
     indent = ' ' * 7
     prefix = 'self.'
     vc.traverse(transform=transform)
-    
+
     print '''
     @staticmethod
     def main():
@@ -490,21 +502,21 @@ else:
 kwargs1 = %s
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 ''' % kwargs1,
-    
+
     if options[START_ACTIVITY]:
         print '''\
 device.startActivity(component='%s')
     ''' % options[START_ACTIVITY],
-    
+
     print '''\
 kwargs2 = %s
 vc = ViewClient(device, serialno, **kwargs2)
 vc.dump(window=%s)
 ''' % (kwargs2, getWindowOption())
-    
+
     if options[USE_DICTIONARY]:
         print '''views = dict()'''
-    
+
     vc.dump(window=options[WINDOW])
     vc.traverse(transform=transform)
 
@@ -517,7 +529,7 @@ if options[INTERACTIVE]:
     s.sendall("RECORD EVENTS START\n")
     fin = open("/dev/tty")
     while True:
-        print >>sys.stderr, "Reading events..."
+        print >> sys.stderr, "Reading events..."
         data = s.recv(1024)
         code = ViewClient.excerpt(data)
         exec code
