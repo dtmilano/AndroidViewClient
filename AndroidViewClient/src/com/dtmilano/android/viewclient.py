@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.2.0'
+__version__ = '5.3.0'
 
 import sys
 import warnings
@@ -443,6 +443,11 @@ class View:
         @return: the L{View} C{Id} or C{None} if not defined
         @see: L{getUniqueId()}
         '''
+
+        try:
+            return self.map['resource-id']
+        except:
+            pass
 
         try:
             return self.map[self.idProperty]
@@ -877,13 +882,18 @@ class View:
         return self.__getattr__('isClickable')()
 
     def variableNameFromId(self):
-        m = ID_RE.match(self.getUniqueId())
-        if m:
-            var = m.group(1)
-            if m.group(3):
-                var += m.group(3)
-            if re.match('^\d', var):
-                var = 'id_' + var
+        _id = self.getId()
+        if _id:
+            var = _id.replace('.', '_').replace(':', '___').replace('/', '_')
+        else:
+            _id = self.getUniqueId()
+            m = ID_RE.match(_id)
+            if m:
+                var = m.group(1)
+                if m.group(3):
+                    var += m.group(3)
+                if re.match('^\d', var):
+                    var = 'id_' + var
         return var
 
     def writeImageToFile(self, filename, format="PNG"):

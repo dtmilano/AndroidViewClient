@@ -18,7 +18,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '5.0.0'
+__version__ = '5.3.0'
 
 import re
 import sys
@@ -242,9 +242,9 @@ def printFindViewWithContentDescription(view, useregexp):
                     if autoRegexp.match(contentDescription):
                         contentDescription = autoRegexp.pattern
                         break
-            contentDescription = "re.compile('''%s''')" % contentDescription
+            contentDescription = "re.compile(u'''%s''')" % contentDescription
         else:
-            contentDescription = "'''%s'''" % contentDescription
+            contentDescription = "u'''%s'''" % contentDescription
         print '%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (var, prefix, contentDescription)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no content-description' %  view.getUniqueId())
@@ -258,7 +258,8 @@ def printFindViewById(view):
     '''
 
     var = variableNameFromIdOrKey(view)
-    print '%s = %svc.findViewByIdOrRaise("%s")' % (var, prefix, view.getUniqueId())
+    _id = view.getId() if view.getId() else view.getUniqueId()
+    print '%s = %svc.findViewByIdOrRaise("%s")' % (var, prefix, _id)
 
 def traverseAndPrint(view):
     '''
