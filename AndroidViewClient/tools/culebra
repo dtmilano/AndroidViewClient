@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '5.3.1'
+__version__ = '5.3.2'
 
 import re
 import sys
@@ -225,7 +225,13 @@ def printFindViewWithText(view, useregexp):
             # 2 quotes + 1 quote = 3 quotes
             text = "''%s''" % text
         if useregexp:
-            text = "re.compile(%c'%s)" % (u, text)
+            if options[AUTO_REGEXPS]:
+                for r in options[AUTO_REGEXPS]:
+                    autoRegexp = AUTO_REGEXPS_RES[r]
+                    if autoRegexp.match(text):
+                        text = autoRegexp.pattern
+                        break
+            text = "re.compile(%c'%s')" % (u, text)
         else:
             text = "%c'%s'" % (u, text)
         print '%s = vc.findViewWithTextOrRaise(%s)' % (var, text)
