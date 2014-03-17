@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '5.3.2'
+__version__ = '5.4.0'
 
 import re
 import sys
@@ -28,6 +28,7 @@ import getopt
 import warnings
 import subprocess
 import codecs
+import calendar
 from datetime import date
 
 try:
@@ -94,7 +95,25 @@ OPTS_HELP = {
     'p': 'append environment variables values to sys.path'
     }
 
-AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
+def fillAutoRegexpsRes():
+    are = {}
+    are['clock'] = re.compile('[012]\d:[0-5]\d')
+    d = "("
+    for i in range(7):
+        d += calendar.day_abbr[i]
+        if i != 6:
+            d += '|'
+    d += '), ('
+    for i in range(1, 13):
+        d += calendar.month_name[i]
+        if i != 12:
+            d += '|'
+    d += ') [0123]\d'
+    are['date'] = re.compile(d, re.IGNORECASE)
+    are['battery'] = re.compile('Charging, \d\d%')
+    return are
+
+AUTO_REGEXPS_RES = fillAutoRegexpsRes()
 SB_NO_JAR = 'no-jar'
 SB_JAR = 'jar'
 SB_JAR_LINUX = 'jar-linux'
@@ -144,6 +163,8 @@ def help():
 
 def autoRegexpsHelp():
     print >> sys.stderr, "Available %s options:" % AUTO_REGEXPS
+    print >> sys.stderr, "\thelp: prints this help"
+    print >> sys.stderr, "\tall: includes all the available regexps"
     for r in AUTO_REGEXPS_RES:
         print >> sys.stderr, "\t%s: %s" % (r, AUTO_REGEXPS_RES[r].pattern)
     print >> sys.stderr
@@ -379,11 +400,14 @@ for o, a in optlist:
         for r in options[AUTO_REGEXPS]:
             if r == 'help':
                 autoRegexpsHelp()
+            if r == 'all':
+                options[AUTO_REGEXPS] = AUTO_REGEXPS_RES.keys()
+                break
             if r not in AUTO_REGEXPS_RES:
                 error("invalid auto regexp: %s\n" % (r))
                 usage()
-            # AUTO_REGEPXS implies USE_REGEXPS
-            options[USE_REGEXPS] = True
+        # AUTO_REGEPXS implies USE_REGEXPS
+        options[USE_REGEXPS] = True
     elif o in ['a', START_ACTIVITY]:
         options[START_ACTIVITY] = a
     elif o in ['o', OUTPUT]:
