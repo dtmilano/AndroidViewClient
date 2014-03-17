@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '5.4.0'
+__version__ = '5.4.2'
 
 import re
 import sys
@@ -97,7 +97,7 @@ OPTS_HELP = {
 
 def fillAutoRegexpsRes():
     are = {}
-    are['clock'] = re.compile('[012]\d:[0-5]\d')
+    are['clock'] = re.compile('[012]?\d:[0-5]\d')
     d = "("
     for i in range(7):
         d += calendar.day_abbr[i]
