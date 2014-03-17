@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.3.0'
+__version__ = '5.4.1'
 
 import sys
 import warnings
@@ -1882,6 +1882,9 @@ class ViewClient:
                 dumpedToDevTtyRE = re.compile('</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
                 if dumpedToDevTtyRE.search(received):
                     received = re.sub(dumpedToDevTtyRE, '</hierarchy>', received)
+                # API19 seems to send this warning as part of the XML.
+                # Let's remove it if present
+                received = received.replace('WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.\r\n', '')
                 if DEBUG_RECEIVED:
                     print >>sys.stderr, "received=", received
             if re.search('\[: not found', received):
