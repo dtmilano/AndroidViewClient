@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.4.1'
+__version__ = '5.4.3'
 
 import sys
 import warnings
@@ -922,8 +922,8 @@ class View:
         ((l, t), (r, b)) = self.getCoords()
         box = (l, t, r, b)
         if DEBUG:
-            print >> sys.stderr, "writeImageToFile: cropping", box
-        self.device.takeSnapshot().crop(box).save(filename, format)
+            print >> sys.stderr, "writeImageToFile: cropping", box, "    reconnect=", self.device.reconnect
+        self.device.takeSnapshot(reconnect=self.device.reconnect).crop(box).save(filename, format)
 
     def __smallStr__(self):
         __str = unicode("View[", 'utf-8', 'replace')
