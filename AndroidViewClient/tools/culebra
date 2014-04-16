@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '5.4.2'
+__version__ = '5.4.4'
 
 import re
 import sys
@@ -185,7 +185,7 @@ def printVerboseComments(view):
     Prints the verbose comments for view.
     '''
 
-    print '\n# class=%s' % view.getClass(),
+    print '\n%s# class=%s' % (indent, view.getClass()),
     try:
         text = view.getText()
         if text:
@@ -255,7 +255,7 @@ def printFindViewWithText(view, useregexp):
             text = "re.compile(%c'%s')" % (u, text)
         else:
             text = "%c'%s'" % (u, text)
-        print '%s = vc.findViewWithTextOrRaise(%s)' % (var, text)
+        print '%s%s = vc.findViewWithTextOrRaise(%s)' % (indent, var, text)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no text' % view.getUniqueId())
 
@@ -280,7 +280,7 @@ def printFindViewWithContentDescription(view, useregexp):
             contentDescription = "re.compile(u'''%s''')" % contentDescription
         else:
             contentDescription = "u'''%s'''" % contentDescription
-        print '%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (var, prefix, contentDescription)
+        print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (indent, var, prefix, contentDescription)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no content-description' % view.getUniqueId())
 
@@ -294,7 +294,7 @@ def printFindViewById(view):
 
     var = variableNameFromIdOrKey(view)
     _id = view.getId() if view.getId() else view.getUniqueId()
-    print '%s = %svc.findViewByIdOrRaise("%s")' % (var, prefix, _id)
+    print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
 
 def traverseAndPrint(view):
     '''
@@ -305,7 +305,7 @@ def traverseAndPrint(view):
     '''
 
     if indent:
-        print indent,
+        print indent[:-1],
     if options[VERBOSE_COMMENTS]:
         printVerboseComments(view)
     if options[FIND_VIEWS_BY_ID]:
@@ -507,14 +507,14 @@ class CulebraTests(unittest.TestCase):
         if not self.preconditions():
             self.fail('Preconditions failed')
         self.vc.dump(%s)
-    ''' % (getWindowOption())
+        ''' % (getWindowOption())
 
     if options[USE_DICTIONARY]:
         print '''\
         self.views = dict()'''
 
     vc.dump(window=options[WINDOW])
-    indent = ' ' * 7
+    indent = ' ' * 8
     prefix = 'self.'
     vc.traverse(transform=transform)
 
@@ -535,8 +535,7 @@ device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 
     if options[START_ACTIVITY]:
         print '''\
-device.startActivity(component='%s')
-    ''' % options[START_ACTIVITY],
+device.startActivity(component='%s')''' % options[START_ACTIVITY]
 
     print '''\
 kwargs2 = %s
