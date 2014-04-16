@@ -11,16 +11,6 @@ import re
 import sys
 import os
 
-# This must be imported before MonkeyRunner and MonkeyDevice,
-# otherwise the import fails.
-# PyDev sets PYTHONPATH, use it
-try:
-    for p in os.environ['PYTHONPATH'].split(':'):
-       if not p in sys.path:
-          sys.path.append(p)
-except:
-    pass
-
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
@@ -51,6 +41,6 @@ view = vc.findViewWithText(text)
 if view:
 	print view.__smallStr__()
 	print view.getCoords()
-	print view['layout:mLeft'], ',', view['layout:mTop']
+	print view.getX(), ',', view.getY()
 else:
-	print "Not found"
+	print "View with text='%s' was not found" % text
