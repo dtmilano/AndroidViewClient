@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '5.4.4'
+__version__ = '5.4.5'
 
 import re
 import sys
@@ -197,7 +197,7 @@ def printVerboseComments(view):
         pass
     try:
         tag = view.getTag()
-        if tab != 'null':
+        if tag != 'null':
             print 'tag=%s' % tag,
     except:
         pass
@@ -304,8 +304,6 @@ def traverseAndPrint(view):
     @param view: the View
     '''
 
-    if indent:
-        print indent[:-1],
     if options[VERBOSE_COMMENTS]:
         printVerboseComments(view)
     if options[FIND_VIEWS_BY_ID]:
