@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2013  Diego Torres Milano
+Copyright (C) 2012-2014  Diego Torres Milano
 Created on Feb 2, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.4.3'
+__version__ = '5.4.6'
 
 import sys
 import warnings
@@ -2003,7 +2003,15 @@ You should force ViewServer back-end.''')
                     break
                 if doneRE.search(line):
                     break
-                (wid, package) = line.split()
+                values = line.split()
+                if len(values) > 1:
+                    package = values[1]
+                else:
+                    package = "UNKNOWN"
+                if len(values) > 0:
+                    wid = values[0]
+                else:
+                    wid = '00000000'
                 self.windows[int('0x' + wid, 16)] = package
             return self.windows
 
