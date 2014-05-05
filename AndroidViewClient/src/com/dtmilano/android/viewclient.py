@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.4.6'
+__version__ = '5.4.7'
 
 import sys
 import warnings
@@ -2306,7 +2306,7 @@ You should force ViewServer back-end.''')
             filename = os.path.join(filename, self.serialno + '.' + format.lower())
         if DEBUG:
             print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, format)
-        self.device.takeSnapshot().writeToFile(filename, format)
+        self.device.takeSnapshot().save(filename, format)
 
     @staticmethod
     def __pickleable(tree):
