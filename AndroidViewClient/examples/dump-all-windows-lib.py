@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!
 #
 # Linux:
@@ -18,7 +19,7 @@ Created on Apr 30, 2013
 
 from com.dtmilano.android.viewclient import ViewClient
 
-kwargs2 = {'autodump': False}
+kwargs2 = {'autodump': False, 'forceviewserveruse': True}
 vc = ViewClient(*ViewClient.connectToDeviceOrExit(), **kwargs2)
 windows = vc.list()
 for wId in windows.keys():
