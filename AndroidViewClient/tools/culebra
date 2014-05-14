@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '5.5.0'
+__version__ = '5.6.0'
 
 import re
 import sys
@@ -41,6 +41,7 @@ from com.dtmilano.android.viewclient import ViewClient, View
 
 HELP = 'help'
 VERBOSE = 'verbose'
+VERSION = 'version'
 IGNORE_SECURE_DEVICE = 'ignore-secure-device'
 FORCE_VIEW_SERVER_USE = 'force-view-server-use'
 DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
@@ -65,7 +66,7 @@ SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
 SHORT_OPTS = 'HVIFSkw:i:t:d:rCUj:D:K:R:a:o:Aps:v:'
-LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
+LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
               WINDOW + '=',
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
@@ -165,6 +166,10 @@ def help():
         except:
             pass
         print >> sys.stderr, o
+    sys.exit(0)
+
+def version():
+    print progname, __version__
     sys.exit(0)
 
 def autoRegexpsHelp():
@@ -379,6 +384,8 @@ for o, a in optlist:
         help()
     elif o in ['V', VERBOSE]:
         kwargs1[VERBOSE] = True
+    elif o in [VERSION]:
+        version()
     elif o in ['I', IGNORE_SECURE_DEVICE]:
         kwargs1['ignoresecuredevice'] = True
     elif o in ['F', FORCE_VIEW_SERVER_USE]:
