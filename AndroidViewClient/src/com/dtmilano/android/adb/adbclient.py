@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.1.1'
+__version__ = '5.5.0'
 
 import sys
 import warnings
@@ -114,7 +114,7 @@ class AdbClient:
         try:
             self.socket.connect((self.hostname, self.port))
         except socket.error, ex:
-            raise RuntimeError("ERROR: Connecting to %s:%d: %s" % (self.socket, self.port, ex))
+            raise RuntimeError("ERROR: Connecting to %s:%d: %s.\nIs adb running on your computer?" % (self.socket, self.port, ex))
 
     def close(self):
         if DEBUG:
