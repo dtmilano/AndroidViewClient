@@ -310,18 +310,28 @@ class ViewClientTest(unittest.TestCase):
         try:
             ViewClient.connectToDeviceOrExit(timeout=1, verbose=True)
         except RuntimeError, e:
-            self.assertTrue(re.search("couldn't find device that matches 'ABC123'", str(e)))
+            msg = str(e)
+            if re.search('Is adb running on your computer?', msg):
+                # This test required adb running
+                self.fail(msg)
+            elif not re.search("couldn't find device that matches 'ABC123'", msg):
+                self.fail(msg)
         except exceptions.SystemExit, e:
             self.assertEquals(3, e.code)
         except Exception, e: #FIXME: java.lang.NullPointerException:
-            self.fail('Serialno was not taken from environment: ' + str(e))
+            self.fail('Serialno was not taken from environment: ' + msg)
 
     def testConnectToDeviceOrExit_serialno(self):
         sys.argv = ['']
         try:
             ViewClient.connectToDeviceOrExit(timeout=1, verbose=True, serialno='ABC123')
         except RuntimeError, e:
-            self.assertTrue(re.search("couldn't find device that matches 'ABC123'", str(e)))
+            msg = str(e)
+            if re.search('Is adb running on your computer?', msg):
+                # This test required adb running
+                self.fail(msg)
+            elif not re.search("couldn't find device that matches 'ABC123'", msg):
+                self.fail(msg)
         except exceptions.SystemExit, e:
             self.assertEquals(3, e.code)
         except Exception, e: #FIXME: java.lang.NullPointerException:
@@ -755,6 +765,35 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertEqual('v45', v5.getTag())
         v5 = vc.findViewWithTextOrRaise('5', root=v3)
         self.assertEqual('v35', v5.getTag())
+
+    def testFindViewWithTextOrRaise_root_disappearingView(self):
+        device = None
+        root = View({'text:mText':'0'}, device)
+        root.add(View({'text:mText':'1'}, device))
+        root.add(View({'text:mText':'2'}, device))
+        v3 = View({'text:mText':'3'}, device)
+        root.add(v3)
+        v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
+        v3.add(v35)
+        v4 = View({'text:mText':'4'}, device)
+        root.add(v4)
+        v45 = View({'text:mText':'5', 'getTag()':'v45'}, device)
+        v4.add(v45)
+        device = MockDevice()
+        vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
+        self.assertNotEquals(None, vc)
+        vc.root = root
+        v5 = vc.findViewWithTextOrRaise('5')
+        self.assertEqual('v35', v5.getTag())
+        v5 = vc.findViewWithTextOrRaise('5', root=v4)
+        self.assertEqual('v45', v5.getTag())
+        v5 = vc.findViewWithTextOrRaise('5', root=v3)
+        self.assertEqual('v35', v5.getTag())
+        # Then remove v4 and its children
+        root.children.remove(v4)
+        #vc.dump()
+        v4 = vc.findViewWithText('4')
+        self.assertEqual(v4, None, "v4 has not disappeared")
 
     def testFindViewWithTextOrRaise_rootNonExistent(self):
         device = None

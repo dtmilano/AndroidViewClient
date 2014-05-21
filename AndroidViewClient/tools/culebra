@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '5.6.0'
+__version__ = '5.6.1'
 
 import re
 import sys
@@ -263,9 +263,9 @@ def printFindViewWithText(view, useregexp):
                     if autoRegexp.match(text):
                         text = autoRegexp.pattern
                         break
-            text = "re.compile(%c'%s')" % (u, text)
+            text = "re.compile(%s'%s')" % (u, text)
         else:
-            text = "%c'%s'" % (u, text)
+            text = "%s'%s'" % (u, text)
         print '%s%s = vc.findViewWithTextOrRaise(%s)' % (indent, var, text)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no text' % view.getUniqueId())

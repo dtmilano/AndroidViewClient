@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.4.7'
+__version__ = '5.6.2'
 
 import sys
 import warnings
@@ -1894,33 +1894,36 @@ You should force ViewServer back-end.''')
             self.setViewsFromUiAutomatorDump(received)
         else:
             if isinstance(window, str):
-                self.list(sleep=0)
-                found = False
-                for wId in self.windows:
-                    try:
-                        if window == self.windows[wId]:
-                            window = wId
-                            found = True
-                            break
-                    except:
-                        pass
-                    try:
-                        if int(window) == wId:
-                            window = wId
-                            found = True
-                            break
-                    except:
-                        pass
-                    try:
-                        if int(window, 16) == wId:
-                            window = wId
-                            found = True
-                            break
-                    except:
-                        pass
+                if window != '-1':
+                    self.list(sleep=0)
+                    found = False
+                    for wId in self.windows:
+                        try:
+                            if window == self.windows[wId]:
+                                window = wId
+                                found = True
+                                break
+                        except:
+                            pass
+                        try:
+                            if int(window) == wId:
+                                window = wId
+                                found = True
+                                break
+                        except:
+                            pass
+                        try:
+                            if int(window, 16) == wId:
+                                window = wId
+                                found = True
+                                break
+                        except:
+                            pass
 
-                if not found:
-                    raise RuntimeError("ERROR: Cannot find window '%s' in %s" % (window, self.windows))
+                    if not found:
+                        raise RuntimeError("ERROR: Cannot find window '%s' in %s" % (window, self.windows))
+                else:
+                    window = -1
 
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
