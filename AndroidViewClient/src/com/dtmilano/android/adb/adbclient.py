@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.5.0'
+__version__ = '5.7.0'
 
 import sys
 import warnings
@@ -54,6 +54,11 @@ DOWN_AND_UP = 2
 
 TIMEOUT = 15
 
+# some device properties
+VERSION_SDK_PROPERTY = 'ro.build.version.sdk'
+VERSION_RELEASE_PROPERTY = 'ro.build.version.release'
+
+
 class Device:
     @staticmethod
     def factory(_str):
@@ -84,9 +89,15 @@ class AdbClient:
         self.__connect()
 
         self.checkVersion()
+
+        self.build = {}
+        ''' Build properties '''
+
         self.isTransportSet = False
         if settransport and serialno != None:
             self.__setTransport()
+            self.build[VERSION_SDK_PROPERTY] = self.__getProp(VERSION_SDK_PROPERTY)
+
 
     @staticmethod
     def setAlarm(timeout):
@@ -102,6 +113,7 @@ class AdbClient:
             raise ValueError("Transport is already set, serialno cannot be set once this is done.")
         self.serialno = serialno
         self.__setTransport()
+        self.build[VERSION_SDK_PROPERTY] = self.__getProp(VERSION_SDK_PROPERTY)
         
     def setReconnect(self, val):
         self.reconnect = val
@@ -311,11 +323,45 @@ class AdbClient:
                 return MAP_KEYS[kre](key=key, strip=strip)
         raise ValueError("key='%s' does not match any map entry")
 
+    def getSdkVersion(self):
+        '''
+        Gets the SDK version.
+        '''
+
+        return self.build[VERSION_SDK_PROPERTY]
+
     def press(self, name, eventType=DOWN_AND_UP):
         cmd = 'input keyevent %s' % name
         if DEBUG:
             print >> sys.stderr, "press(%s)" % cmd
         self.shell(cmd)
+
+    def longPress(self, name):
+        # WORKAROUND:
+        # Using 'input keyevent --longpress POWER' does not work correctly in
+        # KitKat (API 19), it sends a short instead of a long press.
+        # This uses the events instead, but it may vary from device to device.
+        # The events sent are device dependent and may not work on other devices.
+        # If this does not work on your device please do:
+        #     $ adb shell getevent -l
+        # and post the output to https://github.com/dtmilano/AndroidViewClient/issues
+        # specifying the device and API level.
+        if name == 'POWER' or name == 'KEY_POWER':
+            self.shell('sendevent /dev/input/event0 1 116 1')
+            self.shell('sendevent /dev/input/event0 0 0 0')
+            time.sleep(0.5)
+            self.shell('sendevent /dev/input/event0 1 116 0')
+            self.shell('sendevent /dev/input/event0 0 0 0')
+            return
+
+        version = self.getSdkVersion()
+        if version >= 19:
+            cmd = 'input keyevent --longpress %s' % name
+            if DEBUG:
+                print >> sys.stderr, "longPress(%s)" % cmd
+            self.shell(cmd)
+        else:
+            raise RuntimeError("longpress: not supported for API < 19 (version=%d)" % version)
 
     def startActivity(self, component=None, flags=None, uri=None):
         cmd = 'am start'
@@ -388,7 +434,7 @@ class AdbClient:
         @param steps: number of steps (currently ignored by @{input swipe}
         '''
 
-        version = int(self.getProperty('ro.build.version.sdk'))
+        version = self.getSdkVersion()
         if version <= 15:
             raise RuntimeError('drag: API <= 15 not supported (version=%d)' % version)
         elif version <= 17:

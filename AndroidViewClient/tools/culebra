@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '5.6.1'
+__version__ = '6.0.0'
 
 import re
 import sys
@@ -65,7 +65,7 @@ SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVIFSkw:i:t:d:rCUj:D:K:R:a:o:Aps:v:'
+SHORT_OPTS = 'HVvIFSkw:i:t:d:rCUj:D:K:R:a:o:Aps:W:'
 LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
               WINDOW + '=',
@@ -83,6 +83,7 @@ LONG_OPTS_ARG = {WINDOW: 'WINDOW',
                   SAVE_SCREENSHOT: 'FILENAME', SAVE_VIEW_SCREENSHOTS: 'DIR'}
 OPTS_HELP = {
     'H': 'prints this help',
+    'V': 'verbose comments',
     'k': 'don\'t ignore UiAutomator killed',
     'w': 'use WINDOW content (default: -1, all windows)',
     'i': 'whether to use findViewById() in script',
@@ -99,7 +100,7 @@ OPTS_HELP = {
     'A': 'interactive',
     'p': 'append environment variables values to sys.path',
     's': 'save screenshot to file',
-    'v': 'save View screenshots to files in directory'
+    'W': 'save View screenshots to files in directory'
     }
 
 def fillAutoRegexpsRes():

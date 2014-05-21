@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '5.6.2'
+__version__ = '5.6.3'
 
 import sys
 import warnings
@@ -293,7 +293,7 @@ class View:
                 if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
                     self.build[VERSION_SDK_PROPERTY] = int(device.getProperty(VERSION_SDK_PROPERTY))
                 else:
-                    self.build[VERSION_SDK_PROPERTY] = int(device.shell('getprop ro.build.' + VERSION_SDK_PROPERTY)[:-2])
+                    self.build[VERSION_SDK_PROPERTY] = int(device.shell('getprop ' + VERSION_SDK_PROPERTY)[:-2])
             except:
                 self.build[VERSION_SDK_PROPERTY] = -1
 

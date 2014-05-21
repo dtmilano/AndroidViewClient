@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '5.6.0'
+__version__ = '6.0.0'
 
 import sys
 import os
@@ -38,7 +38,7 @@ MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVIFSkw:ixdc'
+SHORT_OPTS = 'HVvIFSkw:ixdc'
 LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
               UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER]
