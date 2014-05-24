@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '6.0.0'
+__version__ = '6.1.0'
 
 import sys
 import os
@@ -31,18 +31,32 @@ UNIQUE_ID = 'uniqueId'
 POSITION = 'position'
 CONTENT_DESCRIPTION = 'content-description'
 CENTER = 'center'
+SAVE_SCREENSHOT = 'save-screenshot'
+SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
+
+def traverseSaveViewScreenshots(view):
+    dir = options[SAVE_VIEW_SCREENSHOTS]
+    var = view.variableNameFromId()
+    filename = '%s/%s.png' % (dir, var)
+    if kwargs1[VERBOSE]:
+        print view.__tinyStr__(), ' => ', filename
+    view.writeImageToFile(filename)
+
 MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        'x':ViewClient.TRAVERSE_CITPS, POSITION:ViewClient.TRAVERSE_CITPS,
        'd':ViewClient.TRAVERSE_CITCD, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
        'c':ViewClient.TRAVERSE_CITC, CENTER:ViewClient.TRAVERSE_CITC,
+       'W':traverseSaveViewScreenshots, SAVE_VIEW_SCREENSHOTS:traverseSaveViewScreenshots,
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIFSkw:ixdc'
+SHORT_OPTS = 'HVvIFSkw:ixdcs:W:'
 LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
-              UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER]
-LONG_OPTS_ARG = {WINDOW: 'WINDOW'}
+              UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER,
+              SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
+              ]
+LONG_OPTS_ARG = {WINDOW: 'WINDOW', SAVE_SCREENSHOT: 'FILE', SAVE_VIEW_SCREENSHOTS: 'DIR'}
 OPTS_HELP = {
     'H': 'prints this help',
     'V': 'verbose comments',
@@ -54,7 +68,9 @@ OPTS_HELP = {
     'i': 'dump View unique IDs',
     'x': 'dump View positions',
     'd': 'dump View content descriptions',
-    'c': 'dump View centers'
+    'c': 'dump View centers',
+    's': 'save screenshot to file',
+    'W': 'save View screenshots to files in directory',
     }
 
 def shortAndLongOptions():
@@ -107,7 +123,7 @@ except getopt.GetoptError, e:
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
-options = {WINDOW: -1}
+options = {WINDOW: -1, SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None}
 transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
     o = o.strip('-')
@@ -115,7 +131,7 @@ for o, a in opts:
         help()
     elif o in ['V', VERBOSE]:
         kwargs1[VERBOSE] = True
-    elif o in [VERSION]:
+    elif o in ['v', VERSION]:
         version()
     elif o in ['I', IGNORE_SECURE_DEVICE]:
         kwargs1['ignoresecuredevice'] = True
@@ -127,9 +143,16 @@ for o, a in opts:
         kwargs2['ignoreuiautomatorkilled'] = False
     elif o in ['w', WINDOW]:
         options[WINDOW] = a
+    elif o in ['s', SAVE_SCREENSHOT]:
+        options[SAVE_SCREENSHOT] = a
+    elif o in ['W', SAVE_VIEW_SCREENSHOTS]:
+        options[SAVE_VIEW_SCREENSHOTS] = a
+        transform = MAP[o]
     else:
         transform = MAP[o]
 
 vc = ViewClient(*ViewClient.connectToDeviceOrExit(**kwargs1), **kwargs2)
 vc.dump(window=options[WINDOW])
+if options[SAVE_SCREENSHOT]:
+    vc.writeImageToFile(options[SAVE_SCREENSHOT])
 vc.traverse(transform=transform)
