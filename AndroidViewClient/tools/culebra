@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '6.0.0'
+__version__ = '6.0.1'
 
 import re
 import sys
@@ -310,9 +310,16 @@ def printFindViewById(view):
 
 def printSaveViewScreenshot(view, dir):
     '''
+    Prints the writeImageToFile.
+    
+    @type view: L{View}
+    @param view: the View
+    @type dir: str
+    @param dir: the directory to store the images
     '''
+
     var = variableNameFromIdOrKey(view)
-    print '%s%s%s.writeImageToFile(\'%s/%s.png\')' % (indent, prefix, var, dir, var)
+    print '%s%s.writeImageToFile(\'%s/%s.png\')' % (indent, var, dir, var)
     
 def traverseAndPrint(view):
     '''
@@ -385,7 +392,7 @@ for o, a in optlist:
         help()
     elif o in ['V', VERBOSE]:
         kwargs1[VERBOSE] = True
-    elif o in [VERSION]:
+    elif o in ['v', VERSION]:
         version()
     elif o in ['I', IGNORE_SECURE_DEVICE]:
         kwargs1['ignoresecuredevice'] = True
@@ -439,7 +446,7 @@ for o, a in optlist:
         options[APPEND_TO_SYS_PATH] = True
     elif o in ['s', SAVE_SCREENSHOT]:
         options[SAVE_SCREENSHOT] = a
-    elif o in ['v', SAVE_VIEW_SCREENSHOTS]:
+    elif o in ['W', SAVE_VIEW_SCREENSHOTS]:
         options[SAVE_VIEW_SCREENSHOTS] = a
 
 if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT] or options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
