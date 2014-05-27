@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '6.1.0'
+__version__ = '7.0.0'
 
 import re
 import sys
@@ -51,7 +51,8 @@ FIND_VIEWS_WITH_TEXT = 'find-views-with-text'
 FIND_VIEWS_WITH_CONTENT_DESCRIPTION = 'find-views-with-content-description'
 USE_REGEXPS = 'use-regexps'
 VERBOSE_COMMENTS = 'verbose-comments'
-UNIT_TEST = 'unit-test'
+UNIT_TEST_CLASS = 'unit-test-class'
+UNIT_TEST_METHOD = 'unit-test-method'
 USE_JAR = 'use-jar'
 USE_DICTIONARY = 'use-dictionary'
 DICTIONARY_KEYS_FROM = 'dictionary-keys-from'
@@ -65,12 +66,12 @@ SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIFSkw:i:t:d:rCUj:D:K:R:a:o:Aps:W:'
+SHORT_OPTS = 'HVvIFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:'
 LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
               WINDOW + '=',
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
-              USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST,
+              USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST_CLASS, UNIT_TEST_METHOD + '=',
               USE_JAR + '=', USE_DICTIONARY + '=', DICTIONARY_KEYS_FROM + '=', AUTO_REGEXPS + '=',
               START_ACTIVITY + '=',
               OUTPUT + '=', INTERACTIVE, APPEND_TO_SYS_PATH,
@@ -80,7 +81,8 @@ LONG_OPTS_ARG = {WINDOW: 'WINDOW',
                   USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', DICTIONARY_KEYS_FROM: 'VALUE', AUTO_REGEXPS: 'LIST',
                   START_ACTIVITY: 'COMPONENT',
                   OUTPUT: 'FILENAME',
-                  SAVE_SCREENSHOT: 'FILENAME', SAVE_VIEW_SCREENSHOTS: 'DIR'}
+                  SAVE_SCREENSHOT: 'FILENAME', SAVE_VIEW_SCREENSHOTS: 'DIR',
+                  UNIT_TEST_METHOD: 'NAME'}
 OPTS_HELP = {
     'H': 'prints this help',
     'V': 'verbose comments',
@@ -90,7 +92,8 @@ OPTS_HELP = {
     't': 'whether to use findViewWithText() in script',
     'd': 'whether to use findViewWithContentDescription',
     'r': 'use regexps in matches',
-    'U': 'generates unit test script',
+    'U': 'generates unit test class and script',
+    'M': 'generates unit test method. Can be used with or without -U',
     'j': 'use jar and appropriate shebang to run script (deprecated)',
     'D': 'use a dictionary to store the Views found',
     'K': 'dictionary keys from: id, text, content-description',
@@ -368,7 +371,45 @@ def getShebangJar():
 def getWindowOption():
     return options[WINDOW] if isinstance(options[WINDOW], str) and options[WINDOW][0] in '-0123456789' else "'%s'" % options[WINDOW]
 
+def printScriptHeader():
+    print '''%s
+# -*- coding: utf-8 -*-
+\'\'\'
+Copyright (C) 2013  Diego Torres Milano
+Created on %s by Culebra v%s
+                      __    __    __    __
+                     /  \  /  \  /  \  /  \ 
+____________________/  __\/  __\/  __\/  __\_____________________________
+___________________/  /__/  /__/  /__/  /________________________________
+                   | / \   / \   / \   / \   \___
+                   |/   \_/   \_/   \_/   \    o \ 
+                                           \_____/--<
+@author: Diego Torres Milano
+@author: Jennifer E. Swofford (ascii art snake)
+\'\'\'
+
+
+import re
+import sys
+import os
+''' % (getShebangJar(), date.today(), __version__)
+
+def printUnittestImport():
+    print '''
+import unittest
+'''
+
+def printAppendToSysPath():
+    print '''
+try:
+    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
+except:
+    pass
+'''
+
+################
 # __main__
+################
 progname = os.path.basename(sys.argv[0])
 try:
     optlist, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
@@ -381,7 +422,7 @@ kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
-        UNIT_TEST: False, USE_JAR: False, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
+        UNIT_TEST_CLASS: False, UNIT_TEST_METHOD: None, USE_JAR: False, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
         AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None, INTERACTIVE: False,
         WINDOW:-1, APPEND_TO_SYS_PATH: False,
         SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None}
@@ -414,9 +455,13 @@ for o, a in optlist:
         options[USE_REGEXPS] = True
     elif o in ['C', VERBOSE_COMMENTS]:
         options[VERBOSE_COMMENTS] = True
-    elif o in ['U', UNIT_TEST]:
+    elif o in ['U', UNIT_TEST_CLASS]:
         # warnings.warn('Not implemented yet: %s' % o)
-        options[UNIT_TEST] = True
+        options[UNIT_TEST_CLASS] = True
+    elif o in ['M', UNIT_TEST_METHOD]:
+        if not a.startswith('test'):
+            warnings.warn('Method name should start with "test"')
+    	options[UNIT_TEST_METHOD] = a
     elif o in ['j', USE_JAR]:
         options[USE_JAR] = str2bool(a)
     elif o in ['D', USE_DICTIONARY]:
@@ -465,47 +510,21 @@ if options[OUTPUT]:
     st = os.stat(options[OUTPUT])
     os.chmod(options[OUTPUT], st.st_mode | stat.S_IEXEC)
 
-print '''%s
-# -*- coding: utf-8 -*-
-\'\'\'
-Copyright (C) 2013  Diego Torres Milano
-Created on %s by Culebra v%s
+if options[UNIT_TEST_CLASS] or (not options[UNIT_TEST_METHOD]):
+    printScriptHeader()
 
-                      __    __    __    __
-                     /  \  /  \  /  \  /  \ 
-____________________/  __\/  __\/  __\/  __\_____________________________
-___________________/  /__/  /__/  /__/  /________________________________
-                   | / \   / \   / \   / \   \___
-                   |/   \_/   \_/   \_/   \    o \ 
-                                           \_____/--<
-@author: Diego Torres Milano
-@author: Jennifer E. Swofford (ascii art snake)
-\'\'\'
-
-
-import re
-import sys
-import os
-''' % (getShebangJar(), date.today(), __version__)
-
-if options[UNIT_TEST]:
-    print '''\
-import unittest
-'''
+if options[UNIT_TEST_CLASS]:
+    printUnittestImport()
 
 if options[APPEND_TO_SYS_PATH]:
-    print '''
-try:
-    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
-except:
-    pass
-'''
+    printAppendToSysPath()
 
-print '''\
+if options[UNIT_TEST_CLASS] or (not options[UNIT_TEST_METHOD]):
+    print '''\
 from com.dtmilano.android.viewclient import ViewClient
 '''
 
-if options[UNIT_TEST]:
+if options[UNIT_TEST_CLASS]:
     print '''
 class CulebraTests(unittest.TestCase):
 
@@ -535,11 +554,11 @@ class CulebraTests(unittest.TestCase):
     def preconditions(self):
         return True
 
-    def testSomething(self):
+    def %s(self):
         if not self.preconditions():
             self.fail('Preconditions failed')
         self.vc.dump(%s)
-        ''' % (getWindowOption())
+        ''' % (options[UNIT_TEST_METHOD] if options[UNIT_TEST_METHOD] else 'testSomething', getWindowOption())
 
     if options[SAVE_SCREENSHOT]:
         print '''\
@@ -609,3 +628,4 @@ if options[INTERACTIVE]:
             break
     s.sendall("RECORD EVENTS STOP\n")
     s.close()
+
