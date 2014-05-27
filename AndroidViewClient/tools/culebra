@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2013  Diego Torres Milano
+Copyright (C) 2013-2014  Diego Torres Milano
 Created on Mar 28, 2013
 
 Culebra helps you create AndroidViewClient scripts generating a working template that can be
@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '7.0.0'
+__version__ = '7.0.1'
 
 import re
 import sys
@@ -584,30 +584,44 @@ if __name__ == '__main__':
     CulebraTests.main()
 '''
 else:
-    print '''
+    if not options[UNIT_TEST_METHOD]:
+        print '''
 kwargs1 = %s
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 ''' % kwargs1,
 
-    if options[START_ACTIVITY]:
+    if options[START_ACTIVITY] and not options[UNIT_TEST_METHOD]:
         print '''\
 device.startActivity(component='%s')''' % options[START_ACTIVITY]
 
-    print '''\
+    if not options[UNIT_TEST_METHOD]:
+        print '''\
 kwargs2 = %s
 vc = ViewClient(device, serialno, **kwargs2)
 vc.dump(window=%s)
 ''' % (kwargs2, getWindowOption())
 
-    if options[USE_DICTIONARY]:
-        print '''views = dict()'''
+        if options[USE_DICTIONARY]:
+            print '''views = dict()'''
 
-    if options[SAVE_SCREENSHOT]:
-        print '''\
+        if options[SAVE_SCREENSHOT]:
+            print '''\
 vc.writeImageToFile('%s')
 ''' % options[SAVE_SCREENSHOT]
     
     vc.dump(window=options[WINDOW])
+    if options[UNIT_TEST_METHOD]:
+        print '''
+    def %s(self):
+        \'\'\'
+        Test method.
+        \'\'\'
+
+        if not self.preconditions():
+            self.fail('Preconditions failed')
+''' % (options[UNIT_TEST_METHOD])
+        indent = ' ' * 8
+        prefix = 'self.'
     vc.traverse(transform=transform)
 
 if options[INTERACTIVE]:
