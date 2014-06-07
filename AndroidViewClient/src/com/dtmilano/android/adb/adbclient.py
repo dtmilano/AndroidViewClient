@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.0.2'
+__version__ = '7.0.4'
 
 import sys
 import warnings
@@ -96,7 +96,7 @@ class AdbClient:
         self.isTransportSet = False
         if settransport and serialno != None:
             self.__setTransport()
-            self.build[VERSION_SDK_PROPERTY] = self.__getProp(VERSION_SDK_PROPERTY)
+            self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
 
 
     @staticmethod
@@ -113,7 +113,7 @@ class AdbClient:
             raise ValueError("Transport is already set, serialno cannot be set once this is done.")
         self.serialno = serialno
         self.__setTransport()
-        self.build[VERSION_SDK_PROPERTY] = self.__getProp(VERSION_SDK_PROPERTY)
+        self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
         
     def setReconnect(self, val):
         self.reconnect = val
