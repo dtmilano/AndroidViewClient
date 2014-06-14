@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.0.4'
+__version__ = '7.1.0'
 
 import sys
 import warnings
@@ -37,7 +37,9 @@ import os
 import types
 import platform
 
-DEBUG = False
+from com.dtmilano.android.adb.androidkeymap import KEY_MAP
+
+DEBUG = True
 
 HOSTNAME = 'localhost'
 try:
@@ -336,7 +338,7 @@ class AdbClient:
             print >> sys.stderr, "press(%s)" % cmd
         self.shell(cmd)
 
-    def longPress(self, name):
+    def longPress(self, name, duration=0.5, dev='/dev/input/event0'):
         # WORKAROUND:
         # Using 'input keyevent --longpress POWER' does not work correctly in
         # KitKat (API 19), it sends a short instead of a long press.
@@ -346,12 +348,14 @@ class AdbClient:
         #     $ adb shell getevent -l
         # and post the output to https://github.com/dtmilano/AndroidViewClient/issues
         # specifying the device and API level.
-        if name == 'POWER' or name == 'KEY_POWER':
-            self.shell('sendevent /dev/input/event0 1 116 1')
-            self.shell('sendevent /dev/input/event0 0 0 0')
-            time.sleep(0.5)
-            self.shell('sendevent /dev/input/event0 1 116 0')
-            self.shell('sendevent /dev/input/event0 0 0 0')
+        if name[0:4] == 'KEY_':
+            name = name[4:]
+        if name in KEY_MAP:
+            self.shell('sendevent %s 1 %d 1' % (dev, KEY_MAP[name]))
+            self.shell('sendevent %s 0 0 0' % dev)
+            time.sleep(duration)
+            self.shell('sendevent %s 1 %d 0' % (dev, KEY_MAP[name]))
+            self.shell('sendevent %s 0 0 0' % dev)
             return
 
         version = self.getSdkVersion()
