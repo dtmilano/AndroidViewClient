@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.1.0'
+__version__ = '7.1.1'
 
 import sys
 import warnings
@@ -39,7 +39,7 @@ import platform
 
 from com.dtmilano.android.adb.androidkeymap import KEY_MAP
 
-DEBUG = True
+DEBUG = False
 
 HOSTNAME = 'localhost'
 try:
