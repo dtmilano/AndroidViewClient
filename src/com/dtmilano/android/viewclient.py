@@ -1829,7 +1829,8 @@ class ViewClient:
 
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY])
-        self.root = parser.Parse(receivedXml)
+        start_xml_index = receivedXml.index("<")
+        self.root = parser.Parse(receivedXml[start_xml_index:])
         self.views = parser.views
         self.viewsById = {}
         for v in self.views:
