@@ -2159,6 +2159,27 @@ You should force ViewServer back-end.''')
         else:
             raise ViewNotFoundException("tag", tag, root)
 
+    def __findViewsWithAttributeInTree(self, attr, val, root):
+        matching_views = []
+        if not self.root:
+            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            return matching_views
+
+        if type(root) == types.StringType and root == "ROOT":
+            root = self.root
+
+        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: type val=", type(val)
+        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
+
+        if root and attr in root.map and root.map[attr] == val:
+            if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
+            matching_views.append(root)
+        else:
+            for ch in root.children:
+                matching_views += self.__findViewsWithAttributeInTree(attr, val, ch)
+
+        return matching_views
+
     def __findViewWithAttributeInTree(self, attr, val, root):
         if not self.root:
             print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
@@ -2223,6 +2244,13 @@ You should force ViewServer back-end.''')
         '''
 
         return self.__findViewWithAttributeInTree(attr, val, root)
+
+    def findViewsWithAttribute(self, attr, val, root="ROOT"):
+        '''
+        Finds the Views with the specified attribute and value
+        '''
+
+        return self.__findViewsWithAttributeInTree(attr, val, root)
 
     def findViewWithAttributeOrRaise(self, attr, val, root="ROOT"):
         '''
