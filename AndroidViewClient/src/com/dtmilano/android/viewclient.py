@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.0.3'
+__version__ = '7.1.2'
 
 import sys
 import warnings
@@ -1952,6 +1952,11 @@ You should force ViewServer back-end.''')
                 print >>sys.stderr
                 print >>sys.stderr, received
                 print >>sys.stderr
+            if received:
+                for c in received:
+                    if ord(c) > 127:
+                        received = unicode(received, encoding='utf-8', errors='replace')
+                        break
             self.setViews(received)
 
             if DEBUG_TREE:
