@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2013  Diego Torres Milano
+Copyright (C) 2013-2014  Diego Torres Milano
 Created on Mar 28, 2013
 
 Culebra helps you create AndroidViewClient scripts generating a working template that can be
@@ -13,12 +13,13 @@ ___________________/  /__/  /__/  /__/  /________________________________
                    | / \   / \   / \   / \   \___
                    |/   \_/   \_/   \_/   \    o \ 
                                            \_____/--<
+
 @author: Diego Torres Milano
 @author: Jennifer E. Swofford (ascii art snake)
 
 '''
 
-__version__ = '4.10.1'
+__version__ = '7.1.1'
 
 import re
 import sys
@@ -27,6 +28,7 @@ import getopt
 import warnings
 import subprocess
 import codecs
+import calendar
 from datetime import date
 
 try:
@@ -39,6 +41,7 @@ from com.dtmilano.android.viewclient import ViewClient, View
 
 HELP = 'help'
 VERBOSE = 'verbose'
+VERSION = 'version'
 IGNORE_SECURE_DEVICE = 'ignore-secure-device'
 FORCE_VIEW_SERVER_USE = 'force-view-server-use'
 DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
@@ -48,7 +51,8 @@ FIND_VIEWS_WITH_TEXT = 'find-views-with-text'
 FIND_VIEWS_WITH_CONTENT_DESCRIPTION = 'find-views-with-content-description'
 USE_REGEXPS = 'use-regexps'
 VERBOSE_COMMENTS = 'verbose-comments'
-UNIT_TEST = 'unit-test'
+UNIT_TEST_CLASS = 'unit-test-class'
+UNIT_TEST_METHOD = 'unit-test-method'
 USE_JAR = 'use-jar'
 USE_DICTIONARY = 'use-dictionary'
 DICTIONARY_KEYS_FROM = 'dictionary-keys-from'
@@ -57,41 +61,70 @@ START_ACTIVITY = 'start-activity'
 OUTPUT = 'output'
 INTERACTIVE = 'interactive'
 WINDOW = 'window'
+APPEND_TO_SYS_PATH = 'append-to-sys-path'
+SAVE_SCREENSHOT = 'save-screenshot'
+SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVIFSkw:i:t:d:rCUj:D:K:R:a:o:A'
-LONG_OPTS = [HELP, VERBOSE, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
+SHORT_OPTS = 'HVvIFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:'
+LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
               WINDOW + '=',
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
-              USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST,
+              USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST_CLASS, UNIT_TEST_METHOD + '=',
               USE_JAR + '=', USE_DICTIONARY + '=', DICTIONARY_KEYS_FROM + '=', AUTO_REGEXPS + '=',
               START_ACTIVITY + '=',
-              OUTPUT + '=', INTERACTIVE]
+              OUTPUT + '=', INTERACTIVE, APPEND_TO_SYS_PATH,
+              SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=']
 LONG_OPTS_ARG = {WINDOW: 'WINDOW',
                   FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
                   USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', DICTIONARY_KEYS_FROM: 'VALUE', AUTO_REGEXPS: 'LIST',
                   START_ACTIVITY: 'COMPONENT',
-                  OUTPUT: 'FILENAME'}
+                  OUTPUT: 'FILENAME',
+                  SAVE_SCREENSHOT: 'FILENAME', SAVE_VIEW_SCREENSHOTS: 'DIR',
+                  UNIT_TEST_METHOD: 'NAME'}
 OPTS_HELP = {
     'H': 'prints this help',
+    'V': 'verbose comments',
     'k': 'don\'t ignore UiAutomator killed',
     'w': 'use WINDOW content (default: -1, all windows)',
     'i': 'whether to use findViewById() in script',
     't': 'whether to use findViewWithText() in script',
     'd': 'whether to use findViewWithContentDescription',
     'r': 'use regexps in matches',
-    'U': 'generates unit test script',
+    'U': 'generates unit test class and script',
+    'M': 'generates unit test method. Can be used with or without -U',
     'j': 'use jar and appropriate shebang to run script (deprecated)',
     'D': 'use a dictionary to store the Views found',
     'K': 'dictionary keys from: id, text, content-description',
-    'R': 'auto regexps (i.e. clock)',
+    'R': 'auto regexps (i.e. clock), implies -r. help list options',
     'a': 'starts Activity before dump',
     'o': 'output filename',
     'A': 'interactive',
+    'p': 'append environment variables values to sys.path',
+    's': 'save screenshot to file',
+    'W': 'save View screenshots to files in directory'
     }
 
-AUTO_REGEXPS_RES = {'clock': re.compile('[012]\d:[0-5]\d')}
+def fillAutoRegexpsRes():
+    are = {}
+    are['clock'] = re.compile('[012]?\d:[0-5]\d')
+    d = "("
+    for i in range(7):
+        d += calendar.day_abbr[i]
+        if i != 6:
+            d += '|'
+    d += '), ('
+    for i in range(1, 13):
+        d += calendar.month_name[i]
+        if i != 12:
+            d += '|'
+    d += ') [0123]\d'
+    are['date'] = re.compile(d, re.IGNORECASE)
+    are['battery'] = re.compile('Charging, \d\d%')
+    return are
+
+AUTO_REGEXPS_RES = fillAutoRegexpsRes()
 SB_NO_JAR = 'no-jar'
 SB_JAR = 'jar'
 SB_JAR_LINUX = 'jar-linux'
@@ -113,10 +146,10 @@ def shortAndLongOptions():
     if len(short_opts) != len(LONG_OPTS):
         raise Exception('There is a mismatch between short and long options')
     t = tuple(short_opts) + tuple(LONG_OPTS)
-    l2 = len(t)/2
+    l2 = len(t) / 2
     sl = []
     for i in range(l2):
-        sl.append((t[i], t[i+l2]))
+        sl.append((t[i], t[i + l2]))
     return sl
 
 def usage(exitVal=1):
@@ -139,8 +172,21 @@ def help():
         print >> sys.stderr, o
     sys.exit(0)
 
+def version():
+    print progname, __version__
+    sys.exit(0)
+
+def autoRegexpsHelp():
+    print >> sys.stderr, "Available %s options:" % AUTO_REGEXPS
+    print >> sys.stderr, "\thelp: prints this help"
+    print >> sys.stderr, "\tall: includes all the available regexps"
+    for r in AUTO_REGEXPS_RES:
+        print >> sys.stderr, "\t%s: %s" % (r, AUTO_REGEXPS_RES[r].pattern)
+    print >> sys.stderr
+    sys.exit(0)
+
 def error(msg, fatal=False):
-    print >>sys.stderr, "%s: ERROR: %s" % (progname, msg)
+    print >> sys.stderr, "%s: ERROR: %s" % (progname, msg)
     if fatal:
         sys.exit(1)
 
@@ -154,7 +200,7 @@ def printVerboseComments(view):
     Prints the verbose comments for view.
     '''
 
-    print '\n# class=%s' % view.getClass(),
+    print '\n%s# class=%s' % (indent, view.getClass()),
     try:
         text = view.getText()
         if text:
@@ -166,7 +212,7 @@ def printVerboseComments(view):
         pass
     try:
         tag = view.getTag()
-        if tab != 'null':
+        if tag != 'null':
             print 'tag=%s' % tag,
     except:
         pass
@@ -215,12 +261,18 @@ def printFindViewWithText(view, useregexp):
             # 2 quotes + 1 quote = 3 quotes
             text = "''%s''" % text
         if useregexp:
-            text = "re.compile(%c'''%s''')" % (u, text)
+            if options[AUTO_REGEXPS]:
+                for r in options[AUTO_REGEXPS]:
+                    autoRegexp = AUTO_REGEXPS_RES[r]
+                    if autoRegexp.match(text):
+                        text = autoRegexp.pattern
+                        break
+            text = "re.compile(%s'%s')" % (u, text)
         else:
-            text = "%c'%s'" % (u, text)
-        print '%s = vc.findViewWithTextOrRaise(%s)' % (var, text)
+            text = "%s'%s'" % (u, text)
+        print '%s%s = vc.findViewWithTextOrRaise(%s)' % (indent, var, text)
     elif kwargs1[VERBOSE]:
-        warnings.warn('View with id=%s has no text' %  view.getUniqueId())
+        warnings.warn('View with id=%s has no text' % view.getUniqueId())
 
 def printFindViewWithContentDescription(view, useregexp):
     '''
@@ -240,12 +292,12 @@ def printFindViewWithContentDescription(view, useregexp):
                     if autoRegexp.match(contentDescription):
                         contentDescription = autoRegexp.pattern
                         break
-            contentDescription = "re.compile('''%s''')" % contentDescription
+            contentDescription = "re.compile(u'''%s''')" % contentDescription
         else:
-            contentDescription = "'''%s'''" % contentDescription
-        print '%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (var, prefix, contentDescription)
+            contentDescription = "u'''%s'''" % contentDescription
+        print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (indent, var, prefix, contentDescription)
     elif kwargs1[VERBOSE]:
-        warnings.warn('View with id=%s has no content-description' %  view.getUniqueId())
+        warnings.warn('View with id=%s has no content-description' % view.getUniqueId())
 
 def printFindViewById(view):
     '''
@@ -256,8 +308,22 @@ def printFindViewById(view):
     '''
 
     var = variableNameFromIdOrKey(view)
-    print '%s = %svc.findViewByIdOrRaise("%s")' % (var, prefix, view.getUniqueId())
+    _id = view.getId() if view.getId() else view.getUniqueId()
+    print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
 
+def printSaveViewScreenshot(view, dir):
+    '''
+    Prints the writeImageToFile.
+    
+    @type view: L{View}
+    @param view: the View
+    @type dir: str
+    @param dir: the directory to store the images
+    '''
+
+    var = variableNameFromIdOrKey(view)
+    print '%s%s.writeImageToFile(\'%s/%s.png\')' % (indent, var, dir, var)
+    
 def traverseAndPrint(view):
     '''
     Traverses the View tree and prints the corresponding statement.
@@ -266,8 +332,6 @@ def traverseAndPrint(view):
     @param view: the View
     '''
 
-    if indent:
-        print indent,
     if options[VERBOSE_COMMENTS]:
         printVerboseComments(view)
     if options[FIND_VIEWS_BY_ID]:
@@ -276,6 +340,8 @@ def traverseAndPrint(view):
         printFindViewWithText(view, options[USE_REGEXPS])
     if options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
         printFindViewWithContentDescription(view, options[USE_REGEXPS])
+    if options[SAVE_VIEW_SCREENSHOTS]:
+        printSaveViewScreenshot(view, options[SAVE_VIEW_SCREENSHOTS])
 
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1", "on")
@@ -305,7 +371,45 @@ def getShebangJar():
 def getWindowOption():
     return options[WINDOW] if isinstance(options[WINDOW], str) and options[WINDOW][0] in '-0123456789' else "'%s'" % options[WINDOW]
 
+def printScriptHeader():
+    print '''%s
+# -*- coding: utf-8 -*-
+\'\'\'
+Copyright (C) 2013  Diego Torres Milano
+Created on %s by Culebra v%s
+                      __    __    __    __
+                     /  \  /  \  /  \  /  \ 
+____________________/  __\/  __\/  __\/  __\_____________________________
+___________________/  /__/  /__/  /__/  /________________________________
+                   | / \   / \   / \   / \   \___
+                   |/   \_/   \_/   \_/   \    o \ 
+                                           \_____/--<
+@author: Diego Torres Milano
+@author: Jennifer E. Swofford (ascii art snake)
+\'\'\'
+
+
+import re
+import sys
+import os
+''' % (getShebangJar(), date.today(), __version__)
+
+def printUnittestImport():
+    print '''
+import unittest
+'''
+
+def printAppendToSysPath():
+    print '''
+try:
+    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
+except:
+    pass
+'''
+
+################
 # __main__
+################
 progname = os.path.basename(sys.argv[0])
 try:
     optlist, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
@@ -318,9 +422,10 @@ kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
-        UNIT_TEST: False, USE_JAR: False, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
+        UNIT_TEST_CLASS: False, UNIT_TEST_METHOD: None, USE_JAR: False, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
         AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None, INTERACTIVE: False,
-        WINDOW: -1}
+        WINDOW:-1, APPEND_TO_SYS_PATH: False,
+        SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -328,6 +433,8 @@ for o, a in optlist:
         help()
     elif o in ['V', VERBOSE]:
         kwargs1[VERBOSE] = True
+    elif o in ['v', VERSION]:
+        version()
     elif o in ['I', IGNORE_SECURE_DEVICE]:
         kwargs1['ignoresecuredevice'] = True
     elif o in ['F', FORCE_VIEW_SERVER_USE]:
@@ -348,9 +455,13 @@ for o, a in optlist:
         options[USE_REGEXPS] = True
     elif o in ['C', VERBOSE_COMMENTS]:
         options[VERBOSE_COMMENTS] = True
-    elif o in ['U', UNIT_TEST]:
-        #warnings.warn('Not implemented yet: %s' % o)
-        options[UNIT_TEST] = True
+    elif o in ['U', UNIT_TEST_CLASS]:
+        # warnings.warn('Not implemented yet: %s' % o)
+        options[UNIT_TEST_CLASS] = True
+    elif o in ['M', UNIT_TEST_METHOD]:
+        if not a.startswith('test'):
+            warnings.warn('Method name should start with "test"')
+    	options[UNIT_TEST_METHOD] = a
     elif o in ['j', USE_JAR]:
         options[USE_JAR] = str2bool(a)
     elif o in ['D', USE_DICTIONARY]:
@@ -360,15 +471,28 @@ for o, a in optlist:
     elif o in ['R', AUTO_REGEXPS]:
         options[AUTO_REGEXPS] = a.split(',')
         for r in options[AUTO_REGEXPS]:
+            if r == 'help':
+                autoRegexpsHelp()
+            if r == 'all':
+                options[AUTO_REGEXPS] = AUTO_REGEXPS_RES.keys()
+                break
             if r not in AUTO_REGEXPS_RES:
                 error("invalid auto regexp: %s\n" % (r))
                 usage()
+        # AUTO_REGEPXS implies USE_REGEXPS
+        options[USE_REGEXPS] = True
     elif o in ['a', START_ACTIVITY]:
         options[START_ACTIVITY] = a
     elif o in ['o', OUTPUT]:
         options[OUTPUT] = a
     elif o in ['A', INTERACTIVE]:
         options[INTERACTIVE] = True
+    elif o in ['p', APPEND_TO_SYS_PATH]:
+        options[APPEND_TO_SYS_PATH] = True
+    elif o in ['s', SAVE_SCREENSHOT]:
+        options[SAVE_SCREENSHOT] = a
+    elif o in ['W', SAVE_VIEW_SCREENSHOTS]:
+        options[SAVE_VIEW_SCREENSHOTS] = a
 
 if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT] or options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[VERBOSE_COMMENTS]:
@@ -386,58 +510,32 @@ if options[OUTPUT]:
     st = os.stat(options[OUTPUT])
     os.chmod(options[OUTPUT], st.st_mode | stat.S_IEXEC)
 
-print '''%s
-# -*- coding: utf-8 -*-
-\'\'\'
-Copyright (C) 2013  Diego Torres Milano
-Created on %s by Culebra v%s
+if options[UNIT_TEST_CLASS] or (not options[UNIT_TEST_METHOD]):
+    printScriptHeader()
 
-                      __    __    __    __
-                     /  \  /  \  /  \  /  \ 
-____________________/  __\/  __\/  __\/  __\_____________________________
-___________________/  /__/  /__/  /__/  /________________________________
-                   | / \   / \   / \   / \   \___
-                   |/   \_/   \_/   \_/   \    o \ 
-                                           \_____/--<
-@author: Diego Torres Milano
-@author: Jennifer E. Swofford (ascii art snake)
-\'\'\'
+if options[UNIT_TEST_CLASS]:
+    printUnittestImport()
 
+if options[APPEND_TO_SYS_PATH]:
+    printAppendToSysPath()
 
-import re
-import sys
-import os
-''' % (getShebangJar(), date.today(), __version__)
-
-if options[UNIT_TEST]:
+if options[UNIT_TEST_CLASS] or (not options[UNIT_TEST_METHOD]):
     print '''\
-import unittest
-'''
-
-if not options[USE_JAR]:
-    print '''
-try:
-    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
-except:
-    pass
-'''
-
-print '''\
 from com.dtmilano.android.viewclient import ViewClient
 '''
 
-if options[UNIT_TEST]:
+if options[UNIT_TEST_CLASS]:
     print '''
 class CulebraTests(unittest.TestCase):
 
     kwargs1 = None
     kwargs2 = None
-    
+
     @classmethod
     def setUpClass(cls):
         cls.kwargs1 = %s
         cls.kwargs2 = %s
-    
+
     def setUp(self):
         self.device, self.serialno = ViewClient.connectToDeviceOrExit(**CulebraTests.kwargs1)
 ''' % (kwargs1, kwargs2),
@@ -446,7 +544,7 @@ class CulebraTests(unittest.TestCase):
         print '''\
         self.device.startActivity(component='%s')
 ''' % options[START_ACTIVITY],
-    
+
     print '''\
         self.vc = ViewClient(self.device, self.serialno, **CulebraTests.kwargs2)
 
@@ -455,22 +553,27 @@ class CulebraTests(unittest.TestCase):
 
     def preconditions(self):
         return True
-        
-    def testSomething(self):
+
+    def %s(self):
         if not self.preconditions():
             self.fail('Preconditions failed')
         self.vc.dump(%s)
-    ''' % (getWindowOption())
+        ''' % (options[UNIT_TEST_METHOD] if options[UNIT_TEST_METHOD] else 'testSomething', getWindowOption())
+
+    if options[SAVE_SCREENSHOT]:
+        print '''\
+        self.vc.writeImageToFile('%s')
+        ''' % options[SAVE_SCREENSHOT]
     
     if options[USE_DICTIONARY]:
         print '''\
         self.views = dict()'''
-            
+
     vc.dump(window=options[WINDOW])
-    indent = ' ' * 7
+    indent = ' ' * 8
     prefix = 'self.'
     vc.traverse(transform=transform)
-    
+
     print '''
     @staticmethod
     def main():
@@ -481,26 +584,44 @@ if __name__ == '__main__':
     CulebraTests.main()
 '''
 else:
-    print '''
+    if not options[UNIT_TEST_METHOD]:
+        print '''
 kwargs1 = %s
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 ''' % kwargs1,
-    
-    if options[START_ACTIVITY]:
+
+    if options[START_ACTIVITY] and not options[UNIT_TEST_METHOD]:
         print '''\
-device.startActivity(component='%s')
-    ''' % options[START_ACTIVITY],
-    
-    print '''\
+device.startActivity(component='%s')''' % options[START_ACTIVITY]
+
+    if not options[UNIT_TEST_METHOD]:
+        print '''\
 kwargs2 = %s
 vc = ViewClient(device, serialno, **kwargs2)
 vc.dump(window=%s)
 ''' % (kwargs2, getWindowOption())
-    
-    if options[USE_DICTIONARY]:
-        print '''views = dict()'''
+
+        if options[USE_DICTIONARY]:
+            print '''views = dict()'''
+
+        if options[SAVE_SCREENSHOT]:
+            print '''\
+vc.writeImageToFile('%s')
+''' % options[SAVE_SCREENSHOT]
     
     vc.dump(window=options[WINDOW])
+    if options[UNIT_TEST_METHOD]:
+        print '''
+    def %s(self):
+        \'\'\'
+        Test method.
+        \'\'\'
+
+        if not self.preconditions():
+            self.fail('Preconditions failed')
+''' % (options[UNIT_TEST_METHOD])
+        indent = ' ' * 8
+        prefix = 'self.'
     vc.traverse(transform=transform)
 
 if options[INTERACTIVE]:
@@ -512,7 +633,7 @@ if options[INTERACTIVE]:
     s.sendall("RECORD EVENTS START\n")
     fin = open("/dev/tty")
     while True:
-        print >>sys.stderr, "Reading events..."
+        print >> sys.stderr, "Reading events..."
         data = s.recv(1024)
         code = ViewClient.excerpt(data)
         exec code
@@ -521,3 +642,4 @@ if options[INTERACTIVE]:
             break
     s.sendall("RECORD EVENTS STOP\n")
     s.close()
+

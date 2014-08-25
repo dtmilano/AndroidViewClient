@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.8.0'
+__version__ = '7.1.1'
 
 import sys
 import warnings
@@ -37,6 +37,8 @@ import os
 import types
 import platform
 
+from com.dtmilano.android.adb.androidkeymap import KEY_MAP
+
 DEBUG = False
 
 HOSTNAME = 'localhost'
@@ -53,6 +55,11 @@ DOWN = 1
 DOWN_AND_UP = 2
 
 TIMEOUT = 15
+
+# some device properties
+VERSION_SDK_PROPERTY = 'ro.build.version.sdk'
+VERSION_RELEASE_PROPERTY = 'ro.build.version.release'
+
 
 class Device:
     @staticmethod
@@ -75,9 +82,7 @@ class Device:
 
 class AdbClient:
 
-    def __init__(self, serialno, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True):
-        if not serialno:
-            raise ValueError("serialno must not be empty or None")
+    def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True):
         self.serialno = serialno
         self.hostname = hostname
         self.port = port
@@ -86,9 +91,15 @@ class AdbClient:
         self.__connect()
 
         self.checkVersion()
+
+        self.build = {}
+        ''' Build properties '''
+
         self.isTransportSet = False
-        if settransport:
+        if settransport and serialno != None:
             self.__setTransport()
+            self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
+
 
     @staticmethod
     def setAlarm(timeout):
@@ -99,6 +110,13 @@ class AdbClient:
             print >> sys.stderr, "setAlarm(%d)" % timeout
         signal.alarm(timeout)
 
+    def setSerialno(self, serialno):
+        if self.isTransportSet:
+            raise ValueError("Transport is already set, serialno cannot be set once this is done.")
+        self.serialno = serialno
+        self.__setTransport()
+        self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
+        
     def setReconnect(self, val):
         self.reconnect = val
 
@@ -110,7 +128,7 @@ class AdbClient:
         try:
             self.socket.connect((self.hostname, self.port))
         except socket.error, ex:
-            raise RuntimeError("ERROR: Connecting to %s:%d: %s" % (self.socket, self.port, ex))
+            raise RuntimeError("ERROR: Connecting to %s:%d: %s.\nIs adb running on your computer?" % (self.socket, self.port, ex))
 
     def close(self):
         if DEBUG:
@@ -201,6 +219,8 @@ class AdbClient:
     def __setTransport(self):
         if DEBUG:
             print >> sys.stderr, "__setTransport()"
+        if not self.serialno:
+            raise ValueError("serialno not set, empty or None")
         self.checkConnected()
         serialnoRE = re.compile(self.serialno)
         found = False
@@ -305,11 +325,47 @@ class AdbClient:
                 return MAP_KEYS[kre](key=key, strip=strip)
         raise ValueError("key='%s' does not match any map entry")
 
+    def getSdkVersion(self):
+        '''
+        Gets the SDK version.
+        '''
+
+        return self.build[VERSION_SDK_PROPERTY]
+
     def press(self, name, eventType=DOWN_AND_UP):
         cmd = 'input keyevent %s' % name
         if DEBUG:
             print >> sys.stderr, "press(%s)" % cmd
         self.shell(cmd)
+
+    def longPress(self, name, duration=0.5, dev='/dev/input/event0'):
+        # WORKAROUND:
+        # Using 'input keyevent --longpress POWER' does not work correctly in
+        # KitKat (API 19), it sends a short instead of a long press.
+        # This uses the events instead, but it may vary from device to device.
+        # The events sent are device dependent and may not work on other devices.
+        # If this does not work on your device please do:
+        #     $ adb shell getevent -l
+        # and post the output to https://github.com/dtmilano/AndroidViewClient/issues
+        # specifying the device and API level.
+        if name[0:4] == 'KEY_':
+            name = name[4:]
+        if name in KEY_MAP:
+            self.shell('sendevent %s 1 %d 1' % (dev, KEY_MAP[name]))
+            self.shell('sendevent %s 0 0 0' % dev)
+            time.sleep(duration)
+            self.shell('sendevent %s 1 %d 0' % (dev, KEY_MAP[name]))
+            self.shell('sendevent %s 0 0 0' % dev)
+            return
+
+        version = self.getSdkVersion()
+        if version >= 19:
+            cmd = 'input keyevent --longpress %s' % name
+            if DEBUG:
+                print >> sys.stderr, "longPress(%s)" % cmd
+            self.shell(cmd)
+        else:
+            raise RuntimeError("longpress: not supported for API < 19 (version=%d)" % version)
 
     def startActivity(self, component=None, flags=None, uri=None):
         cmd = 'am start'
@@ -372,20 +428,30 @@ class AdbClient:
     def touch(self, x, y, eventType=DOWN_AND_UP):
         self.shell('input tap %d %d' % (x, y))
 
-    def drag(self, (x0, y0), (x1, y1), duration, steps):
-        version = int(self.getProperty('ro.build.version.sdk'))
+    def drag(self, (x0, y0), (x1, y1), duration, steps=1):
+        '''
+        Sends drag event (actually it's using C{input swipe} command.
+
+        @param (x0, y0): starting point
+        @param (x1, y1): ending point
+        @param duration: duration of the event in ms
+        @param steps: number of steps (currently ignored by @{input swipe}
+        '''
+
+        version = self.getSdkVersion()
         if version <= 15:
             raise RuntimeError('drag: API <= 15 not supported (version=%d)' % version)
         elif version <= 17:
             self.shell('input swipe %d %d %d %d' % (x0, y0, x1, y1))
         else:
-            self.shell('input swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration * 1000))
+            self.shell('input touchscreen swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration))
 
     def type(self, text):
         self.shell(u'input text "%s"' % text)
 
     def wake(self):
-        self.shell('input keyevent POWER')
+        if not self.isScreenOn():
+            self.shell('input keyevent POWER')
 
     def isLocked(self):
         '''
@@ -400,6 +466,19 @@ class AdbClient:
             return (m.group(1) == 'true')
         raise RuntimeError("Couldn't determine screen lock state")
 
+    def isScreenOn(self):
+        '''
+        Checks if the screen is ON.
+
+        @return True if the device screen is ON
+        '''
+
+        screenOnRE = re.compile('mScreenOnFully=(true|false)')
+        m = screenOnRE.search(self.shell('dumpsys window policy'))
+        if m:
+            return (m.group(1) == 'true')
+        raise RuntimeError("Couldn't determine screen ON state")
+        
     def unlock(self):
         '''
         Unlocks the screen of the device.

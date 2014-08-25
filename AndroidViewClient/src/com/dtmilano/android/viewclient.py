@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2013  Diego Torres Milano
+Copyright (C) 2012-2014  Diego Torres Milano
 Created on Feb 2, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '4.9.0'
+__version__ = '7.1.2'
 
 import sys
 import warnings
@@ -204,12 +204,28 @@ class View:
     '''
 
     @staticmethod
-    def factory(attrs, device, version=-1, forceviewserveruse=False):
+    def factory(arg1, arg2, version=-1, forceviewserveruse=False):
         '''
         View factory
+
+        @type arg1: ClassType or dict
+        @type arg2: View instance or AdbClient
         '''
 
-        if attrs.has_key('class'):
+        if type(arg1) == types.ClassType:
+            cls = arg1
+            attrs = None
+        else:
+            cls = None
+            attrs = arg1
+        if isinstance(arg2, View):
+            view = arg2
+            device = None
+        else:
+            device = arg2
+            view = None
+
+        if attrs and attrs.has_key('class'):
             clazz = attrs['class']
             if clazz == 'android.widget.TextView':
                 return TextView(attrs, device, version, forceviewserveruse)
@@ -217,8 +233,23 @@ class View:
                 return EditText(attrs, device, version, forceviewserveruse)
             else:
                 return View(attrs, device, version, forceviewserveruse)
+        elif cls:
+            if view:
+                return cls.__copy(view)
+            else:
+                return cls(attrs, device, version, forceviewserveruse)
+        elif view:
+            return copy.copy(view)
         else:
             return View(attrs, device, version, forceviewserveruse)
+
+    @classmethod
+    def __copy(cls, view):
+        '''
+        Copy constructor
+        '''
+
+        return cls(view.map, view.device, view.version, view.forceviewserveruse)
 
     def __init__(self, map, device, version=-1, forceviewserveruse=False):
         '''
@@ -250,6 +281,10 @@ class View:
         ''' The current focus '''
         self.build = {}
         ''' Build properties '''
+        self.version = version
+        ''' API version number '''
+        self.forceviewserveruse = forceviewserveruse
+        ''' Force ViewServer use '''
 
         if version != -1:
             self.build[VERSION_SDK_PROPERTY] = version
@@ -258,7 +293,7 @@ class View:
                 if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
                     self.build[VERSION_SDK_PROPERTY] = int(device.getProperty(VERSION_SDK_PROPERTY))
                 else:
-                    self.build[VERSION_SDK_PROPERTY] = int(device.shell('getprop ro.build.' + VERSION_SDK_PROPERTY)[:-2])
+                    self.build[VERSION_SDK_PROPERTY] = int(device.shell('getprop ' + VERSION_SDK_PROPERTY)[:-2])
             except:
                 self.build[VERSION_SDK_PROPERTY] = -1
 
@@ -326,7 +361,7 @@ class View:
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
-
+        
     def __getitem__(self, key):
         return self.map[key]
 
@@ -408,6 +443,11 @@ class View:
         @return: the L{View} C{Id} or C{None} if not defined
         @see: L{getUniqueId()}
         '''
+
+        try:
+            return self.map['resource-id']
+        except:
+            pass
 
         try:
             return self.map[self.idProperty]
@@ -842,13 +882,18 @@ class View:
         return self.__getattr__('isClickable')()
 
     def variableNameFromId(self):
-        m = ID_RE.match(self.getUniqueId())
-        if m:
-            var = m.group(1)
-            if m.group(3):
-                var += m.group(3)
-            if re.match('^\d', var):
-                var = 'id_' + var
+        _id = self.getId()
+        if _id:
+            var = _id.replace('.', '_').replace(':', '___').replace('/', '_')
+        else:
+            _id = self.getUniqueId()
+            m = ID_RE.match(_id)
+            if m:
+                var = m.group(1)
+                if m.group(3):
+                    var += m.group(3)
+                if re.match('^\d', var):
+                    var = 'id_' + var
         return var
 
     def writeImageToFile(self, filename, format="PNG"):
@@ -869,7 +914,16 @@ class View:
             filename = os.path.join(filename, self.variableNameFromId() + '.' + format.lower())
         if DEBUG:
             print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, format)
-        self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, format)
+        #self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, format)
+        # crop:
+        # im.crop(box) ⇒ image
+        # Returns a copy of a rectangular region from the current image.
+        # The box is a 4-tuple defining the left, upper, right, and lower pixel coordinate.
+        ((l, t), (r, b)) = self.getCoords()
+        box = (l, t, r, b)
+        if DEBUG:
+            print >> sys.stderr, "writeImageToFile: cropping", box, "    reconnect=", self.device.reconnect
+        self.device.takeSnapshot(reconnect=self.device.reconnect).crop(box).save(filename, format)
 
     def __smallStr__(self):
         __str = unicode("View[", 'utf-8', 'replace')
@@ -940,7 +994,7 @@ class EditText(TextView):
     '''
     EditText class.
     '''
-
+    
     def type(self, text):
         self.touch()
         time.sleep(0.5)
@@ -1432,9 +1486,9 @@ class ViewClient:
                     eis = noextrainfo
             if eis:
                 eis = ' ' + eis
-            return "%s %s %s%s" % (view.getClass(), view.getId(), view.getText(), eis)
+            return u'%s %s %s%s' % (view.getClass(), view.getId(), view.getText(), eis)
         except Exception, e:
-            return "Exception in view=%s: %s" % (view.__smallStr__(), e)
+            return u'Exception in view=%s: %s' % (view.__smallStr__(), e)
 
     @staticmethod
     def traverseShowClassIdTextAndUniqueId(view):
@@ -1828,6 +1882,9 @@ class ViewClient:
                 dumpedToDevTtyRE = re.compile('</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
                 if dumpedToDevTtyRE.search(received):
                     received = re.sub(dumpedToDevTtyRE, '</hierarchy>', received)
+                # API19 seems to send this warning as part of the XML.
+                # Let's remove it if present
+                received = received.replace('WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.\r\n', '')
                 if DEBUG_RECEIVED:
                     print >>sys.stderr, "received=", received
             if re.search('\[: not found', received):
@@ -1837,33 +1894,36 @@ You should force ViewServer back-end.''')
             self.setViewsFromUiAutomatorDump(received)
         else:
             if isinstance(window, str):
-                self.list(sleep=0)
-                found = False
-                for wId in self.windows:
-                    try:
-                        if window == self.windows[wId]:
-                            window = wId
-                            found = True
-                            break
-                    except:
-                        pass
-                    try:
-                        if int(window) == wId:
-                            window = wId
-                            found = True
-                            break
-                    except:
-                        pass
-                    try:
-                        if int(window, 16) == wId:
-                            window = wId
-                            found = True
-                            break
-                    except:
-                        pass
+                if window != '-1':
+                    self.list(sleep=0)
+                    found = False
+                    for wId in self.windows:
+                        try:
+                            if window == self.windows[wId]:
+                                window = wId
+                                found = True
+                                break
+                        except:
+                            pass
+                        try:
+                            if int(window) == wId:
+                                window = wId
+                                found = True
+                                break
+                        except:
+                            pass
+                        try:
+                            if int(window, 16) == wId:
+                                window = wId
+                                found = True
+                                break
+                        except:
+                            pass
 
-                if not found:
-                    raise RuntimeError("ERROR: Cannot find window '%s' in %s" % (window, self.windows))
+                    if not found:
+                        raise RuntimeError("ERROR: Cannot find window '%s' in %s" % (window, self.windows))
+                else:
+                    window = -1
 
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
@@ -1892,6 +1952,11 @@ You should force ViewServer back-end.''')
                 print >>sys.stderr
                 print >>sys.stderr, received
                 print >>sys.stderr
+            if received:
+                for c in received:
+                    if ord(c) > 127:
+                        received = unicode(received, encoding='utf-8', errors='replace')
+                        break
             self.setViews(received)
 
             if DEBUG_TREE:
@@ -1946,7 +2011,15 @@ You should force ViewServer back-end.''')
                     break
                 if doneRE.search(line):
                     break
-                (wid, package) = line.split()
+                values = line.split()
+                if len(values) > 1:
+                    package = values[1]
+                else:
+                    package = "UNKNOWN"
+                if len(values) > 0:
+                    wid = values[0]
+                else:
+                    wid = '00000000'
                 self.windows[int('0x' + wid, 16)] = package
             return self.windows
 
@@ -2241,7 +2314,7 @@ You should force ViewServer back-end.''')
             filename = os.path.join(filename, self.serialno + '.' + format.lower())
         if DEBUG:
             print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, format)
-        self.device.takeSnapshot().writeToFile(filename, format)
+        self.device.takeSnapshot().save(filename, format)
 
     @staticmethod
     def __pickleable(tree):

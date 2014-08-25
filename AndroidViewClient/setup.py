@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='androidviewclient',
-    version='4.10.1',
+    version='7.1.2',
     description='''AndroidViewClient is a 100% pure python tool that
         simplifies test script creation providing higher level operations and the ability of
         obtaining the tree of Views present at any given moment on the device or emulator screen.
@@ -15,6 +15,7 @@ setup(name='androidviewclient',
     url='https://github.com/dtmilano/AndroidViewClient/',
     packages=find_packages('src'),
     package_dir={'':'src'},
+    scripts=['tools/culebra', 'tools/dump'],
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Developers',
                  'License :: OSI Approved :: Apache Software License'],
