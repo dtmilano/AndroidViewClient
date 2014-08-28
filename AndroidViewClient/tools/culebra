@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 '''
 Copyright (C) 2013-2014  Diego Torres Milano
@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '7.1.3'
+__version__ = '7.2.0'
 
 import re
 import sys
@@ -254,6 +254,13 @@ def printFindViewWithText(view, useregexp):
 
     text = view.getText()
     isUnicode = isinstance(text, unicode)
+    if isUnicode and sys.stdout.encoding is None:
+        warnings.warn('''\
+You are trying to print unicode characters to an unencoded stdout, it will probably fail.
+You have to set PYTHONIOENCODING environment variable. For example:
+       export PYTHONIOENCODING=utf-8
+        ''')
+
     u = 'u' if isUnicode else ''
     if text:
         var = variableNameFromIdOrKey(view)
@@ -270,7 +277,7 @@ def printFindViewWithText(view, useregexp):
             text = "re.compile(%s'%s')" % (u, text)
         else:
             text = "%s'%s'" % (u, text)
-        print '%s%s = vc.findViewWithTextOrRaise(%s)' % (indent, var, text)
+        print u'%s%s = vc.findViewWithTextOrRaise(%s)' % (indent, var, text)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no text' % view.getUniqueId())
 
