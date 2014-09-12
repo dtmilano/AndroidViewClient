@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.3.0'
+__version__ = '7.3.1'
 
 import sys
 import warnings
@@ -902,7 +902,7 @@ class View:
         '''
 
         try:
-            return self.map[self.isFocusedProperty]
+            return True if self.map[self.isFocusedProperty].lower() == 'true' else False
         except Exception:
             return False
 
