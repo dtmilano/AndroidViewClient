@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.1.2'
+__version__ = '7.3.0'
 
 import sys
 import warnings
@@ -101,6 +101,8 @@ HEIGHT_PROPERTY = 'layout:getHeight()'
 HEIGHT_PROPERTY_API_8 = 'getHeight()'
 GET_VISIBILITY_PROPERTY = 'getVisibility()'
 LAYOUT_TOP_MARGIN_PROPERTY = 'layout:layout_topMargin'
+IS_FOCUSED_PROPERTY_UI_AUTOMATOR = 'focused'
+IS_FOCUSED_PROPERTY = 'focus:isFocused()'
 
 # visibility
 VISIBLE = 0x0
@@ -312,6 +314,9 @@ class View:
         ''' The width property depending on the View attribute format '''
         self.heightProperty = None
         ''' The height property depending on the View attribute format '''
+        self.isFocusedProperty = None
+        ''' The focused property depending on the View attribute format '''
+        
         if version >= 16 and self.useUiAutomator:
             self.idProperty = ID_PROPERTY_UI_AUTOMATOR
             self.textProperty = TEXT_PROPERTY_UI_AUTOMATOR
@@ -319,6 +324,7 @@ class View:
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
+            self.isFocusedProperty = IS_FOCUSED_PROPERTY_UI_AUTOMATOR
         elif version > 10 and (version < 16 or self.useUiAutomator):
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
@@ -326,6 +332,7 @@ class View:
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
+            self.isFocusedProperty = IS_FOCUSED_PROPERTY
         elif version == 10:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
@@ -333,6 +340,7 @@ class View:
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
+            self.isFocusedProperty = IS_FOCUSED_PROPERTY
         elif version >= 7 and version < 10:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
@@ -340,6 +348,7 @@ class View:
             self.topProperty = TOP_PROPERTY_API_8
             self.widthProperty = WIDTH_PROPERTY_API_8
             self.heightProperty = HEIGHT_PROPERTY_API_8
+            self.isFocusedProperty = IS_FOCUSED_PROPERTY
         elif version > 0 and version < 7:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
@@ -347,6 +356,7 @@ class View:
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
+            self.isFocusedProperty = IS_FOCUSED_PROPERTY
         elif version == -1:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
@@ -354,6 +364,7 @@ class View:
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
+            self.isFocusedProperty = IS_FOCUSED_PROPERTY
         else:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
@@ -361,6 +372,7 @@ class View:
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
+            self.isFocusedProperty = IS_FOCUSED_PROPERTY
         
     def __getitem__(self, key):
         return self.map[key]
@@ -880,6 +892,19 @@ class View:
 
     def isClickable(self):
         return self.__getattr__('isClickable')()
+
+
+    def isFocused(self):
+        '''
+        Gets the focused value
+
+        @return: the focused value. If the property cannot be found returns C{False}
+        '''
+
+        try:
+            return self.map[self.isFocusedProperty]
+        except Exception:
+            return False
 
     def variableNameFromId(self):
         _id = self.getId()

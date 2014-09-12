@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '7.2.0'
+__version__ = '7.3.0'
 
 import sys
 import os
