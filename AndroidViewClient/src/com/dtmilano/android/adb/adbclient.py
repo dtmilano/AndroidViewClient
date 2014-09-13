@@ -526,6 +526,17 @@ class AdbClient:
         '''
 
         return (AdbClient.percentSame(image1, image2) >= percent)
+    
+    def isKeyboardShown(self):
+        '''
+        Whether the keyboard is displayed.
+        '''
+
+        dim = self.shell('dumpsys input_method')
+        if dim:
+            # FIXME: API >= 15 ?
+            return "mInputShown=true" in dim
+        return False
 
 
 if __name__ == '__main__':

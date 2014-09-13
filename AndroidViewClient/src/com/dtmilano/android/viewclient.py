@@ -2315,11 +2315,7 @@ You should force ViewServer back-end.''')
         Whether the keyboard is displayed.
         '''
 
-        dim = self.device.shell('dumpsys input_method')
-        if dim:
-            # FIXME: API >= 15 ?
-            return "mInputShown=true" in dim
-        return False
+        return self.device.isKeyboardShown()
 
     def writeImageToFile(self, filename, format="PNG"):
         '''
