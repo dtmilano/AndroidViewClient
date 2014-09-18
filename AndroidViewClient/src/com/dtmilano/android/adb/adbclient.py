@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.1.1'
+__version__ = '7.3.3'
 
 import sys
 import warnings
@@ -209,7 +209,7 @@ class AdbClient:
         if DEBUG:
             print >> sys.stderr, "checkVersion(reconnect=%s)" % reconnect
         self.__send('host:version', reconnect=False)
-        version = self.socket.recv(8)
+        version = self.socket.recv(8, socket.MSG_WAITALL)
         VERSION = '0004001f'
         if version != VERSION:
             raise RuntimeError("ERROR: Incorrect ADB server version %s (expecting %s)" % (version, VERSION))
