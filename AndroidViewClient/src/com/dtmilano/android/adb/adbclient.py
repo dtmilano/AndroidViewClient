@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.3.3'
+__version__ = '7.4.0'
 
 import sys
 import warnings
@@ -82,7 +82,7 @@ class Device:
 
 class AdbClient:
 
-    def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True):
+    def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True, ignoreversioncheck=False):
         self.serialno = serialno
         self.hostname = hostname
         self.port = port
@@ -90,7 +90,7 @@ class AdbClient:
         self.reconnect = reconnect
         self.__connect()
 
-        self.checkVersion()
+        self.checkVersion(ignoreversioncheck)
 
         self.build = {}
         ''' Build properties '''
@@ -205,13 +205,13 @@ class AdbClient:
             print >> sys.stderr, "    checkConnected: returning True"
         return True
 
-    def checkVersion(self, reconnect=True):
+    def checkVersion(self, ignoreversioncheck=False, reconnect=True):
         if DEBUG:
-            print >> sys.stderr, "checkVersion(reconnect=%s)" % reconnect
+            print >> sys.stderr, "checkVersion(reconnect=%s)   ignoreversioncheck=%s" % (reconnect, ignoreversioncheck)
         self.__send('host:version', reconnect=False)
         version = self.socket.recv(8, socket.MSG_WAITALL)
         VERSION = '0004001f'
-        if version != VERSION:
+        if version != VERSION and not ignoreversioncheck:
             raise RuntimeError("ERROR: Incorrect ADB server version %s (expecting %s)" % (version, VERSION))
         if reconnect:
             self.__connect()

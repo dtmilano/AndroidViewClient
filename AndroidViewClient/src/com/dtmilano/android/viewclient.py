@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.3.1'
+__version__ = '7.4.0'
 
 import sys
 import warnings
@@ -1432,7 +1432,7 @@ class ViewClient:
         signal.alarm(timeout)
 
     @staticmethod
-    def connectToDeviceOrExit(timeout=60, verbose=False, ignoresecuredevice=False, serialno=None):
+    def connectToDeviceOrExit(timeout=60, verbose=False, ignoresecuredevice=False, ignoreversioncheck=False, serialno=None):
         '''
         Connects to a device which serial number is obtained from the script arguments if available
         or using the default regex C{.*}.
@@ -1448,6 +1448,8 @@ class ViewClient:
         @param verbose: Verbose output
         @type ignoresecuredevice: bool
         @param ignoresecuredevice: Ignores the check for a secure device
+        @type ignoreversioncheck: bool
+        @param ignoreversioncheck: Ignores the check for a supported ADB version
         @type serialno: str
         @param serialno: The device or emulator serial number
 
@@ -1470,7 +1472,7 @@ class ViewClient:
             print >> sys.stderr, 'Connecting to a device with serialno=%s with a timeout of %d secs...' % \
                 (serialno, timeout)
         ViewClient.setAlarm(timeout+5)
-        device = adbclient.AdbClient(serialno)
+        device = adbclient.AdbClient(serialno, ignoreversioncheck=ignoreversioncheck)
         ViewClient.setAlarm(0)
         if verbose:
             print >> sys.stderr, 'Connected to device with serialno=%s' % serialno

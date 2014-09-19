@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '7.3.3'
+__version__ = '7.4.0'
 
 import re
 import sys
@@ -43,6 +43,7 @@ HELP = 'help'
 VERBOSE = 'verbose'
 VERSION = 'version'
 IGNORE_SECURE_DEVICE = 'ignore-secure-device'
+IGNORE_VERSION_CHECK = 'ignore-version-check'
 FORCE_VIEW_SERVER_USE = 'force-view-server-use'
 DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
 DO_NOT_IGNORE_UIAUTOMATOR_KILLED = 'do-not-ignore-uiautomator-killed'
@@ -66,8 +67,8 @@ SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:'
-LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
+SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:'
+LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
               WINDOW + '=',
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
@@ -103,7 +104,8 @@ OPTS_HELP = {
     'A': 'interactive',
     'p': 'append environment variables values to sys.path',
     's': 'save screenshot to file',
-    'W': 'save View screenshots to files in directory'
+    'W': 'save View screenshots to files in directory',
+    'E': 'ignores ADB version check'
     }
 
 def fillAutoRegexpsRes():
@@ -425,7 +427,7 @@ except getopt.GetoptError, e:
     error(str(e))
     usage()
 
-kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
+kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
@@ -444,6 +446,8 @@ for o, a in optlist:
         version()
     elif o in ['I', IGNORE_SECURE_DEVICE]:
         kwargs1['ignoresecuredevice'] = True
+    elif o in ['K', IGNORE_VERSION_CHECK]:
+        kwargs1['ignoreversioncheck'] = True
     elif o in ['F', FORCE_VIEW_SERVER_USE]:
         kwargs2['forceviewserveruse'] = True
     elif o in ['S', DO_NOT_START_VIEW_SERVER]:

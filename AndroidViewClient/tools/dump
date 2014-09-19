@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '7.3.3'
+__version__ = '7.4.0'
 
 import sys
 import os
@@ -23,6 +23,7 @@ HELP = 'help'
 VERBOSE = 'verbose'
 VERSION = 'version'
 IGNORE_SECURE_DEVICE = 'ignore-secure-device'
+IGNORE_VERSION_CHECK = 'ignore-version-check'
 FORCE_VIEW_SERVER_USE = 'force-view-server-use'
 DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
 DO_NOT_IGNORE_UIAUTOMATOR_KILLED = 'do-not-ignore-uiautomator-killed'
@@ -50,8 +51,8 @@ MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIFSkw:ixdcs:W:'
-LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, FORCE_VIEW_SERVER_USE,
+SHORT_OPTS = 'HVvIEFSkw:ixdcs:W:'
+LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
               UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
@@ -71,6 +72,7 @@ OPTS_HELP = {
     'c': 'dump View centers',
     's': 'save screenshot to file',
     'W': 'save View screenshots to files in directory',
+    'E': 'ignores ADB version check'
     }
 
 def shortAndLongOptions():
@@ -121,7 +123,7 @@ except getopt.GetoptError, e:
     print >>sys.stderr, 'ERROR:', str(e)
     usage()
 
-kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
+kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
 options = {WINDOW: -1, SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None}
 transform = ViewClient.TRAVERSE_CIT
@@ -135,6 +137,8 @@ for o, a in opts:
         version()
     elif o in ['I', IGNORE_SECURE_DEVICE]:
         kwargs1['ignoresecuredevice'] = True
+    elif o in ['E', IGNORE_VERSION_CHECK]:
+        kwargs1['ignoreversioncheck'] = True
     elif o in ['F', FORCE_VIEW_SERVER_USE]:
         kwargs2['forceviewserveruse'] = True
     elif o in ['S', DO_NOT_START_VIEW_SERVER]:
