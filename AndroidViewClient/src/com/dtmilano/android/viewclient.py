@@ -866,6 +866,18 @@ class View:
         else:
             self.device.touch(x, y, type)
 
+    def longTouch(self, duration=2000):
+        '''
+        Long touches this C{View}
+        
+        @param duration: duration in ms
+        
+        This workaround was suggested by U{HaMi<http://stackoverflow.com/users/2571957/hami>}
+        '''
+        
+        c = self.getCenter()
+        self.device.drag(c, c, duration, 1)
+            
     def allPossibleNamesWithColon(self, name):
         l = []
         for i in range(name.count("_")):
@@ -2274,15 +2286,15 @@ You should force ViewServer back-end.''')
 
         return self.__findViewWithAttributeInTreeOrRaise('content-desc', contentdescription, root)
 
-    def findViewsContainingPoint(self, (x, y), filter=None):
+    def findViewsContainingPoint(self, (x, y), _filter=None):
         '''
         Finds the list of Views that contain the point (x, y).
         '''
 
-        if not filter:
-            filter = lambda v: True
+        if not _filter:
+            _filter = lambda v: True
 
-        return [v for v in self.views if (v.containsPoint((x,y)) and filter(v))]
+        return [v for v in self.views if (v.containsPoint((x,y)) and _filter(v))]
 
     def getViewIds(self):
         '''
@@ -2317,25 +2329,25 @@ You should force ViewServer back-end.''')
 
         return self.device.isKeyboardShown()
 
-    def writeImageToFile(self, filename, format="PNG"):
+    def writeImageToFile(self, filename, _format="PNG"):
         '''
-        Write the View image to the specified filename in the specified format.
+        Write the View image to the specified filename in the specified _format.
 
         @type filename: str
         @param filename: Absolute path and optional filename receiving the image. If this points to
                          a directory, then the filename is determined by the serialno of the device and
-                         format extension.
-        @type format: str
-        @param format: Image format (default format is PNG)
+                         _format extension.
+        @type _format: str
+        @param _format: Image _format (default _format is PNG)
         '''
 
         if not os.path.isabs(filename):
             raise ValueError("writeImageToFile expects an absolute path")
         if os.path.isdir(filename):
-            filename = os.path.join(filename, self.serialno + '.' + format.lower())
+            filename = os.path.join(filename, self.serialno + '.' + _format.lower())
         if DEBUG:
-            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, format)
-        self.device.takeSnapshot().save(filename, format)
+            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s _format" % (filename, _format)
+        self.device.takeSnapshot().save(filename, _format)
 
     @staticmethod
     def __pickleable(tree):
