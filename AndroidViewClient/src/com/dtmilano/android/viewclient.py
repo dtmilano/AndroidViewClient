@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.4.0'
+__version__ = '7.5.0'
 
 import sys
 import warnings
@@ -1908,7 +1908,11 @@ class ViewClient:
                 print >>sys.stderr
             onlyKilledRE = re.compile('[\n\S]*Killed[\n\r\S]*', re.MULTILINE)
             if onlyKilledRE.search(received):
-                raise RuntimeError('''ERROR: UiAutomator output contains no valid information. UiAutomator was killed, no reason given.''')
+                MONKEY = 'com.android.commands.monkey'
+                extraInfo = None
+                if self.device.shell('ps | grep "%s"' % MONKEY):
+                    extraInfo = "\nIt is know that '%s' conflicts with 'uiautomator'. Please kill it and try again." % MONKEY
+                raise RuntimeError('''ERROR: UiAutomator output contains no valid information. UiAutomator was killed, no reason given.''' + extraInfo)
             if self.ignoreUiAutomatorKilled:
                 if DEBUG_RECEIVED:
                     print >>sys.stderr, "ignoring UiAutomator Killed"
