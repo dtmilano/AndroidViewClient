@@ -16,4 +16,4 @@ windows = vc.list()
 for wId in windows.keys():
     print ">>> window=", wId, windows[wId]
     vc.dump(window=wId)
-    vc.traverse(transform=ViewClient.TRAVERSE_CIT, indent="    ")
+    vc.traverse(transform=ViewClient.TRAVERSE_CITCD, indent="    ")
