@@ -49,7 +49,8 @@ except getopt.GetoptError, e:
     usage()
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False}
-kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False}
+# We force viewserver use by default
+kwargs2 = {'forceviewserveruse': True, 'startviewserver': True, 'autodump': False}
 for o, a in opts:
     o = o.strip('-')
     if o in ['H', HELP]:
