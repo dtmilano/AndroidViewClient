@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '7.5.1'
+__version__ = '7.6.0'
 
 import sys
 import warnings
@@ -209,7 +209,9 @@ class AdbClient:
         if DEBUG:
             print >> sys.stderr, "checkVersion(reconnect=%s)   ignoreversioncheck=%s" % (reconnect, ignoreversioncheck)
         self.__send('host:version', reconnect=False)
-        version = self.socket.recv(8, socket.MSG_WAITALL)
+        # HACK: MSG_WAITALL not available on windows
+        #version = self.socket.recv(8, socket.MSG_WAITALL)
+        version = self.__readExactly(self.socket, 8)
         VERSION = '0004001f'
         if version != VERSION and not ignoreversioncheck:
             raise RuntimeError("ERROR: Incorrect ADB server version %s (expecting %s)" % (version, VERSION))
@@ -236,6 +238,17 @@ class AdbClient:
             print >> sys.stderr, "    __setTransport: msg=", msg
         self.__send(msg, reconnect=False)
         self.isTransportSet = True
+
+    def __readExactly(self, sock, size):
+        if DEBUG:
+            print >> sys.stderr, "__readExactly(socket=%s, size=%d)" % (socket, size)
+        buffer = ''
+        while len(buffer) < size:
+            data = sock.recv(size-len(buffer))
+            if not data:
+                break
+            buffer+=data
+        return buffer
 
     def getDevices(self):
         if DEBUG:
