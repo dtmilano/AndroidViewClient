@@ -6,14 +6,14 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '8.0.2'
+__version__ = '8.0.3'
 
 import sys
 import os
 import getopt
 
 try:
-    sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
+    sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
     pass
 

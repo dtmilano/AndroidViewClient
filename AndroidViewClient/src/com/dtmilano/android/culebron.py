@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.0.2'
+__version__ = '8.0.3'
 
 try:
     from PIL import Image, ImageTk
@@ -51,5 +51,5 @@ class Culebron:
     def takeScreenshotAndShowItOnWindow(self):
         pass
 
-    def mainlook(self):
+    def mainloop(self):
         pass
