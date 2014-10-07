@@ -45,7 +45,7 @@ class Culebron:
         if not TKINTER_AVAILABLE:
             raise Exception("Tkinter is needed for GUI mode")
 
-    def __init__():
+    def __init__(self):
         pass
 
     def takeScreenshotAndShowItOnWindow(self):
