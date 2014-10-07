@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '7.6.1'
+__version__ = '8.0.0'
 
 import re
 import sys
@@ -37,7 +37,7 @@ except:
     pass
 
 from com.dtmilano.android.viewclient import ViewClient, View
-
+from com.dtmilano.android.culebron import Culebron
 
 HELP = 'help'
 VERBOSE = 'verbose'
@@ -65,10 +65,12 @@ WINDOW = 'window'
 APPEND_TO_SYS_PATH = 'append-to-sys-path'
 SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
+GUI = 'gui'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:'
-LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE, DO_NOT_START_VIEW_SERVER,
+SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:G'
+LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
+              DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
               WINDOW + '=',
               FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
@@ -76,7 +78,8 @@ LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK,
               USE_JAR + '=', USE_DICTIONARY + '=', DICTIONARY_KEYS_FROM + '=', AUTO_REGEXPS + '=',
               START_ACTIVITY + '=',
               OUTPUT + '=', INTERACTIVE, APPEND_TO_SYS_PATH,
-              SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=']
+              SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
+              GUI]
 LONG_OPTS_ARG = {WINDOW: 'WINDOW',
                   FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
                   USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', DICTIONARY_KEYS_FROM: 'VALUE', AUTO_REGEXPS: 'LIST',
@@ -105,7 +108,8 @@ OPTS_HELP = {
     'p': 'append environment variables values to sys.path',
     's': 'save screenshot to file',
     'W': 'save View screenshots to files in directory',
-    'E': 'ignores ADB version check'
+    'E': 'ignores ADB version check',
+    'G': 'presents the GUI (EXPERIMENTAL)',
     }
 
 def fillAutoRegexpsRes():
@@ -431,10 +435,12 @@ kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': Fa
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
 options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
         USE_REGEXPS: False, VERBOSE_COMMENTS: False,
-        UNIT_TEST_CLASS: False, UNIT_TEST_METHOD: None, USE_JAR: False, USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
+        UNIT_TEST_CLASS: False, UNIT_TEST_METHOD: None, USE_JAR: False,
+        USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
         AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None, INTERACTIVE: False,
         WINDOW:-1, APPEND_TO_SYS_PATH: False,
-        SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None}
+        SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None,
+        GUI: False}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -504,6 +510,8 @@ for o, a in optlist:
         options[SAVE_SCREENSHOT] = a
     elif o in ['W', SAVE_VIEW_SCREENSHOTS]:
         options[SAVE_VIEW_SCREENSHOTS] = a
+    elif o in ['G', GUI]:
+        options[GUI] = True
 
 if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT] or options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[VERBOSE_COMMENTS]:
@@ -635,6 +643,13 @@ vc.writeImageToFile('%s')
         prefix = 'self.'
     vc.traverse(transform=transform)
 
+if options[GUI]:
+    Culebron.checkDependencies()
+    culebron = Culebron()
+    culebron.takeScreenshotAndShowItOnWindow()
+    culebron.mainloop()
+
+    
 if options[INTERACTIVE]:
     import socket
     HOST = 'localhost'
