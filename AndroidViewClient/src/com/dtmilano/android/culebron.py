@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.0.0'
+__version__ = '8.0.1'
 
 try:
     from PIL import Image, ImageTk
@@ -44,3 +44,12 @@ class Culebron:
             raise Exception("PIL is needed for GUI mode")
         if not TKINTER_AVAILABLE:
             raise Exception("Tkinter is needed for GUI mode")
+
+    def __init__():
+        pass
+
+    def takeScreenshotAndShowItOnWindow(self):
+        pass
+
+    def mainlook(self):
+        pass
