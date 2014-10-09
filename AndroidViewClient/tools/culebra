@@ -645,12 +645,10 @@ vc.writeImageToFile('%s')
 
 if options[GUI]:
     Culebron.checkDependencies()
-    culebron = Culebron()
+    culebron = Culebron(vc)
     culebron.takeScreenshotAndShowItOnWindow()
     culebron.mainloop()
-
-    
-if options[INTERACTIVE]:
+elif options[INTERACTIVE]:
     import socket
     HOST = 'localhost'
     PORT = 8900
