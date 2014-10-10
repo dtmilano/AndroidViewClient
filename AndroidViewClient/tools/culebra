@@ -256,11 +256,11 @@ def dictionaryKeyFrom(key, view):
 
 def findBestDescriptor(view):
     cd = view.getContentDescription()
-    if cd:
+    if cd and options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
         return CONTENT_DESCRIPTION
     else:
         t = view.getText()
-        if t:
+        if t and options[FIND_VIEWS_WITH_TEXT]:
             return TEXT
     return ID
     
