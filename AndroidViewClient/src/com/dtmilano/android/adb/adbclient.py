@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.1.0'
+__version__ = '8.1.1'
 
 import sys
 import warnings
@@ -346,7 +346,9 @@ class AdbClient:
         return self.build[VERSION_SDK_PROPERTY]
 
     def press(self, name, eventType=DOWN_AND_UP):
-        cmd = 'input keyevent %s' % name.decode('ascii', errors='replace')
+        if isinstance(name, unicode):
+            name = name.decode('ascii', errors='replace')
+        cmd = 'input keyevent %s' % name
         if DEBUG:
             print >> sys.stderr, "press(%s)" % cmd
         self.shell(cmd)
