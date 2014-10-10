@@ -37,7 +37,7 @@ except:
     pass
 
 from com.dtmilano.android.viewclient import ViewClient, View
-from com.dtmilano.android.culebron import Culebron
+from com.dtmilano.android.culebron import Culebron, Operation
 
 HELP = 'help'
 VERBOSE = 'verbose'
@@ -111,6 +111,10 @@ OPTS_HELP = {
     'E': 'ignores ADB version check',
     'G': 'presents the GUI (EXPERIMENTAL)',
     }
+
+CONTENT_DESCRIPTION = 'content-description'
+TEXT = 'text'
+ID = 'id'
 
 def fillAutoRegexpsRes():
     are = {}
@@ -250,7 +254,17 @@ def dictionaryKeyFrom(key, view):
     else:
         raise Exception('Not a valid dictionary key: %s' % key)
 
-def printFindViewWithText(view, useregexp):
+def findBestDescriptor(view):
+    cd = view.getContentDescription()
+    if cd:
+        return CONTENT_DESCRIPTION
+    else:
+        t = view.getText()
+        if t:
+            return TEXT
+    return ID
+    
+def printFindViewWithText(view, useregexp, op=Operation.ASSIGN, arg=None):
     '''
     Prints the corresponding statement.
 
@@ -283,11 +297,17 @@ You have to set PYTHONIOENCODING environment variable. For example:
             text = "re.compile(%s'%s')" % (u, text)
         else:
             text = "%s'%s'" % (u, text)
-        print u'%s%s = vc.findViewWithTextOrRaise(%s)' % (indent, var, text)
+            
+        if op == Operation.ASSIGN:
+            print u'%s%s = %svc.findViewWithTextOrRaise(%s)' % (indent, var, prefix, text)
+        elif op == Operation.TOUCH:
+            print u'%s%svc.findViewWithTextOrRaise(%s).touch()' % (indent, prefix, text)
+        elif op == Operation.TYPE:
+            print '%s%svc.findViewWithTextOrRaise("%s").type(u"%s")' % (indent, prefix, text, arg)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no text' % view.getUniqueId())
 
-def printFindViewWithContentDescription(view, useregexp):
+def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, arg=None):
     '''
     Prints the corresponding statement.
 
@@ -308,11 +328,20 @@ def printFindViewWithContentDescription(view, useregexp):
             contentDescription = "re.compile(u'''%s''')" % contentDescription
         else:
             contentDescription = "u'''%s'''" % contentDescription
-        print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (indent, var, prefix, contentDescription)
+        
+        if op == Operation.ASSIGN:
+            print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (indent, var, prefix, contentDescription)
+        elif op == Operation.TOUCH:
+            print '%s%svc.findViewWithContentDescriptionOrRaise(%s).touch()' % (indent, prefix, contentDescription)
+        elif op == Operation.TYPE:
+            print '%s%svc.findViewWithContentDescriptionOrRaise(%s).type(u"%s")' % (indent, prefix, contentDescription, arg)
+        else:
+            error("Invalid operation: %s" % op)
+            
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no content-description' % view.getUniqueId())
 
-def printFindViewById(view):
+def printFindViewById(view, op=Operation.ASSIGN, arg=None):
     '''
     Prints the corresponding statement.
 
@@ -322,8 +351,36 @@ def printFindViewById(view):
 
     var = variableNameFromIdOrKey(view)
     _id = view.getId() if view.getId() else view.getUniqueId()
-    print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
+    if op == Operation.ASSIGN:
+        print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
+    elif op == Operation.TOUCH:
+        print '%s%svc.findViewByIdOrRaise("%s").touch()' % (indent, prefix, _id)
+    elif op == Operation.TYPE:
+        print '%s%svc.findViewByIdOrRaise("%s").type(u"%s")' % (indent, prefix, _id, arg)
+    else:
+        error("Invalid operation: %s" % op)
 
+def printDump(window):
+    '''
+    Prints a dump
+    '''
+    
+    print '%s%svc.dump(window=%d)' % (indent, prefix, window)
+    
+def printSleep(secs):
+    '''
+    Prints a sleep
+    '''
+    
+    print '%s%svc.sleep(%d)' % (indent, prefix, secs)
+    
+def printPress(keycode):
+    '''
+    Prints a key press
+    '''
+    
+    print '%s%svc.device.press("%s")' % (indent, prefix, keycode)
+    
 def printSaveViewScreenshot(view, dir):
     '''
     Prints the writeImageToFile.
@@ -356,6 +413,25 @@ def traverseAndPrint(view):
     if options[SAVE_VIEW_SCREENSHOTS]:
         printSaveViewScreenshot(view, options[SAVE_VIEW_SCREENSHOTS])
 
+def printOperation(view, op, arg=None):
+    if op == Operation.SLEEP:
+        printSleep(arg)
+        return
+    elif op == Operation.PRESS:
+        printPress(arg)
+        return
+    elif op == Operation.DUMP:
+        printDump(arg)
+        return
+    
+    bd = findBestDescriptor(view)
+    if bd == CONTENT_DESCRIPTION:
+        printFindViewWithContentDescription(view, options[USE_REGEXPS], op, arg)
+    elif bd == TEXT:
+        printFindViewWithText(view, options[USE_REGEXPS], op, arg)
+    else:
+        printFindViewById(view, op, arg)
+        
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1", "on")
 
@@ -420,6 +496,12 @@ except:
     pass
 '''
 
+def runCulebron():
+    Culebron.checkDependencies()
+    culebron = Culebron(vc, printOperation)
+    culebron.takeScreenshotAndShowItOnWindow()
+    culebron.mainloop()
+    
 ################
 # __main__
 ################
@@ -593,6 +675,9 @@ class CulebraTests(unittest.TestCase):
     prefix = 'self.'
     vc.traverse(transform=transform)
 
+    if options[GUI]:
+        runCulebron()
+
     print '''
     @staticmethod
     def main():
@@ -643,12 +728,7 @@ vc.writeImageToFile('%s')
         prefix = 'self.'
     vc.traverse(transform=transform)
 
-if options[GUI]:
-    Culebron.checkDependencies()
-    culebron = Culebron(vc)
-    culebron.takeScreenshotAndShowItOnWindow()
-    culebron.mainloop()
-elif options[INTERACTIVE]:
+if options[INTERACTIVE]:
     import socket
     HOST = 'localhost'
     PORT = 8900
