@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.0.5'
+__version__ = '8.1.0'
 
 import re
 import sys
@@ -66,9 +66,10 @@ APPEND_TO_SYS_PATH = 'append-to-sys-path'
 SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
 GUI = 'gui'
+DO_NOT_VERIFY_INITIAL_SCREEN_DUMP = 'do-not-verify-initial-screen-dump'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:G'
+SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:Gu'
 LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -79,7 +80,8 @@ LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK,
               START_ACTIVITY + '=',
               OUTPUT + '=', INTERACTIVE, APPEND_TO_SYS_PATH,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
-              GUI]
+              GUI,
+              DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]
 LONG_OPTS_ARG = {WINDOW: 'WINDOW',
                   FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
                   USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', DICTIONARY_KEYS_FROM: 'VALUE', AUTO_REGEXPS: 'LIST',
@@ -107,6 +109,7 @@ OPTS_HELP = {
     'A': 'interactive',
     'p': 'append environment variables values to sys.path',
     's': 'save screenshot to file',
+    'u': 'do not verify initial screen dump state',
     'W': 'save View screenshots to files in directory',
     'E': 'ignores ADB version check',
     'G': 'presents the GUI (EXPERIMENTAL)',
@@ -522,7 +525,8 @@ options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_
         AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None, INTERACTIVE: False,
         WINDOW:-1, APPEND_TO_SYS_PATH: False,
         SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None,
-        GUI: False}
+        GUI: False,
+        DO_NOT_VERIFY_INITIAL_SCREEN_DUMP: False}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -594,6 +598,8 @@ for o, a in optlist:
         options[SAVE_VIEW_SCREENSHOTS] = a
     elif o in ['G', GUI]:
         options[GUI] = True
+    elif o in ['u', DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
+        options[DO_NOT_VERIFY_INITIAL_SCREEN_DUMP] = True
 
 if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT] or options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[VERBOSE_COMMENTS]:
@@ -658,8 +664,7 @@ class CulebraTests(unittest.TestCase):
     def %s(self):
         if not self.preconditions():
             self.fail('Preconditions failed')
-        self.vc.dump(%s)
-        ''' % (options[UNIT_TEST_METHOD] if options[UNIT_TEST_METHOD] else 'testSomething', getWindowOption())
+        ''' % (options[UNIT_TEST_METHOD] if options[UNIT_TEST_METHOD] else 'testSomething')
 
     if options[SAVE_SCREENSHOT]:
         print '''\
@@ -673,7 +678,12 @@ class CulebraTests(unittest.TestCase):
     vc.dump(window=options[WINDOW])
     indent = ' ' * 8
     prefix = 'self.'
-    vc.traverse(transform=transform)
+    
+    if not options[DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
+        print '''\
+        self.vc.dump(%s)
+        ''' % getWindowOption()
+        vc.traverse(transform=transform)
 
     if options[GUI]:
         runCulebron()
