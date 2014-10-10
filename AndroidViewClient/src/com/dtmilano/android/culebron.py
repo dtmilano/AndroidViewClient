@@ -38,7 +38,7 @@ except:
 
 from ast import literal_eval as make_tuple
 
-DEBUG = False
+DEBUG = True
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and True
@@ -77,6 +77,15 @@ class Culebron:
             raise Exception("Tkinter is needed for GUI mode")
 
     def __init__(self, vc, printOperation):
+        '''
+        Culebron constructor.
+        
+        @param vc: The ViewClient used by this Culebron instance
+        @type vc: ViewClient
+        @param printOperation: the method invoked to print operations to the script
+        @type printOperation: method
+        '''
+        
         self.vc = vc
         self.printOperation = printOperation
         self.device = vc.device
@@ -93,6 +102,7 @@ class Culebron:
             self.canvas = Tkinter.Canvas(self.window, width=width, height=height)
             self.canvas.focus_set()
             self.enableEvents()
+            self.createMessageArea(width, height)
             self.createVignette(width, height)
         self.screenshot = ImageTk.PhotoImage(image)
         if self.imageId is not None:
@@ -105,8 +115,19 @@ class Culebron:
         self.findTargets()
         self.hideVignette()
         
+    def createMessageArea(self, width, height):
+        font = tkFont.Font(family='Helvetica',size=14)
+        self.message = Tkinter.Label(self.window, text='message', background='#85f29d', font=font, anchor=Tkinter.W)
+        self.message.configure(width=width, height=100)
+        self.messageAreaId = self.canvas.create_window(0, 100, anchor=Tkinter.NW, window=self.message)
+        
+    def showMessageArea(self):
+        if self.messageAreaId:
+            self.canvas.lift(self.messageAreaId)
+            self.canvas.update_idletasks()
+    
     def createVignette(self, width, height):
-        self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill='#ff00ff',
+        self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill='#f285db',
             stipple='gray50')
         font = tkFont.Font(family='Helvetica',size=144)
         self.waitMessageShadowId = self.canvas.create_text(width/2+2, height/2+2, text="Please\nwait...",
@@ -219,7 +240,7 @@ class Culebron:
     def keyPressed(self, event):
         if DEBUG_KEY:
             print >> sys.stderr, "keyPressed(", repr(event), ")"
-            print >> sys.stderr, "    event", repr(event.char), event.keysym, event.keycode, event.type
+            print >> sys.stderr, "    event", type(event.char), len(event.char), repr(event.char), event.keysym, event.keycode, event.type
         if self.areEventsDisabled:
             if DEBUG:
                 print >> sys.stderr, "ignoring event"
@@ -230,6 +251,11 @@ class Culebron:
         char = event.char
         keysym = event.keysym
 
+        if len(char) == 0:
+            if DEBUG_KEY:
+                print >> sys.stderr, "returning because len(char) == 0"
+            return
+        
         ###
         ### internal commands: no output to generated script
         ###
@@ -241,6 +267,9 @@ class Culebron:
             return
         elif char == '\x14':
             self.ctrlT(event)
+            return
+        elif char == '\x15':
+            self.ctrlU()
             return
         elif keysym == 'F5':
             self.showVignette()
@@ -277,11 +306,19 @@ class Culebron:
     def ctrlS(self):
         pass
     
+    def ctrlT(self):
+        pass
+    
+    def ctrlU(self):
+        if DEBUG:
+            print >>sys.stderr, "ctrlU()"
+        self.showMessageArea()
+    
     def enableEvents(self):
         self.canvas.update_idletasks()
         self.canvas.bind("<Button-1>", self.button1Pressed)
         self.canvas.bind("<BackSpace>", self.keyPressed)
-        self.canvas.bind("<Control-Key-S>", self.ctrlS)
+        #self.canvas.bind("<Control-Key-S>", self.ctrlS)
         self.canvas.bind("<Key>", self.keyPressed)
         self.areEventsDisabled = False
 
@@ -290,7 +327,7 @@ class Culebron:
         self.areEventsDisabled = True
         self.canvas.unbind("<Button-1>")
         self.canvas.unbind("<BackSpace>")
-        self.canvas.unbind("<Control-Key-S>")
+        #self.canvas.unbind("<Control-Key-S>")
         self.canvas.unbind("<Key>")
     
     @staticmethod
