@@ -289,7 +289,6 @@ class Culebron:
         if DEBUG_KEY:
             print >> sys.stderr, "keyPressed(", repr(event), ")"
             print >> sys.stderr, "    event", type(event.char), len(event.char), repr(event.char), event.keysym, event.keycode, event.type
-            print >> sys.stderr, "    is ctrlU?", (event.char == '\x15')
         if self.areEventsDisabled:
             if DEBUG:
                 print >> sys.stderr, "ignoring event"
@@ -300,7 +299,7 @@ class Culebron:
         char = event.char
         keysym = event.keysym
 
-        if len(char) == 0:
+        if len(char) == 0 and keysym not in Culebron.KEYSYM_TO_KEYCODE_MAP:
             if DEBUG_KEY:
                 print >> sys.stderr, "returning because len(char) == 0"
             return
@@ -343,6 +342,8 @@ class Culebron:
         self.showVignette()
 
         if keysym in Culebron.KEYSYM_TO_KEYCODE_MAP:
+            if DEBUG_KEY:
+                print >> sys.stderr, "Pressing", Culebron.KEYSYM_TO_KEYCODE_MAP[keysym]
             self.pressKey(Culebron.KEYSYM_TO_KEYCODE_MAP[keysym])
         elif char == '\r':
             self.pressKey('ENTER')
