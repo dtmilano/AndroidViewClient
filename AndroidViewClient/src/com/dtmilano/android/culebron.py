@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.1.1'
+__version__ = '8.2.0'
 
 import sys
 
@@ -45,9 +45,17 @@ DEBUG_POINT = DEBUG and True
 DEBUG_KEY = DEBUG and True
 
 
+class Color:
+    GOLD = '#d19615'
+    GREEN = '#15d137'
+    BLUE = '#1551d1'
+    MAGENTA = '#d115af'
+
 class Operation:
     ASSIGN = 'assign'
     DUMP = 'dump'
+    TEST = 'test'
+    TEST_TEXT = 'test_text'
     TOUCH = 'touch'
     TYPE = 'type'
     PRESS = 'press'
@@ -68,6 +76,7 @@ class Culebron:
     vignetteId = None
     areTargetsMarked = False
     isGrabbing = False
+    isGeneratingTestCondition = False
     
     @staticmethod
     def checkDependencies():
@@ -116,18 +125,38 @@ class Culebron:
         self.hideVignette()
         
     def createMessageArea(self, width, height):
-        font = tkFont.Font(family='Helvetica',size=14)
-        self.message = Tkinter.Label(self.window, text='message', background='#85f29d', font=font, anchor=Tkinter.W)
-        self.message.configure(width=width, height=100)
-        self.messageAreaId = self.canvas.create_window(0, 100, anchor=Tkinter.NW, window=self.message)
+        self.__message = Tkinter.Label(self.window, text='sample message', background=Color.GREEN, font=('Helvetica', 16), anchor=Tkinter.W)
+        self.__message.configure(width=width)
+        self.__messageAreaId = self.canvas.create_window(0, 0, anchor=Tkinter.NW, window=self.__message)
+        self.canvas.itemconfig(self.__messageAreaId, state='hidden')
+        self.isMessageAreaVisible = False
         
     def showMessageArea(self):
-        if self.messageAreaId:
-            self.canvas.lift(self.messageAreaId)
+        if self.__messageAreaId:
+            self.canvas.itemconfig(self.__messageAreaId, state='normal')
+            self.isMessageAreaVisible = True
             self.canvas.update_idletasks()
     
+    def hideMessageArea(self):
+        if self.__messageAreaId and self.isMessageAreaVisible:
+            self.canvas.itemconfig(self.__messageAreaId, state='hidden')
+            self.isMessageAreaVisible = False
+            self.canvas.update_idletasks()
+
+    def toggleMessageArea(self):
+        if self.isMessageAreaVisible:
+            self.hideMessageArea()
+        else:
+            self.showMessageArea()
+
+    def message(self, text, background=None):
+        self.__message.config(text=text)
+        if background:
+            self.__message.config(background=background)
+        self.showMessageArea()
+
     def createVignette(self, width, height):
-        self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill='#f285db',
+        self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
             stipple='gray50')
         font = tkFont.Font(family='Helvetica',size=144)
         self.waitMessageShadowId = self.canvas.create_text(width/2+2, height/2+2, text="Please\nwait...",
@@ -176,6 +205,22 @@ class Culebron:
                 #print v
                 pass
     
+    def getViewContainingPointAndGenerateTestCondition(self, x, y):
+        if DEBUG:
+            print >> sys.stderr, 'getViewContainingPointAndGenerateTestCondition(%d, %d)' % (x, y)
+        self.finishGeneratingTestCondition()
+        vlist = self.vc.findViewsContainingPoint((x, y))
+        vlist.reverse()
+        found = False
+        for v in vlist:
+            text = v.getText()
+            if text:
+                # FIXME: only getText() is invoked by the generated assert(), a parameter
+                # should be used to provide different alternatives to printOperation()
+                self.printOperation(v, Operation.TEST, text)
+                break
+                
+
     def getViewContainingPointAndTouch(self, x, y):
         if DEBUG:
             print >> sys.stderr, 'getViewContainingPointAndTouch(%d, %d)' % (x, y)
@@ -231,7 +276,10 @@ class Culebron:
 
     
     def button1Pressed(self, event):
-        self.getViewContainingPointAndTouch(event.x, event.y)
+        if self.isGeneratingTestCondition:
+            self.getViewContainingPointAndGenerateTestCondition(event.x, event.y)
+        else:
+            self.getViewContainingPointAndTouch(event.x, event.y)
         
     def pressKey(self, keycode):
         self.device.press(keycode)
@@ -241,6 +289,7 @@ class Culebron:
         if DEBUG_KEY:
             print >> sys.stderr, "keyPressed(", repr(event), ")"
             print >> sys.stderr, "    event", type(event.char), len(event.char), repr(event.char), event.keysym, event.keycode, event.type
+            print >> sys.stderr, "    is ctrlU?", (event.char == '\x15')
         if self.areEventsDisabled:
             if DEBUG:
                 print >> sys.stderr, "ignoring event"
@@ -259,6 +308,9 @@ class Culebron:
         ###
         ### internal commands: no output to generated script
         ###
+        if char == '\x01':
+            self.ctrlA(event)
+            return
         if char == '\x04':
             self.ctrlD(event)
             return
@@ -303,11 +355,28 @@ class Culebron:
         self.takeScreenshotAndShowItOnWindow()
 
     
-    def ctrlS(self):
+    def ctrlA(self, event):
+        self.toggleMessageArea()
+        pass
+
+    def ctrlS(self, event):
         pass
     
-    def ctrlT(self):
-        pass
+    def startGeneratingTestCondition(self):
+        self.message('Generating test condition...', background=Color.GOLD)
+        self.isGeneratingTestCondition = True
+
+    def finishGeneratingTestCondition(self):
+        self.isGeneratingTestCondition = False
+        self.hideMessageArea()
+
+    def ctrlT(self, event):
+        if DEBUG:
+            print >>sys.stderr, "ctrlT()"
+        if self.isGeneratingTestCondition:
+            self.finishGeneratingTestCondition(self)
+        else:
+            self.startGeneratingTestCondition()
     
     def ctrlU(self):
         if DEBUG:
