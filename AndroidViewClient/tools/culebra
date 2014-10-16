@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.2.0'
+__version__ = '8.2.4'
 
 import re
 import sys
@@ -309,7 +309,7 @@ You have to set PYTHONIOENCODING environment variable. For example:
         elif op == Operation.TYPE:
             print '%s%svc.findViewWithTextOrRaise("%s").type(u"%s")' % (indent, prefix, text, arg)
         elif op == Operation.TEST:
-            print '%s%sassertIsNotNone(%svc.findViewWithText(u"%s"))' % (indent, prefix, prefix, text)
+            print '%s%sassertIsNotNone(%svc.findViewWithText(%s))' % (indent, prefix, prefix, text)
     elif kwargs1[VERBOSE]:
         warnings.warn('View with id=%s has no text' % view.getUniqueId())
 

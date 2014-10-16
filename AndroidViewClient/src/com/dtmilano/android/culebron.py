@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.2.2'
+__version__ = '8.2.4'
 
 import sys
 
@@ -38,7 +38,7 @@ except:
 
 from ast import literal_eval as make_tuple
 
-DEBUG = False
+DEBUG = True
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and True
@@ -73,6 +73,10 @@ class Culebron:
         'Down': 'DPAD_DOWN',
          }
      
+    KEYSYM_CULEBRON_COMMANDS = {
+        'F5': None
+        }
+
     canvas = None
     imageId = None
     vignetteId = None
@@ -101,12 +105,16 @@ class Culebron:
         self.printOperation = printOperation
         self.device = vc.device
         self.serialno = vc.serialno
+        self.scale = 2
         self.window = Tkinter.Tk()
 
     def takeScreenshotAndShowItOnWindow(self):
         image = self.device.takeSnapshot(reconnect=True)
         # FIXME: allow scaling
         (width, height) = image.size
+        if self.scale != 1:
+            image = image.resize((width/self.scale, height/self.scale), Image.ANTIALIAS)
+            (width, height) = image.size
         if self.canvas is None:
             if DEBUG:
                 print >> sys.stderr, "Creating canvas", width, 'x', height
@@ -160,7 +168,7 @@ class Culebron:
     def createVignette(self, width, height):
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
             stipple='gray50')
-        font = tkFont.Font(family='Helvetica',size=144)
+        font = tkFont.Font(family='Helvetica',size=144/self.scale)
         self.waitMessageShadowId = self.canvas.create_text(width/2+2, height/2+2, text="Please\nwait...",
             fill=Color.DARK_GRAY, font=font)
         self.waitMessageId = self.canvas.create_text(width/2, height/2, text="Please\nwait...",
@@ -277,10 +285,11 @@ class Culebron:
 
     
     def button1Pressed(self, event):
+        (scaledX, scaledY) = (event.x*self.scale, event.y*self.scale)
         if self.isGeneratingTestCondition:
-            self.getViewContainingPointAndGenerateTestCondition(event.x, event.y)
+            self.getViewContainingPointAndGenerateTestCondition(scaledX, scaledY)
         else:
-            self.getViewContainingPointAndTouch(event.x, event.y)
+            self.getViewContainingPointAndTouch(scaledX, scaledY)
         
     def pressKey(self, keycode):
         self.device.press(keycode)
@@ -300,7 +309,7 @@ class Culebron:
         char = event.char
         keysym = event.keysym
 
-        if len(char) == 0 and keysym not in Culebron.KEYSYM_TO_KEYCODE_MAP:
+        if len(char) == 0 and not (keysym in Culebron.KEYSYM_TO_KEYCODE_MAP or keysym in Culebron.KEYSYM_CULEBRON_COMMANDS):
             if DEBUG_KEY:
                 print >> sys.stderr, "returning because len(char) == 0"
             return
@@ -363,6 +372,9 @@ class Culebron:
     
     def ctrlA(self, event):
         self.toggleMessageArea()
+        pass
+
+    def ctrlD(self, event):
         pass
 
     def ctrlQ(self, event):
