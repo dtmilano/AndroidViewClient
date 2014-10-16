@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.2.0'
+__version__ = '8.2.1'
 
 import sys
 
@@ -38,7 +38,7 @@ except:
 
 from ast import literal_eval as make_tuple
 
-DEBUG = True
+DEBUG = False
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and True
@@ -50,6 +50,8 @@ class Color:
     GREEN = '#15d137'
     BLUE = '#1551d1'
     MAGENTA = '#d115af'
+    DARK_GRAY = '#222222'
+    LIGHT_GRAY = '#dddddd'
 
 class Operation:
     ASSIGN = 'assign'
@@ -125,7 +127,7 @@ class Culebron:
         self.hideVignette()
         
     def createMessageArea(self, width, height):
-        self.__message = Tkinter.Label(self.window, text='sample message', background=Color.GREEN, font=('Helvetica', 16), anchor=Tkinter.W)
+        self.__message = Tkinter.Label(self.window, text='', background=Color.GREEN, font=('Helvetica', 16), anchor=Tkinter.W)
         self.__message.configure(width=width)
         self.__messageAreaId = self.canvas.create_window(0, 0, anchor=Tkinter.NW, window=self.__message)
         self.canvas.itemconfig(self.__messageAreaId, state='hidden')
@@ -160,9 +162,9 @@ class Culebron:
             stipple='gray50')
         font = tkFont.Font(family='Helvetica',size=144)
         self.waitMessageShadowId = self.canvas.create_text(width/2+2, height/2+2, text="Please\nwait...",
-            fill='#222222', font=font)
+            fill=Color.DARK_GRAY, font=font)
         self.waitMessageId = self.canvas.create_text(width/2, height/2, text="Please\nwait...",
-            fill='#dddddd', font=font)
+            fill=Color.LIGHT_GRAY, font=font)
     
     def showVignette(self):
         if self.vignetteId:
@@ -211,7 +213,6 @@ class Culebron:
         self.finishGeneratingTestCondition()
         vlist = self.vc.findViewsContainingPoint((x, y))
         vlist.reverse()
-        found = False
         for v in vlist:
             text = v.getText()
             if text:
@@ -249,7 +250,7 @@ class Culebron:
             if self.isClickableCheckableOrFocusable(v):
                 if DEBUG_TOUCH:
                     print >> sys.stderr
-                    print >> sys.stderr, "i guess you are trying to touch:", v
+                    print >> sys.stderr, "I guess you are trying to touch:", v
                     print >> sys.stderr
                 found = True
                 break
@@ -307,12 +308,16 @@ class Culebron:
         ###
         ### internal commands: no output to generated script
         ###
+        # FIXME: use a map
         if char == '\x01':
             self.ctrlA(event)
             return
-        if char == '\x04':
+        elif char == '\x04':
             self.ctrlD(event)
             return
+        elif char == '\x11':
+            self.ctrlQ(event)
+            return 
         elif char == '\x13':
             self.ctrlS(event)
             return
@@ -360,6 +365,9 @@ class Culebron:
         self.toggleMessageArea()
         pass
 
+    def ctrlQ(self, event):
+        self.window.quit()
+        
     def ctrlS(self, event):
         pass
     

@@ -425,6 +425,8 @@ def traverseAndPrint(view):
 
 def printOperation(view, op, *args):
     if len(args) == 0:
+        # We use tuple values in the rest of this method, so if an empty tuple was passed
+        # replace it by one containing None
         args = ( None, )
     if DEBUG:
         print >> sys.stderr, "printOperation(",
@@ -447,8 +449,6 @@ def printOperation(view, op, *args):
         return
     
     bd = findBestDescriptor(view)
-    if DEBUG:
-        print >> sys.stderr, "$$$$$ bd=", bd
     if bd == CONTENT_DESCRIPTION:
         printFindViewWithContentDescription(view, options[USE_REGEXPS], op, args[0])
     elif bd == TEXT:
