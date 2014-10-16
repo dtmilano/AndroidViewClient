@@ -113,7 +113,7 @@ class Culebron:
         # FIXME: allow scaling
         (width, height) = image.size
         if self.scale != 1:
-            image = image.resize((width*self.scale, height*self.scale), Image.ANTIALIAS)
+            image = image.resize((int(width*self.scale), int(height*self.scale)), Image.ANTIALIAS)
             (width, height) = image.size
         if self.canvas is None:
             if DEBUG:
@@ -173,7 +173,7 @@ class Culebron:
     def createVignette(self, width, height):
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
             stipple='gray50')
-        font = tkFont.Font(family='Helvetica',size=144*self.scale)
+        font = tkFont.Font(family='Helvetica',size=int(144*self.scale))
         self.waitMessageShadowId = self.canvas.create_text(width/2+2, height/2+2, text="Please\nwait...",
             fill=Color.DARK_GRAY, font=font)
         self.waitMessageId = self.canvas.create_text(width/2, height/2, text="Please\nwait...",
