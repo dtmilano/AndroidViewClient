@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.2.1'
+__version__ = '8.2.2'
 
 import sys
 
@@ -383,7 +383,7 @@ class Culebron:
         if DEBUG:
             print >>sys.stderr, "ctrlT()"
         if self.isGeneratingTestCondition:
-            self.finishGeneratingTestCondition(self)
+            self.finishGeneratingTestCondition()
         else:
             self.startGeneratingTestCondition()
     
