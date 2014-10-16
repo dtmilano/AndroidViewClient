@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.2.4'
+__version__ = '8.3.0'
 
 import sys
 
@@ -91,7 +91,7 @@ class Culebron:
         if not TKINTER_AVAILABLE:
             raise Exception("Tkinter is needed for GUI mode")
 
-    def __init__(self, vc, printOperation):
+    def __init__(self, vc, printOperation, scale=1):
         '''
         Culebron constructor.
         
@@ -105,7 +105,7 @@ class Culebron:
         self.printOperation = printOperation
         self.device = vc.device
         self.serialno = vc.serialno
-        self.scale = 2
+        self.scale = scale
         self.window = Tkinter.Tk()
 
     def takeScreenshotAndShowItOnWindow(self):
@@ -113,7 +113,7 @@ class Culebron:
         # FIXME: allow scaling
         (width, height) = image.size
         if self.scale != 1:
-            image = image.resize((width/self.scale, height/self.scale), Image.ANTIALIAS)
+            image = image.resize((width*self.scale, height*self.scale), Image.ANTIALIAS)
             (width, height) = image.size
         if self.canvas is None:
             if DEBUG:
@@ -165,10 +165,15 @@ class Culebron:
             self.__message.config(background=background)
         self.showMessageArea()
 
+    def toast(self, text, background=None):
+        self.message(text, background)
+        t = Timer(10, self.hideMessageArea())
+        t.start()
+
     def createVignette(self, width, height):
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
             stipple='gray50')
-        font = tkFont.Font(family='Helvetica',size=144/self.scale)
+        font = tkFont.Font(family='Helvetica',size=144*self.scale)
         self.waitMessageShadowId = self.canvas.create_text(width/2+2, height/2+2, text="Please\nwait...",
             fill=Color.DARK_GRAY, font=font)
         self.waitMessageId = self.canvas.create_text(width/2, height/2, text="Please\nwait...",

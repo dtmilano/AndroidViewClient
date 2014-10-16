@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.2.4'
+__version__ = '8.3.0'
 
 import re
 import sys
@@ -67,10 +67,11 @@ APPEND_TO_SYS_PATH = 'append-to-sys-path'
 SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
 GUI = 'gui'
+SCALE = 'scale'
 DO_NOT_VERIFY_INITIAL_SCREEN_DUMP = 'do-not-verify-initial-screen-dump'
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:Gu'
+SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:GuP:'
 LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -82,14 +83,17 @@ LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK,
               OUTPUT + '=', INTERACTIVE, APPEND_TO_SYS_PATH,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
               GUI,
-              DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]
+              DO_NOT_VERIFY_INITIAL_SCREEN_DUMP,
+              SCALE + '=',
+              ]
 LONG_OPTS_ARG = {WINDOW: 'WINDOW',
                   FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
                   USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', DICTIONARY_KEYS_FROM: 'VALUE', AUTO_REGEXPS: 'LIST',
                   START_ACTIVITY: 'COMPONENT',
                   OUTPUT: 'FILENAME',
                   SAVE_SCREENSHOT: 'FILENAME', SAVE_VIEW_SCREENSHOTS: 'DIR',
-                  UNIT_TEST_METHOD: 'NAME'}
+                  UNIT_TEST_METHOD: 'NAME',
+                  SCALE: 'INT'}
 OPTS_HELP = {
     'H': 'prints this help',
     'V': 'verbose comments',
@@ -110,10 +114,11 @@ OPTS_HELP = {
     'A': 'interactive',
     'p': 'append environment variables values to sys.path',
     's': 'save screenshot to file',
-    'u': 'do not verify initial screen dump state',
     'W': 'save View screenshots to files in directory',
     'E': 'ignores ADB version check',
     'G': 'presents the GUI (EXPERIMENTAL)',
+    'P': 'scale percentage (i.e. 0.5)',
+    'u': 'do not verify initial screen dump state',
     }
 
 CONTENT_DESCRIPTION = 'content-description'
@@ -522,7 +527,7 @@ except:
 
 def runCulebron():
     Culebron.checkDependencies()
-    culebron = Culebron(vc, printOperation)
+    culebron = Culebron(vc, printOperation, options[SCALE])
     culebron.takeScreenshotAndShowItOnWindow()
     culebron.mainloop()
     
@@ -547,7 +552,8 @@ options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_
         WINDOW:-1, APPEND_TO_SYS_PATH: False,
         SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None,
         GUI: False,
-        DO_NOT_VERIFY_INITIAL_SCREEN_DUMP: False}
+        DO_NOT_VERIFY_INITIAL_SCREEN_DUMP: False,
+        SCALE: 1}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -621,6 +627,8 @@ for o, a in optlist:
         options[GUI] = True
     elif o in ['u', DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
         options[DO_NOT_VERIFY_INITIAL_SCREEN_DUMP] = True
+    elif o in ['P', SCALE]:
+        options[SCALE] = float(a)
 
 if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT] or options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[VERBOSE_COMMENTS]:
