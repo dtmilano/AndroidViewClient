@@ -21,6 +21,8 @@ limitations under the License.
 __version__ = '8.3.0'
 
 import sys
+import threading
+import warnings
 
 try:
     from PIL import Image, ImageTk
@@ -55,6 +57,7 @@ class Color:
 
 class Operation:
     ASSIGN = 'assign'
+    DRAG = 'drag'
     DUMP = 'dump'
     TEST = 'test'
     TEST_TEXT = 'test_text'
@@ -135,7 +138,7 @@ class Culebron:
         self.hideVignette()
         
     def createMessageArea(self, width, height):
-        self.__message = Tkinter.Label(self.window, text='', background=Color.GREEN, font=('Helvetica', 16), anchor=Tkinter.W)
+        self.__message = Tkinter.Label(self.window, text='', background=Color.GOLD, font=('Helvetica', 16), anchor=Tkinter.W)
         self.__message.configure(width=width)
         self.__messageAreaId = self.canvas.create_window(0, 0, anchor=Tkinter.NW, window=self.__message)
         self.canvas.itemconfig(self.__messageAreaId, state='hidden')
@@ -167,16 +170,17 @@ class Culebron:
 
     def toast(self, text, background=None):
         self.message(text, background)
-        t = Timer(10, self.hideMessageArea())
+        t = threading.Timer(5, self.hideMessageArea)
         t.start()
 
     def createVignette(self, width, height):
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
             stipple='gray50')
         font = tkFont.Font(family='Helvetica',size=int(144*self.scale))
-        self.waitMessageShadowId = self.canvas.create_text(width/2+2, height/2+2, text="Please\nwait...",
+        msg = "Please\nwait..."
+        self.waitMessageShadowId = self.canvas.create_text(width/2+2, height/2+2, text=msg,
             fill=Color.DARK_GRAY, font=font)
-        self.waitMessageId = self.canvas.create_text(width/2, height/2, text="Please\nwait...",
+        self.waitMessageId = self.canvas.create_text(width/2, height/2, text=msg,
             fill=Color.LIGHT_GRAY, font=font)
     
     def showVignette(self):
@@ -268,14 +272,16 @@ class Culebron:
                 found = True
                 break
         if not found:
-            print >> sys.stderr, "there are not clickable views here!"
             self.hideVignette()
+            msg = "There are not clickable views here!"
+            print >> sys.stderr, msg
+            self.toast(msg)
             return
         clazz = v.getClass()
         if clazz == 'android.widget.EditText':
             if DEBUG:
                 print >>sys.stderr, v
-            text = tkSimpleDialog.askstring("EditText", "enter text to type into this EditText")
+            text = tkSimpleDialog.askstring("EditText", "Enter text to type into this EditText")
             self.canvas.focus_set()
             if text:
                 v.type(text)
@@ -289,23 +295,32 @@ class Culebron:
         self.takeScreenshotAndShowItOnWindow()
 
     
-    def button1Pressed(self, event):
-        (scaledX, scaledY) = (event.x*self.scale, event.y*self.scale)
+    def onButton1Pressed(self, event):
+        if DEBUG:
+            print >> sys.stderr, "onButton1Pressed((", event.x, ", ", event.y, "))"
+        (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
+        if DEBUG:
+            print >> sys.stderr, "    onButton1Pressed: scaled: (", scaledX, ", ", scaledY, ")"
         if self.isGeneratingTestCondition:
             self.getViewContainingPointAndGenerateTestCondition(scaledX, scaledY)
         else:
             self.getViewContainingPointAndTouch(scaledX, scaledY)
         
     def pressKey(self, keycode):
+        '''
+        Presses a key.
+        Generates the actual key press on the device and prints the line in the script.
+        '''
+        
         self.device.press(keycode)
         self.printOperation(None, Operation.PRESS, keycode)
             
-    def keyPressed(self, event):
+    def onKeyPressed(self, event):
         if DEBUG_KEY:
-            print >> sys.stderr, "keyPressed(", repr(event), ")"
+            print >> sys.stderr, "onKeyPressed(", repr(event), ")"
             print >> sys.stderr, "    event", type(event.char), len(event.char), repr(event.char), event.keysym, event.keycode, event.type
         if self.areEventsDisabled:
-            if DEBUG:
+            if DEBUG_KEY:
                 print >> sys.stderr, "ignoring event"
             self.canvas.update_idletasks()
             return
@@ -324,22 +339,25 @@ class Culebron:
         ###
         # FIXME: use a map
         if char == '\x01':
-            self.ctrlA(event)
+            self.onCtrlA(event)
             return
         elif char == '\x04':
-            self.ctrlD(event)
+            self.onCtrlD(event)
             return
         elif char == '\x11':
-            self.ctrlQ(event)
+            self.onCtrlQ(event)
             return 
         elif char == '\x13':
-            self.ctrlS(event)
+            self.onCtrlS(event)
             return
         elif char == '\x14':
-            self.ctrlT(event)
+            self.onCtrlT(event)
             return
         elif char == '\x15':
-            self.ctrlU()
+            self.onCtrlU(event)
+            return
+        elif char == '\x1a':
+            self.onCtrlZ(event)
             return
         elif keysym == 'F5':
             self.showVignette()
@@ -375,46 +393,61 @@ class Culebron:
         self.takeScreenshotAndShowItOnWindow()
 
     
-    def ctrlA(self, event):
-        self.toggleMessageArea()
-        pass
+    def onCtrlA(self, event):
+        if DEBUG:
+            self.toggleMessageArea()
 
-    def ctrlD(self, event):
-        pass
+    def onCtrlD(self, event):
+        d = DragDialog(self)
+        self.window.wait_window(d.top)
 
-    def ctrlQ(self, event):
+    def onCtrlQ(self, event):
         self.window.quit()
         
-    def ctrlS(self, event):
-        pass
+    def onCtrlS(self, event):
+        self.printOperation(None, Operation.SLEEP, 1)
     
     def startGeneratingTestCondition(self):
-        self.message('Generating test condition...', background=Color.GOLD)
+        self.message('Generating test condition...', background=Color.GREEN)
         self.isGeneratingTestCondition = True
 
     def finishGeneratingTestCondition(self):
         self.isGeneratingTestCondition = False
         self.hideMessageArea()
 
-    def ctrlT(self, event):
+    def onCtrlT(self, event):
         if DEBUG:
-            print >>sys.stderr, "ctrlT()"
+            print >>sys.stderr, "onCtrlT()"
         if self.isGeneratingTestCondition:
             self.finishGeneratingTestCondition()
         else:
             self.startGeneratingTestCondition()
     
-    def ctrlU(self):
+    def onCtrlU(self, event):
         if DEBUG:
-            print >>sys.stderr, "ctrlU()"
+            print >>sys.stderr, "onCtrlU()"
         self.showMessageArea()
     
+    def onCtrlZ(self, event):
+        if DEBUG:
+            print >> sys.stderr, "onCtrlZ()"
+        self.toggleTargets()
+        self.canvas.update_idletasks()
+    
+    def drag(self, start, end, duration, steps):
+        self.showVignette()
+        self.device.drag(start, end, duration, steps)
+        self.printOperation(None, Operation.DRAG, start, end, duration, steps)
+        self.printOperation(None, Operation.SLEEP, 1)
+        self.vc.sleep(1)
+        self.takeScreenshotAndShowItOnWindow()
+        
     def enableEvents(self):
         self.canvas.update_idletasks()
-        self.canvas.bind("<Button-1>", self.button1Pressed)
-        self.canvas.bind("<BackSpace>", self.keyPressed)
-        #self.canvas.bind("<Control-Key-S>", self.ctrlS)
-        self.canvas.bind("<Key>", self.keyPressed)
+        self.canvas.bind("<Button-1>", self.onButton1Pressed)
+        self.canvas.bind("<BackSpace>", self.onKeyPressed)
+        #self.canvas.bind("<Control-Key-S>", self.onCtrlS)
+        self.canvas.bind("<Key>", self.onKeyPressed)
         self.areEventsDisabled = False
 
     def disableEvents(self):
@@ -425,6 +458,51 @@ class Culebron:
         #self.canvas.unbind("<Control-Key-S>")
         self.canvas.unbind("<Key>")
     
+    def toggleTargets(self):
+        if DEBUG:
+            print >> sys.stderr, "toggletargets: aretargetsmarked=", self.areTargetsMarked
+        if not self.areTargetsMarked:
+            self.markTargets()
+        else:
+            self.unmarkTargets()
+
+    def markTargets(self):
+        if DEBUG:
+            print >> sys.stderr, "marktargets: aretargetsmarked=", self.areTargetsMarked
+            print >> sys.stderr, "    marktargets: targets=", self.targets
+        colors = ["#ff00ff", "#ffff00", "#00ffff"]
+
+        self.targetIds = []
+        c = 0
+        for (x1, y1, x2, y2) in self.targets:
+            if DEBUG:
+                print "adding rectangle:", x1, y1, x2, y2
+            self.targetIds.append(self.canvas.create_rectangle(x1*self.scale, y1*self.scale, x2*self.scale, y2*self.scale, fill=colors[c%len(colors)], stipple="gray25"))
+            c += 1
+        self.areTargetsMarked = True
+
+    def unmarkTargets(self):
+        if not self.areTargetsMarked:
+            return
+        for t in self.targetIds:
+            self.canvas.delete(t)
+        self.areTargetsMarked = False
+
+    def setOnTouchListener(self, listener):
+        self.onTouchListener = listener
+
+    def setGrab(self, state):
+        if DEBUG:
+            print >> sys.stderr, "Culebron.setGrab(%s)" % state
+        if not self.onTouchListener:
+            warnings.warn('Starting to grab but no onTouchListener')
+        self.isGrabbing = state
+        if state:
+            self.message('Grabbing drag points...', background=Color.GREEN)
+        else:
+            self.hideMessageArea()
+
+
     @staticmethod
     def isClickableCheckableOrFocusable(v):
         try:
@@ -434,3 +512,105 @@ class Culebron:
     
     def mainloop(self):
         self.window.mainloop()
+
+class LabeledEntry():
+    def __init__(self, parent, text):
+        self.f = Tkinter.Frame(parent)
+        Tkinter.Label(self.f, text=text, anchor="w", padx=8).pack(fill="x")
+        self.entry = Tkinter.Entry(self.f, validate="focusout", validatecommand=self.focusout)
+        self.entry.pack(padx=5)
+
+    def pack(self, **kwargs):
+        self.f.pack(kwargs)
+
+    def focusout(self):
+        if DEBUG:
+            print >> sys.stderr, "FOCUSOUT"
+
+    def get(self):
+        return self.entry.get()
+
+    def set(self, text):
+        self.entry.delete(0, Tkinter.END)
+        self.entry.insert(0, text)
+        
+class LabeledEntryWithButton(LabeledEntry):
+    def __init__(self, parent, text, buttonText, command):
+        LabeledEntry.__init__(self, parent, text)
+        self.button = Tkinter.Button(self.f, text=buttonText, command=command)
+        self.button.pack(side="right")
+
+class DragDialog:
+    
+    def __init__(self, culebron):
+        self.culebron = culebron
+        parent = culebron.window
+        top = self.top = Tkinter.Toplevel(parent)
+
+        self.sp = LabeledEntryWithButton(top, "Start point", "Grab", command=self.onGrabSp)
+        self.sp.pack(pady=5)
+
+        self.ep = LabeledEntryWithButton(top, "End point", "Grab", command=self.onGrabEp)
+        self.ep.pack(pady=5)
+
+        self.d = LabeledEntry(top, "Duration")
+        self.d.set("1000")
+        self.d.pack(pady=5)
+
+        self.s = LabeledEntry(top, "Steps")
+        self.s.set("20")
+        self.s.pack(pady=5)
+
+        b = Tkinter.Button(top, text="OK", command=self.onOk)
+        b.pack(pady=5)
+
+    def onOk(self):
+        if DEBUG:
+            print >> sys.stderr, "values are:",
+            print >> sys.stderr, self.sp.get(),
+            print >> sys.stderr, self.ep.get(),
+            print >> sys.stderr, self.d.get(),
+            print >> sys.stderr, self.s.get()
+
+        sp = make_tuple(self.sp.get())
+        ep = make_tuple(self.ep.get())
+        d = int(self.d.get())
+        s = int(self.s.get())
+        self.top.destroy()
+        self.culebron.drag(sp, ep, d, s)
+
+    def onGrabSp(self):
+        '''
+        Grab starting point
+        '''
+        
+        self.sp.entry.focus_get()
+        self.onGrab(self.sp)
+
+    def onGrabEp(self):
+        '''
+        Grab ending point
+        '''
+
+        self.ep.entry.focus_get()
+        self.onGrab(self.ep)
+
+    def onGrab(self, entry):
+        '''
+        Generic grab method.
+        '''
+        
+        if DEBUG:
+            print >> sys.stderr, "GRAB"
+        self.culebron.setOnTouchListener(self.onTouchListener)
+        self.__grabbing = entry
+        self.culebron.setGrab(True)
+
+    def onTouchListener(self, point):
+        if DEBUG:
+            print >> sys.stderr, "TOUCHED", point
+        self.__grabbing.set("(%d,%d)" % (point[0], point[1]))
+        self.culebron.setGrab(False)
+        self.__grabbing = None
+        self.culebron.setOnTouchListener(None)
+

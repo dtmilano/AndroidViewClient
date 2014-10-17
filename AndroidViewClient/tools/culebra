@@ -396,6 +396,13 @@ def printPress(keycode):
     
     print '%s%svc.device.press("%s")' % (indent, prefix, keycode)
     
+def printDrag(start, end, duration, steps):
+    '''
+    Prints a drag
+    '''
+    
+    print '%s%svc.device.drag(%s, %s, %d, %d)' % (indent, prefix, start, end, duration, steps) 
+    
 def printSaveViewScreenshot(view, dir):
     '''
     Prints the writeImageToFile.
@@ -451,6 +458,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.DUMP:
         printDump(args[0])
+        return
+    elif op == Operation.DRAG:
+        printDrag(args[0], args[1], args[2], args[3])
         return
     
     bd = findBestDescriptor(view)
