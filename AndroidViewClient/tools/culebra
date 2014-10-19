@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.3.0'
+__version__ = '8.3.1'
 
 import re
 import sys
@@ -36,94 +36,32 @@ try:
 except:
     pass
 
-from com.dtmilano.android.viewclient import ViewClient, View
+from com.dtmilano.android.viewclient import ViewClient, View, CulebraOptions
 from com.dtmilano.android.culebron import Culebron, Operation
 
 DEBUG = False
-HELP = 'help'
-VERBOSE = 'verbose'
-VERSION = 'version'
-IGNORE_SECURE_DEVICE = 'ignore-secure-device'
-IGNORE_VERSION_CHECK = 'ignore-version-check'
-FORCE_VIEW_SERVER_USE = 'force-view-server-use'
-DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
-DO_NOT_IGNORE_UIAUTOMATOR_KILLED = 'do-not-ignore-uiautomator-killed'
-FIND_VIEWS_BY_ID = 'find-views-by-id'
-FIND_VIEWS_WITH_TEXT = 'find-views-with-text'
-FIND_VIEWS_WITH_CONTENT_DESCRIPTION = 'find-views-with-content-description'
-USE_REGEXPS = 'use-regexps'
-VERBOSE_COMMENTS = 'verbose-comments'
-UNIT_TEST_CLASS = 'unit-test-class'
-UNIT_TEST_METHOD = 'unit-test-method'
-USE_JAR = 'use-jar'
-USE_DICTIONARY = 'use-dictionary'
-DICTIONARY_KEYS_FROM = 'dictionary-keys-from'
-AUTO_REGEXPS = 'auto-regexps'
-START_ACTIVITY = 'start-activity'
-OUTPUT = 'output'
-INTERACTIVE = 'interactive'
-WINDOW = 'window'
-APPEND_TO_SYS_PATH = 'append-to-sys-path'
-SAVE_SCREENSHOT = 'save-screenshot'
-SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
-GUI = 'gui'
-SCALE = 'scale'
-DO_NOT_VERIFY_INITIAL_SCREEN_DUMP = 'do-not-verify-initial-screen-dump'
-
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:GuP:'
-LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
-              DO_NOT_START_VIEW_SERVER,
-              DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
-              WINDOW + '=',
-              FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
-              USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST_CLASS, UNIT_TEST_METHOD + '=',
-              USE_JAR + '=', USE_DICTIONARY + '=', DICTIONARY_KEYS_FROM + '=', AUTO_REGEXPS + '=',
-              START_ACTIVITY + '=',
-              OUTPUT + '=', INTERACTIVE, APPEND_TO_SYS_PATH,
-              SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
-              GUI,
-              DO_NOT_VERIFY_INITIAL_SCREEN_DUMP,
-              SCALE + '=',
-              ]
-LONG_OPTS_ARG = {WINDOW: 'WINDOW',
-                  FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
-                  USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', DICTIONARY_KEYS_FROM: 'VALUE', AUTO_REGEXPS: 'LIST',
-                  START_ACTIVITY: 'COMPONENT',
-                  OUTPUT: 'FILENAME',
-                  SAVE_SCREENSHOT: 'FILENAME', SAVE_VIEW_SCREENSHOTS: 'DIR',
-                  UNIT_TEST_METHOD: 'NAME',
-                  SCALE: 'INT'}
-OPTS_HELP = {
-    'H': 'prints this help',
-    'V': 'verbose comments',
-    'k': 'don\'t ignore UiAutomator killed',
-    'w': 'use WINDOW content (default: -1, all windows)',
-    'i': 'whether to use findViewById() in script',
-    't': 'whether to use findViewWithText() in script',
-    'd': 'whether to use findViewWithContentDescription',
-    'r': 'use regexps in matches',
-    'U': 'generates unit test class and script',
-    'M': 'generates unit test method. Can be used with or without -U',
-    'j': 'use jar and appropriate shebang to run script (deprecated)',
-    'D': 'use a dictionary to store the Views found',
-    'K': 'dictionary keys from: id, text, content-description',
-    'R': 'auto regexps (i.e. clock), implies -r. help list options',
-    'a': 'starts Activity before dump',
-    'o': 'output filename',
-    'A': 'interactive',
-    'p': 'append environment variables values to sys.path',
-    's': 'save screenshot to file',
-    'W': 'save View screenshots to files in directory',
-    'E': 'ignores ADB version check',
-    'G': 'presents the GUI (EXPERIMENTAL)',
-    'P': 'scale percentage (i.e. 0.5)',
-    'u': 'do not verify initial screen dump state',
-    }
 
-CONTENT_DESCRIPTION = 'content-description'
-TEXT = 'text'
-ID = 'id'
+class Descriptor:
+    CONTENT_DESCRIPTION = 'content-description'
+    TEXT = 'text'
+    ID = 'id'
+
+    @staticmethod
+    def findBestDescriptor(view):
+        '''
+        Finds the best possible descriptor for the View
+        '''
+        
+        cd = view.getContentDescription()
+        if cd and options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
+            return Descriptor.CONTENT_DESCRIPTION
+        else:
+            t = view.getText()
+            if t and options[CulebraOptions.FIND_VIEWS_WITH_TEXT]:
+                return Descriptor.TEXT
+        return Descriptor.ID
+    
 
 def fillAutoRegexpsRes():
     are = {}
@@ -143,7 +81,7 @@ def fillAutoRegexpsRes():
     are['battery'] = re.compile('Charging, \d\d%')
     return are
 
-AUTO_REGEXPS_RES = fillAutoRegexpsRes()
+CulebraOptions.AUTO_REGEXPS_RES = fillAutoRegexpsRes()
 SB_NO_JAR = 'no-jar'
 SB_JAR = 'jar'
 SB_JAR_LINUX = 'jar-linux'
@@ -161,10 +99,10 @@ def shortAndLongOptions():
     @return: the list of corresponding (short-option, long-option) tuples
     '''
 
-    short_opts = SHORT_OPTS.replace(':', '')
-    if len(short_opts) != len(LONG_OPTS):
+    short_opts = CulebraOptions.SHORT_OPTS.replace(':', '')
+    if len(short_opts) != len(CulebraOptions.LONG_OPTS):
         raise Exception('There is a mismatch between short and long options')
-    t = tuple(short_opts) + tuple(LONG_OPTS)
+    t = tuple(short_opts) + tuple(CulebraOptions.LONG_OPTS)
     l2 = len(t) / 2
     sl = []
     for i in range(l2):
@@ -183,9 +121,9 @@ def help():
     for so, lo in shortAndLongOptions():
         o = '  -%c, --%s' % (so, lo)
         if lo[-1] == '=':
-            o += LONG_OPTS_ARG[lo[:-1]]
+            o += CulebraOptions.LONG_OPTS_ARG[lo[:-1]]
         try:
-            o = '%-34s %-45s' % (o, OPTS_HELP[so])
+            o = '%-34s %-45s' % (o, CulebraOptions.OPTS_HELP[so])
         except:
             pass
         print >> sys.stderr, o
@@ -196,11 +134,11 @@ def version():
     sys.exit(0)
 
 def autoRegexpsHelp():
-    print >> sys.stderr, "Available %s options:" % AUTO_REGEXPS
+    print >> sys.stderr, "Available %s options:" % CulebraOptions.AUTO_REGEXPS
     print >> sys.stderr, "\thelp: prints this help"
     print >> sys.stderr, "\tall: includes all the available regexps"
-    for r in AUTO_REGEXPS_RES:
-        print >> sys.stderr, "\t%s: %s" % (r, AUTO_REGEXPS_RES[r].pattern)
+    for r in CulebraOptions.AUTO_REGEXPS_RES:
+        print >> sys.stderr, "\t%s: %s" % (r, CulebraOptions.AUTO_REGEXPS_RES[r].pattern)
     print >> sys.stderr
     sys.exit(0)
 
@@ -248,8 +186,8 @@ def variableNameFromIdOrKey(view):
     '''
 
     var = view.variableNameFromId()
-    if options[USE_DICTIONARY]:
-        return 'views[\'%s\']' % notNull(dictionaryKeyFrom(options[DICTIONARY_KEYS_FROM], view), var)
+    if options[CulebraOptions.USE_DICTIONARY]:
+        return 'views[\'%s\']' % notNull(dictionaryKeyFrom(options[CulebraOptions.DICTIONARY_KEYS_FROM], view), var)
     else:
         return var
 
@@ -263,16 +201,6 @@ def dictionaryKeyFrom(key, view):
     else:
         raise Exception('Not a valid dictionary key: %s' % key)
 
-def findBestDescriptor(view):
-    cd = view.getContentDescription()
-    if cd and options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
-        return CONTENT_DESCRIPTION
-    else:
-        t = view.getText()
-        if t and options[FIND_VIEWS_WITH_TEXT]:
-            return TEXT
-    return ID
-    
 def printFindViewWithText(view, useregexp, op=Operation.ASSIGN, arg=None):
     '''
     Prints the corresponding statement.
@@ -297,9 +225,9 @@ You have to set PYTHONIOENCODING environment variable. For example:
             # 2 quotes + 1 quote = 3 quotes
             text = "''%s''" % text
         if useregexp:
-            if options[AUTO_REGEXPS]:
-                for r in options[AUTO_REGEXPS]:
-                    autoRegexp = AUTO_REGEXPS_RES[r]
+            if options[CulebraOptions.AUTO_REGEXPS]:
+                for r in options[CulebraOptions.AUTO_REGEXPS]:
+                    autoRegexp = CulebraOptions.AUTO_REGEXPS_RES[r]
                     if autoRegexp.match(text):
                         text = autoRegexp.pattern
                         break
@@ -315,7 +243,7 @@ You have to set PYTHONIOENCODING environment variable. For example:
             print '%s%svc.findViewWithTextOrRaise("%s").type(u"%s")' % (indent, prefix, text, arg)
         elif op == Operation.TEST:
             print '%s%sassertIsNotNone(%svc.findViewWithText(%s))' % (indent, prefix, prefix, text)
-    elif kwargs1[VERBOSE]:
+    elif kwargs1[CulebraOptions.VERBOSE]:
         warnings.warn('View with id=%s has no text' % view.getUniqueId())
 
 def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, arg=None):
@@ -330,9 +258,9 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
     if contentDescription:
         var = variableNameFromIdOrKey(view)
         if useregexp:
-            if options[AUTO_REGEXPS]:
-                for r in options[AUTO_REGEXPS]:
-                    autoRegexp = AUTO_REGEXPS_RES[r]
+            if options[CulebraOptions.AUTO_REGEXPS]:
+                for r in options[CulebraOptions.AUTO_REGEXPS]:
+                    autoRegexp = CulebraOptions.AUTO_REGEXPS_RES[r]
                     if autoRegexp.match(contentDescription):
                         contentDescription = autoRegexp.pattern
                         break
@@ -351,7 +279,7 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
         else:
             error("Invalid operation: %s" % op)
             
-    elif kwargs1[VERBOSE]:
+    elif kwargs1[CulebraOptions.VERBOSE]:
         warnings.warn('View with id=%s has no content-description' % view.getUniqueId())
 
 def printFindViewById(view, op=Operation.ASSIGN, arg=None):
@@ -424,16 +352,16 @@ def traverseAndPrint(view):
     @param view: the View
     '''
 
-    if options[VERBOSE_COMMENTS]:
+    if options[CulebraOptions.VERBOSE_COMMENTS]:
         printVerboseComments(view)
-    if options[FIND_VIEWS_BY_ID]:
+    if options[CulebraOptions.FIND_VIEWS_BY_ID]:
         printFindViewById(view)
-    if options[FIND_VIEWS_WITH_TEXT]:
-        printFindViewWithText(view, options[USE_REGEXPS])
-    if options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
-        printFindViewWithContentDescription(view, options[USE_REGEXPS])
-    if options[SAVE_VIEW_SCREENSHOTS]:
-        printSaveViewScreenshot(view, options[SAVE_VIEW_SCREENSHOTS])
+    if options[CulebraOptions.FIND_VIEWS_WITH_TEXT]:
+        printFindViewWithText(view, options[CulebraOptions.USE_REGEXPS])
+    if options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
+        printFindViewWithContentDescription(view, options[CulebraOptions.USE_REGEXPS])
+    if options[CulebraOptions.SAVE_VIEW_SCREENSHOTS]:
+        printSaveViewScreenshot(view, options[CulebraOptions.SAVE_VIEW_SCREENSHOTS])
 
 def printOperation(view, op, *args):
     if len(args) == 0:
@@ -463,11 +391,11 @@ def printOperation(view, op, *args):
         printDrag(args[0], args[1], args[2], args[3])
         return
     
-    bd = findBestDescriptor(view)
-    if bd == CONTENT_DESCRIPTION:
-        printFindViewWithContentDescription(view, options[USE_REGEXPS], op, args[0])
-    elif bd == TEXT:
-        printFindViewWithText(view, options[USE_REGEXPS], op, args[0])
+    bd = Descriptor.findBestDescriptor(view)
+    if bd == Descriptor.CONTENT_DESCRIPTION:
+        printFindViewWithContentDescription(view, options[CulebraOptions.USE_REGEXPS], op, args[0])
+    elif bd == Descriptor.TEXT:
+        printFindViewWithText(view, options[CulebraOptions.USE_REGEXPS], op, args[0])
     else:
         printFindViewById(view, op, args[0])
         
@@ -486,7 +414,7 @@ def value2dictionaryKey(v):
     usage()
 
 def getShebangJar():
-    if options[USE_JAR]:
+    if options[CulebraOptions.USE_JAR]:
         import java
         osName = java.lang.System.getProperty('os.name')
         if osName == 'Linux':
@@ -497,13 +425,13 @@ def getShebangJar():
         return SHEBANG[SB_NO_JAR]
 
 def getWindowOption():
-    return options[WINDOW] if isinstance(options[WINDOW], str) and options[WINDOW][0] in '-0123456789' else "'%s'" % options[WINDOW]
+    return options[CulebraOptions.WINDOW] if isinstance(options[CulebraOptions.WINDOW], str) and options[CulebraOptions.WINDOW][0] in '-0123456789' else "'%s'" % options[CulebraOptions.WINDOW]
 
 def printScriptHeader():
     print '''%s
 # -*- coding: utf-8 -*-
 \'\'\'
-Copyright (C) 2013  Diego Torres Milano
+Copyright (C) 2013-2014  Diego Torres Milano
 Created on %s by Culebra v%s
                       __    __    __    __
                      /  \  /  \  /  \  /  \ 
@@ -537,7 +465,7 @@ except:
 
 def runCulebron():
     Culebron.checkDependencies()
-    culebron = Culebron(vc, printOperation, options[SCALE])
+    culebron = Culebron(vc, printOperation, options[CulebraOptions.SCALE])
     culebron.takeScreenshotAndShowItOnWindow()
     culebron.mainloop()
     
@@ -546,224 +474,206 @@ def runCulebron():
 ################
 progname = os.path.basename(sys.argv[0])
 try:
-    optlist, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
+    optlist, args = getopt.getopt(sys.argv[1:], CulebraOptions.SHORT_OPTS, CulebraOptions.LONG_OPTS)
     sys.argv[1:] = args
 except getopt.GetoptError, e:
     error(str(e))
     usage()
 
-kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
+kwargs1 = {CulebraOptions.VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
-options = {FIND_VIEWS_BY_ID: True, FIND_VIEWS_WITH_TEXT: False, FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
-        USE_REGEXPS: False, VERBOSE_COMMENTS: False,
-        UNIT_TEST_CLASS: False, UNIT_TEST_METHOD: None, USE_JAR: False,
-        USE_DICTIONARY: False, DICTIONARY_KEYS_FROM: 'id',
-        AUTO_REGEXPS: None, START_ACTIVITY: None, OUTPUT: None, INTERACTIVE: False,
-        WINDOW:-1, APPEND_TO_SYS_PATH: False,
-        SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None,
-        GUI: False,
-        DO_NOT_VERIFY_INITIAL_SCREEN_DUMP: False,
-        SCALE: 1}
+options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH_TEXT: False, CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
+        CulebraOptions.USE_REGEXPS: False, CulebraOptions.VERBOSE_COMMENTS: False,
+        CulebraOptions.UNIT_TEST_CLASS: False, CulebraOptions.UNIT_TEST_METHOD: None, CulebraOptions.USE_JAR: False,
+        CulebraOptions.USE_DICTIONARY: False, CulebraOptions.DICTIONARY_KEYS_FROM: 'id',
+        CulebraOptions.AUTO_REGEXPS: None, CulebraOptions.START_ACTIVITY: None, CulebraOptions.OUTPUT: None, CulebraOptions.INTERACTIVE: False,
+        CulebraOptions.WINDOW:-1, CulebraOptions.APPEND_TO_SYS_PATH: False,
+        CulebraOptions.SAVE_SCREENSHOT: None, CulebraOptions.SAVE_VIEW_SCREENSHOTS: None,
+        CulebraOptions.GUI: False,
+        CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP: False,
+        CulebraOptions.SCALE: 1}
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
-    if o in ['H', HELP]:
+    if o in ['H', CulebraOptions.HELP]:
         help()
-    elif o in ['V', VERBOSE]:
-        kwargs1[VERBOSE] = True
-    elif o in ['v', VERSION]:
+    elif o in ['V', CulebraOptions.VERBOSE]:
+        kwargs1[CulebraOptions.VERBOSE] = True
+    elif o in ['v', CulebraOptions.VERSION]:
         version()
-    elif o in ['I', IGNORE_SECURE_DEVICE]:
+    elif o in ['I', CulebraOptions.IGNORE_SECURE_DEVICE]:
         kwargs1['ignoresecuredevice'] = True
-    elif o in ['K', IGNORE_VERSION_CHECK]:
+    elif o in ['K', CulebraOptions.IGNORE_VERSION_CHECK]:
         kwargs1['ignoreversioncheck'] = True
-    elif o in ['F', FORCE_VIEW_SERVER_USE]:
+    elif o in ['F', CulebraOptions.FORCE_VIEW_SERVER_USE]:
         kwargs2['forceviewserveruse'] = True
-    elif o in ['S', DO_NOT_START_VIEW_SERVER]:
+    elif o in ['S', CulebraOptions.DO_NOT_START_VIEW_SERVER]:
         kwargs2['startviewserver'] = False
-    elif o in ['k', DO_NOT_IGNORE_UIAUTOMATOR_KILLED]:
+    elif o in ['k', CulebraOptions.DO_NOT_IGNORE_UIAUTOMATOR_KILLED]:
         kwargs2['ignoreuiautomatorkilled'] = False
-    elif o in ['w', WINDOW]:
-         options[WINDOW] = a
-    elif o in ['i', FIND_VIEWS_BY_ID]:
-        options[FIND_VIEWS_BY_ID] = str2bool(a)
-    elif o in ['t', FIND_VIEWS_WITH_TEXT]:
-        options[FIND_VIEWS_WITH_TEXT] = str2bool(a)
-    elif o in ['d', FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
-        options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION] = str2bool(a)
-    elif o in ['r', USE_REGEXPS]:
-        options[USE_REGEXPS] = True
-    elif o in ['C', VERBOSE_COMMENTS]:
-        options[VERBOSE_COMMENTS] = True
-    elif o in ['U', UNIT_TEST_CLASS]:
+    elif o in ['w', CulebraOptions.WINDOW]:
+         options[CulebraOptions.WINDOW] = a
+    elif o in ['i', CulebraOptions.FIND_VIEWS_BY_ID]:
+        options[CulebraOptions.FIND_VIEWS_BY_ID] = str2bool(a)
+    elif o in ['t', CulebraOptions.FIND_VIEWS_WITH_TEXT]:
+        options[CulebraOptions.FIND_VIEWS_WITH_TEXT] = str2bool(a)
+    elif o in ['d', CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
+        options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION] = str2bool(a)
+    elif o in ['r', CulebraOptions.USE_REGEXPS]:
+        options[CulebraOptions.USE_REGEXPS] = True
+    elif o in ['C', CulebraOptions.VERBOSE_COMMENTS]:
+        options[CulebraOptions.VERBOSE_COMMENTS] = True
+    elif o in ['U', CulebraOptions.UNIT_TEST_CLASS]:
         # warnings.warn('Not implemented yet: %s' % o)
-        options[UNIT_TEST_CLASS] = True
-    elif o in ['M', UNIT_TEST_METHOD]:
+        options[CulebraOptions.UNIT_TEST_CLASS] = True
+    elif o in ['M', CulebraOptions.UNIT_TEST_METHOD]:
         if not a.startswith('test'):
             warnings.warn('Method name should start with "test"')
-    	options[UNIT_TEST_METHOD] = a
-    elif o in ['j', USE_JAR]:
-        options[USE_JAR] = str2bool(a)
-    elif o in ['D', USE_DICTIONARY]:
-        options[USE_DICTIONARY] = str2bool(a)
-    elif o in ['K', DICTIONARY_KEYS_FROM]:
-        options[DICTIONARY_KEYS_FROM] = value2dictionaryKey(a)
-    elif o in ['R', AUTO_REGEXPS]:
-        options[AUTO_REGEXPS] = a.split(',')
-        for r in options[AUTO_REGEXPS]:
+    	options[CulebraOptions.UNIT_TEST_METHOD] = a
+    elif o in ['j', CulebraOptions.USE_JAR]:
+        options[CulebraOptions.USE_JAR] = str2bool(a)
+    elif o in ['D', CulebraOptions.USE_DICTIONARY]:
+        options[CulebraOptions.USE_DICTIONARY] = str2bool(a)
+    elif o in ['K', CulebraOptions.DICTIONARY_KEYS_FROM]:
+        options[CulebraOptions.DICTIONARY_KEYS_FROM] = value2dictionaryKey(a)
+    elif o in ['R', CulebraOptions.AUTO_REGEXPS]:
+        options[CulebraOptions.AUTO_REGEXPS] = a.split(',')
+        for r in options[CulebraOptions.AUTO_REGEXPS]:
             if r == 'help':
                 autoRegexpsHelp()
             if r == 'all':
-                options[AUTO_REGEXPS] = AUTO_REGEXPS_RES.keys()
+                options[CulebraOptions.AUTO_REGEXPS] = CulebraOptions.AUTO_REGEXPS_RES.keys()
                 break
-            if r not in AUTO_REGEXPS_RES:
+            if r not in CulebraOptions.AUTO_REGEXPS_RES:
                 error("invalid auto regexp: %s\n" % (r))
                 usage()
-        # AUTO_REGEPXS implies USE_REGEXPS
-        options[USE_REGEXPS] = True
-    elif o in ['a', START_ACTIVITY]:
-        options[START_ACTIVITY] = a
-    elif o in ['o', OUTPUT]:
-        options[OUTPUT] = a
-    elif o in ['A', INTERACTIVE]:
-        options[INTERACTIVE] = True
-    elif o in ['p', APPEND_TO_SYS_PATH]:
-        options[APPEND_TO_SYS_PATH] = True
-    elif o in ['s', SAVE_SCREENSHOT]:
-        options[SAVE_SCREENSHOT] = a
-    elif o in ['W', SAVE_VIEW_SCREENSHOTS]:
-        options[SAVE_VIEW_SCREENSHOTS] = a
-    elif o in ['G', GUI]:
-        options[GUI] = True
-    elif o in ['u', DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
-        options[DO_NOT_VERIFY_INITIAL_SCREEN_DUMP] = True
-    elif o in ['P', SCALE]:
-        options[SCALE] = float(a)
+        # CulebraOptions.AUTO_REGEPXS implies CulebraOptions.USE_REGEXPS
+        options[CulebraOptions.USE_REGEXPS] = True
+    elif o in ['a', CulebraOptions.START_ACTIVITY]:
+        options[CulebraOptions.START_ACTIVITY] = a
+    elif o in ['o', CulebraOptions.OUTPUT]:
+        options[CulebraOptions.OUTPUT] = a
+    elif o in ['A', CulebraOptions.INTERACTIVE]:
+        options[CulebraOptions.INTERACTIVE] = True
+    elif o in ['p', CulebraOptions.APPEND_TO_SYS_PATH]:
+        options[CulebraOptions.APPEND_TO_SYS_PATH] = True
+    elif o in ['s', CulebraOptions.SAVE_SCREENSHOT]:
+        options[CulebraOptions.SAVE_SCREENSHOT] = a
+    elif o in ['W', CulebraOptions.SAVE_VIEW_SCREENSHOTS]:
+        options[CulebraOptions.SAVE_VIEW_SCREENSHOTS] = a
+    elif o in ['G', CulebraOptions.GUI]:
+        options[CulebraOptions.GUI] = True
+    elif o in ['u', CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
+        options[CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP] = True
+    elif o in ['P', CulebraOptions.SCALE]:
+        options[CulebraOptions.SCALE] = float(a)
 
-if not (options[FIND_VIEWS_BY_ID] or options[FIND_VIEWS_WITH_TEXT] or options[FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
-    if not options[VERBOSE_COMMENTS]:
+if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
+    if not options[CulebraOptions.VERBOSE_COMMENTS]:
         warnings.warn('All printing options disabled. Output will be empty.')
     else:
         warnings.warn('Only verbose comments will be printed')
 
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
-if options[START_ACTIVITY]:
-    device.startActivity(component=options[START_ACTIVITY])
+if options[CulebraOptions.START_ACTIVITY]:
+    device.startActivity(component=options[CulebraOptions.START_ACTIVITY])
 vc = ViewClient(device, serialno, **kwargs2)
-if options[OUTPUT]:
-    sys.stdout = codecs.open(options[OUTPUT], mode='w', encoding='utf-8', errors='replace')
+if options[CulebraOptions.OUTPUT]:
+    sys.stdout = codecs.open(options[CulebraOptions.OUTPUT], mode='w', encoding='utf-8', errors='replace')
     import stat
-    st = os.stat(options[OUTPUT])
-    os.chmod(options[OUTPUT], st.st_mode | stat.S_IEXEC)
+    st = os.stat(options[CulebraOptions.OUTPUT])
+    os.chmod(options[CulebraOptions.OUTPUT], st.st_mode | stat.S_IEXEC)
 
-if options[UNIT_TEST_CLASS] or (not options[UNIT_TEST_METHOD]):
+if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
     printScriptHeader()
 
-if options[UNIT_TEST_CLASS]:
+if options[CulebraOptions.UNIT_TEST_CLASS]:
     printUnittestImport()
 
-if options[APPEND_TO_SYS_PATH]:
+if options[CulebraOptions.APPEND_TO_SYS_PATH]:
     printAppendToSysPath()
 
-if options[UNIT_TEST_CLASS] or (not options[UNIT_TEST_METHOD]):
+if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
     print '''\
-from com.dtmilano.android.viewclient import ViewClient
+from com.dtmilano.android.viewclient import ViewClient, CulebraTestCase
 '''
 
-if options[UNIT_TEST_CLASS]:
+if options[CulebraOptions.UNIT_TEST_CLASS]:
     print '''
-class CulebraTests(unittest.TestCase):
-
-    kwargs1 = None
-    kwargs2 = None
+class CulebraTests(CulebraTestCase):
 
     @classmethod
     def setUpClass(cls):
         cls.kwargs1 = %s
         cls.kwargs2 = %s
+        cls.options = %s
 
-    def setUp(self):
-        self.device, self.serialno = ViewClient.connectToDeviceOrExit(**CulebraTests.kwargs1)
-''' % (kwargs1, kwargs2),
-
-    if options[START_ACTIVITY]:
-        print '''\
-        self.device.startActivity(component='%s')
-''' % options[START_ACTIVITY],
+''' % (kwargs1, kwargs2, options),
 
     print '''\
-        self.vc = ViewClient(self.device, self.serialno, **CulebraTests.kwargs2)
-
-    def tearDown(self):
-        pass
-
     def preconditions(self):
         return True
 
     def %s(self):
         if not self.preconditions():
             self.fail('Preconditions failed')
-        ''' % (options[UNIT_TEST_METHOD] if options[UNIT_TEST_METHOD] else 'testSomething')
+        ''' % (options[CulebraOptions.UNIT_TEST_METHOD] if options[CulebraOptions.UNIT_TEST_METHOD] else 'testSomething')
 
-    if options[SAVE_SCREENSHOT]:
+    if options[CulebraOptions.SAVE_SCREENSHOT]:
         print '''\
         self.vc.writeImageToFile('%s')
-        ''' % options[SAVE_SCREENSHOT]
+        ''' % options[CulebraOptions.SAVE_SCREENSHOT]
     
-    if options[USE_DICTIONARY]:
+    if options[CulebraOptions.USE_DICTIONARY]:
         print '''\
         self.views = dict()'''
 
-    vc.dump(window=options[WINDOW])
+    vc.dump(window=options[CulebraOptions.WINDOW])
     indent = ' ' * 8
     prefix = 'self.'
     
-    if not options[DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
+    if not options[CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
         print '''\
         self.vc.dump(%s)
         ''' % getWindowOption()
         vc.traverse(transform=transform)
 
-    if options[GUI]:
+    if options[CulebraOptions.GUI]:
         runCulebron()
 
     print '''
-    @staticmethod
-    def main():
-        unittest.main()
-
 
 if __name__ == '__main__':
     CulebraTests.main()
 '''
 else:
-    if not options[UNIT_TEST_METHOD]:
+    if not options[CulebraOptions.UNIT_TEST_METHOD]:
         print '''
 kwargs1 = %s
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 ''' % kwargs1,
 
-    if options[START_ACTIVITY] and not options[UNIT_TEST_METHOD]:
+    if options[CulebraOptions.START_ACTIVITY] and not options[CulebraOptions.UNIT_TEST_METHOD]:
         print '''\
-device.startActivity(component='%s')''' % options[START_ACTIVITY]
+device.startActivity(component='%s')''' % options[CulebraOptions.START_ACTIVITY]
 
-    if not options[UNIT_TEST_METHOD]:
+    if not options[CulebraOptions.UNIT_TEST_METHOD]:
         print '''\
 kwargs2 = %s
 vc = ViewClient(device, serialno, **kwargs2)
 vc.dump(window=%s)
 ''' % (kwargs2, getWindowOption())
 
-        if options[USE_DICTIONARY]:
+        if options[CulebraOptions.USE_DICTIONARY]:
             print '''views = dict()'''
 
-        if options[SAVE_SCREENSHOT]:
+        if options[CulebraOptions.SAVE_SCREENSHOT]:
             print '''\
 vc.writeImageToFile('%s')
-''' % options[SAVE_SCREENSHOT]
+''' % options[CulebraOptions.SAVE_SCREENSHOT]
     
-    vc.dump(window=options[WINDOW])
-    if options[UNIT_TEST_METHOD]:
+    vc.dump(window=options[CulebraOptions.WINDOW])
+    if options[CulebraOptions.UNIT_TEST_METHOD]:
         print '''
     def %s(self):
         \'\'\'
@@ -772,12 +682,12 @@ vc.writeImageToFile('%s')
 
         if not self.preconditions():
             self.fail('Preconditions failed')
-''' % (options[UNIT_TEST_METHOD])
+''' % (options[CulebraOptions.UNIT_TEST_METHOD])
         indent = ' ' * 8
         prefix = 'self.'
     vc.traverse(transform=transform)
 
-if options[INTERACTIVE]:
+if options[CulebraOptions.INTERACTIVE]:
     import socket
     HOST = 'localhost'
     PORT = 8900

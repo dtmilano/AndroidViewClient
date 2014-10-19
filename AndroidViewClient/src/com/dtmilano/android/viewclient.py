@@ -41,6 +41,7 @@ import copy
 import pickle
 import platform
 import xml.parsers.expat
+import unittest
 from com.dtmilano.android.adb import adbclient
 
 DEBUG = False
@@ -2541,6 +2542,124 @@ You should force ViewServer back-end.''')
         else:
             return code
 
+class CulebraOptions:
+    '''
+    Culebra options helper class
+    '''
+    
+    HELP = 'help'
+    VERBOSE = 'verbose'
+    VERSION = 'version'
+    IGNORE_SECURE_DEVICE = 'ignore-secure-device'
+    IGNORE_VERSION_CHECK = 'ignore-version-check'
+    FORCE_VIEW_SERVER_USE = 'force-view-server-use'
+    DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
+    DO_NOT_IGNORE_UIAUTOMATOR_KILLED = 'do-not-ignore-uiautomator-killed'
+    FIND_VIEWS_BY_ID = 'find-views-by-id'
+    FIND_VIEWS_WITH_TEXT = 'find-views-with-text'
+    FIND_VIEWS_WITH_CONTENT_DESCRIPTION = 'find-views-with-content-description'
+    USE_REGEXPS = 'use-regexps'
+    VERBOSE_COMMENTS = 'verbose-comments'
+    UNIT_TEST_CLASS = 'unit-test-class'
+    UNIT_TEST_METHOD = 'unit-test-method'
+    USE_JAR = 'use-jar'
+    USE_DICTIONARY = 'use-dictionary'
+    DICTIONARY_KEYS_FROM = 'dictionary-keys-from'
+    AUTO_REGEXPS = 'auto-regexps'
+    START_ACTIVITY = 'start-activity'
+    OUTPUT = 'output'
+    INTERACTIVE = 'interactive'
+    WINDOW = 'window'
+    APPEND_TO_SYS_PATH = 'append-to-sys-path'
+    SAVE_SCREENSHOT = 'save-screenshot'
+    SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
+    GUI = 'gui'
+    SCALE = 'scale'
+    DO_NOT_VERIFY_INITIAL_SCREEN_DUMP = 'do-not-verify-initial-screen-dump'
+
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:GuP:'
+    LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
+              DO_NOT_START_VIEW_SERVER,
+              DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
+              WINDOW + '=',
+              FIND_VIEWS_BY_ID + '=', FIND_VIEWS_WITH_TEXT + '=', FIND_VIEWS_WITH_CONTENT_DESCRIPTION + '=',
+              USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST_CLASS, UNIT_TEST_METHOD + '=',
+              USE_JAR + '=', USE_DICTIONARY + '=', DICTIONARY_KEYS_FROM + '=', AUTO_REGEXPS + '=',
+              START_ACTIVITY + '=',
+              OUTPUT + '=', INTERACTIVE, APPEND_TO_SYS_PATH,
+              SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
+              GUI,
+              DO_NOT_VERIFY_INITIAL_SCREEN_DUMP,
+              SCALE + '=',
+              ]
+    LONG_OPTS_ARG = {WINDOW: 'WINDOW',
+              FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
+              USE_JAR: 'BOOL', USE_DICTIONARY: 'BOOL', DICTIONARY_KEYS_FROM: 'VALUE', AUTO_REGEXPS: 'LIST',
+              START_ACTIVITY: 'COMPONENT',
+              OUTPUT: 'FILENAME',
+              SAVE_SCREENSHOT: 'FILENAME', SAVE_VIEW_SCREENSHOTS: 'DIR',
+              UNIT_TEST_METHOD: 'NAME',
+              SCALE: 'FLOAT'}
+    OPTS_HELP = {
+            'H': 'prints this help',
+            'V': 'verbose comments',
+            'k': 'don\'t ignore UiAutomator killed',
+            'w': 'use WINDOW content (default: -1, all windows)',
+		    'i': 'whether to use findViewById() in script',
+		    't': 'whether to use findViewWithText() in script',
+		    'd': 'whether to use findViewWithContentDescription',
+		    'r': 'use regexps in matches',
+		    'U': 'generates unit test class and script',
+		    'M': 'generates unit test method. Can be used with or without -U',
+		    'j': 'use jar and appropriate shebang to run script (deprecated)',
+		    'D': 'use a dictionary to store the Views found',
+		    'K': 'dictionary keys from: id, text, content-description',
+		    'R': 'auto regexps (i.e. clock), implies -r. help list options',
+		    'a': 'starts Activity before dump',
+		    'o': 'output filename',
+		    'A': 'interactive',
+		    'p': 'append environment variables values to sys.path',
+		    's': 'save screenshot to file',
+		    'W': 'save View screenshots to files in directory',
+		    'E': 'ignores ADB version check',
+		    'G': 'presents the GUI (EXPERIMENTAL)',
+		    'P': 'scale percentage (i.e. 0.5)',
+		    'u': 'do not verify initial screen dump state',
+            }
+
+class CulebraTestCase(unittest.TestCase):
+    kwargs1 = None
+    kwargs2 = None
+    serialno = None
+    options = {}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.kwargs1 = {'ignoreversioncheck': False, 'verbose': False, 'ignoresecuredevice': False}
+        cls.kwargs2 = {'startviewserver': True, 'forceviewserveruse': False, 'autodump': False, 'ignoreuiautomatorkilled': True}
+
+    def setUp(self):
+        self.device, self.serialno = ViewClient.connectToDeviceOrExit(serialno=self.serialno, **self.kwargs1)
+        if self.options[CulebraOptions.START_ACTIVITY]:
+            self.device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
+        self.vc = ViewClient(self.device, self.serialno, **self.kwargs2)
+
+    def tearDown(self):
+        pass
+
+    @staticmethod
+    def main():
+        # if you want to specify tests classes and methods in the command line you will be forced
+        # to include -s or --serialno and the serial number of the device (could be a regexp)
+        # as ViewClient would have no way of determine what it is
+        ser = ['-s', '--serialno']
+        old = '%(failfast)'
+        new = '  %s s The serial number to connect to\n%s' % (', '.join(ser), old)
+        unittest.TestProgram.USAGE = unittest.TestProgram.USAGE.replace(old, new)
+        if len(sys.argv) >= 2 and sys.argv[1] in ser:
+            sys.argv.pop(1)
+            CulebraTestCase.serialno = sys.argv.pop(1)
+        unittest.main()
 
 if __name__ == "__main__":
     try:
