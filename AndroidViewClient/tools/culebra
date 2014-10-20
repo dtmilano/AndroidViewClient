@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.3.1'
+__version__ = '8.3.2'
 
 import re
 import sys
@@ -187,7 +187,7 @@ def variableNameFromIdOrKey(view):
 
     var = view.variableNameFromId()
     if options[CulebraOptions.USE_DICTIONARY]:
-        return 'views[\'%s\']' % notNull(dictionaryKeyFrom(options[CulebraOptions.DICTIONARY_KEYS_FROM], view), var)
+        return '%sviews[\'%s\']' % (prefix, notNull(dictionaryKeyFrom(options[CulebraOptions.DICTIONARY_KEYS_FROM], view), var))
     else:
         return var
 
@@ -200,6 +200,9 @@ def dictionaryKeyFrom(key, view):
         return view.getContentDescription()
     else:
         raise Exception('Not a valid dictionary key: %s' % key)
+
+def escapeRegexpSpecialChars(text):
+    return re.escape(text)
 
 def printFindViewWithText(view, useregexp, op=Operation.ASSIGN, arg=None):
     '''
@@ -221,6 +224,8 @@ You have to set PYTHONIOENCODING environment variable. For example:
     u = 'u' if isUnicode else ''
     if text:
         var = variableNameFromIdOrKey(view)
+        # if there are special chars already in the text scape them
+        text = escapeRegexpSpecialChars(text)
         if text.find(u"\n") > 0 or text.find(u"'") > 0:
             # 2 quotes + 1 quote = 3 quotes
             text = "''%s''" % text
@@ -637,6 +642,7 @@ class CulebraTests(CulebraTestCase):
         self.vc.dump(%s)
         ''' % getWindowOption()
         vc.traverse(transform=transform)
+        print
 
     if options[CulebraOptions.GUI]:
         runCulebron()
