@@ -89,7 +89,7 @@ class Culebron:
     isGrabbing = False
     isGeneratingTestCondition = False
     isTouchingPoint = False
-    isLognTouchingPoint = False
+    isLongTouchingPoint = False
     
     @staticmethod
     def checkDependencies():
