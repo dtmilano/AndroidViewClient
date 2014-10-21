@@ -443,6 +443,17 @@ class AdbClient:
     def touch(self, x, y, eventType=DOWN_AND_UP):
         self.shell('input tap %d %d' % (x, y))
 
+    def longTouch(self, x, y, duration=2000):
+        '''
+        Long touches at (x, y)
+        
+        @param duration: duration in ms
+        
+        This workaround was suggested by U{HaMi<http://stackoverflow.com/users/2571957/hami>}
+        '''
+        
+        self.drag((x, y), (x, y), duration, 1)
+
     def drag(self, (x0, y0), (x1, y1), duration, steps=1):
         '''
         Sends drag event (actually it's using C{input swipe} command.
