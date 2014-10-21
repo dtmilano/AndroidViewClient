@@ -872,10 +872,12 @@ class View:
         Long touches this C{View}
         
         @param duration: duration in ms
+        
+        This workaround was suggested by U{HaMi<http://stackoverflow.com/users/2571957/hami>}
         '''
         
         c = self.getCenter()
-        self.device.longTouch(c, c, duration, 1)
+        self.device.drag(c, c, duration, 1)
             
     def allPossibleNamesWithColon(self, name):
         l = []

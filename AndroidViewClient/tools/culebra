@@ -242,7 +242,7 @@ You have to set PYTHONIOENCODING environment variable. For example:
             
         if op == Operation.ASSIGN:
             print u'%s%s = %svc.findViewWithTextOrRaise(%s)' % (indent, var, prefix, text)
-        elif op == Operation.TOUCH_VIEW:
+        elif op == Operation.TOUCH:
             print u'%s%svc.findViewWithTextOrRaise(%s).touch()' % (indent, prefix, text)
         elif op == Operation.TYPE:
             print '%s%svc.findViewWithTextOrRaise("%s").type(u"%s")' % (indent, prefix, text, arg)
@@ -275,7 +275,7 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
         
         if op == Operation.ASSIGN:
             print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (indent, var, prefix, contentDescription)
-        elif op == Operation.TOUCH_VIEW:
+        elif op == Operation.TOUCH:
             print '%s%svc.findViewWithContentDescriptionOrRaise(%s).touch()' % (indent, prefix, contentDescription)
         elif op == Operation.TYPE:
             print '%s%svc.findViewWithContentDescriptionOrRaise(%s).type(u"%s")' % (indent, prefix, contentDescription, arg)
@@ -299,7 +299,7 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
     _id = view.getId() if view.getId() else view.getUniqueId()
     if op == Operation.ASSIGN:
         print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
-    elif op == Operation.TOUCH_VIEW:
+    elif op == Operation.TOUCH:
         print '%s%svc.findViewByIdOrRaise("%s").touch()' % (indent, prefix, _id)
     elif op == Operation.TYPE:
         print '%s%svc.findViewByIdOrRaise("%s").type(u"%s")' % (indent, prefix, _id, arg)
@@ -335,20 +335,6 @@ def printDrag(start, end, duration, steps):
     '''
     
     print '%s%svc.device.drag(%s, %s, %d, %d)' % (indent, prefix, start, end, duration, steps) 
-    
-def printTouch(x, y):
-    '''
-    Prints a touch
-    '''
-    
-    print '%s%svc.device.touch(%s, %s)' % (indent, prefix, x, y) 
-    
-def printLongTouch(x, y, duration):
-    '''
-    Prints a long touch
-    '''
-    
-    print '%s%svc.device.longTouch(%s, %s, %s)' % (indent, prefix, x, y, duration) 
     
 def printSaveViewScreenshot(view, dir):
     '''
@@ -408,12 +394,6 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.DRAG:
         printDrag(args[0], args[1], args[2], args[3])
-        return
-    elif op == Operation.TOUCH_POINT:
-        printTouch(args[0], args[1])
-        return
-    elif op == Operation.LONG_TOUCH_POINT:
-        printLongTouch(args[0], args[1], args[2])
         return
     
     bd = Descriptor.findBestDescriptor(view)
