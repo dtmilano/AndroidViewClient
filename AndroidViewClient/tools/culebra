@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.3.3'
+__version__ = '8.3.6'
 
 import re
 import sys
@@ -280,7 +280,7 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
         elif op == Operation.TYPE:
             print '%s%svc.findViewWithContentDescriptionOrRaise(%s).type(u"%s")' % (indent, prefix, contentDescription, arg)
         elif op == Operation.TEST:
-            print '%s%sassertEquals(%svc.findViewWithContentDescriptionOrRaise(%s).getText(), u'''%s''')' % (indent, prefix, prefix, contentDescription, arg)
+            print '%s%sassertEquals(%svc.findViewWithContentDescriptionOrRaise(%s).getText(), u\'\'\'%s\'\'\')' % (indent, prefix, prefix, contentDescription, arg)
         else:
             error("Invalid operation: %s" % op)
             
@@ -304,7 +304,7 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
     elif op == Operation.TYPE:
         print '%s%svc.findViewByIdOrRaise("%s").type(u"%s")' % (indent, prefix, _id, arg)
     elif op == Operation.TEST:
-        print '%s%sassertEquals(%svc.findViewByIdOrRaise("%s").getText(), u'''%s''')' % (indent, prefix, prefix, _id, arg)
+        print '%s%sassertEquals(%svc.findViewByIdOrRaise("%s").getText(), u\'\'\'%s\'\'\')' % (indent, prefix, prefix, _id, arg)
     else:
         error("Invalid operation: %s" % op)
 
