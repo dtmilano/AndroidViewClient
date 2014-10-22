@@ -1,0 +1,16 @@
+setup.py
+src/androidviewclient.egg-info/PKG-INFO
+src/androidviewclient.egg-info/SOURCES.txt
+src/androidviewclient.egg-info/dependency_links.txt
+src/androidviewclient.egg-info/requires.txt
+src/androidviewclient.egg-info/top_level.txt
+src/com/__init__.py
+src/com/dtmilano/__init__.py
+src/com/dtmilano/android/__init__.py
+src/com/dtmilano/android/culebron.py
+src/com/dtmilano/android/viewclient.py
+src/com/dtmilano/android/adb/__init__.py
+src/com/dtmilano/android/adb/adbclient.py
+src/com/dtmilano/android/adb/androidkeymap.py
+tools/culebra
+tools/dump

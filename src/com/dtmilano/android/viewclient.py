@@ -317,7 +317,7 @@ class View:
         ''' The height property depending on the View attribute format '''
         self.isFocusedProperty = None
         ''' The focused property depending on the View attribute format '''
-        
+
         if version >= 16 and self.useUiAutomator:
             self.idProperty = ID_PROPERTY_UI_AUTOMATOR
             self.textProperty = TEXT_PROPERTY_UI_AUTOMATOR
@@ -374,7 +374,7 @@ class View:
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
             self.isFocusedProperty = IS_FOCUSED_PROPERTY
-        
+
     def __getitem__(self, key):
         return self.map[key]
 
@@ -870,13 +870,13 @@ class View:
     def longTouch(self, duration=2000):
         '''
         Long touches this C{View}
-        
+
         @param duration: duration in ms
         '''
-        
+
         c = self.getCenter()
         self.device.longTouch(c, c, duration, 1)
-            
+
     def allPossibleNamesWithColon(self, name):
         l = []
         for i in range(name.count("_")):
@@ -1030,14 +1030,32 @@ class EditText(TextView):
     '''
     EditText class.
     '''
-    
-    def type(self, text):
-        self.touch()
+
+    def type(self, text, alreadyTouch = False):
+        if not alreadyTouch:
+          self.touch()
         time.sleep(0.5)
         escaped = text.replace('%s', '\\%s')
         encoded = escaped.replace(' ', '%s')
         self.device.type(encoded)
         time.sleep(0.5)
+
+    def setText(self, text):
+        """
+        This function makes sure that any previously entered text is deleted before
+        setting the value of the field.
+        """
+        if self.text() == text:
+            return
+        self.touch()
+        guardrail = 0
+        maxSize = len(self.text()) + 1
+        while maxSize > guardrail:
+            guardrail += 1
+            self.device.press('KEYCODE_DEL', adbclient.DOWN_AND_UP)
+            self.device.press('KEYCODE_FORWARD_DEL', adbclient.DOWN_AND_UP)
+        self.type(text,alreadyTouch=True)
+
 
     def backspace(self):
         self.touch()
@@ -1811,7 +1829,8 @@ class ViewClient:
 
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY])
-        self.root = parser.Parse(receivedXml)
+        start_xml_index = receivedXml.index("<")
+        self.root = parser.Parse(receivedXml[start_xml_index:])
         self.views = parser.views
         self.viewsById = {}
         for v in self.views:
@@ -2157,6 +2176,27 @@ You should force ViewServer back-end.''')
         else:
             raise ViewNotFoundException("tag", tag, root)
 
+    def __findViewsWithAttributeInTree(self, attr, val, root):
+        matchingViews = []
+        if not self.root:
+            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            return matching_views
+
+        if type(root) == types.StringType and root == "ROOT":
+            root = self.root
+
+        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: type val=", type(val)
+        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
+
+        if root and attr in root.map and root.map[attr] == val:
+            if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
+            matchingViews.append(root)
+        else:
+            for ch in root.children:
+                matchingViews += self.__findViewsWithAttributeInTree(attr, val, ch)
+
+        return matchingViews
+
     def __findViewWithAttributeInTree(self, attr, val, root):
         if not self.root:
             print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
@@ -2221,6 +2261,18 @@ You should force ViewServer back-end.''')
         '''
 
         return self.__findViewWithAttributeInTree(attr, val, root)
+
+    def findViewsWithAttribute(self, attr, val, root="ROOT"):
+        '''
+        Finds the Views with the specified attribute and value.
+        This allows you to see all items that match your criteria in the view hierarchy
+
+        Usage:
+          buttons = v.findViewsWithAttribute("class", "android.widget.Button")
+
+        '''
+
+        return self.__findViewsWithAttributeInTree(attr, val, root)
 
     def findViewWithAttributeOrRaise(self, attr, val, root="ROOT"):
         '''
@@ -2544,7 +2596,7 @@ class CulebraOptions:
     '''
     Culebra options helper class
     '''
-    
+
     HELP = 'help'
     VERBOSE = 'verbose'
     VERSION = 'version'

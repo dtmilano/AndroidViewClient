@@ -116,7 +116,7 @@ class AdbClient:
         self.serialno = serialno
         self.__setTransport()
         self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
-        
+
     def setReconnect(self, val):
         self.reconnect = val
 
@@ -212,9 +212,11 @@ class AdbClient:
         # HACK: MSG_WAITALL not available on windows
         #version = self.socket.recv(8, socket.MSG_WAITALL)
         version = self.__readExactly(self.socket, 8)
-        VERSION = '0004001f'
-        if version != VERSION and not ignoreversioncheck:
-            raise RuntimeError("ERROR: Incorrect ADB server version %s (expecting %s)" % (version, VERSION))
+
+        VALID_ADB_VERSIONS = ["00040020", "0004001f"]
+
+        if not (version in VALID_ADB_VERSIONS) and not ignoreversioncheck:
+            raise RuntimeError("ERROR: Incorrect ADB server version %s (expecting one of %s)" % (version, VALID_ADB_VERSIONS))
         if reconnect:
             self.__connect()
 
@@ -504,7 +506,7 @@ class AdbClient:
         if m:
             return (m.group(1) == 'true')
         raise RuntimeError("Couldn't determine screen ON state")
-        
+
     def unlock(self):
         '''
         Unlocks the screen of the device.
@@ -552,7 +554,7 @@ class AdbClient:
         '''
 
         return (AdbClient.percentSame(image1, image2) >= percent)
-    
+
     def isKeyboardShown(self):
         '''
         Whether the keyboard is displayed.
