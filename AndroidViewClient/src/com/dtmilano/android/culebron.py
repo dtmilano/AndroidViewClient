@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.4.1'
+__version__ = '8.5.0'
 
 import sys
 import threading
@@ -61,7 +61,9 @@ class Operation:
     DUMP = 'dump'
     TEST = 'test'
     TEST_TEXT = 'test_text'
-    TOUCH = 'touch'
+    TOUCH_VIEW = 'touch_view'
+    TOUCH_POINT = 'touch_point'
+    LONG_TOUCH_POINT = 'long_touch_point'
     TYPE = 'type'
     PRESS = 'press'
     SLEEP = 'sleep'
@@ -171,6 +173,8 @@ class Culebron:
         self.showMessageArea()
 
     def toast(self, text, background=None):
+        if DEBUG:
+            print >> sys.stderr, "toast(", text, ",", background,  ")"
         self.message(text, background)
         t = threading.Timer(5, self.hideMessageArea)
         t.start()
@@ -290,12 +294,51 @@ class Culebron:
                 self.printOperation(v, Operation.TYPE, text)
         else:
             v.touch()
-            self.printOperation(v, Operation.TOUCH)
+            self.printOperation(v, Operation.TOUCH_VIEW)
 
         self.printOperation(None, Operation.SLEEP, 5)
         self.vc.sleep(5)
         self.takeScreenshotAndShowItOnWindow()
 
+    def touchPoint(self, x, y):
+        if DEBUG:
+            print >> sys.stderr, 'touchPoint(%d, %d)' % (x, y)
+        if self.areEventsDisabled:
+            if DEBUG:
+                print >> sys.stderr, "Ignoring event"
+            self.canvas.update_idletasks()
+            return
+        if DEBUG:
+            print >> sys.stderr, "Is touching point:", self.isTouchingPoint
+        if self.isTouchingPoint:
+            self.showVignette()
+            self.device.touch(x, y)
+            self.printOperation(None, Operation.TOUCH_POINT, x, y)
+            self.printOperation(None, Operation.SLEEP, 5)
+            self.vc.sleep(5)
+            self.isTouchingPoint = False
+            self.hideVignette()
+            return
+    
+    def longTouchPoint(self, x, y):
+        if DEBUG:
+            print >> sys.stderr, 'longTouchPoint(%d, %d)' % (x, y)
+        if self.areEventsDisabled:
+            if DEBUG:
+                print >> sys.stderr, "Ignoring event"
+            self.canvas.update_idletasks()
+            return
+        if DEBUG:
+            print >> sys.stderr, "Is long touching point:", self.isLongTouchingPoint
+        if self.isLongTouchingPoint:
+            self.showVignette()
+            self.device.touch(x, y)
+            self.printOperation(None, Operation.LONG_TOUCH_POINT, x, y, 2000)
+            self.printOperation(None, Operation.SLEEP, 5)
+            self.vc.sleep(5)
+            self.isLongTouchingPoint = False
+            self.hideVignette()
+            return
     
     def onButton1Pressed(self, event):
         if DEBUG:
@@ -303,7 +346,11 @@ class Culebron:
         (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
         if DEBUG:
             print >> sys.stderr, "    onButton1Pressed: scaled: (", scaledX, ", ", scaledY, ")"
-        if self.isGeneratingTestCondition:
+        if self.isTouchingPoint:
+            self.touchPoint(scaledX, scaledY)
+        elif self.isLongTouchingPoint:
+            self.longTouchPoint(scaledX, scaledY)
+        elif self.isGeneratingTestCondition:
             self.getViewContainingPointAndGenerateTestCondition(scaledX, scaledY)
         else:
             self.getViewContainingPointAndTouch(scaledX, scaledY)
@@ -345,6 +392,12 @@ class Culebron:
             return
         elif char == '\x04':
             self.onCtrlD(event)
+            return
+        elif char == '\x0c':
+            self.onCtrlL(event)
+            return
+        elif char == '\x10':
+            self.onCtrlP(event)
             return
         elif char == '\x11':
             self.onCtrlQ(event)
@@ -403,6 +456,20 @@ class Culebron:
         d = DragDialog(self)
         self.window.wait_window(d.top)
 
+    def onCtrlL(self, event):
+        if not self.isTouchingPoint:
+            self.toast('Loing touching point', background=Color.GREEN)
+            self.isLongTouchingPoint = True
+        else:
+            self.isLongTouchingPoint = False
+
+    def onCtrlP(self, event):
+        if not self.isTouchingPoint:
+            self.toast('Touching point', background=Color.GREEN)
+            self.isTouchingPoint = True
+        else:
+            self.isTouchingPoint = False
+        
     def onCtrlQ(self, event):
         self.window.quit()
         
@@ -418,6 +485,10 @@ class Culebron:
         self.hideMessageArea()
 
     def onCtrlT(self, event):
+        '''
+        Toggles generating test condition
+        '''
+
         if DEBUG:
             print >>sys.stderr, "onCtrlT()"
         if self.isGeneratingTestCondition:
@@ -428,7 +499,6 @@ class Culebron:
     def onCtrlU(self, event):
         if DEBUG:
             print >>sys.stderr, "onCtrlU()"
-        self.showMessageArea()
     
     def onCtrlZ(self, event):
         if DEBUG:
@@ -500,7 +570,7 @@ class Culebron:
             warnings.warn('Starting to grab but no onTouchListener')
         self.isGrabbing = state
         if state:
-            self.message('Grabbing drag points...', background=Color.GREEN)
+            self.toast('Grabbing drag points...', background=Color.GREEN)
         else:
             self.hideMessageArea()
 

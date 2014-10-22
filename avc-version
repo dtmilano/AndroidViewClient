@@ -35,10 +35,26 @@ case "$1" in
         for f in $(find src tools -type f -exec grep -l "$version_str" {} \;)
         do
             echo "<<< $f >>>"
-            sed -E -i '' "s@$version_str \'[0-9r.]+\'@$version_str \'$version\'@" $f
+            case "$(uname)" in
+                Darwin)
+                    sed -E -i '' -e "s@$version_str \'[0-9r.]+\'@$version_str \'$version\'@" $f
+                    ;;
+
+                Linux)
+                    sed -E -i -e "s@$version_str '[0-9r.]+'@$version_str '$version'@" $f
+                    ;;
+            esac
         done
 
         echo "<<< setup.py >>>"
-        sed -E -i '' "s@version='[0-9r.]+'@version='$version'@" setup.py
+        case "$(uname)" in
+            Darwin)
+                sed -E -i '' -e "s@version='[0-9r.]+'@version='$version'@" setup.py
+                ;;
+
+            Linux)
+                sed -E -i -e "s@version='[0-9r.]+'@version='$version'@" setup.py
+                ;;
+        esac
         ;;
  esac
