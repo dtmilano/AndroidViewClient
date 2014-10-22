@@ -1031,13 +1031,31 @@ class EditText(TextView):
     EditText class.
     '''
 
-    def type(self, text):
-        self.touch()
+    def type(self, text, alreadyTouch = False):
+        if not alreadyTouch:
+          self.touch()
         time.sleep(0.5)
         escaped = text.replace('%s', '\\%s')
         encoded = escaped.replace(' ', '%s')
         self.device.type(encoded)
         time.sleep(0.5)
+
+    def setText(self, text):
+        """
+        This function makes sure that any previously entered text is deleted before
+        setting the value of the field.
+        """
+        if self.text() == text:
+            return
+        self.touch()
+        guardrail = 0
+        maxSize = len(self.text()) + 1
+        while maxSize > guardrail:
+            guardrail += 1
+            self.device.press('KEYCODE_DEL', adbclient.DOWN_AND_UP)
+            self.device.press('KEYCODE_FORWARD_DEL', adbclient.DOWN_AND_UP)
+        self.type(text,alreadyTouch=True)
+
 
     def backspace(self):
         self.touch()
