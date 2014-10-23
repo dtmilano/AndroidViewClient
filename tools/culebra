@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.5.0'
+__version__ = '8.6.0'
 
 import re
 import sys
@@ -320,7 +320,7 @@ def printSleep(secs):
     Prints a sleep
     '''
     
-    print '%s%svc.sleep(%d)' % (indent, prefix, secs)
+    print '%s%svc.sleep(%s)' % (indent, prefix, secs if secs != Operation.DEFAULT else 'CulebraTests.sleep')
     
 def printPress(keycode):
     '''
@@ -488,6 +488,14 @@ except:
     pass
 '''
 
+def printPrependToSysPath():
+    print '''
+try:
+    sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
+except:
+    pass
+'''
+
 def runCulebron():
     Culebron.checkDependencies()
     culebron = Culebron(vc, printOperation, options[CulebraOptions.SCALE])
@@ -632,6 +640,7 @@ class CulebraTests(CulebraTestCase):
         cls.kwargs1 = %s
         cls.kwargs2 = %s
         cls.options = %s
+        cls.sleep = 5
 
 ''' % (kwargs1, kwargs2, options),
 

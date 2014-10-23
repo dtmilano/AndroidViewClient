@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.5.0'
+__version__ = '8.6.0'
 
 import sys
 import threading
@@ -57,6 +57,7 @@ class Color:
 
 class Operation:
     ASSIGN = 'assign'
+    DEFAULT = 'default'
     DRAG = 'drag'
     DUMP = 'dump'
     TEST = 'test'
@@ -296,7 +297,7 @@ class Culebron:
             v.touch()
             self.printOperation(v, Operation.TOUCH_VIEW)
 
-        self.printOperation(None, Operation.SLEEP, 5)
+        self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)
         self.takeScreenshotAndShowItOnWindow()
 
