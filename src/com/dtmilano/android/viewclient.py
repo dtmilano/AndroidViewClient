@@ -1952,6 +1952,9 @@ class ViewClient:
                 raise RuntimeError('''ERROR: Some emulator images (i.e. android 4.1.2 API 16 generic_x86) does not include the '[' command.
 While UiAutomator back-end might be supported 'uiautomator' command fails.
 You should force ViewServer back-end.''')
+
+            if re.search('could not get idle state', received):
+                raise RuntimeError('''The view is being refreshed too frequently to dump''')
             self.setViewsFromUiAutomatorDump(received)
         else:
             if isinstance(window, str):
