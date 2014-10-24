@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.6.0'
+__version__ = '8.6.1'
 
 import re
 import sys
@@ -224,12 +224,12 @@ You have to set PYTHONIOENCODING environment variable. For example:
     u = 'u' if isUnicode else ''
     if text:
         var = variableNameFromIdOrKey(view)
-        # if there are special chars already in the text scape them
-        text = escapeRegexpSpecialChars(text)
         if text.find(u"\n") > 0 or text.find(u"'") > 0:
             # 2 quotes + 1 quote = 3 quotes
             text = "''%s''" % text
         if useregexp:
+            # if there are special chars already in the text escape them
+            text = escapeRegexpSpecialChars(text)
             if options[CulebraOptions.AUTO_REGEXPS]:
                 for r in options[CulebraOptions.AUTO_REGEXPS]:
                     autoRegexp = CulebraOptions.AUTO_REGEXPS_RES[r]
