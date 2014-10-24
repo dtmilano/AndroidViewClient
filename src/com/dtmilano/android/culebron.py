@@ -333,7 +333,7 @@ class Culebron:
             print >> sys.stderr, "Is long touching point:", self.isLongTouchingPoint
         if self.isLongTouchingPoint:
             self.showVignette()
-            self.device.touch(x, y)
+            self.device.longTouch(x, y)
             self.printOperation(None, Operation.LONG_TOUCH_POINT, x, y, 2000)
             self.printOperation(None, Operation.SLEEP, 5)
             self.vc.sleep(5)
@@ -459,7 +459,7 @@ class Culebron:
 
     def onCtrlL(self, event):
         if not self.isTouchingPoint:
-            self.toast('Loing touching point', background=Color.GREEN)
+            self.toast('Long touching point', background=Color.GREEN)
             self.isLongTouchingPoint = True
         else:
             self.isLongTouchingPoint = False
