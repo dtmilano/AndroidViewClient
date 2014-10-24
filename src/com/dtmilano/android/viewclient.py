@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.6.0'
+__version__ = '8.6.2'
 
 import sys
 import warnings
@@ -1953,7 +1953,7 @@ class ViewClient:
 While UiAutomator back-end might be supported 'uiautomator' command fails.
 You should force ViewServer back-end.''')
 
-            if re.search('^ERROR: could not get idle state\.', received):
+            if received.startswith('ERROR: could not get idle state.'):
                 # See https://android.googlesource.com/platform/frameworks/testing/+/jb-mr2-release/uiautomator/cmds/uiautomator/src/com/android/commands/uiautomator/DumpCommand.java
                 raise RuntimeError('''The views are being refreshed too frequently to dump.''')
             self.setViewsFromUiAutomatorDump(received)
