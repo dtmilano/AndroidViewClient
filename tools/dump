@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '8.6.0'
+__version__ = '8.7.0'
 
 import sys
 import os
@@ -34,28 +34,23 @@ CONTENT_DESCRIPTION = 'content-description'
 CENTER = 'center'
 SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
-
-def traverseSaveViewScreenshots(view):
-    dir = options[SAVE_VIEW_SCREENSHOTS]
-    var = view.variableNameFromId()
-    filename = '%s/%s.png' % (dir, var)
-    if kwargs1[VERBOSE]:
-        print view.__tinyStr__(), ' => ', filename
-    view.writeImageToFile(filename)
+DO_NOT_DUMP_VIEWS = 'do-not-dump-views'
 
 MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        'x':ViewClient.TRAVERSE_CITPS, POSITION:ViewClient.TRAVERSE_CITPS,
        'd':ViewClient.TRAVERSE_CITCD, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
        'c':ViewClient.TRAVERSE_CITC, CENTER:ViewClient.TRAVERSE_CITC,
-       'W':traverseSaveViewScreenshots, SAVE_VIEW_SCREENSHOTS:traverseSaveViewScreenshots,
+       'W':ViewClient.TRAVERSE_CITCDS, SAVE_VIEW_SCREENSHOTS:ViewClient.TRAVERSE_CITCDS,
+       'D':ViewClient.TRAVERSE_S, DO_NOT_DUMP_VIEWS:ViewClient.TRAVERSE_S
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:ixdcs:W:'
+SHORT_OPTS = 'HVvIEFSkw:ixdcf:W:D'
 LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
               UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
+              DO_NOT_DUMP_VIEWS,
               ]
 LONG_OPTS_ARG = {WINDOW: 'WINDOW', SAVE_SCREENSHOT: 'FILE', SAVE_VIEW_SCREENSHOTS: 'DIR'}
 OPTS_HELP = {
@@ -70,9 +65,10 @@ OPTS_HELP = {
     'x': 'dump View positions',
     'd': 'dump View content descriptions',
     'c': 'dump View centers',
-    's': 'save screenshot to file',
+    'f': 'save screenshot to file',
     'W': 'save View screenshots to files in directory',
-    'E': 'ignores ADB version check'
+    'E': 'ignores ADB version check',
+    'D': 'don\'t dump views, only useful if you specified -f or -W',
     }
 
 def shortAndLongOptions():
@@ -125,7 +121,7 @@ except getopt.GetoptError, e:
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
-options = {WINDOW: -1, SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None}
+options = {WINDOW: -1, SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None, DO_NOT_DUMP_VIEWS: False}
 transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
     o = o.strip('-')
@@ -147,16 +143,25 @@ for o, a in opts:
         kwargs2['ignoreuiautomatorkilled'] = False
     elif o in ['w', WINDOW]:
         options[WINDOW] = a
-    elif o in ['s', SAVE_SCREENSHOT]:
+    elif o in ['f', SAVE_SCREENSHOT]:
         options[SAVE_SCREENSHOT] = a
     elif o in ['W', SAVE_VIEW_SCREENSHOTS]:
         options[SAVE_VIEW_SCREENSHOTS] = a
         transform = MAP[o]
+    elif o in ['D', DO_NOT_DUMP_VIEWS]:
+        options[DO_NOT_DUMP_VIEWS] = True
+        transform = MAP[o]
     else:
         transform = MAP[o]
 
+if options[DO_NOT_DUMP_VIEWS]:
+    transform = MAP[DO_NOT_DUMP_VIEWS]
+
 vc = ViewClient(*ViewClient.connectToDeviceOrExit(**kwargs1), **kwargs2)
-vc.dump(window=options[WINDOW])
 if options[SAVE_SCREENSHOT]:
+    vc.device.reconnect = (not options[DO_NOT_DUMP_VIEWS])
     vc.writeImageToFile(options[SAVE_SCREENSHOT])
-vc.traverse(transform=transform)
+if not options[DO_NOT_DUMP_VIEWS] or options[SAVE_VIEW_SCREENSHOTS]:
+    vc.dump(window=options[WINDOW])
+    ViewClient.imageDirectory = options[SAVE_VIEW_SCREENSHOTS]
+    vc.traverse(transform=transform)

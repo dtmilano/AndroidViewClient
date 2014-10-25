@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.6.2'
+__version__ = '8.7.0'
 
 import sys
 import warnings
@@ -945,7 +945,7 @@ class View:
         '''
 
         if not os.path.isabs(filename):
-            raise ValueError("writeImageToFile expects an absolute path")
+            raise ValueError("writeImageToFile expects an absolute path (fielname='%s')" % filename)
         if os.path.isdir(filename):
             filename = os.path.join(filename, self.variableNameFromId() + '.' + format.lower())
         if DEBUG:
@@ -1194,6 +1194,9 @@ class ViewClient:
     ===================
     No service is started.
     '''
+
+    imageDirectory = None
+    ''' The directory used to store screenshot images '''
 
     def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True, ignoreuiautomatorkilled=False):
         '''
@@ -1519,7 +1522,7 @@ class ViewClient:
         return device, serialno
 
     @staticmethod
-    def traverseShowClassIdAndText(view, extraInfo=None, noextrainfo=None):
+    def traverseShowClassIdAndText(view, extraInfo=None, noExtraInfo=None, extraAction=None):
         '''
         Shows the View class, id and text if available.
         This function can be used as a transform function to L{ViewClient.traverse()}
@@ -1528,8 +1531,10 @@ class ViewClient:
         @param view: the View
         @type extraInfo: method
         @param extraInfo: the View method to add extra info
-        @type noextrainfo: bool
-        @param noextrainfo: Don't add extra info
+        @type noExtraInfo: bool
+        @param noExtraInfo: Don't add extra info
+        @type extraAction: method
+        @param extraAction: An extra action to be invoked for every view
 
         @return: the string containing class, id, and text if available
         '''
@@ -1538,10 +1543,12 @@ class ViewClient:
             eis = ''
             if extraInfo:
                 eis = extraInfo(view).__str__()
-                if not eis and noextrainfo:
-                    eis = noextrainfo
+                if not eis and noExtraInfo:
+                    eis = noExtraInfo
             if eis:
                 eis = ' ' + eis
+            if extraAction:
+                extraAction(view)
             return u'%s %s %s%s' % (view.getClass(), view.getId(), view.getText(), eis)
         except Exception, e:
             return u'Exception in view=%s: %s' % (view.__smallStr__(), e)
@@ -1573,6 +1580,19 @@ class ViewClient:
         return ViewClient.traverseShowClassIdAndText(view, View.getContentDescription, 'NAF')
 
     @staticmethod
+    def traverseShowClassIdTextContentDescriptionAndScreenshot(view):
+        '''
+        Shows the View class, id, text if available and unique id and takes the screenshot.
+        This function can be used as a transform function to L{ViewClient.traverse()}
+
+        @type view: I{View}
+        @param view: the View
+        @return: the string containing class, id, and text if available and the content description
+        '''
+
+        return ViewClient.traverseShowClassIdAndText(view, View.getContentDescription, 'NAF', extraAction=ViewClient.writeViewImageToFileInDir)
+
+    @staticmethod
     def traverseShowClassIdTextAndCenter(view):
         '''
         Shows the View class, id and text if available.
@@ -1598,6 +1618,20 @@ class ViewClient:
 
         return ViewClient.traverseShowClassIdAndText(view, View.getPositionAndSize)
 
+    @staticmethod
+    def traverseTakeScreenshot(view):
+        '''
+        Don't show any any, just takes the screenshot.
+        This function can be used as a transform function to L{ViewClient.traverse()}
+
+        @type view: I{View}
+        @param view: the View
+        @return: None
+        '''
+
+        return ViewClient.writeViewImageToFileInDir(view)
+
+
     # methods that can be used to transform ViewClient.traverse output
     TRAVERSE_CIT = traverseShowClassIdAndText
     ''' An alias for L{traverseShowClassIdAndText(view)} '''
@@ -1609,6 +1643,10 @@ class ViewClient:
     ''' An alias for L{traverseShowClassIdTextAndCenter(view)} '''
     TRAVERSE_CITPS = traverseShowClassIdTextPositionAndSize
     ''' An alias for L{traverseShowClassIdTextPositionAndSize(view)} '''
+    TRAVERSE_CITCDS = traverseShowClassIdTextContentDescriptionAndScreenshot
+    ''' An alias for L{traverseShowClassIdTextContentDescriptionAndScreenshot(view)} '''
+    TRAVERSE_S = traverseTakeScreenshot
+    ''' An alias for L{traverseTakeScreenshot(view)} '''
 
     @staticmethod
     def sleep(secs=1.0):
@@ -2399,16 +2437,29 @@ You should force ViewServer back-end.''')
                          a directory, then the filename is determined by the serialno of the device and
                          _format extension.
         @type _format: str
-        @param _format: Image _format (default _format is PNG)
+        @param _format: Image format (default format is PNG)
         '''
 
         if not os.path.isabs(filename):
-            raise ValueError("writeImageToFile expects an absolute path")
+            raise ValueError("writeImageToFile expects an absolute path (filename='%s')" % filename)
         if os.path.isdir(filename):
             filename = os.path.join(filename, self.serialno + '.' + _format.lower())
         if DEBUG:
-            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s _format" % (filename, _format)
-        self.device.takeSnapshot().save(filename, _format)
+            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format (reconnect=%s)" % (filename, _format, self.device.reconnect)
+        self.device.takeSnapshot(reconnect=self.device.reconnect).save(filename, _format)
+
+    @staticmethod
+    def writeViewImageToFileInDir(view):
+        '''
+        Write the View image to the directory specified in C{ViewClient.imageDirectory}.
+
+        @type view: View
+        @param view: The view
+        '''
+
+        if not ViewClient.imageDirectory:
+            raise RuntimeError('You must set ViewClient.imageDiretory in order to use this method')
+        view.writeImageToFile(ViewClient.imageDirectory)
 
     @staticmethod
     def __pickleable(tree):
