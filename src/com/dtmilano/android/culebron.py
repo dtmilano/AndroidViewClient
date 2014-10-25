@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.7.0'
+__version__ = '8.7.1'
 
 import sys
 import threading
@@ -95,9 +95,21 @@ class Culebron:
     @staticmethod
     def checkDependencies():
         if not PIL_AVAILABLE:
-            raise Exception("PIL is needed for GUI mode")
+            raise Exception('''PIL is needed for GUI mode
+
+On Ubuntu install
+
+   $ sudo apt-get install python-imaging python-imaging-tk
+
+On OSX install
+
+   $ brew install pil
+''')
         if not TKINTER_AVAILABLE:
-            raise Exception("Tkinter is needed for GUI mode")
+            raise Exception('''Tkinter is needed for GUI mode
+
+This is usually installed by python package. Check your distribution details.
+''')
 
     def __init__(self, vc, printOperation, scale=1):
         '''
