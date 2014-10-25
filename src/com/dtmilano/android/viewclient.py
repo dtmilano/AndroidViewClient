@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.7.0'
+__version__ = '8.8.0'
 
 import sys
 import warnings
@@ -71,6 +71,10 @@ OFFSET = 25
 USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES = True
 ''' Use C{AdbClient} to obtain the needed properties. If this is
     C{False} then C{adb shell getprop} is used '''
+
+USE_DUMPSYS_TO_GET_DISPLAY_PROPERTIES = True
+''' Use C{dumpsys display} to obtain display properties. If this is
+    C{False} then C{USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES} is used '''
 
 SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED = False
 ''' Skips some classes related with the Action Bar and the PhoneWindow$DecorView in the
@@ -1252,18 +1256,29 @@ class ViewClient:
         ''' The map containing all the L{View}s indexed by their L{View.getUniqueId()} '''
         self.display = {}
         ''' The map containing the device's display properties: width, height and density '''
-        for prop in [ 'width', 'height', 'density' ]:
-            self.display[prop] = -1
-            if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
-                try:
-                    self.display[prop] = int(device.getProperty('display.' + prop))
-                except:
-                    if WARNINGS:
-                        warnings.warn("Couldn't determine display %s" % prop)
-            else:
-                # these values are usually not defined as properties, so we stick to the -1 set
-                # before
-                pass
+
+        if USE_DUMPSYS_TO_GET_DISPLAY_PROPERTIES:
+            ddp = self.device.shell('dumpsys display')
+            lines = ddp.split('\n')
+            phyDispRE = re.compile('.*PhysicalDisplayInfo{(?P<width>\d+) x (?P<height>\d+), .*, density (?P<density>[\d.]+).*')
+            for line in lines:
+                m = phyDispRE.search(line, 0)
+                if m:
+                    for prop in [ 'width', 'height', 'density' ]:
+                        self.display[prop] = m.group(prop)
+        else:
+            for prop in [ 'width', 'height', 'density' ]:
+                self.display[prop] = -1
+                if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
+                    try:
+                        self.display[prop] = int(device.getProperty('display.' + prop))
+                    except:
+                        if WARNINGS:
+                            warnings.warn("Couldn't determine display %s" % prop)
+                else:
+                    # these values are usually not defined as properties, so we stick to the -1 set
+                    # before
+                    pass
 
         self.build = {}
         ''' The map containing the device's build properties: version.sdk, version.release '''
