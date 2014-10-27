@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.9.0'
+__version__ = '8.9.1'
 
 import sys
 import warnings
@@ -1257,21 +1257,18 @@ class ViewClient:
         self.display = {}
         ''' The map containing the device's display properties: width, height and density '''
 
-        if USE_PHYSICAL_DISPLAY_INFO:
-            self.display = self.device.getPhysicalDisplayInfo()
-        else:
-            for prop in [ 'width', 'height', 'density' ]:
-                self.display[prop] = -1
-                if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
-                    try:
-                        self.display[prop] = int(device.getProperty('display.' + prop))
-                    except:
-                        if WARNINGS:
-                            warnings.warn("Couldn't determine display %s" % prop)
-                else:
-                    # these values are usually not defined as properties, so we stick to the -1 set
-                    # before
-                    pass
+        for prop in [ 'width', 'height', 'density' ]:
+            self.display[prop] = -1
+            if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
+                try:
+                    self.display[prop] = device.display[prop]
+                except:
+                    if WARNINGS:
+                        warnings.warn("Couldn't determine display %s" % prop)
+            else:
+                # these values are usually not defined as properties, so we stick to the -1 set
+                # before
+                pass
 
         self.build = {}
         ''' The map containing the device's build properties: version.sdk, version.release '''

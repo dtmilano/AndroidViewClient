@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.9.0'
+__version__ = '8.9.1'
 
 import sys
 import warnings
@@ -102,7 +102,9 @@ class AdbClient:
         if settransport and serialno != None:
             self.__setTransport()
             self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
-            self.display = self.getPhysicalDisplayInfo()
+            self.display['width'] = self.getProperty('display.width')
+            self.display['height'] = self.getProperty('display.height')
+            self.display['density'] = self.getProperty('display.density')
 
 
     @staticmethod
@@ -193,7 +195,10 @@ class AdbClient:
         try:
             if recv != OKAY:
                 error = self.socket.recv(1024)
-                raise RuntimeError("ERROR: %s %s" % (repr(recv), error))
+                if error.startswith('0049'):
+                    raise RuntimeError("ERROR: This computer is unauthorized. Please check the confirmation dialog on your device.")
+                else:
+                    raise RuntimeError("ERROR: %s %s" % (repr(recv), error))
         finally:
             self.setAlarm(0)
         if DEBUG:
@@ -327,9 +332,13 @@ class AdbClient:
         raise RuntimeError("Couldn't find ,PhysicalDisplayInfo in 'dumpsys display'")
 
     def __getProp(self, key, strip=True):
+        if DEBUG:
+            print >> sys.stderr, "__getProp(%s, %s)" % (key, strip)
         prop = self.shell('getprop %s' % key)
         if strip:
             prop = prop.rstrip('\r\n')
+        if DEBUG:
+            print >> sys.stderr, "    __getProp: returning '%s'" % prop
         return prop
 
     def __getDisplayWidth(self, key, strip=True):
@@ -341,7 +350,10 @@ class AdbClient:
         return int(h)
 
     def __getDisplayDensity(self, key, strip=True):
-        return self.getPhysicalDisplayInfo()['density']
+        d = self.getProperty('ro.sf.lcd_density', strip)
+        if d:
+            return float(d)/160.0
+        return float(self.getPhysicalDisplayInfo()['density'])
 
     def getSystemProperty(self, key, strip=True):
         return self.getProperty(key, strip)
@@ -350,7 +362,7 @@ class AdbClient:
         ''' Gets the property value for key '''
 
         import collections
-        MAP_KEYS = collections.OrderedDict([
+        MAP_PROPS = collections.OrderedDict([
                           (re.compile('display.width'), self.__getDisplayWidth),
                           (re.compile('display.height'), self.__getDisplayHeight),
                           (re.compile('display.density'), self.__getDisplayDensity),
@@ -358,9 +370,9 @@ class AdbClient:
                           ])
         '''Maps properties key values (as regexps) to instance methods to obtain its values.'''
 
-        for kre in MAP_KEYS.keys():
+        for kre in MAP_PROPS.keys():
             if kre.match(key):
-                return MAP_KEYS[kre](key=key, strip=strip)
+                return MAP_PROPS[kre](key=key, strip=strip)
         raise ValueError("key='%s' does not match any map entry")
 
     def getSdkVersion(self):
