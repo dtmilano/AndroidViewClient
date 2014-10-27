@@ -330,6 +330,7 @@ This is usually installed by python package. Check your distribution details.
             self.printOperation(None, Operation.SLEEP, 5)
             self.vc.sleep(5)
             self.isTouchingPoint = False
+            self.takeScreenshotAndShowItOnWindow()
             self.hideVignette()
             return
     
@@ -350,6 +351,7 @@ This is usually installed by python package. Check your distribution details.
             self.printOperation(None, Operation.SLEEP, 5)
             self.vc.sleep(5)
             self.isLongTouchingPoint = False
+            self.takeScreenshotAndShowItOnWindow()
             self.hideVignette()
             return
     
@@ -470,7 +472,7 @@ This is usually installed by python package. Check your distribution details.
         self.window.wait_window(d.top)
 
     def onCtrlL(self, event):
-        if not self.isTouchingPoint:
+        if not self.isLongTouchingPoint:
             self.toast('Long touching point', background=Color.GREEN)
             self.isLongTouchingPoint = True
         else:
