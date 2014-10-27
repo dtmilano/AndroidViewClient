@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.7.1'
+__version__ = '8.9.0'
 
 import sys
 import threading
@@ -40,7 +40,7 @@ except:
 
 from ast import literal_eval as make_tuple
 
-DEBUG = True
+DEBUG = False
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and True
