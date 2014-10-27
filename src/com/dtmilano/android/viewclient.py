@@ -72,7 +72,7 @@ USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES = True
 ''' Use C{AdbClient} to obtain the needed properties. If this is
     C{False} then C{adb shell getprop} is used '''
 
-USE_DUMPSYS_TO_GET_DISPLAY_PROPERTIES = True
+USE_PHYSICAL_DISPLAY_INFO = True
 ''' Use C{dumpsys display} to obtain display properties. If this is
     C{False} then C{USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES} is used '''
 
@@ -1257,15 +1257,8 @@ class ViewClient:
         self.display = {}
         ''' The map containing the device's display properties: width, height and density '''
 
-        if USE_DUMPSYS_TO_GET_DISPLAY_PROPERTIES:
-            ddp = self.device.shell('dumpsys display')
-            lines = ddp.split('\n')
-            phyDispRE = re.compile('.*PhysicalDisplayInfo{(?P<width>\d+) x (?P<height>\d+), .*, density (?P<density>[\d.]+).*')
-            for line in lines:
-                m = phyDispRE.search(line, 0)
-                if m:
-                    for prop in [ 'width', 'height', 'density' ]:
-                        self.display[prop] = m.group(prop)
+        if USE_PHYSICAL_DISPLAY_INFO:
+            self.display = self.device.getPhysicalDisplayInfo()
         else:
             for prop in [ 'width', 'height', 'density' ]:
                 self.display[prop] = -1

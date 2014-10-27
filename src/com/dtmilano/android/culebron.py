@@ -40,7 +40,7 @@ except:
 
 from ast import literal_eval as make_tuple
 
-DEBUG = False
+DEBUG = True
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and True
@@ -54,6 +54,10 @@ class Color:
     MAGENTA = '#d115af'
     DARK_GRAY = '#222222'
     LIGHT_GRAY = '#dddddd'
+
+class Unit:
+    PX = 'PX'
+    DIP = 'DIP'
 
 class Operation:
     ASSIGN = 'assign'
@@ -316,6 +320,7 @@ This is usually installed by python package. Check your distribution details.
     def touchPoint(self, x, y):
         if DEBUG:
             print >> sys.stderr, 'touchPoint(%d, %d)' % (x, y)
+            print >> sys.stderr, 'touchPoint:', type(x), type(y)
         if self.areEventsDisabled:
             if DEBUG:
                 print >> sys.stderr, "Ignoring event"
@@ -326,8 +331,11 @@ This is usually installed by python package. Check your distribution details.
         if self.isTouchingPoint:
             self.showVignette()
             self.device.touch(x, y)
-            self.printOperation(None, Operation.TOUCH_POINT, x, y)
-            self.printOperation(None, Operation.SLEEP, 5)
+            if self.coordinatesUnit == Unit.DIP:
+                x = x / self.vc.display['density']
+                y = y / self.vc.display['density']
+            self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit)
+            self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
             self.vc.sleep(5)
             self.isTouchingPoint = False
             self.takeScreenshotAndShowItOnWindow()
@@ -408,6 +416,9 @@ This is usually installed by python package. Check your distribution details.
         elif char == '\x04':
             self.onCtrlD(event)
             return
+        elif char == '\x09':
+            self.onCtrlI(event)
+            return
         elif char == '\x0c':
             self.onCtrlL(event)
             return
@@ -471,6 +482,10 @@ This is usually installed by python package. Check your distribution details.
         d = DragDialog(self)
         self.window.wait_window(d.top)
 
+    def onCtrlI(self, event):
+        self.coordinatesUnit = Unit.DIP
+        self.toggleTouchPoint()
+    
     def onCtrlL(self, event):
         if not self.isLongTouchingPoint:
             self.toast('Long touching point', background=Color.GREEN)
@@ -478,12 +493,16 @@ This is usually installed by python package. Check your distribution details.
         else:
             self.isLongTouchingPoint = False
 
-    def onCtrlP(self, event):
+    def toggleTouchPoint(self):
         if not self.isTouchingPoint:
-            self.toast('Touching point', background=Color.GREEN)
+            self.toast('Touching point (units=%s)' % self.coordinatesUnit, background=Color.GREEN)
             self.isTouchingPoint = True
         else:
             self.isTouchingPoint = False
+
+    def onCtrlP(self, event):
+        self.coordinatesUnit = Unit.PX
+        self.toggleTouchPoint()
         
     def onCtrlQ(self, event):
         self.window.quit()

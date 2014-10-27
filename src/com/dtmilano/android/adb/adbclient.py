@@ -95,10 +95,14 @@ class AdbClient:
         self.build = {}
         ''' Build properties '''
 
+        self.display = {}
+        ''' The map containing the device's physical display properties: width, height and density '''
+
         self.isTransportSet = False
         if settransport and serialno != None:
             self.__setTransport()
             self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
+            self.display = self.getPhysicalDisplayInfo()
 
 
     @staticmethod
@@ -305,7 +309,22 @@ class AdbClient:
             m = rsRE.match(line)
             if m:
                 return m.groups()
-        raise RuntimeError("Couldn't find mRestrictedScreen in dumpsys")
+        raise RuntimeError("Couldn't find mRestrictedScreen in 'dumpsys window'")
+
+    def getPhysicalDisplayInfo(self):
+        ''' Gets C{mPhysicalDisplayInfo} values from dumpsys. This is a method to obtain display dimensions and density'''
+
+        phyDispRE = re.compile('.*PhysicalDisplayInfo{(?P<width>\d+) x (?P<height>\d+), .*, density (?P<density>[\d.]+).*')
+        for line in self.shell('dumpsys display').splitlines():
+            m = phyDispRE.search(line, 0)
+            if m:
+                displayInfo = {}
+                for prop in [ 'width', 'height' ]:
+                    displayInfo[prop] = int(m.group(prop))
+                for prop in [ 'density' ]:
+                    displayInfo[prop] = float(m.group(prop))
+                return displayInfo
+        raise RuntimeError("Couldn't find ,PhysicalDisplayInfo in 'dumpsys display'")
 
     def __getProp(self, key, strip=True):
         prop = self.shell('getprop %s' % key)
@@ -321,6 +340,9 @@ class AdbClient:
         (x, y, w, h) = self.getRestrictedScreen()
         return int(h)
 
+    def __getDisplayDensity(self, key, strip=True):
+        return self.getPhysicalDisplayInfo()['density']
+
     def getSystemProperty(self, key, strip=True):
         return self.getProperty(key, strip)
 
@@ -331,6 +353,7 @@ class AdbClient:
         MAP_KEYS = collections.OrderedDict([
                           (re.compile('display.width'), self.__getDisplayWidth),
                           (re.compile('display.height'), self.__getDisplayHeight),
+                          (re.compile('display.density'), self.__getDisplayDensity),
                           (re.compile('.*'), self.__getProp),
                           ])
         '''Maps properties key values (as regexps) to instance methods to obtain its values.'''
@@ -444,6 +467,11 @@ class AdbClient:
 
     def touch(self, x, y, eventType=DOWN_AND_UP):
         self.shell('input tap %d %d' % (x, y))
+
+    def touchDip(self, x, y, eventType=DOWN_AND_UP):
+        x = x * self.display['density']
+        y = y * self.display['density']
+        self.touch(x, y, eventType)
 
     def longTouch(self, x, y, duration=2000):
         '''

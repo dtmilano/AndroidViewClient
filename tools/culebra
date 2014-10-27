@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.7.0'
+__version__ = '8.9.0'
 
 import re
 import sys
@@ -37,7 +37,7 @@ except:
     pass
 
 from com.dtmilano.android.viewclient import ViewClient, View, CulebraOptions
-from com.dtmilano.android.culebron import Culebron, Operation
+from com.dtmilano.android.culebron import Culebron, Operation, Unit
 
 DEBUG = False
 USAGE = 'usage: %s [OPTION]... [serialno]'
@@ -336,12 +336,17 @@ def printDrag(start, end, duration, steps):
     
     print '%s%svc.device.drag(%s, %s, %d, %d)' % (indent, prefix, start, end, duration, steps) 
     
-def printTouch(x, y):
+def printTouch(x, y, unit):
     '''
     Prints a touch
     '''
     
-    print '%s%svc.device.touch(%s, %s)' % (indent, prefix, x, y) 
+    if unit == Unit.PX:
+        print '%s%svc.device.touch(%s, %s)' % (indent, prefix, x, y)
+    elif unit == Unit.DIP:
+        print '%s%svc.device.touchDip(%s, %s)' % (indent, prefix, x, y)
+    else:
+        raise RuntimeError('Invalid unit: %s' % unit)
     
 def printLongTouch(x, y, duration):
     '''
@@ -410,7 +415,7 @@ def printOperation(view, op, *args):
         printDrag(args[0], args[1], args[2], args[3])
         return
     elif op == Operation.TOUCH_POINT:
-        printTouch(args[0], args[1])
+        printTouch(args[0], args[1], args[2])
         return
     elif op == Operation.LONG_TOUCH_POINT:
         printLongTouch(args[0], args[1], args[2])
