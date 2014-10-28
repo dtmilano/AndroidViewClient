@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.9.1'
+__version__ = '8.10.0'
 
 import sys
 import warnings
@@ -306,7 +306,7 @@ class AdbClient:
             sout = adbClient.socket.makefile("r")
             return sout
 
-    def getRestrictedScreen(self):
+    def __getRestrictedScreen(self):
         ''' Gets C{mRestrictedScreen} values from dumpsys. This is a method to obtain display dimensions '''
 
         rsRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<w>\d+)x(?P<h>\d+)')
@@ -319,6 +319,16 @@ class AdbClient:
     def getPhysicalDisplayInfo(self):
         ''' Gets C{mPhysicalDisplayInfo} values from dumpsys. This is a method to obtain display dimensions and density'''
 
+        phyDispRE = re.compile('Physical size: (?P<width>)x(?P<height>).*Physical density: (?P<density>)', re.MULTILINE)
+        m = phyDispRE.search(self.shell('wm size; wm density'))
+        if m:
+            displayInfo = {}
+            for prop in [ 'width', 'height' ]:
+                displayInfo[prop] = int(m.group(prop))
+            for prop in [ 'density' ]:
+                displayInfo[prop] = float(m.group(prop))
+            return displayInfo
+
         phyDispRE = re.compile('.*PhysicalDisplayInfo{(?P<width>\d+) x (?P<height>\d+), .*, density (?P<density>[\d.]+).*')
         for line in self.shell('dumpsys display').splitlines():
             m = phyDispRE.search(line, 0)
@@ -327,9 +337,24 @@ class AdbClient:
                 for prop in [ 'width', 'height' ]:
                     displayInfo[prop] = int(m.group(prop))
                 for prop in [ 'density' ]:
+                    # In mPhysicalDisplayInfo density is already a factor, no need to calculate
                     displayInfo[prop] = float(m.group(prop))
                 return displayInfo
-        raise RuntimeError("Couldn't find ,PhysicalDisplayInfo in 'dumpsys display'")
+
+        phyDispRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<w>\d+)x(?P<h>\d+)')
+        for line in self.shell('dumpsys window').splitlines():
+            #m = rsRE.match(line)
+            m = phyDispRE.search(line, 0)
+            if m:
+                displayInfo = {}
+                for prop in [ 'width', 'height' ]:
+                    displayInfo[prop] = int(m.group(prop))
+                for prop in [ 'density' ]:
+                    # No available density information
+                    displayInfo[prop] = -1.0
+                return displayInfo
+
+        raise RuntimeError("Couldn't find display info in 'wm size', 'dumpsys display' or 'dumpsys window'")
 
     def __getProp(self, key, strip=True):
         if DEBUG:
@@ -342,18 +367,16 @@ class AdbClient:
         return prop
 
     def __getDisplayWidth(self, key, strip=True):
-        (x, y, w, h) = self.getRestrictedScreen()
-        return int(w)
+        return self.getPhysicalDisplayInfo()['width']
 
     def __getDisplayHeight(self, key, strip=True):
-        (x, y, w, h) = self.getRestrictedScreen()
-        return int(h)
+        return self.getPhysicalDisplayInfo()['height']
 
     def __getDisplayDensity(self, key, strip=True):
         d = self.getProperty('ro.sf.lcd_density', strip)
         if d:
             return float(d)/160.0
-        return float(self.getPhysicalDisplayInfo()['density'])
+        return self.getPhysicalDisplayInfo()['density']
 
     def getSystemProperty(self, key, strip=True):
         return self.getProperty(key, strip)

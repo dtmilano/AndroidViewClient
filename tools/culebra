@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.9.0'
+__version__ = '8.10.0'
 
 import re
 import sys
@@ -648,6 +648,16 @@ class CulebraTests(CulebraTestCase):
         cls.sleep = 5
 
 ''' % (kwargs1, kwargs2, options),
+
+    print '''\
+    def setUp(self):
+        super(CulebraTests, self).setUp()
+'''
+
+    print '''\
+    def tearDown(self):
+        super(CulebraTests, self).tearDown()
+'''
 
     print '''\
     def preconditions(self):

@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.9.1'
+__version__ = '8.10.0'
 
 import sys
 import warnings
@@ -2740,6 +2740,7 @@ class CulebraOptions:
 class CulebraTestCase(unittest.TestCase):
     kwargs1 = None
     kwargs2 = None
+    devices = None
     serialno = None
     options = {}
 
@@ -2749,22 +2750,42 @@ class CulebraTestCase(unittest.TestCase):
         cls.kwargs2 = {'startviewserver': True, 'forceviewserveruse': False, 'autodump': False, 'ignoreuiautomatorkilled': True}
 
     def setUp(self):
-        self.device, self.serialno = ViewClient.connectToDeviceOrExit(serialno=self.serialno, **self.kwargs1)
-        if self.options[CulebraOptions.START_ACTIVITY]:
-            self.device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
-        self.vc = ViewClient(self.device, self.serialno, **self.kwargs2)
+        if self.serialno:
+            __devices = self.serialno.split()
+            if len(__devices) > 1:
+                self.devices = __devices
+
+        if self.devices:
+            __devices = self.devices
+            self.devices = []
+            for serialno in __devices:
+                device, serialno = ViewClient.connectToDeviceOrExit(serialno=serialno, **self.kwargs1)
+                if self.options[CulebraOptions.START_ACTIVITY]:
+                    device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
+                vc = ViewClient(device, serialno, **self.kwargs2)
+                self.devices.append({'serialno':serialno, 'device':device, 'vc':vc})
+        else:
+            self.device, self.serialno = ViewClient.connectToDeviceOrExit(serialno=self.serialno, **self.kwargs1)
+            if self.options[CulebraOptions.START_ACTIVITY]:
+                self.device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
+            self.vc = ViewClient(self.device, self.serialno, **self.kwargs2)
 
     def tearDown(self):
         pass
 
+    def isTestRunningOnMultipleDevices(self):
+        return (self.devices != None)
+
     @staticmethod
     def main():
-        # if you want to specify tests classes and methods in the command line you will be forced
+        # If you want to specify tests classes and methods in the command line you will be forced
         # to include -s or --serialno and the serial number of the device (could be a regexp)
-        # as ViewClient would have no way of determine what it is
+        # as ViewClient would have no way of determine what it is.
+        # This could be also a list of devices (delimited by whitespaces) and in such case all of
+        # them will be used.
         ser = ['-s', '--serialno']
         old = '%(failfast)'
-        new = '  %s s The serial number to connect to\n%s' % (', '.join(ser), old)
+        new = '  %s s The serial number[s] to connect to\n%s' % (', '.join(ser), old)
         unittest.TestProgram.USAGE = unittest.TestProgram.USAGE.replace(old, new)
         if len(sys.argv) >= 2 and sys.argv[1] in ser:
             sys.argv.pop(1)
