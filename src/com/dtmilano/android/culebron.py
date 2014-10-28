@@ -309,6 +309,9 @@ This is usually installed by python package. Check your distribution details.
             if text:
                 v.type(text)
                 self.printOperation(v, Operation.TYPE, text)
+            else:
+                self.hideVignette()
+                return
         else:
             v.touch()
             self.printOperation(v, Operation.TOUCH_VIEW)
