@@ -306,7 +306,10 @@ This is usually installed by python package. Check your distribution details.
                 print >>sys.stderr, v
             text = tkSimpleDialog.askstring("EditText", "Enter text to type into this EditText")
             self.canvas.focus_set()
-            if text:
+            if not text:
+                self.takeScreenshotAndShowItOnWindow()
+                return
+            else:
                 v.type(text)
                 self.printOperation(v, Operation.TYPE, text)
         else:
