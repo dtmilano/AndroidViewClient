@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.10.0'
+__version__ = '8.10.1'
 
 import sys
 import warnings
@@ -341,7 +341,7 @@ class AdbClient:
                     displayInfo[prop] = float(m.group(prop))
                 return displayInfo
 
-        phyDispRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<w>\d+)x(?P<h>\d+)')
+        phyDispRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<width>\d+)x(?P<height>\d+)')
         for line in self.shell('dumpsys window').splitlines():
             #m = rsRE.match(line)
             m = phyDispRE.search(line, 0)
