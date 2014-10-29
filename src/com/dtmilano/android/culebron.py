@@ -91,10 +91,11 @@ class Culebron:
     imageId = None
     vignetteId = None
     areTargetsMarked = False
-    isGrabbing = False
+    isGrabbingTouch = False
     isGeneratingTestCondition = False
     isTouchingPoint = False
     isLongTouchingPoint = False
+    onTouchListener = None
     
     @staticmethod
     def checkDependencies():
@@ -270,15 +271,7 @@ This is usually installed by python package. Check your distribution details.
                 print >> sys.stderr, "Ignoring event"
             self.canvas.update_idletasks()
             return
-        if DEBUG:
-            print >> sys.stderr, "Is grabbing:", self.isGrabbing
-        if self.isGrabbing:
-            if DEBUG:
-                print >> sys.stderr, "Grabbing event"
-            self.onTouchListener((x, y))
-            self.isGrabbing = False
-            return
-            
+         
         self.showVignette()
         if DEBUG_POINT:
             print >> sys.stderr, "getViewsContainingPointAndTouch(x=%s, y=%s)" % (x, y)
@@ -372,7 +365,12 @@ This is usually installed by python package. Check your distribution details.
         (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
         if DEBUG:
             print >> sys.stderr, "    onButton1Pressed: scaled: (", scaledX, ", ", scaledY, ")"
-        if self.isTouchingPoint:
+            print >> sys.stderr, "    onButton1Pressed: is grabbing:", self.isGrabbingTouch
+
+        if self.isGrabbingTouch:
+            self.onTouchListener((scaledX, scaledY))
+            self.isGrabbingTouch = False
+        elif self.isTouchingPoint:
             self.touchPoint(scaledX, scaledY)
         elif self.isLongTouchingPoint:
             self.longTouchPoint(scaledX, scaledY)
@@ -483,7 +481,7 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlD(self, event):
         d = DragDialog(self)
-        self.window.wait_window(d.top)
+        self.window.wait_window(d)
 
     def onCtrlI(self, event):
         self.coordinatesUnit = Unit.DIP
@@ -597,15 +595,23 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.delete(t)
         self.areTargetsMarked = False
 
+    def drawTouchedPoint(self, x, y):
+        size = 50
+        return self.canvas.create_oval((x-size)*self.scale, (y-size)*self.scale, (x+size)*self.scale, (y+size)*self.scale, fill=Color.MAGENTA)
+        
+    def drawDragLine(self, x0, y0, x1, y1):
+        width = 15
+        return self.canvas.create_line(x0, y0, x1, y1, width=width, fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
+    
     def setOnTouchListener(self, listener):
         self.onTouchListener = listener
 
     def setGrab(self, state):
         if DEBUG:
             print >> sys.stderr, "Culebron.setGrab(%s)" % state
-        if not self.onTouchListener:
+        if state and not self.onTouchListener:
             warnings.warn('Starting to grab but no onTouchListener')
-        self.isGrabbing = state
+        self.isGrabbingTouch = state
         if state:
             self.toast('Grabbing drag points...', background=Color.GREEN)
         else:
@@ -649,30 +655,50 @@ class LabeledEntryWithButton(LabeledEntry):
         self.button = Tkinter.Button(self.f, text=buttonText, command=command)
         self.button.pack(side="right")
 
-class DragDialog:
+class DragDialog(Tkinter.Toplevel):
+    
+    DEFAULT_DURATION = 1000
+    DEFAULT_STEPS = 20
     
     def __init__(self, culebron):
         self.culebron = culebron
-        parent = culebron.window
-        top = self.top = Tkinter.Toplevel(parent)
+        self.parent = culebron.window
+        Tkinter.Toplevel.__init__(self, self.parent)
+        self.transient(self.parent)
+        self.title("Drag: selecting parameters")
 
-        self.sp = LabeledEntryWithButton(top, "Start point", "Grab", command=self.onGrabSp)
+        self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp)
         self.sp.pack(pady=5)
 
-        self.ep = LabeledEntryWithButton(top, "End point", "Grab", command=self.onGrabEp)
+        self.ep = LabeledEntryWithButton(self, "End point", "Grab", command=self.onGrabEp)
         self.ep.pack(pady=5)
 
-        self.d = LabeledEntry(top, "Duration")
-        self.d.set("1000")
+        self.d = LabeledEntry(self, "Duration")
+        self.d.set(DragDialog.DEFAULT_DURATION)
         self.d.pack(pady=5)
 
-        self.s = LabeledEntry(top, "Steps")
-        self.s.set("20")
+        self.s = LabeledEntry(self, "Steps")
+        self.s.set(DragDialog.DEFAULT_STEPS)
         self.s.pack(pady=5)
 
-        b = Tkinter.Button(top, text="OK", command=self.onOk)
-        b.pack(pady=5)
+        self.buttonbox()
 
+    def buttonbox(self):
+        # add standard button box. override if you don't want the
+        # standard buttons
+
+        box = Tkinter.Frame(self)
+
+        w = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE)
+        w.pack(side=Tkinter.LEFT, padx=5, pady=5)
+        w = Tkinter.Button(box, text="Cancel", width=10, command=self.onCancel)
+        w.pack(side=Tkinter.LEFT, padx=5, pady=5)
+
+        self.bind("<Return>", self.onOk)
+        self.bind("<Escape>", self.onCancel)
+
+        box.pack()
+        
     def onOk(self):
         if DEBUG:
             print >> sys.stderr, "values are:",
@@ -685,9 +711,19 @@ class DragDialog:
         ep = make_tuple(self.ep.get())
         d = int(self.d.get())
         s = int(self.s.get())
-        self.top.destroy()
+        # put focus back to the parent window
+        self.parent.focus_set()
+        self.destroy()
+        self.culebron.canvas.delete(self.spId)
+        self.culebron.canvas.delete(self.epId)
         self.culebron.drag(sp, ep, d, s)
 
+    def onCancel(self):
+        self.culebron.setGrab(False)
+        # put focus back to the parent window
+        self.parent.focus_set()
+        self.destroy()
+    
     def onGrabSp(self):
         '''
         Grab starting point
@@ -709,17 +745,21 @@ class DragDialog:
         Generic grab method.
         '''
         
-        if DEBUG:
-            print >> sys.stderr, "GRAB"
         self.culebron.setOnTouchListener(self.onTouchListener)
         self.__grabbing = entry
         self.culebron.setGrab(True)
 
     def onTouchListener(self, point):
-        if DEBUG:
-            print >> sys.stderr, "TOUCHED", point
-        self.__grabbing.set("(%d,%d)" % (point[0], point[1]))
+        x = point[0]
+        y = point[1]
+        self.__grabbing.set("(%d,%d)" % (x, y))
         self.culebron.setGrab(False)
+        if self.__grabbing == self.sp:
+            self.spId = self.culebron.drawTouchedPoint(x, y)
+            self.spX = x
+            self.spY = y
+        else:
+            self.epId = self.culebron.drawDragLine(self.spX, self.spY, x, y)
         self.__grabbing = None
         self.culebron.setOnTouchListener(None)
 
