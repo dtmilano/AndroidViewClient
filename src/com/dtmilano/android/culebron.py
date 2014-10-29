@@ -23,6 +23,7 @@ __version__ = '8.10.1'
 import sys
 import threading
 import warnings
+from controlpanel import ControlPanel
 
 try:
     from PIL import Image, ImageTk
@@ -443,6 +444,9 @@ This is usually installed by python package. Check your distribution details.
         elif char == '\x1a':
             self.onCtrlZ(event)
             return
+        elif char == '\x0B':
+            self.onCtrlK(event)
+            return
         elif keysym == 'F5':
             self.showVignette()
             self.takeScreenshotAndShowItOnWindow()
@@ -542,6 +546,12 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "onCtrlZ()"
         self.toggleTargets()
         self.canvas.update_idletasks()
+
+    def onCtrlK(self, event):
+        frame = Tkinter.Toplevel(self.window)
+        frame.title("Control Panel")
+        frame.resizable(0, 0)
+        cp = ControlPanel(frame, self, self.vc, self.printOperation)
     
     def drag(self, start, end, duration, steps):
         self.showVignette()
@@ -620,6 +630,8 @@ This is usually installed by python package. Check your distribution details.
             return False
     
     def mainloop(self):
+        self.window.title("AndroidViewClient")
+        self.window.resizable(0, 0)
         self.window.mainloop()
 
 class LabeledEntry():
