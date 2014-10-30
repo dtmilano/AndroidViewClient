@@ -423,6 +423,9 @@ This is usually installed by python package. Check your distribution details.
         elif char == '\x09':
             self.onCtrlI(event)
             return
+        elif char == '\x0B':
+            self.onCtrlK(event)
+            return
         elif char == '\x0c':
             self.onCtrlL(event)
             return
@@ -443,9 +446,6 @@ This is usually installed by python package. Check your distribution details.
             return
         elif char == '\x1a':
             self.onCtrlZ(event)
-            return
-        elif char == '\x0B':
-            self.onCtrlK(event)
             return
         elif keysym == 'F5':
             self.showVignette()
