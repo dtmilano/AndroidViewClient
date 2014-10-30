@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.11.0'
+__version__ = '8.11.1'
 
 import sys
 import threading
@@ -613,7 +613,7 @@ This is usually installed by python package. Check your distribution details.
         
     def drawDragLine(self, x0, y0, x1, y1):
         width = 15
-        return self.canvas.create_line(x0, y0, x1, y1, width=width, fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
+        return self.canvas.create_line(x0*self.scale, y0*self.scale, x1*self.scale, y1*self.scale, width=width, fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
     
     def setOnTouchListener(self, listener):
         self.onTouchListener = listener
