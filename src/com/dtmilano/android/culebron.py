@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.10.2'
+__version__ = '8.11.0'
 
 import sys
 import threading
