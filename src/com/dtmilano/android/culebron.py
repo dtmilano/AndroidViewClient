@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.10.1'
+__version__ = '8.11.1'
 
 import sys
 import threading
@@ -35,6 +35,7 @@ try:
     import Tkinter
     import tkSimpleDialog
     import tkFont
+    import ScrolledText
     TKINTER_AVAILABLE = True
 except:
     TKINTER_AVAILABLE = False
@@ -44,7 +45,7 @@ from ast import literal_eval as make_tuple
 DEBUG = False
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
-DEBUG_POINT = DEBUG and True
+DEBUG_POINT = DEBUG and False
 DEBUG_KEY = DEBUG and True
 
 
@@ -85,6 +86,7 @@ class Culebron:
          }
      
     KEYSYM_CULEBRON_COMMANDS = {
+        'F1': None,
         'F5': None
         }
 
@@ -226,7 +228,11 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.lift(self.imageId)
             self.canvas.update_idletasks()
             self.enableEvents()
-    
+
+    def showHelp(self):
+        d = HelpDialog(self)
+        self.window.wait_window(d)
+
     def findTargets(self):
         self.targets = []
         if self.device.isKeyboardShown():
@@ -393,6 +399,7 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG_KEY:
             print >> sys.stderr, "onKeyPressed(", repr(event), ")"
             print >> sys.stderr, "    event", type(event.char), len(event.char), repr(event.char), event.keysym, event.keycode, event.type
+            print >> sys.stderr, "    events disabled:", self.areEventsDisabled
         if self.areEventsDisabled:
             if DEBUG_KEY:
                 print >> sys.stderr, "ignoring event"
@@ -444,6 +451,9 @@ This is usually installed by python package. Check your distribution details.
             return
         elif char == '\x1a':
             self.onCtrlZ(event)
+            return
+        elif keysym == 'F1':
+            self.showHelp()
             return
         elif keysym == 'F5':
             self.showVignette()
@@ -510,7 +520,9 @@ This is usually installed by python package. Check your distribution details.
         self.toggleTouchPoint()
         
     def onCtrlQ(self, event):
-        self.window.quit()
+        if DEBUG:
+            print >> sys.stderr, "onCtrlQ(%s)" % event
+        self.window.destroy()
         
     def onCtrlS(self, event):
         self.printOperation(None, Operation.SLEEP, 1)
@@ -608,7 +620,7 @@ This is usually installed by python package. Check your distribution details.
         
     def drawDragLine(self, x0, y0, x1, y1):
         width = 15
-        return self.canvas.create_line(x0, y0, x1, y1, width=width, fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
+        return self.canvas.create_line(x0*self.scale, y0*self.scale, x1*self.scale, y1*self.scale, width=width, fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
     
     def setOnTouchListener(self, listener):
         self.onTouchListener = listener
@@ -690,9 +702,9 @@ class DragDialog(Tkinter.Toplevel):
         self.s.set(DragDialog.DEFAULT_STEPS)
         self.s.pack(pady=5)
 
-        self.buttonbox()
+        self.buttonBox()
 
-    def buttonbox(self):
+    def buttonBox(self):
         # add standard button box. override if you don't want the
         # standard buttons
 
@@ -708,7 +720,7 @@ class DragDialog(Tkinter.Toplevel):
 
         box.pack()
         
-    def onOk(self):
+    def onOk(self, event=None):
         if DEBUG:
             print >> sys.stderr, "values are:",
             print >> sys.stderr, self.sp.get(),
@@ -720,17 +732,17 @@ class DragDialog(Tkinter.Toplevel):
         ep = make_tuple(self.ep.get())
         d = int(self.d.get())
         s = int(self.s.get())
-        # put focus back to the parent window
-        self.parent.focus_set()
+        # put focus back to the parent window's canvas
+        self.culebron.canvas.focus_set()
         self.destroy()
         self.culebron.canvas.delete(self.spId)
         self.culebron.canvas.delete(self.epId)
         self.culebron.drag(sp, ep, d, s)
 
-    def onCancel(self):
+    def onCancel(self, event=None):
         self.culebron.setGrab(False)
-        # put focus back to the parent window
-        self.parent.focus_set()
+        # put focus back to the parent window's canvas
+        self.culebron.canvas.focus_set()
         self.destroy()
     
     def onGrabSp(self):
@@ -772,3 +784,58 @@ class DragDialog(Tkinter.Toplevel):
         self.__grabbing = None
         self.culebron.setOnTouchListener(None)
 
+class HelpDialog(Tkinter.Toplevel):
+
+    def __init__(self, culebron):
+        self.culebron = culebron
+        self.parent = culebron.window
+        Tkinter.Toplevel.__init__(self, self.parent)
+        #self.transient(self.parent)
+        self.title("Culebron: help")
+
+        self.text = ScrolledText.ScrolledText(self, width=50, height=40)
+        self.text.insert(Tkinter.INSERT, '''
+Special keys
+------------
+
+F1: Help
+F5: Refresh
+
+Mouse Buttons
+-------------
+<1>: Touch the underlying View
+
+Commands
+--------
+Ctrl-A: Toggle message area
+Ctrl-D: Drag dialog
+Ctrl-L: Long touch point
+Ctrl-I: Touch using DIP
+Ctrl-P: Touch using PX
+Ctrl-Q: Quit
+Ctrl-S: Generates a sleep() on output script
+Ctrl-T: Toggle generating test condition
+Ctrl-Z: Touch zones
+''')
+        self.text.pack()
+
+        self.buttonBox()
+
+    def buttonBox(self):
+        # add standard button box. override if you don't want the
+        # standard buttons
+
+        box = Tkinter.Frame(self)
+
+        w = Tkinter.Button(box, text="Dismiss", width=10, command=self.onDismiss, default=Tkinter.ACTIVE)
+        w.pack(side=Tkinter.LEFT, padx=5, pady=5)
+
+        self.bind("<Return>", self.onDismiss)
+        self.bind("<Escape>", self.onDismiss)
+
+        box.pack()
+
+    def onDismiss(self, event=None):
+        # put focus back to the parent window's canvas
+        self.culebron.canvas.focus_set()
+        self.destroy()
