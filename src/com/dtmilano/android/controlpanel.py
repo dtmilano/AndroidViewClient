@@ -7,10 +7,9 @@
     @author: AK
 '''
 
-__version__ = '0.1'
+__version__ = '1.0'
 
 import Tkinter
-import tkFont
 import sys
 
 
@@ -20,13 +19,9 @@ class Operation:
 
 
 class Color:
-    GOLD = '#d19615'
-    GREEN = '#15d137'
-    BLUE = '#1551d1'
-    MAGENTA = '#d115af'
     DARK_GRAY = '#222222'
     LIGHT_GRAY = '#dddddd'
-    MOOVE = '#9C50A4'
+    BLUE = '#5058a4'
 
 
 class ControlPanel(Tkinter.Toplevel):
@@ -35,7 +30,7 @@ class ControlPanel(Tkinter.Toplevel):
         self.culebron = culebron
         self.parent = culebron.window
         Tkinter.Toplevel.__init__(self, self.parent)
-        self.title("Control Panel")
+        self.title("Control Panel v" + __version__)
         self.resizable(0, 0)
         self.printOperation = printOperation
         self.vc = vc
@@ -60,16 +55,16 @@ class ControlPanel(Tkinter.Toplevel):
 
         for button in buttons_list:
             self.button = KeyboardButton(self, culebron, vc, printOperation, value=button, text=button[8:], width=14,
-                                     bg=Color.DARK_GRAY, fg=Color.BLUE, highlightbackground=Color.LIGHT_GRAY)
+                                     bg=Color.DARK_GRAY, fg=Color.LIGHT_GRAY, highlightbackground=Color.DARK_GRAY)
 
             if button == 'CUSTOM__REFRESH':
-                self.button.configure(fg=Color.MOOVE, command=self.button.refreshScreen)
+                self.button.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, command=self.button.refreshScreen)
                 self.button.grid(column=self.Column, row=self.Row)
             elif button == 'CUSTOM__SNAPSHOPT':
-                self.button.configure(fg=Color.MOOVE, command=self.button.takeSnapshoot)
+                self.button.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, command=self.button.takeSnapshoot)
                 self.button.grid(column=self.Column, row=self.Row)
             elif button == 'CUSTOM__QUIT':
-                self.button.configure(fg=Color.MOOVE, command=self.destroy)
+                self.button.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, command=self.destroy)
                 self.button.grid(column=self.Column, row=self.Row)
             else:
                 self.button.configure(command=self.button.pressKeyCode)
