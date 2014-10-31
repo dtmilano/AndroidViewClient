@@ -95,6 +95,7 @@ class Culebron:
     imageId = None
     vignetteId = None
     areTargetsMarked = False
+    isDragDialogShowed = False
     isGrabbingTouch = False
     isGeneratingTestCondition = False
     isTouchingPoint = False
@@ -380,6 +381,9 @@ This is usually installed by python package. Check your distribution details.
         if self.isGrabbingTouch:
             self.onTouchListener((scaledX, scaledY))
             self.isGrabbingTouch = False
+        elif self.isDragDialogShowed:
+            self.toast("No touch events allowed while setting drag parameters", background=Color.GOLD)
+            return
         elif self.isTouchingPoint:
             self.touchPoint(scaledX, scaledY)
         elif self.isLongTouchingPoint:
@@ -499,6 +503,7 @@ This is usually installed by python package. Check your distribution details.
     def onCtrlD(self, event):
         d = DragDialog(self)
         self.window.wait_window(d)
+        self.setDragDialogShowed(False)
 
     def onCtrlI(self, event):
         self.coordinatesUnit = Unit.DIP
@@ -618,6 +623,13 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.delete(t)
         self.areTargetsMarked = False
 
+    def setDragDialogShowed(self, showed):
+        self.isDragDialogShowed = showed
+        if showed:
+            pass
+        else:
+            self.isGrabbingTouch = False
+
     def drawTouchedPoint(self, x, y):
         size = 50
         return self.canvas.create_oval((x-size)*self.scale, (y-size)*self.scale, (x+size)*self.scale, (y+size)*self.scale, fill=Color.MAGENTA)
@@ -691,6 +703,7 @@ class DragDialog(Tkinter.Toplevel):
         self.parent = culebron.window
         Tkinter.Toplevel.__init__(self, self.parent)
         self.transient(self.parent)
+        self.culebron.setDragDialogShowed(True)
         self.title("Drag: selecting parameters")
 
         self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp)
