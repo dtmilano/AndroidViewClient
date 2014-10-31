@@ -23,7 +23,6 @@ __version__ = '8.11.1'
 import sys
 import threading
 import warnings
-from com.dtmilano.android.controlpanel import ControlPanel
 
 try:
     from PIL import Image, ImageTk
@@ -558,6 +557,7 @@ This is usually installed by python package. Check your distribution details.
         self.canvas.update_idletasks()
 
     def onCtrlK(self, event):
+        from com.dtmilano.android.controlpanel import ControlPanel
         self.controlPanel = ControlPanel(self, self.vc, self.printOperation)
     
     def drag(self, start, end, duration, steps):
@@ -645,8 +645,9 @@ This is usually installed by python package. Check your distribution details.
             return False
     
     def mainloop(self):
-        self.window.title("Culebron v" + __version__)
-        self.window.resizable(0, 0)
+        self.window.title("Culebra v" + __version__)
+        self.window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
+        self.window.lift()
         self.window.mainloop()
 
 class LabeledEntry():
@@ -791,7 +792,7 @@ class HelpDialog(Tkinter.Toplevel):
         self.parent = culebron.window
         Tkinter.Toplevel.__init__(self, self.parent)
         #self.transient(self.parent)
-        self.title("Culebron: help")
+        self.title("Culebra: help")
 
         self.text = ScrolledText.ScrolledText(self, width=50, height=40)
         self.text.insert(Tkinter.INSERT, '''

@@ -24,16 +24,7 @@ __version__ = '1.0'
 import Tkinter
 import sys
 
-
-
-class Operation:
-    PRESS = 'press'
-
-
-class Color:
-    DARK_GRAY = '#222222'
-    LIGHT_GRAY = '#dddddd'
-    BLUE = '#5058a4'
+from com.dtmilano.android.culebron import Operation, Unit, Color
 
 
 class ControlPanel(Tkinter.Toplevel):
