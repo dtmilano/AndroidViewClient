@@ -23,6 +23,7 @@ __version__ = '8.11.1'
 import sys
 import threading
 import warnings
+from controlpanel import ControlPanel
 
 try:
     from PIL import Image, ImageTk
@@ -427,6 +428,9 @@ This is usually installed by python package. Check your distribution details.
         elif char == '\x09':
             self.onCtrlI(event)
             return
+        elif char == '\x0B':
+            self.onCtrlK(event)
+            return
         elif char == '\x0c':
             self.onCtrlL(event)
             return
@@ -552,6 +556,9 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "onCtrlZ()"
         self.toggleTargets()
         self.canvas.update_idletasks()
+
+    def onCtrlK(self, event):
+        self.cp = ControlPanel(self, self.vc, self.printOperation)
     
     def drag(self, start, end, duration, steps):
         self.showVignette()
@@ -638,6 +645,8 @@ This is usually installed by python package. Check your distribution details.
             return False
     
     def mainloop(self):
+        self.window.title("Culebron v" + __version__)
+        self.window.resizable(0, 0)
         self.window.mainloop()
 
 class LabeledEntry():
@@ -800,6 +809,7 @@ Commands
 --------
 Ctrl-A: Toggle message area
 Ctrl-D: Drag dialog
+Ctrl-K: Control Panel
 Ctrl-L: Long touch point
 Ctrl-I: Touch using DIP
 Ctrl-P: Touch using PX
