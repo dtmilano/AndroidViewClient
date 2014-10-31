@@ -128,6 +128,8 @@ This is usually installed by python package. Check your distribution details.
         @type vc: ViewClient
         @param printOperation: the method invoked to print operations to the script
         @type printOperation: method
+        @param scale: the scale of the device screen used to show it on the window
+        @type scale: float
         '''
         
         self.vc = vc
