@@ -14,8 +14,10 @@ import tkFont
 import sys
 
 
+
 class Operation:
     PRESS = 'press'
+
 
 class Color:
     GOLD = '#d19615'
@@ -24,19 +26,24 @@ class Color:
     MAGENTA = '#d115af'
     DARK_GRAY = '#222222'
     LIGHT_GRAY = '#dddddd'
+    MOOVE = '#9C50A4'
 
-class ControlPanel(Tkinter.Frame):
 
-    def __init__(self, master, culebron, vc, printOperation, **kwargs):
-        Tkinter.Frame.__init__(self, master, kwargs)
+class ControlPanel(Tkinter.Toplevel):
+
+    def __init__(self, culebron, vc, printOperation, **kwargs):
         self.culebron = culebron
+        self.parent = culebron.window
+        Tkinter.Toplevel.__init__(self, self.parent)
+        self.title("Control Panel")
+        self.resizable(0, 0)
         self.printOperation = printOperation
         self.vc = vc
         self.grid()
         self.Column = 0
         self.Row = 0
 
-
+        
         buttons_list = [
                    'KEYCODE_1', 'KEYCODE_6', 'KEYCODE_BACK', 'KEYCODE_DPAD_UP', 'KEYCODE_PAGE_UP',
                    'KEYCODE_2', 'KEYCODE_7', 'KEYCODE_SPACE', 'KEYCODE_DPAD_DOWN', 'KEYCODE_PAGE_DOWN',
@@ -52,18 +59,17 @@ class ControlPanel(Tkinter.Frame):
 
 
         for button in buttons_list:
-            self.button = Button(self, culebron, vc, printOperation, value=button, text=button[8:], width=14,
+            self.button = KeyboardButton(self, culebron, vc, printOperation, value=button, text=button[8:], width=14,
                                      bg=Color.DARK_GRAY, fg=Color.BLUE, highlightbackground=Color.LIGHT_GRAY)
-                
 
             if button == 'CUSTOM__REFRESH':
-                self.button.configure(fg=Color.GREEN, command=self.button.refreshScreen)
+                self.button.configure(fg=Color.MOOVE, command=self.button.refreshScreen)
                 self.button.grid(column=self.Column, row=self.Row)
             elif button == 'CUSTOM__SNAPSHOPT':
-                self.button.configure(fg=Color.GREEN, command=self.button.takeSnapshoot)
+                self.button.configure(fg=Color.MOOVE, command=self.button.takeSnapshoot)
                 self.button.grid(column=self.Column, row=self.Row)
             elif button == 'CUSTOM__QUIT':
-                self.button.configure(fg=Color.GREEN, command=self.master.destroy)
+                self.button.configure(fg=Color.MOOVE, command=self.destroy)
                 self.button.grid(column=self.Column, row=self.Row)
             else:
                 self.button.configure(command=self.button.pressKeyCode)
@@ -75,16 +81,16 @@ class ControlPanel(Tkinter.Frame):
                 self.Row += 1
 
 
-class Button(Tkinter.Button):
+class KeyboardButton(Tkinter.Button):
 
-    def __init__(self, master, culebron, vc, printOperation, value=None, **kwargs):
-        Tkinter.Button.__init__(self, master, kwargs)
+    def __init__(self, parent, culebron, vc, printOperation, value=None, **kwargs):
+        Tkinter.Button.__init__(self, parent, kwargs)
         self.culebron = culebron
         self.printOperation = printOperation
         self.value = value
         self.vc = vc
         self.device = vc.device
-    
+
     def pressKeyCode(self):
         keycode = self.value
         self.device.press(keycode)
@@ -93,6 +99,6 @@ class Button(Tkinter.Button):
     def refreshScreen(self):
         self.culebron.showVignette()
         self.culebron.takeScreenshotAndShowItOnWindow()
-    
+
     def takeSnapshoot(self):
         self.device.takeSnapshot().save('Snapshot', 'PNG')

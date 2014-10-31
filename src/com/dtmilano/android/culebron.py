@@ -546,10 +546,7 @@ This is usually installed by python package. Check your distribution details.
         self.canvas.update_idletasks()
 
     def onCtrlK(self, event):
-        frame = Tkinter.Toplevel(self.window)
-        frame.title("Control Panel")
-        frame.resizable(0, 0)
-        cp = ControlPanel(frame, self, self.vc, self.printOperation)
+        self.cp = ControlPanel(self, self.vc, self.printOperation)
     
     def drag(self, start, end, duration, steps):
         self.showVignette()
@@ -636,7 +633,7 @@ This is usually installed by python package. Check your distribution details.
             return False
     
     def mainloop(self):
-        self.window.title("AndroidViewClient")
+        self.window.title("Culebron " + __version__)
         self.window.resizable(0, 0)
         self.window.mainloop()
 
