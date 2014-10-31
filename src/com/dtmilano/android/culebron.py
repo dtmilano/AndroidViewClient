@@ -75,6 +75,8 @@ class Operation:
     SLEEP = 'sleep'
 
 class Culebron:
+    APPLICATION_NAME = "Culebra"
+
     KEYSYM_TO_KEYCODE_MAP = {
         'Home': 'HOME',
         'BackSpace': 'BACK',
@@ -645,7 +647,7 @@ This is usually installed by python package. Check your distribution details.
             return False
     
     def mainloop(self):
-        self.window.title("Culebra v" + __version__)
+        self.window.title("%s v%s" % (Culebron.APPLICATION_NAME, __version__))
         self.window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
         self.window.lift()
         self.window.mainloop()
@@ -792,7 +794,7 @@ class HelpDialog(Tkinter.Toplevel):
         self.parent = culebron.window
         Tkinter.Toplevel.__init__(self, self.parent)
         #self.transient(self.parent)
-        self.title("Culebra: help")
+        self.title("%s: help" % Culebron.APPLICATION_NAME)
 
         self.text = ScrolledText.ScrolledText(self, width=50, height=40)
         self.text.insert(Tkinter.INSERT, '''
