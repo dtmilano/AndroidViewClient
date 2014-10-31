@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.11.1'
+__version__ = '8.12.0'
 
 import sys
 import warnings
@@ -521,10 +521,10 @@ class AdbClient:
 
     def drag(self, (x0, y0), (x1, y1), duration, steps=1):
         '''
-        Sends drag event (actually it's using C{input swipe} command.
+        Sends drag event n PX (actually it's using C{input swipe} command.
 
-        @param (x0, y0): starting point
-        @param (x1, y1): ending point
+        @param (x0, y0): starting point in PX
+        @param (x1, y1): ending point in PX
         @param duration: duration of the event in ms
         @param steps: number of steps (currently ignored by @{input swipe}
         '''
@@ -537,6 +537,22 @@ class AdbClient:
         else:
             self.shell('input touchscreen swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration))
 
+    def dragDip(self, (x0, y0), (x1, y1), duration, steps=1):
+        '''
+        Sends drag event in DIP (actually it's using C{input swipe} command.
+
+        @param (x0, y0): starting point in DIP
+        @param (x1, y1): ending point in DIP
+        @param duration: duration of the event in ms
+        @param steps: number of steps (currently ignored by @{input swipe}
+        '''
+
+        x0 = x0 * self.display['density']
+        y0 = y0 * self.display['density']
+        x1 = x1 * self.display['density']
+        y1 = y1 * self.display['density']
+        self.drag((x0, y0), (x1, y1), duration, steps)
+        
     def type(self, text):
         self.shell(u'input text "%s"' % text)
 

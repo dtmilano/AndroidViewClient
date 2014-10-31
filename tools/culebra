@@ -329,12 +329,17 @@ def printPress(keycode):
     
     print '%s%svc.device.press("%s")' % (indent, prefix, keycode)
     
-def printDrag(start, end, duration, steps):
+def printDrag(start, end, duration, steps, unit):
     '''
     Prints a drag
     '''
     
-    print '%s%svc.device.drag(%s, %s, %d, %d)' % (indent, prefix, start, end, duration, steps) 
+    if unit == Unit.PX:
+        print '%s%svc.device.drag(%s, %s, %d, %d)' % (indent, prefix, start, end, duration, steps) 
+    elif unit == Unit.DIP:
+        print '%s%svc.device.dragDip(%s, %s, %d, %d)' % (indent, prefix, start, end, duration, steps) 
+    else:
+        raise RuntimeError('Invalid unit: %s' % unit)
     
 def printTouch(x, y, unit):
     '''
@@ -412,7 +417,7 @@ def printOperation(view, op, *args):
         printDump(args[0])
         return
     elif op == Operation.DRAG:
-        printDrag(args[0], args[1], args[2], args[3])
+        printDrag(args[0], args[1], args[2], args[3], args[4])
         return
     elif op == Operation.TOUCH_POINT:
         printTouch(args[0], args[1], args[2])

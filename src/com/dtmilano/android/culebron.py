@@ -23,6 +23,7 @@ __version__ = '8.11.1'
 import sys
 import threading
 import warnings
+from Tkinter import Radiobutton
 
 try:
     from PIL import Image, ImageTk
@@ -569,10 +570,18 @@ This is usually installed by python package. Check your distribution details.
         from com.dtmilano.android.controlpanel import ControlPanel
         self.controlPanel = ControlPanel(self, self.vc, self.printOperation)
     
-    def drag(self, start, end, duration, steps):
+    def drag(self, start, end, duration, steps, units=Unit.DIP):
         self.showVignette()
+        # the operation on this device is always done in PX
         self.device.drag(start, end, duration, steps)
-        self.printOperation(None, Operation.DRAG, start, end, duration, steps)
+        if units == Unit.DIP:
+            x0 = start[0] / self.vc.display['density']
+            y0 = start[1] / self.vc.display['density']
+            x1 = end[0] / self.vc.display['density']
+            y1 = end[0] / self.vc.display['density']
+            start = (x0, y0)
+            end = (x1, y1)
+        self.printOperation(None, Operation.DRAG, start, end, duration, steps, units)
         self.printOperation(None, Operation.SLEEP, 1)
         self.vc.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
@@ -667,18 +676,14 @@ This is usually installed by python package. Check your distribution details.
         self.window.mainloop()
 
 class LabeledEntry():
-    def __init__(self, parent, text):
+    def __init__(self, parent, text, validate, validatecmd):
         self.f = Tkinter.Frame(parent)
         Tkinter.Label(self.f, text=text, anchor="w", padx=8).pack(fill="x")
-        self.entry = Tkinter.Entry(self.f, validate="focusout", validatecommand=self.focusout)
+        self.entry = Tkinter.Entry(self.f, validate=validate, validatecommand=validatecmd)
         self.entry.pack(padx=5)
 
     def pack(self, **kwargs):
         self.f.pack(kwargs)
-
-    def focusout(self):
-        if DEBUG:
-            print >> sys.stderr, "FOCUSOUT"
 
     def get(self):
         return self.entry.get()
@@ -688,8 +693,8 @@ class LabeledEntry():
         self.entry.insert(0, text)
         
 class LabeledEntryWithButton(LabeledEntry):
-    def __init__(self, parent, text, buttonText, command):
-        LabeledEntry.__init__(self, parent, text)
+    def __init__(self, parent, text, buttonText, command, validate, validatecmd):
+        LabeledEntry.__init__(self, parent, text, validate, validatecmd)
         self.button = Tkinter.Button(self.f, text=buttonText, command=command)
         self.button.pack(side="right")
 
@@ -706,17 +711,35 @@ class DragDialog(Tkinter.Toplevel):
         self.culebron.setDragDialogShowed(True)
         self.title("Drag: selecting parameters")
 
-        self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp)
+        # valid percent substitutions (from the Tk entry man page)
+        # %d = Type of action (1=insert, 0=delete, -1 for others)
+        # %i = index of char string to be inserted/deleted, or -1
+        # %P = value of the entry if the edit is allowed
+        # %s = value of entry prior to editing
+        # %S = the text string being inserted or deleted, if any
+        # %v = the type of validation that is currently set
+        # %V = the type of validation that triggered the callback
+        #      (key, focusin, focusout, forced)
+        # %W = the tk name of the widget
+        self.validate = (self.parent.register(self.onValidate), '%P')
+        self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp, validate="focusout", validatecmd=self.validate)
         self.sp.pack(pady=5)
 
-        self.ep = LabeledEntryWithButton(self, "End point", "Grab", command=self.onGrabEp)
+        self.ep = LabeledEntryWithButton(self, "End point", "Grab", command=self.onGrabEp, validate="focusout", validatecmd=self.validate)
         self.ep.pack(pady=5)
 
-        self.d = LabeledEntry(self, "Duration")
+        self.units = Tkinter.StringVar()
+        self.units.set(Unit.DIP)
+        for u in dir(Unit):
+            if u.startswith('_'):
+                continue
+            Radiobutton(self, text=u, variable=self.units, value=u).pack(padx=40, anchor=Tkinter.W)
+        
+        self.d = LabeledEntry(self, "Duration", validate="focusout", validatecmd=self.validate)
         self.d.set(DragDialog.DEFAULT_DURATION)
         self.d.pack(pady=5)
 
-        self.s = LabeledEntry(self, "Steps")
+        self.s = LabeledEntry(self, "Steps", validate="focusout", validatecmd=self.validate)
         self.s.set(DragDialog.DEFAULT_STEPS)
         self.s.pack(pady=5)
 
@@ -728,8 +751,8 @@ class DragDialog(Tkinter.Toplevel):
 
         box = Tkinter.Frame(self)
 
-        w = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE)
-        w.pack(side=Tkinter.LEFT, padx=5, pady=5)
+        self.ok = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE, state=Tkinter.DISABLED)
+        self.ok.pack(side=Tkinter.LEFT, padx=5, pady=5)
         w = Tkinter.Button(box, text="Cancel", width=10, command=self.onCancel)
         w.pack(side=Tkinter.LEFT, padx=5, pady=5)
 
@@ -738,13 +761,21 @@ class DragDialog(Tkinter.Toplevel):
 
         box.pack()
         
+    def onValidate(self, value):
+        if self.sp.get() and self.ep.get() and self.d.get() and self.s.get():
+            self.ok.configure(state=Tkinter.NORMAL)
+        else:
+            self.ok.configure(state=Tkinter.DISABLED)
+        
     def onOk(self, event=None):
         if DEBUG:
+            print >> sys.stderr, "onOK()"
             print >> sys.stderr, "values are:",
             print >> sys.stderr, self.sp.get(),
             print >> sys.stderr, self.ep.get(),
             print >> sys.stderr, self.d.get(),
-            print >> sys.stderr, self.s.get()
+            print >> sys.stderr, self.s.get(),
+            print >> sys.stderr, self.units.get()
 
         sp = make_tuple(self.sp.get())
         ep = make_tuple(self.ep.get())
@@ -755,7 +786,7 @@ class DragDialog(Tkinter.Toplevel):
         self.destroy()
         self.culebron.canvas.delete(self.spId)
         self.culebron.canvas.delete(self.epId)
-        self.culebron.drag(sp, ep, d, s)
+        self.culebron.drag(sp, ep, d, s, self.units.get())
 
     def onCancel(self, event=None):
         self.culebron.setGrab(False)
@@ -789,9 +820,18 @@ class DragDialog(Tkinter.Toplevel):
         self.culebron.setGrab(True)
 
     def onTouchListener(self, point):
+        '''
+        Listens for touch events and draws the corresponding shapes on the Culebron canvas.
+        If the starting point is being grabbed it draws the toucing point via
+        C{Culebron.drawTouchedPoint()} and if the end point is being grabbed it draws
+        using C{Culebron.drawDragLine()}.
+        '''
+        
         x = point[0]
         y = point[1]
-        self.__grabbing.set("(%d,%d)" % (x, y))
+        value = "(%d,%d)" % (x, y)
+        self.__grabbing.set(value)
+        self.onValidate(value)
         self.culebron.setGrab(False)
         if self.__grabbing == self.sp:
             self.spId = self.culebron.drawTouchedPoint(x, y)
