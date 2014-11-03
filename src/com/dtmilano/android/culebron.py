@@ -42,7 +42,7 @@ except:
 
 from ast import literal_eval as make_tuple
 
-DEBUG = True
+DEBUG = False
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and False
