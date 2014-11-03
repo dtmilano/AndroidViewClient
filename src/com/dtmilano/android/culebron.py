@@ -714,6 +714,13 @@ class DragDialog(Tkinter.Toplevel):
     DEFAULT_DURATION = 1000
     DEFAULT_STEPS = 20
     
+    spX = None
+    spY = None
+    epX = None
+    epY = None
+    spId = None
+    epId = None
+    
     def __init__(self, culebron):
         self.culebron = culebron
         self.parent = culebron.window
@@ -845,11 +852,15 @@ class DragDialog(Tkinter.Toplevel):
         self.onValidate(value)
         self.culebron.setGrab(False)
         if self.__grabbing == self.sp:
-            self.spId = self.culebron.drawTouchedPoint(x, y)
             self.spX = x
             self.spY = y
-        else:
-            self.epId = self.culebron.drawDragLine(self.spX, self.spY, x, y)
+        elif self.__grabbing == self.ep:
+            self.epX = x
+            self.epY = y
+        if self.spX and self.spY and not self.spId:
+            self.spId = self.culebron.drawTouchedPoint(self.spX, self.spY)
+        if self.spX and self.spY and self.epX and self.epY and not self.epId:
+            self.epId = self.culebron.drawDragLine(self.spX, self.spY, self.epX, self.epY)
         self.__grabbing = None
         self.culebron.setOnTouchListener(None)
 
