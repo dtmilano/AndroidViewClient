@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.11.1'
+__version__ = '8.12.2'
 
 import sys
 import threading
@@ -42,7 +42,7 @@ except:
 
 from ast import literal_eval as make_tuple
 
-DEBUG = False
+DEBUG = True
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and False
@@ -664,11 +664,22 @@ This is usually installed by python package. Check your distribution details.
 
     @staticmethod
     def isClickableCheckableOrFocusable(v):
+        if DEBUG:
+            print >> sys.stderr, "isClickableCheckableOrFocusable(", v.__tinyStr__(), ")"
         try:
-            return (v.isclickable() or v.ischeckable() or v.isfocusable())
+            return v.isClickable()
         except AttributeError:
-            return False
-    
+            pass
+        try:
+            return v.isCheckable()
+        except AttributeError:
+            pass
+        try:
+            return v.isFocusable()
+        except AttributeError:
+            pass
+        return False
+
     def mainloop(self):
         self.window.title("%s v%s" % (Culebron.APPLICATION_NAME, __version__))
         self.window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)

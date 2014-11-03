@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.12.0'
+__version__ = '8.12.2'
 
 import sys
 import warnings
@@ -342,16 +342,23 @@ class AdbClient:
                 return displayInfo
 
         phyDispRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<width>\d+)x(?P<height>\d+)')
+        # This is known to work on older versions (i.e. API 10) where mrestrictedScreen is not available
+        dispWHRE = re.compile('\s*DisplayWidth=(?P<width>\d+) *DisplayHeight=(?P<height>\d+)')
         for line in self.shell('dumpsys window').splitlines():
-            #m = rsRE.match(line)
             m = phyDispRE.search(line, 0)
+            if not m:
+                m = dispWHRE.search(line, 0)
             if m:
                 displayInfo = {}
                 for prop in [ 'width', 'height' ]:
                     displayInfo[prop] = int(m.group(prop))
                 for prop in [ 'density' ]:
-                    # No available density information
-                    displayInfo[prop] = -1.0
+                    d = self.__getDisplayDensity(None, strip=True, invokeGetPhysicalDisplayIfNotFound=False)
+                    if d:
+                        displayInfo[prop] = d
+                    else:
+                        # No available density information
+                        displayInfo[prop] = -1.0
                 return displayInfo
 
         raise RuntimeError("Couldn't find display info in 'wm size', 'dumpsys display' or 'dumpsys window'")
@@ -372,11 +379,17 @@ class AdbClient:
     def __getDisplayHeight(self, key, strip=True):
         return self.getPhysicalDisplayInfo()['height']
 
-    def __getDisplayDensity(self, key, strip=True):
+    def __getDisplayDensity(self, key, strip=True, invokeGetPhysicalDisplayIfNotFound=True):
+        BASE_DPI = 160.0
         d = self.getProperty('ro.sf.lcd_density', strip)
         if d:
-            return float(d)/160.0
-        return self.getPhysicalDisplayInfo()['density']
+            return float(d)/BASE_DPI
+        d = self.getProperty('qemu.sf.lcd_density', strip)
+        if d:
+            return float(d)/BASE_DPI
+        if invokeGetPhysicalDisplayIfNotFound:
+            return self.getPhysicalDisplayInfo()['density']
+        return -1.0
 
     def getSystemProperty(self, key, strip=True):
         return self.getProperty(key, strip)
