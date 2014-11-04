@@ -19,7 +19,7 @@
     @author: AK
     '''
 
-__version__ = '8.12.2'
+__version__ = '8.12.3'
 
 import Tkinter
 import sys
