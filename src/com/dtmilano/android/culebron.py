@@ -141,10 +141,11 @@ This is usually installed by python package. Check your distribution details.
         self.serialno = vc.serialno
         self.scale = scale
         self.window = Tkinter.Tk()
+        self.statusBar = StatusBar(self.window)
+        self.statusBar.pack(side=Tkinter.BOTTOM, padx=2, pady=2, fill=Tkinter.X)
 
     def takeScreenshotAndShowItOnWindow(self):
         image = self.device.takeSnapshot(reconnect=True)
-        # FIXME: allow scaling
         (width, height) = image.size
         if self.scale != 1:
             image = image.resize((int(width*self.scale), int(height*self.scale)), Image.ANTIALIAS)
@@ -349,6 +350,7 @@ This is usually installed by python package. Check your distribution details.
             self.isTouchingPoint = False
             self.takeScreenshotAndShowItOnWindow()
             self.hideVignette()
+            self.statusBar.clear()
             return
     
     def longTouchPoint(self, x, y):
@@ -370,6 +372,7 @@ This is usually installed by python package. Check your distribution details.
             self.isLongTouchingPoint = False
             self.takeScreenshotAndShowItOnWindow()
             self.hideVignette()
+            self.statusBar.clear()
             return
     
     def onButton1Pressed(self, event):
@@ -513,16 +516,22 @@ This is usually installed by python package. Check your distribution details.
     
     def onCtrlL(self, event):
         if not self.isLongTouchingPoint:
-            self.toast('Long touching point', background=Color.GREEN)
+            msg = 'Long touching point'
+            self.toast(msg, background=Color.GREEN)
+            self.statusBar.set(msg)
             self.isLongTouchingPoint = True
         else:
+            self.statusBar.clear()
             self.isLongTouchingPoint = False
 
     def toggleTouchPoint(self):
         if not self.isTouchingPoint:
-            self.toast('Touching point (units=%s)' % self.coordinatesUnit, background=Color.GREEN)
+            msg = 'Touching point (units=%s)' % self.coordinatesUnit
+            self.toast(msg, background=Color.GREEN)
+            self.statusBar.set(msg)
             self.isTouchingPoint = True
         else:
+            self.statusBar.clear()
             self.isTouchingPoint = False
 
     def onCtrlP(self, event):
@@ -686,6 +695,23 @@ This is usually installed by python package. Check your distribution details.
         self.window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
         self.window.lift()
         self.window.mainloop()
+
+
+class StatusBar(Tkinter.Frame):
+
+    def __init__(self, parent):
+        Tkinter.Frame.__init__(self, parent)
+        self.label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
+        self.label.pack(fill=Tkinter.X)
+
+    def set(self, fmt, *args):
+        self.label.config(text=fmt % args)
+        self.label.update_idletasks()
+
+    def clear(self):
+        self.label.config(text="")
+        self.label.update_idletasks()
+
 
 class LabeledEntry():
     def __init__(self, parent, text, validate, validatecmd):
