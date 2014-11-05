@@ -343,7 +343,7 @@ This is usually installed by python package. Check your distribution details.
             if self.coordinatesUnit == Unit.DIP:
                 x = x / self.vc.display['density']
                 y = y / self.vc.display['density']
-            self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit)
+            self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit, self.vc.display['orientation'])
             self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
             self.vc.sleep(5)
             self.isTouchingPoint = False
@@ -590,7 +590,7 @@ This is usually installed by python package. Check your distribution details.
             y1 = end[0] / self.vc.display['density']
             start = (x0, y0)
             end = (x1, y1)
-        self.printOperation(None, Operation.DRAG, start, end, duration, steps, units)
+        self.printOperation(None, Operation.DRAG, start, end, duration, steps, units, self.vc.display['orientation'])
         self.printOperation(None, Operation.SLEEP, 1)
         self.vc.sleep(1)
         self.takeScreenshotAndShowItOnWindow()

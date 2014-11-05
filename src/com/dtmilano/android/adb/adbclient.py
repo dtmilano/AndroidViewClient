@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.13.0'
+__version__ = '8.13.1'
 
 import sys
 import warnings
@@ -40,6 +40,7 @@ import platform
 from com.dtmilano.android.adb.androidkeymap import KEY_MAP
 
 DEBUG = False
+DEBUG_TOUCH = DEBUG and True
 
 HOSTNAME = 'localhost'
 try:
@@ -565,19 +566,39 @@ class AdbClient:
         if w == self.display['height'] and h == self.display['width']:
             # FIXME: We are not catching the 180 degrees rotation here
             if 'orientation' in self.display:
-                r = (0, 90, -90, 180)[self.display['orientation']]
+                r = (0, 90, 180, -90)[self.display['orientation']]
             else:
                 r = 90
             image = image.rotate(r)
         return image
 
-    def touch(self, x, y, eventType=DOWN_AND_UP):
-        self.shell('input tap %d %d' % (x, y))
+    def __transformPointByOrientation(self, (x, y), orientationOrig, orientationDest):
+        if orientationOrig != orientationDest:
+            if orientationDest == 1:
+                _x = x
+                x = self.display['width'] - y
+                y = _x
+            elif orientationDest == 3:
+                _x = x
+                x = y
+                y = self.display['height'] - _x
+        return (x, y)
 
-    def touchDip(self, x, y, eventType=DOWN_AND_UP):
+    def touch(self, x, y, orientation=-1, eventType=DOWN_AND_UP):
+        if DEBUG_TOUCH:
+            print >> sys.stderr, "touch(x=", x, ", y=", y, ", orientation=", orientation, ", eventType=", eventType, ")"
+        if orientation == -1:
+            orientation = self.display['orientation']
+        self.shell('input tap %d %d' % self.__transformPointByOrientation((x, y), orientation, self.display['orientation']))
+
+    def touchDip(self, x, y, orientation=-1, eventType=DOWN_AND_UP):
+        if DEBUG_TOUCH:
+            print >> sys.stderr, "touchDip(x=", x, ", y=", y, ", orientation=", orientation, ", eventType=", eventType, ")"
+        if orientation == -1:
+            orientation = self.display['orientation']
         x = x * self.display['density']
         y = y * self.display['density']
-        self.touch(x, y, eventType)
+        self.touch(x, y, orientation, eventType)
 
     def longTouch(self, x, y, duration=2000):
         '''
@@ -590,7 +611,7 @@ class AdbClient:
         
         self.drag((x, y), (x, y), duration, 1)
 
-    def drag(self, (x0, y0), (x1, y1), duration, steps=1):
+    def drag(self, (x0, y0), (x1, y1), duration, steps=1, orientation=-1):
         '''
         Sends drag event n PX (actually it's using C{input swipe} command.
 
@@ -600,6 +621,11 @@ class AdbClient:
         @param steps: number of steps (currently ignored by @{input swipe}
         '''
 
+        if orientation == -1:
+            orientation = self.display['orientation']
+        (x0, y0) = self.__transformPointByOrientation((x0, y0), orientation, self.display['orientation'])
+        (x1, y1) = self.__transformPointByOrientation((x1, y1), orientation, self.display['orientation'])
+
         version = self.getSdkVersion()
         if version <= 15:
             raise RuntimeError('drag: API <= 15 not supported (version=%d)' % version)
@@ -608,7 +634,7 @@ class AdbClient:
         else:
             self.shell('input touchscreen swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration))
 
-    def dragDip(self, (x0, y0), (x1, y1), duration, steps=1):
+    def dragDip(self, (x0, y0), (x1, y1), duration, steps=1, orientation=-1):
         '''
         Sends drag event in DIP (actually it's using C{input swipe} command.
 
@@ -618,6 +644,8 @@ class AdbClient:
         @param steps: number of steps (currently ignored by @{input swipe}
         '''
 
+        if orientation == -1:
+            orientation = self.display['orientation']
         x0 = x0 * self.display['density']
         y0 = y0 * self.display['density']
         x1 = x1 * self.display['density']

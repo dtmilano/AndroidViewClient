@@ -1257,7 +1257,7 @@ class ViewClient:
         self.display = {}
         ''' The map containing the device's display properties: width, height and density '''
 
-        for prop in [ 'width', 'height', 'density' ]:
+        for prop in [ 'width', 'height', 'density', 'orientation' ]:
             self.display[prop] = -1
             if USE_ADB_CLIENT_TO_GET_BUILD_PROPERTIES:
                 try:
@@ -1872,7 +1872,10 @@ class ViewClient:
 
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY])
-        start_xml_index = receivedXml.index("<")
+        try:
+            start_xml_index = receivedXml.index("<")
+        except ValueError:
+            raise ValueError("received does not contain valid XML data")
         self.root = parser.Parse(receivedXml[start_xml_index:])
         self.views = parser.views
         self.viewsById = {}
@@ -2227,7 +2230,7 @@ You should force ViewServer back-end.''')
         matchingViews = []
         if not self.root:
             print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
-            return matching_views
+            return matchingViews
 
         if type(root) == types.StringType and root == "ROOT":
             root = self.root
