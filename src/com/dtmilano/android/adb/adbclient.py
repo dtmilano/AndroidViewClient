@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.12.3'
+__version__ = '8.13.0'
 
 import sys
 import warnings
@@ -95,6 +95,9 @@ class AdbClient:
         self.build = {}
         ''' Build properties '''
 
+        self.__displayInfo = None
+        ''' Cached display info. Reset it to C{None} to force refetching display info '''
+
         self.display = {}
         ''' The map containing the device's physical display properties: width, height and density '''
 
@@ -105,6 +108,7 @@ class AdbClient:
             self.display['width'] = self.getProperty('display.width')
             self.display['height'] = self.getProperty('display.height')
             self.display['density'] = self.getProperty('display.density')
+            self.display['orientation'] = self.getProperty('display.orientation')
 
 
     @staticmethod
@@ -316,6 +320,38 @@ class AdbClient:
                 return m.groups()
         raise RuntimeError("Couldn't find mRestrictedScreen in 'dumpsys window'")
 
+    def getDisplayInfo(self):
+        displayInfo = self.getLogicalDisplay()
+        if displayInfo:
+            return displayInfo
+        displayInfo = self.getPhyisicalDisplay()
+        if displayInfo:
+            return displayInfo
+        raise RuntimeError("Couldn't find display info in 'wm size', 'dumpsys display' or 'dumpsys window'")
+
+    def getLogicalDisplay(self):
+        '''
+        Gets C{mDefaultViewport} and then C{deviceWidth} and C{deviceHeight} values from dumpsys.
+        This is a method to obtain display logical dimensions and density
+        '''
+
+        logicalDisplayRE = re.compile('.*DisplayViewport{valid=true, .*orientation=(?P<orientation>\d+), .*deviceWidth=(?P<width>\d+), deviceHeight=(?P<height>\d+).*')
+        for line in self.shell('dumpsys display').splitlines():
+            m = logicalDisplayRE.search(line, 0)
+            if m:
+                self.__displayInfo = {}
+                for prop in [ 'width', 'height', 'orientation' ]:
+                    self.__displayInfo[prop] = int(m.group(prop))
+                for prop in [ 'density' ]:
+                    d = self.__getDisplayDensity(None, strip=True, invokeGetPhysicalDisplayIfNotFound=False)
+                    if d:
+                        self.__displayInfo[prop] = d
+                    else:
+                        # No available density information
+                        self.__displayInfo[prop] = -1.0
+                return self.__displayInfo
+        return None
+
     def getPhysicalDisplayInfo(self):
         ''' Gets C{mPhysicalDisplayInfo} values from dumpsys. This is a method to obtain display dimensions and density'''
 
@@ -341,7 +377,8 @@ class AdbClient:
                     displayInfo[prop] = float(m.group(prop))
                 return displayInfo
 
-        phyDispRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<width>\d+)x(?P<height>\d+)')
+        # This could also be mSystem or mOverscanScreen
+        phyDispRE = re.compile('\s*mUnrestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<width>\d+)x(?P<height>\d+)')
         # This is known to work on older versions (i.e. API 10) where mrestrictedScreen is not available
         dispWHRE = re.compile('\s*DisplayWidth=(?P<width>\d+) *DisplayHeight=(?P<height>\d+)')
         for line in self.shell('dumpsys window').splitlines():
@@ -361,7 +398,6 @@ class AdbClient:
                         displayInfo[prop] = -1.0
                 return displayInfo
 
-        raise RuntimeError("Couldn't find display info in 'wm size', 'dumpsys display' or 'dumpsys window'")
 
     def __getProp(self, key, strip=True):
         if DEBUG:
@@ -374,12 +410,23 @@ class AdbClient:
         return prop
 
     def __getDisplayWidth(self, key, strip=True):
-        return self.getPhysicalDisplayInfo()['width']
+        if self.__displayInfo and 'width' in self.__displayInfo:
+            return self.__displayInfo['width']
+        return self.getDisplayInfo()['width']
 
     def __getDisplayHeight(self, key, strip=True):
-        return self.getPhysicalDisplayInfo()['height']
+        if self.__displayInfo and 'height' in self.__displayInfo:
+            return self.__displayInfo['height']
+        return self.getDisplayInfo()['height']
+
+    def __getDisplayOrientation(self, key, strip=True):
+        if self.__displayInfo and 'orientation' in self.__displayInfo:
+            return self.__displayInfo['orientation']
+        return self.getDisplayInfo()['orientation']
 
     def __getDisplayDensity(self, key, strip=True, invokeGetPhysicalDisplayIfNotFound=True):
+        if self.__displayInfo and 'density' in self.__displayInfo:
+            return self.__displayInfo['density']
         BASE_DPI = 160.0
         d = self.getProperty('ro.sf.lcd_density', strip)
         if d:
@@ -402,6 +449,7 @@ class AdbClient:
                           (re.compile('display.width'), self.__getDisplayWidth),
                           (re.compile('display.height'), self.__getDisplayHeight),
                           (re.compile('display.density'), self.__getDisplayDensity),
+                          (re.compile('display.orientation'), self.__getDisplayOrientation),
                           (re.compile('.*'), self.__getProp),
                           ])
         '''Maps properties key values (as regexps) to instance methods to obtain its values.'''
@@ -511,7 +559,17 @@ class AdbClient:
             self.__setTransport()
         if DEBUG:
             print >> sys.stderr, "    takeSnapshot: Image.frombuffer(%s, %s, %s, %s, %s, %s, %s)" % (mode, (width, height), 'data', 'raw', argMode, 0, 1)
-        return Image.frombuffer(mode, (width, height), received, 'raw', argMode, 0, 1)
+        image = Image.frombuffer(mode, (width, height), received, 'raw', argMode, 0, 1)
+        # Just in case let's get the real image size
+        (w, h) = image.size
+        if w == self.display['height'] and h == self.display['width']:
+            # FIXME: We are not catching the 180 degrees rotation here
+            if 'orientation' in self.display:
+                r = (0, 90, -90, 180)[self.display['orientation']]
+            else:
+                r = 90
+            image = image.rotate(r)
+        return image
 
     def touch(self, x, y, eventType=DOWN_AND_UP):
         self.shell('input tap %d %d' % (x, y))

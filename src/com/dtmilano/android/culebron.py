@@ -19,12 +19,11 @@ limitations under the License.
 
 '''
 
-__version__ = '8.12.4'
+__version__ = '8.13.0'
 
 import sys
 import threading
 import warnings
-from Tkinter import Radiobutton
 
 try:
     from PIL import Image, ImageTk
@@ -778,7 +777,7 @@ class DragDialog(Tkinter.Toplevel):
         for u in dir(Unit):
             if u.startswith('_'):
                 continue
-            Radiobutton(self, text=u, variable=self.units, value=u).pack(padx=40, anchor=Tkinter.W)
+            Tkinter.Radiobutton(self, text=u, variable=self.units, value=u).pack(padx=40, anchor=Tkinter.W)
         
         self.d = LabeledEntry(self, "Duration", validate="focusout", validatecmd=self.validate)
         self.d.set(DragDialog.DEFAULT_DURATION)
