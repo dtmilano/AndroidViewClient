@@ -799,15 +799,15 @@ class DragDialog(Tkinter.Toplevel):
         ep = make_tuple(self.ep.get())
         d = int(self.d.get())
         s = int(self.s.get())
+        self.cleanUp()
         # put focus back to the parent window's canvas
         self.culebron.canvas.focus_set()
         self.destroy()
-        self.culebron.canvas.delete(self.spId)
-        self.culebron.canvas.delete(self.epId)
         self.culebron.drag(sp, ep, d, s, self.units.get())
 
     def onCancel(self, event=None):
         self.culebron.setGrab(False)
+        self.cleanUp()
         # put focus back to the parent window's canvas
         self.culebron.canvas.focus_set()
         self.destroy()
@@ -863,6 +863,13 @@ class DragDialog(Tkinter.Toplevel):
             self.epId = self.culebron.drawDragLine(self.spX, self.spY, self.epX, self.epY)
         self.__grabbing = None
         self.culebron.setOnTouchListener(None)
+
+    def cleanUp(self):
+        if self.spId:
+            self.culebron.canvas.delete(self.spId)
+        if self.epId:
+            self.culebron.canvas.delete(self.epId)
+
 
 class HelpDialog(Tkinter.Toplevel):
 
