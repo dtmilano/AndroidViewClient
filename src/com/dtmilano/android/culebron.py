@@ -886,6 +886,7 @@ class DragDialog(Tkinter.Toplevel):
         self.culebron.setGrab(False)
         if self.__grabbing == self.sp:
             self.__cleanUpSpId()
+            self.__cleanUpEpId()
             self.spX = x
             self.spY = y
         elif self.__grabbing == self.ep:
