@@ -143,6 +143,7 @@ This is usually installed by python package. Check your distribution details.
         self.window = Tkinter.Tk()
         self.statusBar = StatusBar(self.window)
         self.statusBar.pack(side=Tkinter.BOTTOM, padx=2, pady=2, fill=Tkinter.X)
+        self.statusBar.set("Always press F1 for help")
 
     def takeScreenshotAndShowItOnWindow(self):
         image = self.device.takeSnapshot(reconnect=True)
@@ -303,7 +304,7 @@ This is usually installed by python package. Check your distribution details.
                 break
         if not found:
             self.hideVignette()
-            msg = "There are not clickable views here!"
+            msg = "There are no clickable views here!"
             print >> sys.stderr, msg
             self.toast(msg)
             return
