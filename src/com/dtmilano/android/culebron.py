@@ -305,7 +305,6 @@ This is usually installed by python package. Check your distribution details.
         if not found:
             self.hideVignette()
             msg = "There are no clickable views here!"
-            print >> sys.stderr, msg
             self.toast(msg)
             return
         clazz = v.getClass()
