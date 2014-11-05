@@ -6,7 +6,5 @@
 <path>/AndroidViewClient/src</path>
 <path>/AndroidViewClient/examples</path>
 </pydev_pathproperty>
-<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
-<path>/usr/local/lib/python2.7/site-packages/PIL</path>
-</pydev_pathproperty>
+
 </pydev_project>

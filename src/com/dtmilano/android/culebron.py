@@ -16,9 +16,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Diego Torres Milano
+
 '''
 
-__version__ = '8.12.3'
+__version__ = '8.12.4'
 
 import sys
 import threading
@@ -831,6 +832,9 @@ class DragDialog(Tkinter.Toplevel):
     def onGrab(self, entry):
         '''
         Generic grab method.
+        
+        @param entry: the entry being grabbed
+        @type entry: Tkinter.Entry
         '''
         
         self.culebron.setOnTouchListener(self.onTouchListener)
@@ -840,9 +844,12 @@ class DragDialog(Tkinter.Toplevel):
     def onTouchListener(self, point):
         '''
         Listens for touch events and draws the corresponding shapes on the Culebron canvas.
-        If the starting point is being grabbed it draws the toucing point via
+        If the starting point is being grabbed it draws the touching point via
         C{Culebron.drawTouchedPoint()} and if the end point is being grabbed it draws
         using C{Culebron.drawDragLine()}.
+        
+        @param point: the point touched
+        @type point: tuple
         '''
         
         x = point[0]
@@ -852,9 +859,11 @@ class DragDialog(Tkinter.Toplevel):
         self.onValidate(value)
         self.culebron.setGrab(False)
         if self.__grabbing == self.sp:
+            self.__cleanUpSpId()
             self.spX = x
             self.spY = y
         elif self.__grabbing == self.ep:
+            self.__cleanUpEpId()
             self.epX = x
             self.epY = y
         if self.spX and self.spY and not self.spId:
@@ -864,11 +873,19 @@ class DragDialog(Tkinter.Toplevel):
         self.__grabbing = None
         self.culebron.setOnTouchListener(None)
 
-    def cleanUp(self):
+    def __cleanUpSpId(self):
         if self.spId:
             self.culebron.canvas.delete(self.spId)
+            self.spId = None
+
+    def __cleanUpEpId(self):
         if self.epId:
             self.culebron.canvas.delete(self.epId)
+            self.epId = None
+
+    def cleanUp(self):
+        self.__cleanUpSpId()
+        self.__cleanUpEpId()
 
 
 class HelpDialog(Tkinter.Toplevel):
