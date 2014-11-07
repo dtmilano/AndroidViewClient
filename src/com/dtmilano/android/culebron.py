@@ -19,11 +19,12 @@ limitations under the License.
 
 '''
 
-__version__ = '8.13.1'
+__version__ = '8.14.1'
 
 import sys
 import threading
 import warnings
+import copy
 
 try:
     from PIL import Image, ImageTk
@@ -47,6 +48,7 @@ DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and False
 DEBUG_KEY = DEBUG and True
+DEBUG_ISCCOF = DEBUG and False
 
 
 class Color:
@@ -208,6 +210,8 @@ This is usually installed by python package. Check your distribution details.
         t.start()
 
     def createVignette(self, width, height):
+        if DEBUG:
+            print >> sys.stderr, "createVignette(%d, %d)" % (width, height)
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
             stipple='gray50')
         font = tkFont.Font(family='Helvetica',size=int(144*self.scale))
@@ -216,11 +220,16 @@ This is usually installed by python package. Check your distribution details.
             fill=Color.DARK_GRAY, font=font)
         self.waitMessageId = self.canvas.create_text(width/2, height/2, text=msg,
             fill=Color.LIGHT_GRAY, font=font)
+        self.canvas.update_idletasks()
     
     def showVignette(self):
+        if DEBUG:
+            print >> sys.stderr, "showVignette()"
+        if self.canvas is None:
+            return
         if self.vignetteId:
             if DEBUG:
-                print >> sys.stderr, "showing vignette"
+                print >> sys.stderr, "    showing vignette"
             # disable events while we are processing one
             self.disableEvents()
             self.canvas.lift(self.vignetteId)
@@ -229,12 +238,25 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.update_idletasks()
     
     def hideVignette(self):
+        if DEBUG:
+            print >> sys.stderr, "hideVignette()"
+        if self.canvas is None:
+            return
         if self.vignetteId:
             if DEBUG:
-                print >> sys.stderr, "hidding vignette"
+                print >> sys.stderr, "    hidding vignette"
             self.canvas.lift(self.imageId)
             self.canvas.update_idletasks()
             self.enableEvents()
+
+    def deleteVignette(self):
+        if self.canvas is not None:
+            self.canvas.delete(self.vignetteId)
+            self.vignetteId = None
+            self.canvas.delete(self.waitMessageShadowId)
+            self.waitMessageShadowId = None
+            self.canvas.delete(self.waitMessageId)
+            self.waitMessageId = None
 
     def showHelp(self):
         d = HelpDialog(self)
@@ -468,6 +490,19 @@ This is usually installed by python package. Check your distribution details.
             return
         elif keysym == 'F5':
             self.showVignette()
+            display = copy.copy(self.device.display)
+            self.device.initDisplayProperties()
+            changed = False
+            for prop in display:
+                if display[prop] != self.device.display[prop]:
+                    changed = True
+                    break
+            if changed:
+                self.window.geometry('%dx%d' % (self.device.display['width'], self.device.display['height']))
+                self.deleteVignette()
+                self.canvas.destroy()
+                self.canvas = None
+                self.window.update_idletasks()
             self.takeScreenshotAndShowItOnWindow()
             return
         elif keysym == 'Alt_L':
@@ -604,12 +639,13 @@ This is usually installed by python package. Check your distribution details.
         self.areEventsDisabled = False
 
     def disableEvents(self):
-        self.canvas.update_idletasks()
-        self.areEventsDisabled = True
-        self.canvas.unbind("<Button-1>")
-        self.canvas.unbind("<BackSpace>")
-        #self.canvas.unbind("<Control-Key-S>")
-        self.canvas.unbind("<Key>")
+        if self.canvas is not None:
+            self.canvas.update_idletasks()
+            self.areEventsDisabled = True
+            self.canvas.unbind("<Button-1>")
+            self.canvas.unbind("<BackSpace>")
+            #self.canvas.unbind("<Control-Key-S>")
+            self.canvas.unbind("<Key>")
     
     def toggleTargets(self):
         if DEBUG:
@@ -673,7 +709,7 @@ This is usually installed by python package. Check your distribution details.
 
     @staticmethod
     def isClickableCheckableOrFocusable(v):
-        if DEBUG:
+        if DEBUG_ISCCOF:
             print >> sys.stderr, "isClickableCheckableOrFocusable(", v.__tinyStr__(), ")"
         try:
             return v.isClickable()

@@ -106,10 +106,7 @@ class AdbClient:
         if settransport and serialno != None:
             self.__setTransport()
             self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
-            self.display['width'] = self.getProperty('display.width')
-            self.display['height'] = self.getProperty('display.height')
-            self.display['density'] = self.getProperty('display.density')
-            self.display['orientation'] = self.getProperty('display.orientation')
+            self.initDisplayProperties()
 
 
     @staticmethod
@@ -743,6 +740,14 @@ class AdbClient:
             # FIXME: API >= 15 ?
             return "mInputShown=true" in dim
         return False
+
+    def initDisplayProperties(self):
+        self.__displayInfo = None
+        self.display['width'] = self.getProperty('display.width')
+        self.display['height'] = self.getProperty('display.height')
+        self.display['density'] = self.getProperty('display.density')
+        self.display['orientation'] = self.getProperty('display.orientation')
+
 
 
 if __name__ == '__main__':
