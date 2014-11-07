@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.14.0'
+__version__ = '8.14.2'
 
 import re
 import sys
@@ -644,8 +644,8 @@ if options[CulebraOptions.APPEND_TO_SYS_PATH]:
 
 if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
     print '''\
-from com.dtmilano.android.viewclient import ViewClient, CulebraTestCase
-'''
+from com.dtmilano.android.viewclient import ViewClient%s
+''' % (', CulebraTestCase' if options[CulebraOptions.UNIT_TEST_CLASS] else '')
 
 if options[CulebraOptions.UNIT_TEST_CLASS]:
     print '''
@@ -748,7 +748,9 @@ vc.writeImageToFile('%s')
 ''' % (options[CulebraOptions.UNIT_TEST_METHOD])
         indent = ' ' * 8
         prefix = 'self.'
-    vc.traverse(transform=transform)
+    if not options[CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
+        vc.traverse(transform=transform)
+        print
 
 if options[CulebraOptions.INTERACTIVE]:
     import socket
