@@ -2689,8 +2689,9 @@ class CulebraOptions:
     GUI = 'gui'
     SCALE = 'scale'
     DO_NOT_VERIFY_INITIAL_SCREEN_DUMP = 'do-not-verify-initial-screen-dump'
+    ORIENTATION_LOCKED = 'orientation-locked'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:GuP:'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:GuP:O'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -2704,6 +2705,7 @@ class CulebraOptions:
               GUI,
               DO_NOT_VERIFY_INITIAL_SCREEN_DUMP,
               SCALE + '=',
+              ORIENTATION_LOCKED,
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
@@ -2718,26 +2720,27 @@ class CulebraOptions:
             'V': 'verbose comments',
             'k': 'don\'t ignore UiAutomator killed',
             'w': 'use WINDOW content (default: -1, all windows)',
-		    'i': 'whether to use findViewById() in script',
-		    't': 'whether to use findViewWithText() in script',
-		    'd': 'whether to use findViewWithContentDescription',
-		    'r': 'use regexps in matches',
-		    'U': 'generates unit test class and script',
-		    'M': 'generates unit test method. Can be used with or without -U',
-		    'j': 'use jar and appropriate shebang to run script (deprecated)',
-		    'D': 'use a dictionary to store the Views found',
-		    'K': 'dictionary keys from: id, text, content-description',
-		    'R': 'auto regexps (i.e. clock), implies -r. help list options',
-		    'a': 'starts Activity before dump',
-		    'o': 'output filename',
-		    'A': 'interactive',
-		    'p': 'append environment variables values to sys.path',
-		    's': 'save screenshot to file',
-		    'W': 'save View screenshots to files in directory',
-		    'E': 'ignores ADB version check',
-		    'G': 'presents the GUI (EXPERIMENTAL)',
-		    'P': 'scale percentage (i.e. 0.5)',
-		    'u': 'do not verify initial screen dump state',
+            'i': 'whether to use findViewById() in script',
+            't': 'whether to use findViewWithText() in script',
+            'd': 'whether to use findViewWithContentDescription',
+            'r': 'use regexps in matches',
+            'U': 'generates unit test class and script',
+            'M': 'generates unit test method. Can be used with or without -U',
+            'j': 'use jar and appropriate shebang to run script (deprecated)',
+            'D': 'use a dictionary to store the Views found',
+            'K': 'dictionary keys from: id, text, content-description',
+            'R': 'auto regexps (i.e. clock), implies -r. help list options',
+            'a': 'starts Activity before dump',
+            'o': 'output filename',
+            'A': 'interactive',
+            'p': 'append environment variables values to sys.path',
+            's': 'save screenshot to file',
+            'W': 'save View screenshots to files in directory',
+            'E': 'ignores ADB version check',
+            'G': 'presents the GUI (EXPERIMENTAL)',
+            'P': 'scale percentage (i.e. 0.5)',
+            'u': 'do not verify initial screen dump state',
+            'O': 'Orientation locked in generated test',
             }
 
 class CulebraTestCase(unittest.TestCase):
@@ -2775,6 +2778,13 @@ class CulebraTestCase(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def preconditions(self):
+        if self.options[CulebraOptions.ORIENTATION_LOCKED] is not None:
+            # If orientation locked was set to a valid orientation value then use it to compare
+            # against current orientation (when the test is run)
+            return (self.device.display['orientation'] == self.options[CulebraOptions.ORIENTATION_LOCKED])
+        return True
 
     def isTestRunningOnMultipleDevices(self):
         return (self.devices != None)

@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.13.1'
+__version__ = '8.14.0'
 
 import re
 import sys
@@ -534,7 +534,9 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
         CulebraOptions.SAVE_SCREENSHOT: None, CulebraOptions.SAVE_VIEW_SCREENSHOTS: None,
         CulebraOptions.GUI: False,
         CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP: False,
-        CulebraOptions.SCALE: 1}
+        CulebraOptions.SCALE: 1,
+        CulebraOptions.ORIENTATION_LOCKED: None,
+        }
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
@@ -610,6 +612,8 @@ for o, a in optlist:
         options[CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP] = True
     elif o in ['P', CulebraOptions.SCALE]:
         options[CulebraOptions.SCALE] = float(a)
+    elif o in ['O', CulebraOptions.ORIENTATION_LOCKED]:
+        options[CulebraOptions.ORIENTATION_LOCKED] = 'PENDING'
 
 if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[CulebraOptions.VERBOSE_COMMENTS]:
@@ -618,6 +622,8 @@ if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_
         warnings.warn('Only verbose comments will be printed')
 
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
+if options[CulebraOptions.ORIENTATION_LOCKED] == 'PENDING':
+    options[CulebraOptions.ORIENTATION_LOCKED] = device.display['orientation']
 if options[CulebraOptions.START_ACTIVITY]:
     device.startActivity(component=options[CulebraOptions.START_ACTIVITY])
 vc = ViewClient(device, serialno, **kwargs2)
@@ -666,6 +672,8 @@ class CulebraTests(CulebraTestCase):
 
     print '''\
     def preconditions(self):
+        if not super(CulebraTests, self).preconditions():
+            return False
         return True
 
     def %s(self):
