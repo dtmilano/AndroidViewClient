@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.14.1'
+__version__ = '8.14.3'
 
 import sys
 import threading
@@ -622,7 +622,7 @@ This is usually installed by python package. Check your distribution details.
             x0 = start[0] / self.vc.display['density']
             y0 = start[1] / self.vc.display['density']
             x1 = end[0] / self.vc.display['density']
-            y1 = end[0] / self.vc.display['density']
+            y1 = end[1] / self.vc.display['density']
             start = (x0, y0)
             end = (x1, y1)
         self.printOperation(None, Operation.DRAG, start, end, duration, steps, units, self.vc.display['orientation'])
