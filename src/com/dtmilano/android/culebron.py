@@ -498,7 +498,6 @@ This is usually installed by python package. Check your distribution details.
                     changed = True
                     break
             if changed:
-                self.window.geometry()
                 self.deleteVignette()
                 self.canvas.destroy()
                 self.canvas = None
