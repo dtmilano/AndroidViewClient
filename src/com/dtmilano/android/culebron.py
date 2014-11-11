@@ -748,262 +748,262 @@ if TKINTER_AVAILABLE:
             self.label.config(text="")
             self.label.update_idletasks()
 
-
-class LabeledEntry():
-    def __init__(self, parent, text, validate, validatecmd):
-        self.f = Tkinter.Frame(parent)
-        Tkinter.Label(self.f, text=text, anchor="w", padx=8).pack(fill="x")
-        self.entry = Tkinter.Entry(self.f, validate=validate, validatecommand=validatecmd)
-        self.entry.pack(padx=5)
-
-    def pack(self, **kwargs):
-        self.f.pack(kwargs)
-
-    def get(self):
-        return self.entry.get()
-
-    def set(self, text):
-        self.entry.delete(0, Tkinter.END)
-        self.entry.insert(0, text)
-        
-class LabeledEntryWithButton(LabeledEntry):
-    def __init__(self, parent, text, buttonText, command, validate, validatecmd):
-        LabeledEntry.__init__(self, parent, text, validate, validatecmd)
-        self.button = Tkinter.Button(self.f, text=buttonText, command=command)
-        self.button.pack(side="right")
-
-class DragDialog(Tkinter.Toplevel):
     
-    DEFAULT_DURATION = 1000
-    DEFAULT_STEPS = 20
+    class LabeledEntry():
+        def __init__(self, parent, text, validate, validatecmd):
+            self.f = Tkinter.Frame(parent)
+            Tkinter.Label(self.f, text=text, anchor="w", padx=8).pack(fill="x")
+            self.entry = Tkinter.Entry(self.f, validate=validate, validatecommand=validatecmd)
+            self.entry.pack(padx=5)
     
-    spX = None
-    spY = None
-    epX = None
-    epY = None
-    spId = None
-    epId = None
+        def pack(self, **kwargs):
+            self.f.pack(kwargs)
     
-    def __init__(self, culebron):
-        self.culebron = culebron
-        self.parent = culebron.window
-        Tkinter.Toplevel.__init__(self, self.parent)
-        self.transient(self.parent)
-        self.culebron.setDragDialogShowed(True)
-        self.title("Drag: selecting parameters")
-
-        # valid percent substitutions (from the Tk entry man page)
-        # %d = Type of action (1=insert, 0=delete, -1 for others)
-        # %i = index of char string to be inserted/deleted, or -1
-        # %P = value of the entry if the edit is allowed
-        # %s = value of entry prior to editing
-        # %S = the text string being inserted or deleted, if any
-        # %v = the type of validation that is currently set
-        # %V = the type of validation that triggered the callback
-        #      (key, focusin, focusout, forced)
-        # %W = the tk name of the widget
-        self.validate = (self.parent.register(self.onValidate), '%P')
-        self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp, validate="focusout", validatecmd=self.validate)
-        self.sp.pack(pady=5)
-
-        self.ep = LabeledEntryWithButton(self, "End point", "Grab", command=self.onGrabEp, validate="focusout", validatecmd=self.validate)
-        self.ep.pack(pady=5)
-
-        self.units = Tkinter.StringVar()
-        self.units.set(Unit.DIP)
-        for u in dir(Unit):
-            if u.startswith('_'):
-                continue
-            Tkinter.Radiobutton(self, text=u, variable=self.units, value=u).pack(padx=40, anchor=Tkinter.W)
-        
-        self.d = LabeledEntry(self, "Duration", validate="focusout", validatecmd=self.validate)
-        self.d.set(DragDialog.DEFAULT_DURATION)
-        self.d.pack(pady=5)
-
-        self.s = LabeledEntry(self, "Steps", validate="focusout", validatecmd=self.validate)
-        self.s.set(DragDialog.DEFAULT_STEPS)
-        self.s.pack(pady=5)
-
-        self.buttonBox()
-
-    def buttonBox(self):
-        # add standard button box. override if you don't want the
-        # standard buttons
-
-        box = Tkinter.Frame(self)
-
-        self.ok = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE, state=Tkinter.DISABLED)
-        self.ok.pack(side=Tkinter.LEFT, padx=5, pady=5)
-        w = Tkinter.Button(box, text="Cancel", width=10, command=self.onCancel)
-        w.pack(side=Tkinter.LEFT, padx=5, pady=5)
-
-        self.bind("<Return>", self.onOk)
-        self.bind("<Escape>", self.onCancel)
-
-        box.pack()
-        
-    def onValidate(self, value):
-        if self.sp.get() and self.ep.get() and self.d.get() and self.s.get():
-            self.ok.configure(state=Tkinter.NORMAL)
-        else:
-            self.ok.configure(state=Tkinter.DISABLED)
-        
-    def onOk(self, event=None):
-        if DEBUG:
-            print >> sys.stderr, "onOK()"
-            print >> sys.stderr, "values are:",
-            print >> sys.stderr, self.sp.get(),
-            print >> sys.stderr, self.ep.get(),
-            print >> sys.stderr, self.d.get(),
-            print >> sys.stderr, self.s.get(),
-            print >> sys.stderr, self.units.get()
-
-        sp = make_tuple(self.sp.get())
-        ep = make_tuple(self.ep.get())
-        d = int(self.d.get())
-        s = int(self.s.get())
-        self.cleanUp()
-        # put focus back to the parent window's canvas
-        self.culebron.canvas.focus_set()
-        self.destroy()
-        self.culebron.drag(sp, ep, d, s, self.units.get())
-
-    def onCancel(self, event=None):
-        self.culebron.setGrab(False)
-        self.cleanUp()
-        # put focus back to the parent window's canvas
-        self.culebron.canvas.focus_set()
-        self.destroy()
+        def get(self):
+            return self.entry.get()
     
-    def onGrabSp(self):
-        '''
-        Grab starting point
-        '''
+        def set(self, text):
+            self.entry.delete(0, Tkinter.END)
+            self.entry.insert(0, text)
+            
+    class LabeledEntryWithButton(LabeledEntry):
+        def __init__(self, parent, text, buttonText, command, validate, validatecmd):
+            LabeledEntry.__init__(self, parent, text, validate, validatecmd)
+            self.button = Tkinter.Button(self.f, text=buttonText, command=command)
+            self.button.pack(side="right")
+    
+    class DragDialog(Tkinter.Toplevel):
         
-        self.sp.entry.focus_get()
-        self.onGrab(self.sp)
-
-    def onGrabEp(self):
-        '''
-        Grab ending point
-        '''
-
-        self.ep.entry.focus_get()
-        self.onGrab(self.ep)
-
-    def onGrab(self, entry):
-        '''
-        Generic grab method.
+        DEFAULT_DURATION = 1000
+        DEFAULT_STEPS = 20
         
-        @param entry: the entry being grabbed
-        @type entry: Tkinter.Entry
-        '''
+        spX = None
+        spY = None
+        epX = None
+        epY = None
+        spId = None
+        epId = None
         
-        self.culebron.setOnTouchListener(self.onTouchListener)
-        self.__grabbing = entry
-        self.culebron.setGrab(True)
-
-    def onTouchListener(self, point):
-        '''
-        Listens for touch events and draws the corresponding shapes on the Culebron canvas.
-        If the starting point is being grabbed it draws the touching point via
-        C{Culebron.drawTouchedPoint()} and if the end point is being grabbed it draws
-        using C{Culebron.drawDragLine()}.
+        def __init__(self, culebron):
+            self.culebron = culebron
+            self.parent = culebron.window
+            Tkinter.Toplevel.__init__(self, self.parent)
+            self.transient(self.parent)
+            self.culebron.setDragDialogShowed(True)
+            self.title("Drag: selecting parameters")
+    
+            # valid percent substitutions (from the Tk entry man page)
+            # %d = Type of action (1=insert, 0=delete, -1 for others)
+            # %i = index of char string to be inserted/deleted, or -1
+            # %P = value of the entry if the edit is allowed
+            # %s = value of entry prior to editing
+            # %S = the text string being inserted or deleted, if any
+            # %v = the type of validation that is currently set
+            # %V = the type of validation that triggered the callback
+            #      (key, focusin, focusout, forced)
+            # %W = the tk name of the widget
+            self.validate = (self.parent.register(self.onValidate), '%P')
+            self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp, validate="focusout", validatecmd=self.validate)
+            self.sp.pack(pady=5)
+    
+            self.ep = LabeledEntryWithButton(self, "End point", "Grab", command=self.onGrabEp, validate="focusout", validatecmd=self.validate)
+            self.ep.pack(pady=5)
+    
+            self.units = Tkinter.StringVar()
+            self.units.set(Unit.DIP)
+            for u in dir(Unit):
+                if u.startswith('_'):
+                    continue
+                Tkinter.Radiobutton(self, text=u, variable=self.units, value=u).pack(padx=40, anchor=Tkinter.W)
+            
+            self.d = LabeledEntry(self, "Duration", validate="focusout", validatecmd=self.validate)
+            self.d.set(DragDialog.DEFAULT_DURATION)
+            self.d.pack(pady=5)
+    
+            self.s = LabeledEntry(self, "Steps", validate="focusout", validatecmd=self.validate)
+            self.s.set(DragDialog.DEFAULT_STEPS)
+            self.s.pack(pady=5)
+    
+            self.buttonBox()
+    
+        def buttonBox(self):
+            # add standard button box. override if you don't want the
+            # standard buttons
+    
+            box = Tkinter.Frame(self)
+    
+            self.ok = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE, state=Tkinter.DISABLED)
+            self.ok.pack(side=Tkinter.LEFT, padx=5, pady=5)
+            w = Tkinter.Button(box, text="Cancel", width=10, command=self.onCancel)
+            w.pack(side=Tkinter.LEFT, padx=5, pady=5)
+    
+            self.bind("<Return>", self.onOk)
+            self.bind("<Escape>", self.onCancel)
+    
+            box.pack()
+            
+        def onValidate(self, value):
+            if self.sp.get() and self.ep.get() and self.d.get() and self.s.get():
+                self.ok.configure(state=Tkinter.NORMAL)
+            else:
+                self.ok.configure(state=Tkinter.DISABLED)
+            
+        def onOk(self, event=None):
+            if DEBUG:
+                print >> sys.stderr, "onOK()"
+                print >> sys.stderr, "values are:",
+                print >> sys.stderr, self.sp.get(),
+                print >> sys.stderr, self.ep.get(),
+                print >> sys.stderr, self.d.get(),
+                print >> sys.stderr, self.s.get(),
+                print >> sys.stderr, self.units.get()
+    
+            sp = make_tuple(self.sp.get())
+            ep = make_tuple(self.ep.get())
+            d = int(self.d.get())
+            s = int(self.s.get())
+            self.cleanUp()
+            # put focus back to the parent window's canvas
+            self.culebron.canvas.focus_set()
+            self.destroy()
+            self.culebron.drag(sp, ep, d, s, self.units.get())
+    
+        def onCancel(self, event=None):
+            self.culebron.setGrab(False)
+            self.cleanUp()
+            # put focus back to the parent window's canvas
+            self.culebron.canvas.focus_set()
+            self.destroy()
         
-        @param point: the point touched
-        @type point: tuple
-        '''
-        
-        x = point[0]
-        y = point[1]
-        value = "(%d,%d)" % (x, y)
-        self.__grabbing.set(value)
-        self.onValidate(value)
-        self.culebron.setGrab(False)
-        if self.__grabbing == self.sp:
+        def onGrabSp(self):
+            '''
+            Grab starting point
+            '''
+            
+            self.sp.entry.focus_get()
+            self.onGrab(self.sp)
+    
+        def onGrabEp(self):
+            '''
+            Grab ending point
+            '''
+    
+            self.ep.entry.focus_get()
+            self.onGrab(self.ep)
+    
+        def onGrab(self, entry):
+            '''
+            Generic grab method.
+            
+            @param entry: the entry being grabbed
+            @type entry: Tkinter.Entry
+            '''
+            
+            self.culebron.setOnTouchListener(self.onTouchListener)
+            self.__grabbing = entry
+            self.culebron.setGrab(True)
+    
+        def onTouchListener(self, point):
+            '''
+            Listens for touch events and draws the corresponding shapes on the Culebron canvas.
+            If the starting point is being grabbed it draws the touching point via
+            C{Culebron.drawTouchedPoint()} and if the end point is being grabbed it draws
+            using C{Culebron.drawDragLine()}.
+            
+            @param point: the point touched
+            @type point: tuple
+            '''
+            
+            x = point[0]
+            y = point[1]
+            value = "(%d,%d)" % (x, y)
+            self.__grabbing.set(value)
+            self.onValidate(value)
+            self.culebron.setGrab(False)
+            if self.__grabbing == self.sp:
+                self.__cleanUpSpId()
+                self.__cleanUpEpId()
+                self.spX = x
+                self.spY = y
+            elif self.__grabbing == self.ep:
+                self.__cleanUpEpId()
+                self.epX = x
+                self.epY = y
+            if self.spX and self.spY and not self.spId:
+                self.spId = self.culebron.drawTouchedPoint(self.spX, self.spY)
+            if self.spX and self.spY and self.epX and self.epY and not self.epId:
+                self.epId = self.culebron.drawDragLine(self.spX, self.spY, self.epX, self.epY)
+            self.__grabbing = None
+            self.culebron.setOnTouchListener(None)
+    
+        def __cleanUpSpId(self):
+            if self.spId:
+                self.culebron.canvas.delete(self.spId)
+                self.spId = None
+    
+        def __cleanUpEpId(self):
+            if self.epId:
+                self.culebron.canvas.delete(self.epId)
+                self.epId = None
+    
+        def cleanUp(self):
             self.__cleanUpSpId()
             self.__cleanUpEpId()
-            self.spX = x
-            self.spY = y
-        elif self.__grabbing == self.ep:
-            self.__cleanUpEpId()
-            self.epX = x
-            self.epY = y
-        if self.spX and self.spY and not self.spId:
-            self.spId = self.culebron.drawTouchedPoint(self.spX, self.spY)
-        if self.spX and self.spY and self.epX and self.epY and not self.epId:
-            self.epId = self.culebron.drawDragLine(self.spX, self.spY, self.epX, self.epY)
-        self.__grabbing = None
-        self.culebron.setOnTouchListener(None)
-
-    def __cleanUpSpId(self):
-        if self.spId:
-            self.culebron.canvas.delete(self.spId)
-            self.spId = None
-
-    def __cleanUpEpId(self):
-        if self.epId:
-            self.culebron.canvas.delete(self.epId)
-            self.epId = None
-
-    def cleanUp(self):
-        self.__cleanUpSpId()
-        self.__cleanUpEpId()
-
-
-class HelpDialog(Tkinter.Toplevel):
-
-    def __init__(self, culebron):
-        self.culebron = culebron
-        self.parent = culebron.window
-        Tkinter.Toplevel.__init__(self, self.parent)
-        #self.transient(self.parent)
-        self.title("%s: help" % Culebron.APPLICATION_NAME)
-
-        self.text = ScrolledText.ScrolledText(self, width=50, height=40)
-        self.text.insert(Tkinter.INSERT, '''
-Special keys
-------------
-
-F1: Help
-F5: Refresh
-
-Mouse Buttons
--------------
-<1>: Touch the underlying View
-
-Commands
---------
-Ctrl-A: Toggle message area
-Ctrl-D: Drag dialog
-Ctrl-K: Control Panel
-Ctrl-L: Long touch point
-Ctrl-I: Touch using DIP
-Ctrl-P: Touch using PX
-Ctrl-Q: Quit
-Ctrl-S: Generates a sleep() on output script
-Ctrl-T: Toggle generating test condition
-Ctrl-Z: Touch zones
-''')
-        self.text.pack()
-
-        self.buttonBox()
-
-    def buttonBox(self):
-        # add standard button box. override if you don't want the
-        # standard buttons
-
-        box = Tkinter.Frame(self)
-
-        w = Tkinter.Button(box, text="Dismiss", width=10, command=self.onDismiss, default=Tkinter.ACTIVE)
-        w.pack(side=Tkinter.LEFT, padx=5, pady=5)
-
-        self.bind("<Return>", self.onDismiss)
-        self.bind("<Escape>", self.onDismiss)
-
-        box.pack()
-
-    def onDismiss(self, event=None):
-        # put focus back to the parent window's canvas
-        self.culebron.canvas.focus_set()
-        self.destroy()
+    
+    
+    class HelpDialog(Tkinter.Toplevel):
+    
+        def __init__(self, culebron):
+            self.culebron = culebron
+            self.parent = culebron.window
+            Tkinter.Toplevel.__init__(self, self.parent)
+            #self.transient(self.parent)
+            self.title("%s: help" % Culebron.APPLICATION_NAME)
+    
+            self.text = ScrolledText.ScrolledText(self, width=50, height=40)
+            self.text.insert(Tkinter.INSERT, '''
+    Special keys
+    ------------
+    
+    F1: Help
+    F5: Refresh
+    
+    Mouse Buttons
+    -------------
+    <1>: Touch the underlying View
+    
+    Commands
+    --------
+    Ctrl-A: Toggle message area
+    Ctrl-D: Drag dialog
+    Ctrl-K: Control Panel
+    Ctrl-L: Long touch point
+    Ctrl-I: Touch using DIP
+    Ctrl-P: Touch using PX
+    Ctrl-Q: Quit
+    Ctrl-S: Generates a sleep() on output script
+    Ctrl-T: Toggle generating test condition
+    Ctrl-Z: Touch zones
+    ''')
+            self.text.pack()
+    
+            self.buttonBox()
+    
+        def buttonBox(self):
+            # add standard button box. override if you don't want the
+            # standard buttons
+    
+            box = Tkinter.Frame(self)
+    
+            w = Tkinter.Button(box, text="Dismiss", width=10, command=self.onDismiss, default=Tkinter.ACTIVE)
+            w.pack(side=Tkinter.LEFT, padx=5, pady=5)
+    
+            self.bind("<Return>", self.onDismiss)
+            self.bind("<Escape>", self.onDismiss)
+    
+            box.pack()
+    
+        def onDismiss(self, event=None):
+            # put focus back to the parent window's canvas
+            self.culebron.canvas.focus_set()
+            self.destroy()
