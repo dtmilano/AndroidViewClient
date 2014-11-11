@@ -732,20 +732,21 @@ This is usually installed by python package. Check your distribution details.
         self.window.mainloop()
 
 
-class StatusBar(Tkinter.Frame):
+if TKINTER_AVAILABLE:
+    class StatusBar(Tkinter.Frame):
 
-    def __init__(self, parent):
-        Tkinter.Frame.__init__(self, parent)
-        self.label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
-        self.label.pack(fill=Tkinter.X)
-
-    def set(self, fmt, *args):
-        self.label.config(text=fmt % args)
-        self.label.update_idletasks()
-
-    def clear(self):
-        self.label.config(text="")
-        self.label.update_idletasks()
+        def __init__(self, parent):
+            Tkinter.Frame.__init__(self, parent)
+            self.label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
+            self.label.pack(fill=Tkinter.X)
+    
+        def set(self, fmt, *args):
+            self.label.config(text=fmt % args)
+            self.label.update_idletasks()
+    
+        def clear(self):
+            self.label.config(text="")
+            self.label.update_idletasks()
 
 
 class LabeledEntry():
