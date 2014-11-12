@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.14.4'
+__version__ = '8.15.0'
 
 import sys
 import warnings
@@ -2684,6 +2684,7 @@ class CulebraOptions:
     INTERACTIVE = 'interactive'
     WINDOW = 'window'
     APPEND_TO_SYS_PATH = 'append-to-sys-path'
+    PREPEND_TO_SYS_PATH = 'prepend-to-sys-path'
     SAVE_SCREENSHOT = 'save-screenshot'
     SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
     GUI = 'gui'
@@ -2700,7 +2701,7 @@ class CulebraOptions:
               USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST_CLASS, UNIT_TEST_METHOD + '=',
               USE_JAR + '=', USE_DICTIONARY + '=', DICTIONARY_KEYS_FROM + '=', AUTO_REGEXPS + '=',
               START_ACTIVITY + '=',
-              OUTPUT + '=', INTERACTIVE, APPEND_TO_SYS_PATH,
+              OUTPUT + '=', INTERACTIVE, PREPEND_TO_SYS_PATH,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
               GUI,
               DO_NOT_VERIFY_INITIAL_SCREEN_DUMP,
@@ -2733,14 +2734,14 @@ class CulebraOptions:
             'a': 'starts Activity before dump',
             'o': 'output filename',
             'A': 'interactive',
-            'p': 'append environment variables values to sys.path',
+            'p': 'prepend environment variables values to sys.path',
             's': 'save screenshot to file',
             'W': 'save View screenshots to files in directory',
             'E': 'ignores ADB version check',
             'G': 'presents the GUI (EXPERIMENTAL)',
             'P': 'scale percentage (i.e. 0.5)',
             'u': 'do not verify initial screen dump state',
-            'O': 'Orientation locked in generated test',
+            'O': 'orientation locked in generated test',
             }
 
 class CulebraTestCase(unittest.TestCase):

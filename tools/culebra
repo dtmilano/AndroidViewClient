@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.14.4'
+__version__ = '8.15.0'
 
 import re
 import sys
@@ -530,7 +530,7 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
         CulebraOptions.UNIT_TEST_CLASS: False, CulebraOptions.UNIT_TEST_METHOD: None, CulebraOptions.USE_JAR: False,
         CulebraOptions.USE_DICTIONARY: False, CulebraOptions.DICTIONARY_KEYS_FROM: 'id',
         CulebraOptions.AUTO_REGEXPS: None, CulebraOptions.START_ACTIVITY: None, CulebraOptions.OUTPUT: None, CulebraOptions.INTERACTIVE: False,
-        CulebraOptions.WINDOW:-1, CulebraOptions.APPEND_TO_SYS_PATH: False,
+        CulebraOptions.WINDOW:-1, CulebraOptions.PREPEND_TO_SYS_PATH: False,
         CulebraOptions.SAVE_SCREENSHOT: None, CulebraOptions.SAVE_VIEW_SCREENSHOTS: None,
         CulebraOptions.GUI: False,
         CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP: False,
@@ -600,8 +600,8 @@ for o, a in optlist:
         options[CulebraOptions.OUTPUT] = a
     elif o in ['A', CulebraOptions.INTERACTIVE]:
         options[CulebraOptions.INTERACTIVE] = True
-    elif o in ['p', CulebraOptions.APPEND_TO_SYS_PATH]:
-        options[CulebraOptions.APPEND_TO_SYS_PATH] = True
+    elif o in ['p', CulebraOptions.PREPEND_TO_SYS_PATH]:
+        options[CulebraOptions.PREPEND_TO_SYS_PATH] = True
     elif o in ['s', CulebraOptions.SAVE_SCREENSHOT]:
         options[CulebraOptions.SAVE_SCREENSHOT] = a
     elif o in ['W', CulebraOptions.SAVE_VIEW_SCREENSHOTS]:
@@ -639,8 +639,8 @@ if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_T
 if options[CulebraOptions.UNIT_TEST_CLASS]:
     printUnittestImport()
 
-if options[CulebraOptions.APPEND_TO_SYS_PATH]:
-    printAppendToSysPath()
+if options[CulebraOptions.PREPEND_TO_SYS_PATH]:
+    printPrependToSysPath()
 
 if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
     print '''\
