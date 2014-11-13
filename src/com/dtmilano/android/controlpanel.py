@@ -16,14 +16,17 @@
     limitations under the License.
     
     @author: Diego Torres Milano
-    @author: AK
+    @author: Ahmed Kasem
     '''
 
 __version__ = '8.15.0'
 
-import Tkinter
-import sys
+import Tkinter, tkFileDialog
+import sys, os
+from time import strftime
+from os.path import expanduser
 
+from com.dtmilano.android.viewclient import ViewClient, View
 from com.dtmilano.android.culebron import Operation, Unit, Color
 
 
@@ -34,7 +37,7 @@ class ControlPanel(Tkinter.Toplevel):
         self.parent = culebron.window
         Tkinter.Toplevel.__init__(self, self.parent)
         self.title("Control Panel")
-        self.resizable(0, 0)
+        self.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
         self.printOperation = printOperation
         self.vc = vc
         self.grid()
@@ -64,7 +67,7 @@ class ControlPanel(Tkinter.Toplevel):
                 self.button.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, command=self.button.refreshScreen)
                 self.button.grid(column=self.column, row=self.row)
             elif button == 'SNAPSHOPT':
-                self.button.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, command=self.button.takeSnapshoot)
+                self.button.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, command=self.button.takeSnapshot)
                 self.button.grid(column=self.column, row=self.row)
             elif button == 'QUIT':
                 self.button.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, command=self.destroy)
@@ -98,5 +101,10 @@ class ControlPanelButton(Tkinter.Button):
         self.culebron.showVignette()
         self.culebron.takeScreenshotAndShowItOnWindow()
 
-    def takeSnapshoot(self):
-        self.device.takeSnapshot().save('Snapshot', 'PNG')
+    def takeSnapshot(self):
+        #FIXME: Add printOperation <printSaveViewScreenshot(view, foldername)>
+        self.culebron.showVignette()
+        path = tkFileDialog.asksaveasfilename(parent=self.master, defaultextension=".png", initialfile='Snapshot')
+        if path:
+            self.device.takeSnapshot(reconnect=True).save(path)
+        self.culebron.hideVignette()
