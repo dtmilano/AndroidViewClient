@@ -30,7 +30,6 @@ try:
 except:
     TKINTER_AVAILABLE = False
 
-
 from com.dtmilano.android.viewclient import ViewClient, View
 from com.dtmilano.android.culebron import Operation, Unit, Color
 
