@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.15.1'
+__version__ = '8.15.2'
 
 import sys
 import warnings
@@ -420,7 +420,11 @@ class AdbClient:
     def __getDisplayOrientation(self, key, strip=True):
         if self.__displayInfo and 'orientation' in self.__displayInfo:
             return self.__displayInfo['orientation']
-        return self.getDisplayInfo()['orientation']
+        displayInfo = self.getDisplayInfo()
+        if 'orientation' in displayInfo:
+            return displayInfo['orientation']
+        # We couldn't obtain the orientation
+        return -1
 
     def __getDisplayDensity(self, key, strip=True, invokeGetPhysicalDisplayIfNotFound=True):
         if self.__displayInfo and 'density' in self.__displayInfo:
