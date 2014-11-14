@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.14.4'
+__version__ = '8.14.5'
 
 import sys
 import warnings
@@ -319,15 +319,15 @@ class AdbClient:
         raise RuntimeError("Couldn't find mRestrictedScreen in 'dumpsys window'")
 
     def getDisplayInfo(self):
-        displayInfo = self.getLogicalDisplay()
+        displayInfo = self.getLogicalDisplayInfo()
         if displayInfo:
             return displayInfo
-        displayInfo = self.getPhyisicalDisplay()
+        displayInfo = self.getPhysicalDisplayInfo()
         if displayInfo:
             return displayInfo
         raise RuntimeError("Couldn't find display info in 'wm size', 'dumpsys display' or 'dumpsys window'")
 
-    def getLogicalDisplay(self):
+    def getLogicalDisplayInfo(self):
         '''
         Gets C{mDefaultViewport} and then C{deviceWidth} and C{deviceHeight} values from dumpsys.
         This is a method to obtain display logical dimensions and density
