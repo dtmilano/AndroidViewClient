@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.14.5'
+__version__ = '8.15.1'
 
 import sys
 import warnings
@@ -647,7 +647,7 @@ class AdbClient:
         y0 = y0 * self.display['density']
         x1 = x1 * self.display['density']
         y1 = y1 * self.display['density']
-        self.drag((x0, y0), (x1, y1), duration, steps)
+        self.drag((x0, y0), (x1, y1), duration, steps, orientation)
         
     def type(self, text):
         self.shell(u'input text "%s"' % text)

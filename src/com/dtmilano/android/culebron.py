@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.14.5'
+__version__ = '8.15.1'
 
 import sys
 import threading
@@ -498,7 +498,7 @@ This is usually installed by python package. Check your distribution details.
                     changed = True
                     break
             if changed:
-                self.window.geometry('%dx%d' % (self.device.display['width'], self.device.display['height']))
+                self.window.geometry('%dx%d' % (self.device.display['width']*self.scale, self.device.display['height']*self.scale))
                 self.deleteVignette()
                 self.canvas.destroy()
                 self.canvas = None
