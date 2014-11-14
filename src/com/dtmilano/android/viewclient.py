@@ -2772,6 +2772,11 @@ class CulebraTestCase(unittest.TestCase):
                     device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
                 vc = ViewClient(device, serialno, **self.kwargs2)
                 self.devices.append({'serialno':serialno, 'device':device, 'vc':vc})
+            # Select the first devices as default
+            defaultDevice = self.devices[0]
+            self.device = defaultDevice['device']
+            self.serialno = defaultDevice['serialno']
+            self.vc = defaultDevice['vc']
         else:
             self.device, self.serialno = ViewClient.connectToDeviceOrExit(serialno=self.serialno, **self.kwargs1)
             if self.options[CulebraOptions.START_ACTIVITY]:
