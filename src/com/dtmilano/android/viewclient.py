@@ -2692,7 +2692,7 @@ class CulebraOptions:
     DO_NOT_VERIFY_INITIAL_SCREEN_DUMP = 'do-not-verify-initial-screen-dump'
     ORIENTATION_LOCKED = 'orientation-locked'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Aps:W:GuP:O'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Apf:W:GuP:O'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -2719,6 +2719,7 @@ class CulebraOptions:
     OPTS_HELP = {
             'H': 'prints this help',
             'V': 'verbose comments',
+            'v': 'prints version number and exists',
             'k': 'don\'t ignore UiAutomator killed',
             'w': 'use WINDOW content (default: -1, all windows)',
             'i': 'whether to use findViewById() in script',
@@ -2735,7 +2736,7 @@ class CulebraOptions:
             'o': 'output filename',
             'A': 'interactive',
             'p': 'prepend environment variables values to sys.path',
-            's': 'save screenshot to file',
+            'f': 'save screenshot to file',
             'W': 'save View screenshots to files in directory',
             'E': 'ignores ADB version check',
             'G': 'presents the GUI (EXPERIMENTAL)',

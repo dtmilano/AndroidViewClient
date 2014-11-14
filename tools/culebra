@@ -602,7 +602,7 @@ for o, a in optlist:
         options[CulebraOptions.INTERACTIVE] = True
     elif o in ['p', CulebraOptions.PREPEND_TO_SYS_PATH]:
         options[CulebraOptions.PREPEND_TO_SYS_PATH] = True
-    elif o in ['s', CulebraOptions.SAVE_SCREENSHOT]:
+    elif o in ['f', CulebraOptions.SAVE_SCREENSHOT]:
         options[CulebraOptions.SAVE_SCREENSHOT] = a
     elif o in ['W', CulebraOptions.SAVE_VIEW_SCREENSHOTS]:
         options[CulebraOptions.SAVE_VIEW_SCREENSHOTS] = a
