@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.15.2'
+__version__ = '8.15.3'
 
 import sys
 import warnings
@@ -2778,10 +2778,13 @@ class CulebraTestCase(unittest.TestCase):
             self.serialno = defaultDevice['serialno']
             self.vc = defaultDevice['vc']
         else:
+            self.devices = []
             self.device, self.serialno = ViewClient.connectToDeviceOrExit(serialno=self.serialno, **self.kwargs1)
             if self.options[CulebraOptions.START_ACTIVITY]:
                 self.device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
             self.vc = ViewClient(self.device, self.serialno, **self.kwargs2)
+            # Select the default device as first one
+            self.devices.append({'serialno':self.serialno, 'device':self.device, 'vc':self.vc})
 
     def tearDown(self):
         pass
