@@ -614,6 +614,11 @@ for o, a in optlist:
         options[CulebraOptions.SCALE] = float(a)
     elif o in ['O', CulebraOptions.ORIENTATION_LOCKED]:
         options[CulebraOptions.ORIENTATION_LOCKED] = 'PENDING'
+    elif o in ['s', CulebraOptions.SERIALNO]:
+        __devices = a.split()
+        if len(__devices) > 1:
+            warnings.warn('List of devices not supported yet. Using first device instead.')
+        kwargs1[CulebraOptions.SERIALNO] = __devices[0]
 
 if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[CulebraOptions.VERBOSE_COMMENTS]:

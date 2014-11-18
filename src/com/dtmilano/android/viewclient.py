@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.15.3'
+__version__ = '8.16.0'
 
 import sys
 import warnings
@@ -2691,8 +2691,9 @@ class CulebraOptions:
     SCALE = 'scale'
     DO_NOT_VERIFY_INITIAL_SCREEN_DUMP = 'do-not-verify-initial-screen-dump'
     ORIENTATION_LOCKED = 'orientation-locked'
+    SERIALNO = 'serialno'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Apf:W:GuP:O'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Apf:W:GuP:Os:'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -2707,6 +2708,7 @@ class CulebraOptions:
               DO_NOT_VERIFY_INITIAL_SCREEN_DUMP,
               SCALE + '=',
               ORIENTATION_LOCKED,
+              SERIALNO + '=',
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
@@ -2715,7 +2717,8 @@ class CulebraOptions:
               OUTPUT: 'FILENAME',
               SAVE_SCREENSHOT: 'FILENAME', SAVE_VIEW_SCREENSHOTS: 'DIR',
               UNIT_TEST_METHOD: 'NAME',
-              SCALE: 'FLOAT'}
+              SCALE: 'FLOAT',
+              SERIALNO: 'LIST'}
     OPTS_HELP = {
             'H': 'prints this help',
             'V': 'verbose comments',
@@ -2743,6 +2746,7 @@ class CulebraOptions:
             'P': 'scale percentage (i.e. 0.5)',
             'u': 'do not verify initial screen dump state',
             'O': 'orientation locked in generated test',
+            's': 'device serial number (can be more than 1)',
             }
 
 class CulebraTestCase(unittest.TestCase):
