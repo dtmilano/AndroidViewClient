@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.16.0'
+__version__ = '8.17.0'
 
 import sys
 import warnings
@@ -2692,8 +2692,9 @@ class CulebraOptions:
     DO_NOT_VERIFY_INITIAL_SCREEN_DUMP = 'do-not-verify-initial-screen-dump'
     ORIENTATION_LOCKED = 'orientation-locked'
     SERIALNO = 'serialno'
+    MULTI_DEVICE = 'multi-device'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Apf:W:GuP:Os:'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Apf:W:GuP:Os:m'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -2709,6 +2710,7 @@ class CulebraOptions:
               SCALE + '=',
               ORIENTATION_LOCKED,
               SERIALNO + '=',
+              MULTI_DEVICE,
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
@@ -2747,6 +2749,7 @@ class CulebraOptions:
             'u': 'do not verify initial screen dump state',
             'O': 'orientation locked in generated test',
             's': 'device serial number (can be more than 1)',
+            'm': 'enables multi-device test generation',
             }
 
 class CulebraTestCase(unittest.TestCase):
@@ -2763,7 +2766,10 @@ class CulebraTestCase(unittest.TestCase):
 
     def setUp(self):
         if self.serialno:
-            __devices = self.serialno.split()
+            if self.serialno.lower() == 'all':
+                __devices = [d.serialno for d in adbclient.AdbClient().getDevices()]
+            else:
+                __devices = self.serialno.split()
             if len(__devices) > 1:
                 self.devices = __devices
 
@@ -2801,7 +2807,26 @@ class CulebraTestCase(unittest.TestCase):
         return True
 
     def isTestRunningOnMultipleDevices(self):
-        return (self.devices != None)
+        return (len(self.devices) > 1)
+
+    @staticmethod
+    def __passAll(arg):
+        return True
+
+    def all(self, arg, _filter=None):
+        # CulebraTestCase.__passAll cannot be specified as the default argument value
+        if _filter is None:
+            _filter = CulebraTestCase.__passAll
+        return filter(_filter, (d[arg] for d in self.devices))
+
+    def allVcs(self, _filter=None):
+        return self.all('vc', _filter)
+
+    def allDevices(self, _filter=__passAll):
+        return self.all('device', _filter)
+
+    def allSerialnos(self, _filter=__passAll):
+        return self.all('serialno', _filter)
 
     @staticmethod
     def main():
@@ -2810,9 +2835,10 @@ class CulebraTestCase(unittest.TestCase):
         # as ViewClient would have no way of determine what it is.
         # This could be also a list of devices (delimited by whitespaces) and in such case all of
         # them will be used.
+        # The special argument 'all' means all the connected devices.
         ser = ['-s', '--serialno']
         old = '%(failfast)'
-        new = '  %s s The serial number[s] to connect to\n%s' % (', '.join(ser), old)
+        new = '  %s s The serial number[s] to connect to or \'all\'\n%s' % (', '.join(ser), old)
         unittest.TestProgram.USAGE = unittest.TestProgram.USAGE.replace(old, new)
         if len(sys.argv) >= 2 and sys.argv[1] in ser:
             sys.argv.pop(1)
