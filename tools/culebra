@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.17.0'
+__version__ = '8.17.1'
 
 import re
 import sys
@@ -600,6 +600,7 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
         CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP: False,
         CulebraOptions.SCALE: 1,
         CulebraOptions.ORIENTATION_LOCKED: None,
+        CulebraOptions.MULTI_DEVICE: False,
         }
 transform = traverseAndPrint
 for o, a in optlist:
