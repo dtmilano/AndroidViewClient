@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.17.0'
+__version__ = '8.17.1'
 
 import sys
 import threading
@@ -170,7 +170,7 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.pack(fill=Tkinter.BOTH)
         self.findTargets()
         self.hideVignette()
-        
+
     def createMessageArea(self, width, height):
         self.__message = Tkinter.Label(self.window, text='', background=Color.GOLD, font=('Helvetica', 16), anchor=Tkinter.W)
         self.__message.configure(width=width)
@@ -498,7 +498,7 @@ This is usually installed by python package. Check your distribution details.
                     changed = True
                     break
             if changed:
-                self.window.geometry('%dx%d' % (self.device.display['width']*self.scale, self.device.display['height']*self.scale))
+                self.window.geometry('%dx%d' % (self.device.display['width']*self.scale, self.device.display['height']*self.scale+int(self.statusBar.winfo_height())))
                 self.deleteVignette()
                 self.canvas.destroy()
                 self.canvas = None
