@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.17.1'
+__version__ = '8.17.2'
 
 import sys
 import threading
@@ -263,7 +263,10 @@ This is usually installed by python package. Check your distribution details.
         self.window.wait_window(d)
 
     def findTargets(self):
+        if DEBUG:
+            print >> sys.stderr, "findTargets()"
         self.targets = []
+        self.targetViews = []
         if self.device.isKeyboardShown():
             print >> sys.stderr, "#### keyboard is show but handling it is not implemented yet ####"
             # fixme: still no windows in uiautomator
@@ -272,14 +275,20 @@ This is usually installed by python package. Check your distribution details.
             window = -1
         self.printOperation(None, Operation.DUMP, window)
         for v in self.vc.dump(window=window):
-            if self.isClickableCheckableOrFocusable(v):
+            if DEBUG:
+                print >> sys.stderr, "    findTargets: analyzing", v.getClass()
+            if v.getClass() == 'android.widget.ListView':
+                # We may want to touch ListView elements, not just the ListView
+                continue
+            parent = v.getParent()
+            if (parent and parent.getClass() == 'android.widget.ListView' and self.isClickableCheckableOrFocusable(parent)) or self.isClickableCheckableOrFocusable(v):
+                # If this is a touchable ListView, let's add its children instead
+                # or add it if it's touchable, focusable, whatever
                 ((x1, y1), (x2, y2)) = v.getCoords()
-                # workaround to avoid whole phone screen
-                #if (x1, y1, x2, y2) == (0, 108, , 1216):
-                #    continue
                 if DEBUG:
                     print >> sys.stderr, "appending target", ((x1, y1, x2, y2))
                 self.targets.append((x1, y1, x2, y2))
+                self.targetViews.append(v)
             else:
                 #print v
                 pass
@@ -316,7 +325,9 @@ This is usually installed by python package. Check your distribution details.
         vlist.reverse()
         found = False
         for v in vlist:
-            if self.isClickableCheckableOrFocusable(v):
+            if DEBUG:
+                print >> sys.stderr, "checking if", v, "is in", self.targetViews
+            if v in self.targetViews:
                 if DEBUG_TOUCH:
                     print >> sys.stderr
                     print >> sys.stderr, "I guess you are trying to touch:", v
