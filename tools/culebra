@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.17.1'
+__version__ = '8.17.3'
 
 import re
 import sys
@@ -410,15 +410,23 @@ def printTouch(x, y, unit, orientation):
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
     
-def printLongTouch(x, y, duration):
+def printLongTouch(x, y, duration, unit, orientation):
     '''
     Prints a long touch
     '''
     
-    if options[CulebraOptions.MULTI_DEVICE]:
-        warnings.warn('Multi-device not implemented yet for this case')
+    if unit == Unit.PX:
+        if options[CulebraOptions.MULTI_DEVICE]:
+            warnings.warn('Multi-device not implemented yet for this case')
+        else:
+            print '%s%svc.device.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation) 
+    elif unit == Unit.DIP:
+        if options[CulebraOptions.MULTI_DEVICE]:
+            warnings.warn('Multi-device not implemented yet for this case')
+        else:
+            print '%s%svc.device.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation) 
     else:
-        print '%s%svc.device.longTouch(%s, %s, %s)' % (indent, prefix, x, y, duration) 
+        raise RuntimeError('Invalid unit: %s' % unit)
     
 def printSaveViewScreenshot(view, dir):
     '''
@@ -486,7 +494,7 @@ def printOperation(view, op, *args):
         printTouch(args[0], args[1], args[2], args[3])
         return
     elif op == Operation.LONG_TOUCH_POINT:
-        printLongTouch(args[0], args[1], args[2])
+        printLongTouch(args[0], args[1], args[2], args[3], args[4])
         return
     
     bd = Descriptor.findBestDescriptor(view)
