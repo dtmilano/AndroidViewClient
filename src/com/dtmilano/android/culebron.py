@@ -1038,7 +1038,7 @@ if TKINTER_AVAILABLE:
     Ctrl-A: Toggle message area
     Ctrl-D: Drag dialog
     Ctrl-K: Control Panel
-    Ctrl-L: Long touch point
+    Ctrl-L: Long touch point using PX
     Ctrl-I: Touch using DIP
     Ctrl-P: Touch using PX
     Ctrl-Q: Quit
