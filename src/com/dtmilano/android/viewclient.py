@@ -865,11 +865,11 @@ class View:
         if VIEW_CLIENT_TOUCH_WORKAROUND_ENABLED and type == adbclient.DOWN_AND_UP:
             if WARNINGS:
                 print >> sys.stderr, "ViewClient: touch workaround enabled"
-            self.device.touch(x, y, adbclient.DOWN)
+            self.device.touch(x, y, eventType=adbclient.DOWN)
             time.sleep(50/1000.0)
-            self.device.touch(x+10, y+10, adbclient.UP)
+            self.device.touch(x+10, y+10, eventType=adbclient.UP)
         else:
-            self.device.touch(x, y, type)
+            self.device.touch(x, y, eventType=type)
 
     def longTouch(self, duration=2000):
         '''
