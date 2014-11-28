@@ -1047,9 +1047,9 @@ class EditText(TextView):
     EditText class.
     '''
 
-    def type(self, text, alreadyTouch = False):
-        if not alreadyTouch:
-          self.touch()
+    def type(self, text, alreadyTouched=False):
+        if not alreadyTouched:
+            self.touch()
         time.sleep(0.5)
         escaped = text.replace('%s', '\\%s')
         encoded = escaped.replace(' ', '%s')
@@ -1070,8 +1070,7 @@ class EditText(TextView):
             guardrail += 1
             self.device.press('KEYCODE_DEL', adbclient.DOWN_AND_UP)
             self.device.press('KEYCODE_FORWARD_DEL', adbclient.DOWN_AND_UP)
-        self.type(text,alreadyTouch=True)
-
+        self.type(text, alreadyTouched=True)
 
     def backspace(self):
         self.touch()
