@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.17.3'
+__version__ = '8.18.0'
 
 import sys
 import warnings
@@ -854,22 +854,34 @@ class View:
             if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: (0,0)"
             return (0,0)
 
-    def touch(self, type=adbclient.DOWN_AND_UP):
+    def touch(self, eventType=adbclient.DOWN_AND_UP, deltaX=0, deltaY=0):
         '''
-        Touches the center of this C{View}
+        Touches the center of this C{View}. The touch can be displaced from the center by
+        using C{deltaX} and C{deltaY} values.
+        
+        @param eventType: The event type
+        @type eventType: L{adbclient.DOWN}, L{adbclient.UP} or L{adbclient.DOWN_AND_UP}
+        @param deltaX: Displacement from center (X axis)
+        @type deltaX: int
+        @param deltaY: Displacement from center (Y axis)
+        @type deltaY: int 
         '''
 
         (x, y) = self.getCenter()
+        if deltaX:
+            x += deltaX
+        if deltaY:
+            y += deltaY
         if DEBUG_TOUCH:
             print >>sys.stderr, "should touch @ (%d, %d)" % (x, y)
-        if VIEW_CLIENT_TOUCH_WORKAROUND_ENABLED and type == adbclient.DOWN_AND_UP:
+        if VIEW_CLIENT_TOUCH_WORKAROUND_ENABLED and eventType == adbclient.DOWN_AND_UP:
             if WARNINGS:
                 print >> sys.stderr, "ViewClient: touch workaround enabled"
             self.device.touch(x, y, eventType=adbclient.DOWN)
             time.sleep(50/1000.0)
             self.device.touch(x+10, y+10, eventType=adbclient.UP)
         else:
-            self.device.touch(x, y, eventType=type)
+            self.device.touch(x, y, eventType=eventType)
 
     def longTouch(self, duration=2000):
         '''
