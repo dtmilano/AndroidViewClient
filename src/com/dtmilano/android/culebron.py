@@ -639,7 +639,10 @@ This is usually installed by python package. Check your distribution details.
         self.window.destroy()
         
     def onCtrlS(self, event):
-        self.printOperation(None, Operation.SLEEP, 1)
+        seconds = tkSimpleDialog.askfloat('Sleep Interval', 'Value in seconds:', initialvalue=1, minvalue=0, parent=self.window)
+        if seconds is not None:
+            self.printOperation(None, Operation.SLEEP, seconds)
+        self.canvas.focus_set()
     
     def startGeneratingTestCondition(self):
         self.message('Generating test condition...', background=Color.GREEN)
