@@ -19,7 +19,7 @@
     @author: Ahmed Kasem
     '''
 
-__version__ = '8.18.1'
+__version__ = '8.18.2'
 
 import sys, os
 import Tkinter, tkFileDialog, ttk
@@ -42,25 +42,25 @@ class ControlPanel(Tkinter.Toplevel):
         self.vc = vc
         self.printOperation = printOperation
         self.parent = culebron.window
-        self.child_window = Tkinter.Toplevel(self.parent)
-        self.notebook = ttk.Notebook(self.child_window)
+        self.childWindow = Tkinter.Toplevel(self.parent)
+        self.notebook = ttk.Notebook(self.childWindow)
         self.notebook.pack(fill=Tkinter.BOTH, padx=2, pady=3)
-        self.keycode_tab = ttk.Frame(self.notebook)
-        self.keyboard_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.keycode_tab, text="KEYCODE")
-        self.notebook.add(self.keyboard_tab, text="KEYBOARD")
-        self.child_window.title("Control Panel")
-        self.child_window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
-        self.child_window.printOperation = printOperation
-        self.child_window.vc = vc
-        self.child_window.grid()
-        self.child_window.column = self.child_window.row = 0
-        self.create_keycode_tab()
-        self.create_keyboard_tab()
+        self.keycodeTab = ttk.Frame(self.notebook)
+        self.keyboardTab = ttk.Frame(self.notebook)
+        self.notebook.add(self.keycodeTab, text='KEYCODE')
+        self.notebook.add(self.keyboardTab, text='KEYBOARD')
+        self.childWindow.title('Control Panel')
+        self.childWindow.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
+        self.childWindow.printOperation = printOperation
+        self.childWindow.vc = vc
+        self.childWindow.grid()
+        self.childWindow.column = self.childWindow.row = 0
+        self.createKeycodeTab()
+        self.createKeyboardTab()
 
-    def create_keycode_tab(self):
+    def createKeycodeTab(self):
         ''' KEYCODE '''
-        self.keycode_list = [
+        self.keycodeList = [
                              'KEYCODE_HOME', 'KEYCODE_DPAD_UP', 'KEYCODE_BACK', 'KEYCODE_SEARCH', 'KEYCODE_CHANNEL_UP', 'KEYCODE_TV', 
                              'KEYCODE_MUSIC', 'KEYCODE_EXPLORER', 'KEYCODE_CAMERA', 'KEYCODE_POWER', 'KEYCODE_DPAD_LEFT','KEYCODE_DPAD_DOWN',
                              'KEYCODE_DPAD_RIGHT', 'KEYCODE_PAGE_UP', 'KEYCODE_CHANNEL_DOWN', 'KEYCODE_VOLUME_UP', 'KEYCODE_MEDIA_PLAY',
@@ -69,28 +69,28 @@ class ControlPanel(Tkinter.Toplevel):
                              'KEYCODE_ZOOM_OUT', 'REFRESH', 'KEYCODE_APP_SWITCH', 'KEYCODE_GOOGLE_NOW', 'KEYCODE_CALL', 'KEYCODE_ESCAPE',
                              'KEYCODE_BRIGHTNESS_UP', 'KEYCODE_VOLUME_MUTE', 'KEYCODE_MEDIA_STOP', 'KEYCODE_CALCULATOR', 'KEYCODE_SETTINGS', 'QUIT'
                             ]
-        for keycode in self.keycode_list:
-            self.keycode = ControlPanelButton(self.keycode_tab, self.culebron, self.vc, self.printOperation, value=keycode, text=keycode[8:],
+        for keycode in self.keycodeList:
+            self.keycode = ControlPanelButton(self.keycodeTab, self.culebron, self.vc, self.printOperation, value=keycode, text=keycode[8:],
                                               width=Layout.BUTTON_WIDTH, bg=Color.DARK_GRAY, fg=Color.LIGHT_GRAY,
                                               highlightbackground=Color.DARK_GRAY)
 
             if keycode == 'REFRESH':
                 self.keycode.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.keycode.refreshScreen)
-                self.keycode.grid(column=self.child_window.column, row=self.child_window.row)
+                self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
             elif keycode == 'SNAPSHOPT':
                 self.keycode.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.keycode.takeSnapshot)
-                self.keycode.grid(column=self.child_window.column, row=self.child_window.row)
+                self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
             elif keycode == 'QUIT':
-                self.keycode.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.child_window.destroy)
-                self.keycode.grid(column=self.child_window.column, row=self.child_window.row)
+                self.keycode.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.childWindow.destroy)
+                self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
             else:
                 self.keycode.configure(command=self.keycode.pressKey)
-                self.keycode.grid(column=self.child_window.column, row=self.child_window.row)
+                self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
             self.tabLayout()
 
-    def create_keyboard_tab(self):
+    def createKeyboardTab(self):
         ''' KEYBOARD '''
-        self.keyboard_list = [
+        self.keyboardList = [
                               'KEYCODE_1', 'KEYCODE_2', 'KEYCODE_3', 'KEYCODE_4', 'KEYCODE_5', 'KEYCODE_6', 'KEYCODE_7', 'KEYCODE_8', 'KEYCODE_9', 'KEYCODE_0',
                               'KEYCODE_Q', 'KEYCODE_W', 'KEYCODE_E', 'KEYCODE_R', 'KEYCODE_T', 'KEYCODE_Y', 'KEYCODE_U', 'KEYCODE_I', 'KEYCODE_O', 'KEYCODE_P',
                               'KEYCODE_A', 'KEYCODE_S', 'KEYCODE_D', 'KEYCODE_F', 'KEYCODE_G', 'KEYCODE_H', 'KEYCODE_J', 'KEYCODE_K', 'KEYCODE_L',
@@ -98,21 +98,21 @@ class ControlPanel(Tkinter.Toplevel):
                               'KEYCODE_.', 'KEYCODE_SPACE', 'KEYCODE_GO'
                              ]
 
-        for keyboard in self.keyboard_list:
-            self.keyboard = ControlPanelButton(self.keyboard_tab, self.culebron, self.vc, self.printOperation, value=keyboard, text=keyboard[8:],
+        for keyboard in self.keyboardList:
+            self.keyboard = ControlPanelButton(self.keyboardTab, self.culebron, self.vc, self.printOperation, value=keyboard, text=keyboard[8:],
                                                width=Layout.BUTTON_WIDTH, bg=Color.DARK_GRAY, fg=Color.LIGHT_GRAY,
                                                highlightbackground=Color.DARK_GRAY)
 
             self.keyboard.configure(command=self.keyboard.pressKey)
-            self.keyboard.grid(column=self.child_window.column, row=self.child_window.row)
+            self.keyboard.grid(column=self.childWindow.column, row=self.childWindow.row)
             self.tabLayout()
 
     def tabLayout(self):
         ''' For all tabs, specify the number of buttons in a row '''
-        self.child_window.column += 1
-        if self.child_window.column > Layout.BUTTONS_NUMBER:
-            self.child_window.column = 0
-            self.child_window.row += 1
+        self.childWindow.column += 1
+        if self.childWindow.column > Layout.BUTTONS_NUMBER:
+            self.childWindow.column = 0
+            self.childWindow.row += 1
 
 
 class ControlPanelButton(Tkinter.Button):
@@ -146,6 +146,6 @@ class ControlPanelButton(Tkinter.Button):
 
     def takeSnapshot(self):
         #FIXME: Add printOperation <printSaveViewScreenshot(view, foldername)>
-        path = tkFileDialog.asksaveasfilename(parent=self.master, defaultextension=".png", initialfile='Snapshot')
+        path = tkFileDialog.asksaveasfilename(parent=self.master, defaultextension='.png', initialfile='Snapshot')
         if path:
             self.device.takeSnapshot(reconnect=True).save(path)
