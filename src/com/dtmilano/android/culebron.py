@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.18.1'
+__version__ = '8.19.0'
 
 import sys
 import threading
@@ -76,6 +76,7 @@ class Operation:
     TYPE = 'type'
     PRESS = 'press'
     SLEEP = 'sleep'
+    TRAVERSE = 'traverse'
 
 class Culebron:
     APPLICATION_NAME = "Culebra"
@@ -529,6 +530,9 @@ This is usually installed by python package. Check your distribution details.
         elif char == '\x15':
             self.onCtrlU(event)
             return
+        elif char == '\x16':
+            self.onCtrlV(event)
+            return
         elif char == '\x1a':
             self.onCtrlZ(event)
             return
@@ -668,6 +672,11 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG:
             print >>sys.stderr, "onCtrlU()"
     
+    def onCtrlV(self, event):
+        if DEBUG:
+            print >>sys.stderr, "onCtrlV()"
+        self.printOperation(None, Operation.TRAVERSE)
+        
     def onCtrlZ(self, event):
         if DEBUG:
             print >> sys.stderr, "onCtrlZ()"
@@ -1047,6 +1056,7 @@ if TKINTER_AVAILABLE:
     Ctrl-Q: Quit
     Ctrl-S: Generates a sleep() on output script
     Ctrl-T: Toggle generating test condition
+    Ctrl-V: Verifies the content of the screen dump
     Ctrl-Z: Touch zones
     ''')
             self.text.pack()

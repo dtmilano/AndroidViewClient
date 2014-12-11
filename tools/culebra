@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.18.1'
+__version__ = '8.19.0'
 
 import re
 import sys
@@ -344,6 +344,16 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
     else:
         error("Invalid operation: %s" % op)
 
+
+def printTraverse():
+    '''
+    Prints the result of traversing the tree
+    '''
+    
+    print 
+    vc.traverse(transform=transform)
+    print
+
 def printDump(window):
     '''
     Prints a dump
@@ -353,6 +363,9 @@ def printDump(window):
         print '%s[vc.dump(window=%d) for vc in %sallVcs()]' % (indent, window, prefix)
     else:
         print '%s%svc.dump(window=%d)' % (indent, prefix, window)
+    
+    if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
+        printTraverse()
     
 def printSleep(secs):
     '''
@@ -496,6 +509,9 @@ def printOperation(view, op, *args):
     elif op == Operation.LONG_TOUCH_POINT:
         printLongTouch(args[0], args[1], args[2], args[3], args[4])
         return
+    elif op == Operation.TRAVERSE:
+        printTraverse()
+        return
     
     bd = Descriptor.findBestDescriptor(view)
     if bd == Descriptor.CONTENT_DESCRIPTION:
@@ -605,7 +621,7 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
         CulebraOptions.WINDOW:-1, CulebraOptions.PREPEND_TO_SYS_PATH: False,
         CulebraOptions.SAVE_SCREENSHOT: None, CulebraOptions.SAVE_VIEW_SCREENSHOTS: None,
         CulebraOptions.GUI: False,
-        CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP: False,
+        CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP: False,
         CulebraOptions.SCALE: 1,
         CulebraOptions.ORIENTATION_LOCKED: None,
         CulebraOptions.MULTI_DEVICE: False,
@@ -680,8 +696,8 @@ for o, a in optlist:
         options[CulebraOptions.SAVE_VIEW_SCREENSHOTS] = a
     elif o in ['G', CulebraOptions.GUI]:
         options[CulebraOptions.GUI] = True
-    elif o in ['u', CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
-        options[CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP] = True
+    elif o in ['u', CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
+        options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP] = True
     elif o in ['P', CulebraOptions.SCALE]:
         options[CulebraOptions.SCALE] = float(a)
     elif o in ['O', CulebraOptions.ORIENTATION_LOCKED]:
@@ -773,7 +789,7 @@ class CulebraTests(CulebraTestCase):
     indent = ' ' * 8
     prefix = 'self.'
     
-    if not options[CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
+    if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
         print '''\
         self.vc.dump(%s)
         ''' % getWindowOption()
@@ -827,7 +843,7 @@ vc.writeImageToFile('%s')
 ''' % (options[CulebraOptions.UNIT_TEST_METHOD])
         indent = ' ' * 8
         prefix = 'self.'
-    if not options[CulebraOptions.DO_NOT_VERIFY_INITIAL_SCREEN_DUMP]:
+    if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
         vc.traverse(transform=transform)
         print
 

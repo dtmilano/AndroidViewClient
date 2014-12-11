@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.18.1'
+__version__ = '8.19.0'
 
 import sys
 import warnings
@@ -2700,7 +2700,7 @@ class CulebraOptions:
     SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
     GUI = 'gui'
     SCALE = 'scale'
-    DO_NOT_VERIFY_INITIAL_SCREEN_DUMP = 'do-not-verify-initial-screen-dump'
+    DO_NOT_VERIFY_SCREEN_DUMP = 'do-not-verify-screen-dump'
     ORIENTATION_LOCKED = 'orientation-locked'
     SERIALNO = 'serialno'
     MULTI_DEVICE = 'multi-device'
@@ -2717,7 +2717,7 @@ class CulebraOptions:
               OUTPUT + '=', INTERACTIVE, PREPEND_TO_SYS_PATH,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
               GUI,
-              DO_NOT_VERIFY_INITIAL_SCREEN_DUMP,
+              DO_NOT_VERIFY_SCREEN_DUMP,
               SCALE + '=',
               ORIENTATION_LOCKED,
               SERIALNO + '=',
@@ -2757,7 +2757,7 @@ class CulebraOptions:
             'E': 'ignores ADB version check',
             'G': 'presents the GUI (EXPERIMENTAL)',
             'P': 'scale percentage (i.e. 0.5)',
-            'u': 'do not verify initial screen dump state',
+            'u': 'do not verify screen state after dump',
             'O': 'orientation locked in generated test',
             's': 'device serial number (can be more than 1)',
             'm': 'enables multi-device test generation',
