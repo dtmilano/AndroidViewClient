@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.20.0'
+__version__ = '8.21.0'
 
 import sys
 import threading
@@ -43,7 +43,7 @@ except:
 
 from ast import literal_eval as make_tuple
 
-DEBUG = False
+DEBUG = True
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and False
@@ -271,6 +271,15 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.delete(self.waitMessageId)
             self.waitMessageId = None
 
+    def showPopupMenu(self, event):
+        self.popup = Tkinter.Menu(self.window, tearoff=0)
+        self.popup.add_command(label="Not implemented yet")
+        try:
+            self.popup.tk_popup(event.x, event.y, 0)
+        finally:
+            # make sure to release the grab (Tk 8.0a1 only)
+            self.popup.grab_release()
+        
     def showHelp(self):
         d = HelpDialog(self)
         self.window.wait_window(d)
@@ -471,7 +480,12 @@ This is usually installed by python package. Check your distribution details.
             self.getViewContainingPointAndGenerateTestCondition(scaledX, scaledY)
         else:
             self.getViewContainingPointAndTouch(scaledX, scaledY)
-        
+    
+    def onButton2Pressed(self, event):
+        if DEBUG:
+            print >> sys.stderr, "onButton2Pressed((", event.x, ", ", event.y, "))"
+        self.showPopupMenu(event)
+            
     def pressKey(self, keycode):
         '''
         Presses a key.
@@ -711,6 +725,7 @@ This is usually installed by python package. Check your distribution details.
     def enableEvents(self):
         self.canvas.update_idletasks()
         self.canvas.bind("<Button-1>", self.onButton1Pressed)
+        self.canvas.bind("<Button-2>", self.onButton2Pressed)
         self.canvas.bind("<BackSpace>", self.onKeyPressed)
         #self.canvas.bind("<Control-Key-S>", self.onCtrlS)
         self.canvas.bind("<Key>", self.onKeyPressed)
@@ -721,6 +736,7 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.update_idletasks()
             self.areEventsDisabled = True
             self.canvas.unbind("<Button-1>")
+            self.canvas.unbind("<Button-2>")
             self.canvas.unbind("<BackSpace>")
             #self.canvas.unbind("<Control-Key-S>")
             self.canvas.unbind("<Key>")
