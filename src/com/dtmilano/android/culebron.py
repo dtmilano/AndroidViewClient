@@ -273,7 +273,12 @@ This is usually installed by python package. Check your distribution details.
 
     def showPopupMenu(self, event):
         self.popup = Tkinter.Menu(self.window, tearoff=0)
-        self.popup.add_command(label="Not implemented yet")
+        (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
+        v = self.findViewContainingPointInTargets(scaledX, scaledY)
+        label = "Not implemented yet"
+        if v:
+            label += "\nYou clicked on " + v.__tinyStr__()
+        self.popup.add_command(label=label)
         try:
             self.popup.tk_popup(event.x, event.y, 0)
         finally:
@@ -339,6 +344,22 @@ This is usually installed by python package. Check your distribution details.
                 break
                 
 
+
+    def findViewContainingPointInTargets(self, x, y):
+        vlist = self.vc.findViewsContainingPoint((x, y))
+        vlist.reverse()
+        for v in vlist:
+            if DEBUG:
+                print >> sys.stderr, "checking if", v, "is in", self.targetViews
+            if v in self.targetViews:
+                if DEBUG_TOUCH:
+                    print >> sys.stderr
+                    print >> sys.stderr, "I guess you are trying to touch:", v
+                    print >> sys.stderr
+                return v
+        
+        return None
+
     def getViewContainingPointAndTouch(self, x, y):
         if DEBUG:
             print >> sys.stderr, 'getViewContainingPointAndTouch(%d, %d)' % (x, y)
@@ -352,20 +373,8 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG_POINT:
             print >> sys.stderr, "getViewsContainingPointAndTouch(x=%s, y=%s)" % (x, y)
             print >> sys.stderr, "self.vc=", self.vc
-        vlist = self.vc.findViewsContainingPoint((x, y))
-        vlist.reverse()
-        found = False
-        for v in vlist:
-            if DEBUG:
-                print >> sys.stderr, "checking if", v, "is in", self.targetViews
-            if v in self.targetViews:
-                if DEBUG_TOUCH:
-                    print >> sys.stderr
-                    print >> sys.stderr, "I guess you are trying to touch:", v
-                    print >> sys.stderr
-                found = True
-                break
-        if not found:
+        v = self.findViewContainingPointInTargets(x, y)
+        if v is None:
             self.hideVignette()
             msg = "There are no clickable views here!"
             self.toast(msg)
