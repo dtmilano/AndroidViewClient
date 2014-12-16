@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.19.0'
+__version__ = '8.20.0'
 
 import sys
 import threading
@@ -363,9 +363,14 @@ This is usually installed by python package. Check your distribution details.
             return
         clazz = v.getClass()
         if clazz == 'android.widget.EditText':
+            title = "EditText"
+            kwargs = {}
             if DEBUG:
                 print >>sys.stderr, v
-            text = tkSimpleDialog.askstring("EditText", "Enter text to type into this EditText")
+            if v.isPassword():
+                title = "Password"
+                kwargs = {'show': '*'}
+            text = tkSimpleDialog.askstring(title, "Enter text to type into this field", **kwargs)
             self.canvas.focus_set()
             if text:
                 v.type(text)
