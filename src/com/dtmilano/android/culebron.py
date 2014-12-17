@@ -669,11 +669,15 @@ This is usually installed by python package. Check your distribution details.
             print >>sys.stderr, "onCtrlV()"
         self.printOperation(None, Operation.TRAVERSE)
         
+
+    def toggleTargetZones(self):
+        self.toggleTargets()
+        self.canvas.update_idletasks()
+
     def onCtrlZ(self, event):
         if DEBUG:
             print >> sys.stderr, "onCtrlZ()"
-        self.toggleTargets()
-        self.canvas.update_idletasks()
+        self.toggleTargetZones()
 
     def onCtrlK(self, event):
         from com.dtmilano.android.controlpanel import ControlPanel
@@ -1034,7 +1038,7 @@ if TKINTER_AVAILABLE:
                        ('Ctrl-P', 'Touch using PX', None),
                        ('Ctrl-S', 'Generates a sleep() on output script', None),
                        ('Ctrl-T', 'Toggle generating test condition', None),
-                       ('Ctrl-Z', 'Touch zones', None),
+                       ('Ctrl-Z', 'Touch zones', culebron.toggleTargetZones),
                        (None, self.SEPARATOR, None),
                        ('Ctrl-Q', 'Quit', culebron.quit),
                       ]
