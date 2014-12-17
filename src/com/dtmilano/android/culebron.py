@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.21.2'
+__version__ = '8.22.0'
 
 import sys
 import threading
@@ -278,16 +278,8 @@ This is usually installed by python package. Check your distribution details.
         self.popup = Tkinter.Menu(self.window, tearoff=0)
         (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
         v = self.findViewContainingPointInTargets(scaledX, scaledY)
-        label = "Not implemented yet"
-        if v:
-            label += "\nYou clicked on " + v.__tinyStr__()
-        self.popup.add_command(label=label)
-        try:
-            self.popup.tk_popup(event.x, event.y, 0)
-        finally:
-            # make sure to release the grab (Tk 8.0a1 only)
-            self.popup.grab_release()
-        
+        ContextMenu(self, view=v).showPopupMenu(event)
+
     def showHelp(self):
         d = HelpDialog(self)
         self.window.wait_window(d)
@@ -493,9 +485,9 @@ This is usually installed by python package. Check your distribution details.
         else:
             self.getViewContainingPointAndTouch(scaledX, scaledY)
     
-    def onButton2Pressed(self, event):
+    def onButton3Pressed(self, event):
         if DEBUG:
-            print >> sys.stderr, "onButton2Pressed((", event.x, ", ", event.y, "))"
+            print >> sys.stderr, "onButton3Pressed((", event.x, ", ", event.y, "))"
         self.showPopupMenu(event)
             
     def pressKey(self, keycode):
@@ -703,8 +695,7 @@ This is usually installed by python package. Check your distribution details.
     def enableEvents(self):
         self.canvas.update_idletasks()
         self.canvas.bind("<Button-1>", self.onButton1Pressed)
-        self.canvas.bind("<Button-2>", self.onButton2Pressed)
-        self.canvas.bind("<Button-3>", ContextMenu(self))
+        self.canvas.bind("<Button-3>", self.onButton3Pressed)
         self.canvas.bind("<BackSpace>", self.onKeyPressed)
         #self.canvas.bind("<Control-Key-S>", self.onCtrlS)
         self.canvas.bind("<Key>", self.onKeyPressed)
@@ -715,7 +706,6 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.update_idletasks()
             self.areEventsDisabled = True
             self.canvas.unbind("<Button-1>")
-            self.canvas.unbind("<Button-2>")
             self.canvas.unbind("<Button-3>")
             self.canvas.unbind("<BackSpace>")
             #self.canvas.unbind("<Control-Key-S>")
@@ -1025,18 +1015,14 @@ if TKINTER_AVAILABLE:
             self.__cleanUpEpId()
     
     class ContextMenu(Tkinter.Menu):
-        def __init__(self, culebron):
+        def __init__(self, culebron, view):
             Tkinter.Menu.__init__(self)
             self.window = culebron.window
             self.menu = Tkinter.Menu(self.window, tearoff=0)
-            self.createPopupMenu(self)
+            self.createPopupMenu()
             self.command = None
 
-        def __call__(self, event):
-            p = self.showPopupMenu(event)
-            self.menu.wait_window(p)
-
-        def createPopupMenu(self, event):
+        def createPopupMenu(self):
             self.commandList = {
                        'Ctrl-A':' Toggle message area',
                        'Ctrl-D':' Drag dialog',
@@ -1055,7 +1041,11 @@ if TKINTER_AVAILABLE:
                 self.menu.add_command(label=discription, command=self.command.pressKey)
 
         def showPopupMenu(self, event):
-            self.menu.tk_popup(event.x_root, event.y_root)
+            try:
+                self.menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                # make sure to release the grab (Tk 8.0a1 only)
+                self.menu.grab_release()
 
 
     class ContextMenuItem(Tkinter.Menu):
@@ -1066,7 +1056,8 @@ if TKINTER_AVAILABLE:
 
         def pressKey(self):
             command = self.value
-            print "Clicked on ", command
+            if DEBUG:
+                print >> sys.stderr, "ContextMenuItem.pressKey: Clicked on ", command
 
     class HelpDialog(Tkinter.Toplevel):
     
