@@ -430,8 +430,8 @@ class ViewClientTest(unittest.TestCase):
         viewsbyId = vc.getViewsById()
         self.assertNotEquals(None, viewsbyId)
         for k, v in viewsbyId.items():
-            self.assertTrue(isinstance(k, str))
-            self.assertTrue(isinstance(v, View), "v=" + str(v) + " is not a View")
+            self.assertTrue(isinstance(k, str) or isinstance(k, unicode))
+            self.assertTrue(isinstance(v, View), "v=" + unicode(v) + " is not a View")
             self.assertTrue(re.match("id/.*", v.getUniqueId()) != None)
             self.assertEquals(k, v.getUniqueId())
 
@@ -1057,7 +1057,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         try:
             device = MockDevice(version=15, startviewserver=True)
             vc = ViewClient(device, device.serialno, adb=TRUE)
-            list = vc.findViewsContainingPoint((200, 200), filter=View.isClickable)
+            list = vc.findViewsContainingPoint((200, 200), _filter=View.isClickable)
             self.assertNotEquals(None, list)
             self.assertNotEquals(0, len(list))
         finally:
@@ -1067,7 +1067,7 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
     def testFindViewsContainingPoint_filterApi17(self):
         device = MockDevice(version=17)
         vc = ViewClient(device, device.serialno, adb=TRUE)
-        list = vc.findViewsContainingPoint((55, 75), filter=View.isClickable)
+        list = vc.findViewsContainingPoint((55, 75), _filter=View.isClickable)
         self.assertNotEquals(None, list)
         self.assertNotEquals(0, len(list))
 
