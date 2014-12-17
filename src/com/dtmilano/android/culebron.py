@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.22.0'
+__version__ = '8.22.1'
 
 import sys
 import threading
@@ -490,7 +490,7 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "onButton3Pressed((", event.x, ", ", event.y, "))"
         self.showPopupMenu(event)
             
-    def pressKey(self, keycode):
+    def command(self, keycode):
         '''
         Presses a key.
         Generates the actual key press on the device and prints the line in the script.
@@ -563,14 +563,14 @@ This is usually installed by python package. Check your distribution details.
         if keysym in Culebron.KEYSYM_TO_KEYCODE_MAP:
             if DEBUG_KEY:
                 print >> sys.stderr, "Pressing", Culebron.KEYSYM_TO_KEYCODE_MAP[keysym]
-            self.pressKey(Culebron.KEYSYM_TO_KEYCODE_MAP[keysym])
+            self.command(Culebron.KEYSYM_TO_KEYCODE_MAP[keysym])
         elif char == '\r':
-            self.pressKey('ENTER')
+            self.command('ENTER')
         elif char == '':
             # do nothing
             pass
         else:
-            self.pressKey(char.decode('ascii', errors='replace'))
+            self.command(char.decode('ascii', errors='replace'))
         self.vc.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
@@ -629,6 +629,9 @@ This is usually installed by python package. Check your distribution details.
     def onCtrlQ(self, event):
         if DEBUG:
             print >> sys.stderr, "onCtrlQ(%s)" % event
+        self.quit()
+    
+    def quit(self):
         self.window.destroy()
         
     def onCtrlS(self, event):
@@ -1015,30 +1018,34 @@ if TKINTER_AVAILABLE:
             self.__cleanUpEpId()
     
     class ContextMenu(Tkinter.Menu):
+        
+        SEPARATOR = 'SEPARATOR'
+        
         def __init__(self, culebron, view):
             Tkinter.Menu.__init__(self)
             self.window = culebron.window
             self.menu = Tkinter.Menu(self.window, tearoff=0)
-            self.createPopupMenu()
-            self.command = None
-
-        def createPopupMenu(self):
-            self.commandList = {
-                       'Ctrl-A':' Toggle message area',
-                       'Ctrl-D':' Drag dialog',
-                       'Ctrl-K':' Control Panel',
-                       'Ctrl-L':' Long touch point using PX',
-                       'Ctrl-I':' Touch using DIP',
-                       'Ctrl-P':' Touch using PX',
-                       'Ctrl-Q':' Quit',
-                       'Ctrl-S':' Generates a sleep() on output script',
-                       'Ctrl-T':' Toggle generating test condition',
-                       'Ctrl-Z':' Touch zones'
-                      }
-
-            for command, discription in self.commandList.items():
-                self.command = ContextMenuItem(self.menu, value=command, text=discription)
-                self.menu.add_command(label=discription, command=self.command.pressKey)
+            items = [
+                       ('Ctrl-A', 'Toggle message area', None),
+                       ('Ctrl-D', 'Drag dialog', None),
+                       ('Ctrl-K', 'Control Panel', None),
+                       ('Ctrl-L', 'Long touch point using PX', None),
+                       ('Ctrl-I', 'Touch using DIP', None),
+                       ('Ctrl-P', 'Touch using PX', None),
+                       ('Ctrl-S', 'Generates a sleep() on output script', None),
+                       ('Ctrl-T', 'Toggle generating test condition', None),
+                       ('Ctrl-Z', 'Touch zones', None),
+                       (None, self.SEPARATOR, None),
+                       ('Ctrl-Q', 'Quit', culebron.quit),
+                      ]
+            for item in items:
+                shortcut = item[0]
+                description = item[1]
+                command = item[2]
+                if description == self.SEPARATOR:
+                    self.menu.add_separator()
+                    continue
+                self.menu.add_command(label=description, command=command)
 
         def showPopupMenu(self, event):
             try:
@@ -1048,16 +1055,6 @@ if TKINTER_AVAILABLE:
                 self.menu.grab_release()
 
 
-    class ContextMenuItem(Tkinter.Menu):
-
-        def __init__(self, parent, value=None, **kwargs):
-            Tkinter.Menu.__init__(self, parent)
-            self.value = value
-
-        def pressKey(self):
-            command = self.value
-            if DEBUG:
-                print >> sys.stderr, "ContextMenuItem.pressKey: Clicked on ", command
 
     class HelpDialog(Tkinter.Toplevel):
     

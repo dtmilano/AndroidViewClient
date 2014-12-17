@@ -84,7 +84,7 @@ class ControlPanel(Tkinter.Toplevel):
                 self.keycode.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.childWindow.destroy)
                 self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
             else:
-                self.keycode.configure(command=self.keycode.pressKey)
+                self.keycode.configure(command=self.keycode.command)
                 self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
             self.tabLayout()
 
@@ -103,7 +103,7 @@ class ControlPanel(Tkinter.Toplevel):
                                                width=Layout.BUTTON_WIDTH, bg=Color.DARK_GRAY, fg=Color.LIGHT_GRAY,
                                                highlightbackground=Color.DARK_GRAY)
 
-            self.keyboard.configure(command=self.keyboard.pressKey)
+            self.keyboard.configure(command=self.keyboard.command)
             self.keyboard.grid(column=self.childWindow.column, row=self.childWindow.row)
             self.tabLayout()
 
@@ -125,7 +125,7 @@ class ControlPanelButton(Tkinter.Button):
         self.vc = vc
         self.device = vc.device
 
-    def pressKey(self):
+    def command(self):
         key = self.value
         if key == 'KEYCODE_GOOGLE_NOW':
             self.device.press(Key.GOOGLE_NOW)
