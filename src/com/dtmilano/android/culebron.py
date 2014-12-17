@@ -704,6 +704,7 @@ This is usually installed by python package. Check your distribution details.
         self.canvas.update_idletasks()
         self.canvas.bind("<Button-1>", self.onButton1Pressed)
         self.canvas.bind("<Button-2>", self.onButton2Pressed)
+        self.canvas.bind("<Button-3>", ContextMenu(self))
         self.canvas.bind("<BackSpace>", self.onKeyPressed)
         #self.canvas.bind("<Control-Key-S>", self.onCtrlS)
         self.canvas.bind("<Key>", self.onKeyPressed)
@@ -715,6 +716,7 @@ This is usually installed by python package. Check your distribution details.
             self.areEventsDisabled = True
             self.canvas.unbind("<Button-1>")
             self.canvas.unbind("<Button-2>")
+            self.canvas.unbind("<Button-3>")
             self.canvas.unbind("<BackSpace>")
             #self.canvas.unbind("<Control-Key-S>")
             self.canvas.unbind("<Key>")
@@ -1022,7 +1024,50 @@ if TKINTER_AVAILABLE:
             self.__cleanUpSpId()
             self.__cleanUpEpId()
     
-    
+    class ContextMenu(Tkinter.Menu):
+        def __init__(self, culebron):
+            Tkinter.Menu.__init__(self)
+            self.window = culebron.window
+            self.menu = Tkinter.Menu(self.window, tearoff=0)
+            self.createPopupMenu(self)
+            self.command = None
+
+        def __call__(self, event):
+            p = self.showPopupMenu(event)
+            self.menu.wait_window(p)
+
+        def createPopupMenu(self, event):
+            self.commandList = {
+                       'Ctrl-A':' Toggle message area',
+                       'Ctrl-D':' Drag dialog',
+                       'Ctrl-K':' Control Panel',
+                       'Ctrl-L':' Long touch point using PX',
+                       'Ctrl-I':' Touch using DIP',
+                       'Ctrl-P':' Touch using PX',
+                       'Ctrl-Q':' Quit',
+                       'Ctrl-S':' Generates a sleep() on output script',
+                       'Ctrl-T':' Toggle generating test condition',
+                       'Ctrl-Z':' Touch zones'
+                      }
+
+            for command, discription in self.commandList.items():
+                self.command = ContextMenuItem(self.menu, value=command, text=discription)
+                self.menu.add_command(label=discription, command=self.command.pressKey)
+
+        def showPopupMenu(self, event):
+            self.menu.tk_popup(event.x_root, event.y_root)
+
+
+    class ContextMenuItem(Tkinter.Menu):
+
+        def __init__(self, parent, value=None, **kwargs):
+            Tkinter.Menu.__init__(self, parent)
+            self.value = value
+
+        def pressKey(self):
+            command = self.value
+            print "Clicked on ", command
+
     class HelpDialog(Tkinter.Toplevel):
     
         def __init__(self, culebron):
