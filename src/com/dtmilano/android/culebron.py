@@ -19,12 +19,13 @@ limitations under the License.
 
 '''
 
-__version__ = '8.21.1'
+__version__ = '8.21.2'
 
 import sys
 import threading
 import warnings
 import copy
+import string
 
 try:
     from PIL import Image, ImageTk
@@ -81,6 +82,8 @@ class Operation:
 class Culebron:
     APPLICATION_NAME = "Culebra"
 
+    UPPERCASE_CHARS = string.uppercase[:26]
+    
     KEYSYM_TO_KEYCODE_MAP = {
         'Home': 'HOME',
         'BackSpace': 'BACK',
@@ -527,43 +530,9 @@ This is usually installed by python package. Check your distribution details.
         ###
         ### internal commands: no output to generated script
         ###
-        # FIXME: use a map
-        if char == '\x01':
-            self.onCtrlA(event)
-            return
-        elif char == '\x04':
-            self.onCtrlD(event)
-            return
-        elif char == '\x09':
-            self.onCtrlI(event)
-            return
-        elif char == '\x0B':
-            self.onCtrlK(event)
-            return
-        elif char == '\x0c':
-            self.onCtrlL(event)
-            return
-        elif char == '\x10':
-            self.onCtrlP(event)
-            return
-        elif char == '\x11':
-            self.onCtrlQ(event)
-            return 
-        elif char == '\x13':
-            self.onCtrlS(event)
-            return
-        elif char == '\x14':
-            self.onCtrlT(event)
-            return
-        elif char == '\x15':
-            self.onCtrlU(event)
-            return
-        elif char == '\x16':
-            self.onCtrlV(event)
-            return
-        elif char == '\x1a':
-            self.onCtrlZ(event)
-            return
+        handler = getattr(self, 'onCtrl%s' % self.UPPERCASE_CHARS[ord(char)-1])
+        if handler:
+            return handler(event)
         elif keysym == 'F1':
             self.showHelp()
             return
