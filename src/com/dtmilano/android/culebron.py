@@ -1026,38 +1026,40 @@ if TKINTER_AVAILABLE:
         SEPARATOR = 'SEPARATOR'
         
         def __init__(self, culebron, view):
-            Tkinter.Menu.__init__(self)
-            self.window = culebron.window
-            self.menu = Tkinter.Menu(self.window, tearoff=0)
+            Tkinter.Menu.__init__(self, tearoff=False)
             items = [
-                       ('Ctrl-A', 'Toggle message area', None),
-                       ('Ctrl-D', 'Drag dialog', None),
-                       ('Ctrl-K', 'Control Panel', None),
-                       ('Ctrl-L', 'Long touch point using PX', None),
-                       ('Ctrl-I', 'Touch using DIP', None),
-                       ('Ctrl-P', 'Touch using PX', None),
-                       ('Ctrl-S', 'Generates a sleep() on output script', None),
-                       ('Ctrl-T', 'Toggle generating test condition', None),
-                       ('Ctrl-Z', 'Touch zones', culebron.toggleTargetZones),
-                       (None, self.SEPARATOR, None),
-                       ('Ctrl-Q', 'Quit', culebron.quit),
-                      ]
+               ('Toggle message area',          15,     'Ctrl+A',   '<Control-A>',  None),
+               ('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  None),
+               ('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  None),
+               ('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  None),
+               ('Touch using DIP',              0,      'Ctrl+I',   '<Control-I>',  None),
+               ('Touch using PX',               0,      'Ctrl+P',   '<Control-P',   None),
+               ('Generates a sleep() on output script',     0,  'Ctrl+S', '<Control-S>', None),
+               ('Toggle generating test condition',         0,  'Ctrl+T', '<Control-T>', None),
+               ('Touch zones',                  6,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones),
+               (self.SEPARATOR,                 -1,     None,       None,           None),
+               ('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit),
+            ]
             for item in items:
-                shortcut = item[0]
-                description = item[1]
-                command = item[2]
+                description = item[0]
+                underline = item[1]
+                shortcut = item[2]
+                event = item[3]
+                command = item[4]
                 if description == self.SEPARATOR:
-                    self.menu.add_separator()
+                    self.add_separator()
                     continue
-                self.menu.add_command(label=description, command=command)
+                self.add_command(label=description, underline=underline, command=command, accelerator=shortcut)
+                if event:
+                    self.bind_all(event, command)
 
         def showPopupMenu(self, event):
             try:
-                self.menu.tk_popup(event.x_root, event.y_root)
+                self.tk_popup(event.x_root, event.y_root)
             finally:
                 # make sure to release the grab (Tk 8.0a1 only)
-                self.menu.grab_release()
-
+                self.grab_release()
+                
 
 
     class HelpDialog(Tkinter.Toplevel):
