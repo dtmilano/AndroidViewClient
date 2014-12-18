@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.22.2'
+__version__ = '8.22.3'
 
 import sys
 import threading
@@ -579,10 +579,14 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG:
             self.toggleMessageArea()
 
-    def onCtrlD(self, event):
+
+    def showDragDialog(self):
         d = DragDialog(self)
         self.window.wait_window(d)
         self.setDragDialogShowed(False)
+
+    def onCtrlD(self, event):
+        self.showDragDialog()
 
     def onCtrlI(self, event):
         '''
@@ -1021,44 +1025,64 @@ if TKINTER_AVAILABLE:
             self.__cleanUpSpId()
             self.__cleanUpEpId()
     
+
+                
     class ContextMenu(Tkinter.Menu):
+        class Separator():
+            SEPARATOR = 'SEPARATOR'
+            
+            def __init__(self):
+                self.description = self.SEPARATOR
         
-        SEPARATOR = 'SEPARATOR'
-        
+        class Command():
+            def __init__(self, description, underline, shortcut, event, command):
+                self.description = description
+                self.underline = underline
+                self.shortcut = shortcut
+                self.event = event
+                self.command = command 
+
         def __init__(self, culebron, view):
             Tkinter.Menu.__init__(self, tearoff=False)
             items = [
-               ('Toggle message area',          15,     'Ctrl+A',   '<Control-A>',  None),
-               ('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  None),
-               ('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  None),
-               ('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  None),
-               ('Touch using DIP',              0,      'Ctrl+I',   '<Control-I>',  None),
-               ('Touch using PX',               0,      'Ctrl+P',   '<Control-P',   None),
-               ('Generates a sleep() on output script',     0,  'Ctrl+S', '<Control-S>', None),
-               ('Toggle generating test condition',         0,  'Ctrl+T', '<Control-T>', None),
-               ('Touch zones',                  6,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones),
-               (self.SEPARATOR,                 -1,     None,       None,           None),
-               ('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit),
+               ContextMenu.Command('Toggle message area',          15,     'Ctrl+A',   '<Control-A>',  None),
+               ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog),
+               ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  None),
+               ContextMenu.Command('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  None),
+               ContextMenu.Command('Touch using DIP',              0,      'Ctrl+I',   '<Control-I>',  None),
+               ContextMenu.Command('Touch using PX',               0,      'Ctrl+P',   '<Control-P',   None),
+               ContextMenu.Command('Generates a sleep() on output script',     0,  'Ctrl+S', '<Control-S>', None),
+               ContextMenu.Command('Toggle generating test condition',         0,  'Ctrl+T', '<Control-T>', None),
+               ContextMenu.Command('Touch zones',                  6,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones),
+               ContextMenu.Separator(),
+               ContextMenu.Command('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit),
             ]
             for item in items:
-                description = item[0]
-                underline = item[1]
-                shortcut = item[2]
-                event = item[3]
-                command = item[4]
-                if description == self.SEPARATOR:
-                    self.add_separator()
-                    continue
-                self.add_command(label=description, underline=underline, command=command, accelerator=shortcut)
-                if event:
-                    self.bind_all(event, command)
+                self.addItem(item)
 
+        def addItem(self, item):
+            if isinstance(item, ContextMenu.Separator):
+                self.addSeparator()
+            elif isinstance(item, ContextMenu.Command):
+                self.addCommand(item)
+            else:
+                raise RuntimeError("Unsupported item=" + str(item))
+
+        def addSeparator(self):
+            self.add_separator()
+            
+        def addCommand(self, item):
+            self.add_command(label=item.description, underline=item.underline, command=item.command, accelerator=item.shortcut)
+            if item.event:
+                self.bind_all(item.event, item.command)
+            
         def showPopupMenu(self, event):
             try:
                 self.tk_popup(event.x_root, event.y_root)
             finally:
                 # make sure to release the grab (Tk 8.0a1 only)
-                self.grab_release()
+                #self.grab_release()
+                pass
                 
 
 
