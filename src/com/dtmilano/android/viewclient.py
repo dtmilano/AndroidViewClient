@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.22.4'
+__version__ = '8.22.5'
 
 import sys
 import warnings
@@ -1144,7 +1144,7 @@ class UiAutomator2AndroidViewClient():
         parser.CharacterDataHandler = self.CharacterData
         # Parse the XML File
         try:
-            parserStatus = parser.Parse(uiautomatorxml.encode(encoding='utf-8', errors='replace'), True)
+            _ = parser.Parse(uiautomatorxml.encode(encoding='utf-8', errors='replace'), True)
         except xml.parsers.expat.ExpatError, ex:
             print >>sys.stderr, "ERROR: Offending XML:\n", repr(uiautomatorxml)
             raise RuntimeError(ex)
