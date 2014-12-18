@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.19.0'
+__version__ = '8.22.4'
 
 import sys
 import warnings
@@ -258,12 +258,12 @@ class View:
 
         return cls(view.map, view.device, view.version, view.forceviewserveruse)
 
-    def __init__(self, map, device, version=-1, forceviewserveruse=False):
+    def __init__(self, _map, device, version=-1, forceviewserveruse=False):
         '''
         Constructor
 
-        @type map: map
-        @param map: the map containing the (attribute, value) pairs
+        @type _map: map
+        @param _map: the map containing the (attribute, value) pairs
         @type device: MonkeyDevice
         @param device: the device containing this View
         @type version: int
@@ -275,7 +275,7 @@ class View:
                         to use C{UiAutomator}.
         '''
 
-        self.map = map
+        self.map = _map
         ''' The map that contains the C{attr},C{value} pairs '''
         self.device = device
         ''' The MonkeyDevice '''
@@ -610,10 +610,10 @@ class View:
 
         if DEBUG_COORDS or debug:
             try:
-                id = self.getId()
+                _id = self.getId()
             except:
-                id = "NO_ID"
-            print >> sys.stderr, "getXY(%s %s ## %s)" % (self.getClass(), id, self.getUniqueId())
+                _id = "NO_ID"
+            print >> sys.stderr, "getXY(%s %s ## %s)" % (self.getClass(), _id, self.getUniqueId())
 
         x = self.getX()
         y = self.getY()
@@ -895,7 +895,7 @@ class View:
 
     def allPossibleNamesWithColon(self, name):
         l = []
-        for i in range(name.count("_")):
+        for _ in range(name.count("_")):
             name = name.replace("_", ":", 1)
             l.append(name)
         return l
@@ -948,7 +948,7 @@ class View:
                     var = 'id_' + var
         return var
 
-    def writeImageToFile(self, filename, format="PNG"):
+    def writeImageToFile(self, filename, _format="PNG"):
         '''
         Write the View image to the specified filename in the specified format.
 
@@ -956,17 +956,17 @@ class View:
         @param filename: Absolute path and optional filename receiving the image. If this points to
                          a directory, then the filename is determined by this View unique ID and
                          format extension.
-        @type format: str
-        @param format: Image format (default format is PNG)
+        @type _format: str
+        @param _format: Image format (default format is PNG)
         '''
 
         if not os.path.isabs(filename):
             raise ValueError("writeImageToFile expects an absolute path (fielname='%s')" % filename)
         if os.path.isdir(filename):
-            filename = os.path.join(filename, self.variableNameFromId() + '.' + format.lower())
+            filename = os.path.join(filename, self.variableNameFromId() + '.' + _format.lower())
         if DEBUG:
-            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, format)
-        #self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, format)
+            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, _format)
+        #self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, _format)
         # crop:
         # im.crop(box) ⇒ image
         # Returns a copy of a rectangular region from the current image.
@@ -975,7 +975,7 @@ class View:
         box = (l, t, r, b)
         if DEBUG:
             print >> sys.stderr, "writeImageToFile: cropping", box, "    reconnect=", self.device.reconnect
-        self.device.takeSnapshot(reconnect=self.device.reconnect).crop(box).save(filename, format)
+        self.device.takeSnapshot(reconnect=self.device.reconnect).crop(box).save(filename, _format)
 
     def __smallStr__(self):
         __str = unicode("View[", 'utf-8', 'replace')
@@ -1003,8 +1003,8 @@ class View:
         __str = unicode('', 'utf-8', 'replace')
         if "class" in self.map:
             __str += re.sub('.*\.', '', self.map['class'])
-        id = self.getId().replace('id/no_id/', '-')
-        __str += id
+        _id = self.getId().replace('id/no_id/', '-')
+        __str += _id
         ((L, T), (R, B)) = self.getCoords()
         __str += '@%04d%04d%04d%04d' % (L, T, R, B)
         __str += ''
@@ -1193,7 +1193,7 @@ class Excerpt2Code():
         parser.EndElementHandler = self.EndElement
         parser.CharacterDataHandler = self.CharacterData
         # Parse the XML
-        parserStatus = parser.Parse(excerpt, 1)
+        _ = parser.Parse(excerpt, 1)
         return self.data
 
 class ViewClient:
@@ -1871,7 +1871,7 @@ class ViewClient:
                     lastView = child
                     treeLevel = newLevel
                 else: # newLevel < treeLevel
-                    for i in range(treeLevel - newLevel):
+                    for _ in range(treeLevel - newLevel):
                         parents.pop()
                     parent = parents.pop()
                     parents.append(parent)
@@ -2449,12 +2449,12 @@ You should force ViewServer back-end.''')
 
     def writeImageToFile(self, filename, _format="PNG"):
         '''
-        Write the View image to the specified filename in the specified _format.
+        Write the View image to the specified filename in the specified format.
 
         @type filename: str
         @param filename: Absolute path and optional filename receiving the image. If this points to
                          a directory, then the filename is determined by the serialno of the device and
-                         _format extension.
+                         format extension.
         @type _format: str
         @param _format: Image format (default format is PNG)
         '''
@@ -2659,8 +2659,8 @@ You should force ViewServer back-end.''')
         return ViewClient.__levenshteinDistance(s1, s2)
 
     @staticmethod
-    def excerpt(str, execute=False):
-        code = Excerpt2Code().Parse(str)
+    def excerpt(_str, execute=False):
+        code = Excerpt2Code().Parse(_str)
         if execute:
             exec code
         else:
