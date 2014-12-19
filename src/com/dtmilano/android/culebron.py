@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.23.2'
+__version__ = '8.23.3'
 
 import sys
 import threading
@@ -593,6 +593,8 @@ This is usually installed by python package. Check your distribution details.
             self.toggleLongTouchPoint()
         elif self.isTouchingPoint:
             self.toggleTouchPoint()
+        elif self.isGeneratingTestCondition:
+            self.toggleGenerateTestCondition()
         
     def onCtrlA(self, event):
         if DEBUG:
