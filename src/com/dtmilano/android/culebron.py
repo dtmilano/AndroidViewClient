@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.23.1'
+__version__ = '8.23.2'
 
 import sys
 import threading
@@ -622,15 +622,17 @@ This is usually installed by python package. Check your distribution details.
 
     def toggleLongTouchPoint(self):
         '''
-    Toggles the long touch point operation.
-    '''
+        Toggles the long touch point operation.
+        '''
         if not self.isLongTouchingPoint:
             msg = 'Long touching point'
             self.toast(msg, background=Color.GREEN)
             self.statusBar.set(msg)
             self.isLongTouchingPoint = True
+            # FIXME: There should be 2 methods DIP & PX
             self.coordinatesUnit = Unit.DIP
         else:
+            self.toast(None)
             self.statusBar.clear()
             self.isLongTouchingPoint = False
 
