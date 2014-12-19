@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.23.0'
+__version__ = '8.23.1'
 
 import sys
 import threading
@@ -222,8 +222,11 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG:
             print >> sys.stderr, "toast(", text, ",", background,  ")"
         self.message(text, background)
-        t = threading.Timer(5, self.hideMessageArea)
-        t.start()
+        if text:
+            t = threading.Timer(5, self.hideMessageArea)
+            t.start()
+        else:
+            self.hideMessageArea()
 
     def createVignette(self, width, height):
         if DEBUG:
@@ -522,7 +525,10 @@ This is usually installed by python package. Check your distribution details.
         ###
         ### internal commands: no output to generated script
         ###
-        handler = getattr(self, 'onCtrl%s' % self.UPPERCASE_CHARS[ord(char)-1])
+        try:
+            handler = getattr(self, 'onCtrl%s' % self.UPPERCASE_CHARS[ord(char)-1])
+        except:
+            handler = None
         if handler:
             return handler(event)
         elif keysym == 'F1':
@@ -548,6 +554,10 @@ This is usually installed by python package. Check your distribution details.
         elif keysym == 'Alt_L':
             return
         elif keysym == 'Control_L':
+            return
+        elif keysym == 'Escape':
+            # we cannot send Escape to the device, but I think it's fine
+            self.cancelOperation()
             return
 
         ### empty char (modifier) ###
@@ -575,6 +585,15 @@ This is usually installed by python package. Check your distribution details.
         self.takeScreenshotAndShowItOnWindow()
 
     
+    def cancelOperation(self):
+        '''
+        Cancels the ongoing operation if any.
+        '''
+        if self.isLongTouchingPoint:
+            self.toggleLongTouchPoint()
+        elif self.isTouchingPoint:
+            self.toggleTouchPoint()
+        
     def onCtrlA(self, event):
         if DEBUG:
             self.toggleMessageArea()
@@ -588,20 +607,23 @@ This is usually installed by python package. Check your distribution details.
     def onCtrlD(self, event):
         self.showDragDialog()
 
-    def onCtrlI(self, event):
-        '''
-        Toggles the touch point operation using L{Unit.DIP}.
-        This invokes L{toggleTouchPoint}.
-        '''
 
+    def toggleTouchPointDip(self):
+        '''
+    Toggles the touch point operation using L{Unit.DIP}.
+    This invokes L{toggleTouchPoint}.
+    '''
         self.coordinatesUnit = Unit.DIP
         self.toggleTouchPoint()
+
+    def onCtrlI(self, event):
+        self.toggleTouchPointDip()
     
-    def onCtrlL(self, event):
+
+    def toggleLongTouchPoint(self):
         '''
-        Toggles the long touch point operation.
-        '''
-        
+    Toggles the long touch point operation.
+    '''
         if not self.isLongTouchingPoint:
             msg = 'Long touching point'
             self.toast(msg, background=Color.GREEN)
@@ -611,6 +633,9 @@ This is usually installed by python package. Check your distribution details.
         else:
             self.statusBar.clear()
             self.isLongTouchingPoint = False
+
+    def onCtrlL(self, event):
+        self.toggleLongTouchPoint()
 
     def toggleTouchPoint(self):
         '''
@@ -623,12 +648,17 @@ This is usually installed by python package. Check your distribution details.
             self.statusBar.set(msg)
             self.isTouchingPoint = True
         else:
+            self.toast(None)
             self.statusBar.clear()
             self.isTouchingPoint = False
 
-    def onCtrlP(self, event):
+
+    def toggleTouchPointPx(self):
         self.coordinatesUnit = Unit.PX
         self.toggleTouchPoint()
+
+    def onCtrlP(self, event):
+        self.toggleTouchPointPx()
         
     def onCtrlQ(self, event):
         if DEBUG:
@@ -638,11 +668,15 @@ This is usually installed by python package. Check your distribution details.
     def quit(self):
         self.window.destroy()
         
-    def onCtrlS(self, event):
+
+    def showSleepDialog(self):
         seconds = tkSimpleDialog.askfloat('Sleep Interval', 'Value in seconds:', initialvalue=1, minvalue=0, parent=self.window)
         if seconds is not None:
             self.printOperation(None, Operation.SLEEP, seconds)
         self.canvas.focus_set()
+
+    def onCtrlS(self, event):
+        self.showSleepDialog()
     
     def startGeneratingTestCondition(self):
         self.message('Generating test condition...', background=Color.GREEN)
@@ -652,17 +686,21 @@ This is usually installed by python package. Check your distribution details.
         self.isGeneratingTestCondition = False
         self.hideMessageArea()
 
-    def onCtrlT(self, event):
+
+    def toggleGenerateTestCondition(self):
         '''
         Toggles generating test condition
         '''
-
-        if DEBUG:
-            print >>sys.stderr, "onCtrlT()"
+        
         if self.isGeneratingTestCondition:
             self.finishGeneratingTestCondition()
         else:
             self.startGeneratingTestCondition()
+
+    def onCtrlT(self, event):
+        if DEBUG:
+            print >>sys.stderr, "onCtrlT()"
+        self.toggleGenerateTestCondition()
     
     def onCtrlU(self, event):
         if DEBUG:
@@ -683,9 +721,13 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "onCtrlZ()"
         self.toggleTargetZones()
 
-    def onCtrlK(self, event):
+
+    def showControlPanel(self):
         from com.dtmilano.android.controlpanel import ControlPanel
         self.controlPanel = ControlPanel(self, self.vc, self.printOperation)
+
+    def onCtrlK(self, event):
+        self.showControlPanel()
     
     def drag(self, start, end, duration, steps, units=Unit.DIP):
         self.showVignette()
@@ -1047,12 +1089,12 @@ if TKINTER_AVAILABLE:
             items = [
                ContextMenu.Command('Toggle message area',          15,     'Ctrl+A',   '<Control-A>',  None),
                ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog),
-               ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  None),
-               ContextMenu.Command('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  None),
-               ContextMenu.Command('Touch using DIP',              0,      'Ctrl+I',   '<Control-I>',  None),
-               ContextMenu.Command('Touch using PX',               0,      'Ctrl+P',   '<Control-P',   None),
-               ContextMenu.Command('Generates a sleep() on output script',     0,  'Ctrl+S', '<Control-S>', None),
-               ContextMenu.Command('Toggle generating test condition',         0,  'Ctrl+T', '<Control-T>', None),
+               ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  culebron.showControlPanel),
+               ContextMenu.Command('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  culebron.toggleLongTouchPoint),
+               ContextMenu.Command('Touch using DIP',              0,      'Ctrl+I',   '<Control-I>',  culebron.toggleTouchPointDip),
+               ContextMenu.Command('Touch using PX',               0,      'Ctrl+P',   '<Control-P>',   culebron.toggleTouchPointPx),
+               ContextMenu.Command('Generates a sleep() on output script',     0,  'Ctrl+S', '<Control-S>', culebron.showSleepDialog),
+               ContextMenu.Command('Toggle generating test condition',         0,  'Ctrl+T', '<Control-T>', culebron.toggleGenerateTestCondition),
                ContextMenu.Command('Touch zones',                  6,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones),
                ContextMenu.Separator(),
                ContextMenu.Command('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit),
