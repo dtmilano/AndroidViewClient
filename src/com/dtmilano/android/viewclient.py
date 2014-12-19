@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.22.5'
+__version__ = '8.23.0'
 
 import sys
 import warnings
@@ -2506,21 +2506,34 @@ You should force ViewServer back-end.''')
         ###########################################################################################
         return treeCopy
 
-    def distance(self, tree):
+    def distanceTo(self, tree):
         '''
-        Calculates the distance between this tree and the tree passed as argument.
+        Calculates the distance between the current state and the tree passed as argument.
 
         @type tree: list of Views
         @param tree: Tree of Views
         @return: the distance
         '''
+        return ViewClient.distance(ViewClient.__pickleable(self.views), tree)
+
+    @staticmethod
+    def distance(tree1, tree2):
+        '''
+        Calculates the distance between the two trees.
+
+        @type tree1: list of Views
+        @param tree1: Tree of Views
+        @type tree2: list of Views
+        @param tree2: Tree of Views
+        @return: the distance
+        '''
         ################################################################
         #FIXME: this should copy the entire tree and then transform it #
         ################################################################
-        pickleableViews = ViewClient.__pickleable(self.views)
-        pickleableTree = ViewClient.__pickleable(tree)
-        s1 = pickle.dumps(pickleableViews)
-        s2 = pickle.dumps(pickleableTree)
+        pickleableTree1 = ViewClient.__pickleable(tree1)
+        pickleableTree2 = ViewClient.__pickleable(tree2)
+        s1 = pickle.dumps(pickleableTree1)
+        s2 = pickle.dumps(pickleableTree2)
 
         if DEBUG_DISTANCE:
             print >>sys.stderr, "distance: calculating distance between", s1[:20], "and", s2[:20]
@@ -2538,6 +2551,7 @@ You should force ViewServer back-end.''')
                 print >>sys.stderr, "distance: trees have different length, using Levenshtein distance"
             return ViewClient.__levenshteinDistance(s1, s2)/t
 
+        
     @staticmethod
     def __hammingDistance(s1, s2):
         '''
