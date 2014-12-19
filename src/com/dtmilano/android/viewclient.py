@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.23.0'
+__version__ = '8.23.1'
 
 import sys
 import warnings
@@ -1137,7 +1137,7 @@ class UiAutomator2AndroidViewClient():
 
     def Parse(self, uiautomatorxml):
         # Create an Expat parser
-        parser = xml.parsers.expat.ParserCreate()
+        parser = xml.parsers.expat.ParserCreate()  # @UndefinedVariable
         # Set the Expat event handlers to our methods
         parser.StartElementHandler = self.StartElement
         parser.EndElementHandler = self.EndElement
@@ -1145,7 +1145,7 @@ class UiAutomator2AndroidViewClient():
         # Parse the XML File
         try:
             _ = parser.Parse(uiautomatorxml.encode(encoding='utf-8', errors='replace'), True)
-        except xml.parsers.expat.ExpatError, ex:
+        except xml.parsers.expat.ExpatError, ex:  # @UndefinedVariable
             print >>sys.stderr, "ERROR: Offending XML:\n", repr(uiautomatorxml)
             raise RuntimeError(ex)
         return self.root
@@ -1187,7 +1187,7 @@ class Excerpt2Code():
 
     def Parse(self, excerpt):
         # Create an Expat parser
-        parser = xml.parsers.expat.ParserCreate()
+        parser = xml.parsers.expat.ParserCreate()  # @UndefinedVariable
         # Set the Expat event handlers to our methods
         parser.StartElementHandler = self.StartElement
         parser.EndElementHandler = self.EndElement
