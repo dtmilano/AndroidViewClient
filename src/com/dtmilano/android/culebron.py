@@ -1091,17 +1091,17 @@ if TKINTER_AVAILABLE:
         def __init__(self, culebron, view):
             Tkinter.Menu.__init__(self, tearoff=False)
             items = [
-               ContextMenu.Command('Toggle message area',          15,     'Ctrl+A',   '<Control-A>',  None),
-               ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog),
-               ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  culebron.showControlPanel),
-               ContextMenu.Command('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  culebron.toggleLongTouchPoint),
-               ContextMenu.Command('Touch using DIP',              0,      'Ctrl+I',   '<Control-I>',  culebron.toggleTouchPointDip),
-               ContextMenu.Command('Touch using PX',               0,      'Ctrl+P',   '<Control-P>',   culebron.toggleTouchPointPx),
-               ContextMenu.Command('Generates a sleep() on output script',     0,  'Ctrl+S', '<Control-S>', culebron.showSleepDialog),
-               ContextMenu.Command('Toggle generating test condition',         0,  'Ctrl+T', '<Control-T>', culebron.toggleGenerateTestCondition),
-               ContextMenu.Command('Touch zones',                  6,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones),
+               ContextMenu.Command('  Toggle message area',          17,     'Ctrl+A',   '<Control-A>',  None),
+               ContextMenu.Command('  Drag dialog',                  2,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog),
+               ContextMenu.Command('  Control Panel',                2,      'Ctrl+K',   '<Control-K>',  culebron.showControlPanel),
+               ContextMenu.Command('  Long touch point using PX',    2,      'Ctrl+L',   '<Control-L>',  culebron.toggleLongTouchPoint),
+               ContextMenu.Command('  Touch using DIP',             15,      'Ctrl+I',   '<Control-I>',  culebron.toggleTouchPointDip),
+               ContextMenu.Command('  Touch using PX',              14,      'Ctrl+P',   '<Control-P>',   culebron.toggleTouchPointPx),
+               ContextMenu.Command('  Generates a Sleep() on output script',     14,  'Ctrl+S', '<Control-S>', culebron.showSleepDialog),
+               ContextMenu.Command('  Toggle generating Test Condition',         20,  'Ctrl+T', '<Control-T>', culebron.toggleGenerateTestCondition),
+               ContextMenu.Command('  Touch Zones',                  8,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones),
                ContextMenu.Separator(),
-               ContextMenu.Command('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit),
+               ContextMenu.Command('  Quit',                         2,      'Ctrl+Q',   '<Control-Q>',  culebron.quit),
             ]
             for item in items:
                 self.addItem(item)
