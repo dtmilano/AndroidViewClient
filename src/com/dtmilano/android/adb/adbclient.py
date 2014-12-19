@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.23.0'
+__version__ = '8.23.1'
 
 import sys
 import warnings
@@ -255,13 +255,13 @@ class AdbClient:
     def __readExactly(self, sock, size):
         if DEBUG:
             print >> sys.stderr, "__readExactly(socket=%s, size=%d)" % (socket, size)
-        buffer = ''
-        while len(buffer) < size:
-            data = sock.recv(size-len(buffer))
+        _buffer = ''
+        while len(_buffer) < size:
+            data = sock.recv(size-len(_buffer))
             if not data:
                 break
-            buffer+=data
-        return buffer
+            _buffer+=data
+        return _buffer
 
     def getDevices(self):
         if DEBUG:
