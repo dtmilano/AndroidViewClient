@@ -576,12 +576,12 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
 
     def testFindViewByIdOrRaise_api17(self):
         vc = self.__mockTree(version=17)
-        vc.traverse()
+        vc.traverse(stream=self.openDevNull())
         vc.findViewByIdOrRaise('id/no_id/9')
 
     def testFindViewByIdOrRaise_api17_zh(self):
         vc = self.__mockTree(version=17, language='zh')
-        vc.traverse()
+        vc.traverse(stream=self.openDevNull())
         vc.findViewByIdOrRaise('id/no_id/21')
 
     def testFindViewByIdOrRaise_nonExistentView(self):
@@ -822,9 +822,12 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         vc = self.__mockTree(version=17)
         vc.findViewWithTextOrRaise("Apps")
 
+    def openDevNull(self):
+        return open('/dev/null', 'a+')
+
     def testFindViewWithTextOrRaise_api17_zh(self):
         vc = self.__mockTree(version=17, language='zh')
-        vc.traverse(transform=ViewClient.TRAVERSE_CIT)
+        vc.traverse(transform=ViewClient.TRAVERSE_CIT, stream=self.openDevNull())
         vc.findViewWithTextOrRaise(u'语言')
 
     def testFindViewWithTextOrRaise_nonExistent_api17(self):

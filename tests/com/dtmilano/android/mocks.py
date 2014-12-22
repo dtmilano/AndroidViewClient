@@ -8,7 +8,7 @@ Created on Feb 6, 2012
 
 import re
 
-DEBUG = True
+DEBUG = False
 
 TRUE_PARCEL = "Result: Parcel(00000000 00000001   '........')\r\n"
 FALSE_PARCEL = "Result: Parcel(00000000 00000000   '........')\r\n"
