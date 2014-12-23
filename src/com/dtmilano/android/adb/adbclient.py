@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.23.1'
+__version__ = '8.23.4'
 
 import sys
 import warnings
@@ -239,12 +239,15 @@ class AdbClient:
         self.checkConnected()
         serialnoRE = re.compile(self.serialno)
         found = False
-        for device in self.getDevices():
+        devices = self.getDevices()
+        if len(devices) == 0:
+            raise RuntimeError("ERROR: There are no connected devices")
+        for device in devices:
             if serialnoRE.match(device.serialno):
                 found = True
                 break
         if not found:
-            raise RuntimeError("ERROR: couldn't find device that matches '%s'" % self.serialno)
+            raise RuntimeError("ERROR: couldn't find device that matches '%s' in %s" % (self.serialno, devices))
         self.serialno = device.serialno
         msg = 'host:transport:%s' % self.serialno
         if DEBUG:
@@ -751,6 +754,9 @@ class AdbClient:
         self.display['height'] = self.getProperty('display.height')
         self.display['density'] = self.getProperty('display.density')
         self.display['orientation'] = self.getProperty('display.orientation')
+        
+    def log(self, tag, message, priority='D'):
+        self.shell('log -p %c -t "%s" %s' % (priority, tag, message))
 
 
 
