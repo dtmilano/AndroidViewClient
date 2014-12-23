@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.24.5'
+__version__ = '8.24.6'
 
 import sys
 import warnings
@@ -344,7 +344,7 @@ class AdbClient:
                 for prop in [ 'width', 'height', 'orientation' ]:
                     self.__displayInfo[prop] = int(m.group(prop))
                 for prop in [ 'density' ]:
-                    d = self.__getDisplayDensity(None, strip=True, invokeGetPhysicalDisplayIfNotFound=False)
+                    d = self.__getDisplayDensity(None, strip=True, invokeGetPhysicalDisplayIfNotFound=True)
                     if d:
                         self.__displayInfo[prop] = d
                     else:
