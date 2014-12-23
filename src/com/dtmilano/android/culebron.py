@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.23.3'
+__version__ = '8.24.5'
 
 import sys
 import threading
