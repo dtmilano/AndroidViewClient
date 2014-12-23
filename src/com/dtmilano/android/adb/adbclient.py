@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.23.4'
+__version__ = '8.23.5'
 
 import sys
 import warnings
@@ -430,7 +430,7 @@ class AdbClient:
         return -1
 
     def __getDisplayDensity(self, key, strip=True, invokeGetPhysicalDisplayIfNotFound=True):
-        if self.__displayInfo and 'density' in self.__displayInfo:
+        if self.__displayInfo and 'density' in self.__displayInfo: # and self.__displayInfo['density'] != -1: # FIXME: need more testing
             return self.__displayInfo['density']
         BASE_DPI = 160.0
         d = self.getProperty('ro.sf.lcd_density', strip)
@@ -650,10 +650,11 @@ class AdbClient:
 
         if orientation == -1:
             orientation = self.display['orientation']
-        x0 = x0 * self.display['density']
-        y0 = y0 * self.display['density']
-        x1 = x1 * self.display['density']
-        y1 = y1 * self.display['density']
+        density = self.display['density'] if self.display['density'] > 0 else 1
+        x0 = x0 * density
+        y0 = y0 * density
+        x1 = x1 * density
+        y1 = y1 * density
         self.drag((x0, y0), (x1, y1), duration, steps, orientation)
         
     def type(self, text):
