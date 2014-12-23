@@ -2718,8 +2718,9 @@ class CulebraOptions:
     ORIENTATION_LOCKED = 'orientation-locked'
     SERIALNO = 'serialno'
     MULTI_DEVICE = 'multi-device'
+    LOG_ACTIONS = 'log-actions'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Apf:W:GuP:Os:m'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Apf:W:GuP:Os:mL'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -2736,6 +2737,7 @@ class CulebraOptions:
               ORIENTATION_LOCKED,
               SERIALNO + '=',
               MULTI_DEVICE,
+              LOG_ACTIONS,
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
@@ -2775,6 +2777,7 @@ class CulebraOptions:
             'O': 'orientation locked in generated test',
             's': 'device serial number (can be more than 1)',
             'm': 'enables multi-device test generation',
+            'L': 'log actions using logcat',
             }
 
 class CulebraTestCase(unittest.TestCase):

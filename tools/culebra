@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.23.0'
+__version__ = '8.23.5'
 
 import re
 import sys
@@ -249,6 +249,7 @@ You have to set PYTHONIOENCODING environment variable. For example:
             if options[CulebraOptions.MULTI_DEVICE]:
                 print u'%s[vc.findViewWithTextOrRaise(%s).touch() for vc in %sallVcs()]' % (indent, text, prefix)
             else:
+                logAction(u'touching view with text=%s' % text)
                 print u'%s%svc.findViewWithTextOrRaise(%s).touch()' % (indent, prefix, text)
         elif op == Operation.TYPE:
             if options[CulebraOptions.MULTI_DEVICE]:
@@ -294,6 +295,7 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
+                logAction(u'touching view with content-description=%s' % contentDescription)
                 print '%s%svc.findViewWithContentDescriptionOrRaise(%s).touch()' % (indent, prefix, contentDescription)
         elif op == Operation.TYPE:
             if options[CulebraOptions.MULTI_DEVICE]:
@@ -328,8 +330,10 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
             print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
     elif op == Operation.TOUCH_VIEW:
         if options[CulebraOptions.MULTI_DEVICE]:
+            logAction(u'touching views with id=%s in all devices' % _id)
             print '%s[vc.findViewByIdOrRaise("%s").touch() for vc in %sallVcs()]' % (indent, _id, prefix)
         else:
+            logAction(u'touching view with id=%s' % _id)
             print '%s%svc.findViewByIdOrRaise("%s").touch()' % (indent, prefix, _id)
     elif op == Operation.TYPE:
         if options[CulebraOptions.MULTI_DEVICE]:
@@ -593,6 +597,13 @@ except:
     pass
 '''
 
+def printLogAction(tag, action, priority='D'):
+    print '%s%svc.device.log("%s", "%s", "%s")' % (indent, prefix, tag, action, priority)
+    
+def logAction(action):
+    if options[CulebraOptions.LOG_ACTIONS]:
+        printLogAction('CULEBRA', action)
+    
 def runCulebron():
     Culebron.checkDependencies()
     culebron = Culebron(vc, printOperation, options[CulebraOptions.SCALE])
@@ -625,6 +636,7 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
         CulebraOptions.SCALE: 1,
         CulebraOptions.ORIENTATION_LOCKED: None,
         CulebraOptions.MULTI_DEVICE: False,
+        CulebraOptions.LOG_ACTIONS: False,
         }
 transform = traverseAndPrint
 for o, a in optlist:
@@ -709,6 +721,8 @@ for o, a in optlist:
         serialno = __devices[0]
     elif o in ['m', CulebraOptions.MULTI_DEVICE]:
         options[CulebraOptions.MULTI_DEVICE] = True
+    elif o in ['L', CulebraOptions.LOG_ACTIONS]:
+        options[CulebraOptions.LOG_ACTIONS] = True
 
 if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[CulebraOptions.VERBOSE_COMMENTS]:
