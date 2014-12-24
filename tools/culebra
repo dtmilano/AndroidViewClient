@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.24.6'
+__version__ = '8.24.7'
 
 import re
 import sys
@@ -387,8 +387,10 @@ def printPress(keycode):
     '''
     
     if options[CulebraOptions.MULTI_DEVICE]:
+        logAction(u'pressing key=%s on all devices' % keycode)
         print '%s[vc.device.press("%s") for vc in %sallVcs()]' % (indent, keycode, prefix)
     else:
+        logAction(u'pressing key=%s' % keycode)
         print '%s%svc.device.press("%s")' % (indent, prefix, keycode)
     
 def printDrag(start, end, duration, steps, unit, orientation):
@@ -418,11 +420,13 @@ def printTouch(x, y, unit, orientation):
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
+            logAction(u'touching point by PX @ (%s, %s) orientation=%s' % (x, y, orientation))
             print '%s%svc.device.touch(%s, %s, %s)' % (indent, prefix, x, y, orientation)
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
+            logAction(u'touching point by DIP @ (%s, %s) orientation=%s' % (x, y, orientation))
             print '%s%svc.device.touchDip(%s, %s, %s)' % (indent, prefix, x, y, orientation)
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
@@ -597,12 +601,12 @@ except:
     pass
 '''
 
-def printLogAction(tag, action, priority='D'):
-    print '%s%svc.device.log("%s", "%s", "%s")' % (indent, prefix, tag, action, priority)
+def printLogAction(action, priority='D'):
+    print '%s%slog("%s", "%s")' % (indent, prefix, action, priority)
     
 def logAction(action):
     if options[CulebraOptions.LOG_ACTIONS]:
-        printLogAction('CULEBRA', action)
+        printLogAction(action)
     
 def runCulebron():
     Culebron.checkDependencies()

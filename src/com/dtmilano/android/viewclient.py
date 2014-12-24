@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.24.6'
+__version__ = '8.25.0'
 
 import sys
 import warnings
@@ -2781,10 +2781,33 @@ class CulebraOptions:
             }
 
 class CulebraTestCase(unittest.TestCase):
+    '''
+    The base class for all CulebraTests.
+    
+    Class variables
+    ---------------
+    There are some class variables that can be used to change the behavior of the tests.
+    
+    B{serialno}: The serial number of the device. This can also be a list of devices for I{mutli-devices} 
+    tests or the keyword C{all} to run the tests on all available devices.
+    When a I{multi-device} test is running the available devices are available in a list named
+    L{self.devices} which has the corresponding values in a dictionary with C{'device'}, C{'vc'} and C{'serialno'}
+    keys respectively.
+    Also, in the case of I{multi-devices} tests and to be backward compatible with I{single-device} tests
+    the default device, the first one in the devices list, is assigned to L{self.device}, L{self.vc} and
+    L{self.serialno} too.
+    
+    B{verbose}: The verbosity of the tests. This can be changed from the test command line using the
+    command line option C{-v} or C{--verbose}.
+    '''
+    
     kwargs1 = None
     kwargs2 = None
     devices = None
     serialno = None
+    device = None
+    vc = None
+    verbose = False
     options = {}
 
     @classmethod
@@ -2792,6 +2815,10 @@ class CulebraTestCase(unittest.TestCase):
         cls.kwargs1 = {'ignoreversioncheck': False, 'verbose': False, 'ignoresecuredevice': False}
         cls.kwargs2 = {'startviewserver': True, 'forceviewserveruse': False, 'autodump': False, 'ignoreuiautomatorkilled': True}
 
+    def __init__(self, methodName='runTest'):
+        self.Log = CulebraTestCase.__Log(self)
+        unittest.TestCase.__init__(self, methodName=methodName)
+        
     def setUp(self):
         if self.serialno:
             if self.serialno.lower() == 'all':
@@ -2856,6 +2883,30 @@ class CulebraTestCase(unittest.TestCase):
     def allSerialnos(self, _filter=__passAll):
         return self.all('serialno', _filter)
 
+    def log(self, message, priority='D'):
+        '''
+        Logs a message with the specified priority.
+        '''
+        
+        self.device.log('CULEBRA', message, priority, CulebraTestCase.verbose)
+    
+    class __Log():
+        '''
+        Log class to simulate android.util.Log
+        '''
+
+        def __init__(self, culebraTestCase):
+            self.culebraTestCase = culebraTestCase
+            
+        def __getattr__(self, attr):
+            '''
+            Returns the corresponding log method or @C{AttributeError}.
+            '''
+            
+            if attr in ['v', 'd', 'i', 'w', 'e']:
+                return lambda message: self.culebraTestCase.log(message, priority=attr.upper())
+            raise AttributeError(self.__class__.__name__ + ' has no attribute "%s"' % attr)
+            
     @staticmethod
     def main():
         # If you want to specify tests classes and methods in the command line you will be forced
@@ -2868,9 +2919,25 @@ class CulebraTestCase(unittest.TestCase):
         old = '%(failfast)'
         new = '  %s s The serial number[s] to connect to or \'all\'\n%s' % (', '.join(ser), old)
         unittest.TestProgram.USAGE = unittest.TestProgram.USAGE.replace(old, new)
-        if len(sys.argv) >= 2 and sys.argv[1] in ser:
-            sys.argv.pop(1)
-            CulebraTestCase.serialno = sys.argv.pop(1)
+        argsToRemove = []
+        i = 0
+        while i < len(sys.argv):
+            a = sys.argv[i]
+            if a in ['-v', '--verbose']:
+                # make CulebraTestCase.verbose the same as unittest verbose
+                CulebraTestCase.verbose = True
+            elif a in ser:
+                # remove arguments not handled by unittest
+                if len(sys.argv) > (i+1):
+                    argsToRemove.append(sys.argv[i])
+                    CulebraTestCase.serialno = sys.argv[i+1]
+                    argsToRemove.append(CulebraTestCase.serialno)
+                    i += 1
+                else:
+                    raise RuntimeError('serial number missing')
+            i += 1
+        for a in argsToRemove:
+            sys.argv.remove(a)
         unittest.main()
 
 if __name__ == "__main__":

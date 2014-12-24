@@ -40,7 +40,7 @@ import platform
 from com.dtmilano.android.adb.androidkeymap import KEY_MAP
 
 DEBUG = False
-DEBUG_TOUCH = DEBUG and True
+DEBUG_TOUCH = DEBUG and False
 
 HOSTNAME = 'localhost'
 try:
@@ -756,7 +756,9 @@ class AdbClient:
         self.display['density'] = self.getProperty('display.density')
         self.display['orientation'] = self.getProperty('display.orientation')
         
-    def log(self, tag, message, priority='D'):
+    def log(self, tag, message, priority='D', verbose=False):
+        if verbose or priority == 'V':
+            print >> sys.stderr, tag+':', message
         self.shell('log -p %c -t "%s" %s' % (priority, tag, message))
 
 

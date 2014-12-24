@@ -423,8 +423,8 @@ This is usually installed by python package. Check your distribution details.
             self.showVignette()
             self.device.touch(x, y)
             if self.coordinatesUnit == Unit.DIP:
-                x = x / self.vc.display['density']
-                y = y / self.vc.display['density']
+                x = round(x / self.vc.display['density'], 2)
+                y = round(y / self.vc.display['density'], 2)
             self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit, self.vc.display['orientation'])
             self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
             self.vc.sleep(5)
@@ -454,8 +454,8 @@ This is usually installed by python package. Check your distribution details.
             self.showVignette()
             self.device.longTouch(x, y)
             if self.coordinatesUnit == Unit.DIP:
-                x = x / self.vc.display['density']
-                y = y / self.vc.display['density']
+                x = round(x / self.vc.display['density'], 2)
+                y = round(y / self.vc.display['density'], 2)
             self.printOperation(None, Operation.LONG_TOUCH_POINT, x, y, 2000, self.coordinatesUnit, self.vc.display['orientation'])
             self.printOperation(None, Operation.SLEEP, 5)
             self.vc.sleep(5)
@@ -738,10 +738,10 @@ This is usually installed by python package. Check your distribution details.
         # the operation on this device is always done in PX
         self.device.drag(start, end, duration, steps)
         if units == Unit.DIP:
-            x0 = start[0] / self.vc.display['density']
-            y0 = start[1] / self.vc.display['density']
-            x1 = end[0] / self.vc.display['density']
-            y1 = end[1] / self.vc.display['density']
+            x0 = round(start[0] / self.vc.display['density'], 2)
+            y0 = round(start[1] / self.vc.display['density'], 2)
+            x1 = round(end[0] / self.vc.display['density'], 2)
+            y1 = round(end[1] / self.vc.display['density'], 2)
             start = (x0, y0)
             end = (x1, y1)
         self.printOperation(None, Operation.DRAG, start, end, duration, steps, units, self.vc.display['orientation'])
