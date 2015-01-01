@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.25.0'
+__version__ = '8.26.0'
 
 import sys
 import warnings
@@ -57,6 +57,8 @@ DOWN_AND_UP = 2
 
 TIMEOUT = 15
 
+WIFI_SERVICE = 'wifi'
+
 # some device properties
 VERSION_SDK_PROPERTY = 'ro.build.version.sdk'
 VERSION_RELEASE_PROPERTY = 'ro.build.version.release'
@@ -80,6 +82,41 @@ class Device:
     def __str__(self):
         return "<<<" + self.serialno + ", " + self.status + ", %s>>>" % self.qualifiers
 
+class WifiManager:
+    '''
+    Simulates Android WifiManager.
+    
+    @see: http://developer.android.com/reference/android/net/wifi/WifiManager.html
+    '''
+    
+    WIFI_STATE_DISABLING = 0
+    WIFI_STATE_DISABLED = 1
+    WIFI_STATE_ENABLING = 2
+    WIFI_STATE_ENABLED = 3
+    WIFI_STATE_UNKNOWN = 4
+    
+    WIFI_IS_ENABLED_RE = re.compile('Wi-Fi is enabled')
+    WIFI_IS_DISABLED_RE = re.compile('Wi-Fi is disabled')
+    
+    def __init__(self, device):
+        self.device = device
+        
+    def getWifiState(self):
+        '''
+        Gets the Wi-Fi enabled state.
+        
+        @return: One of WIFI_STATE_DISABLED, WIFI_STATE_DISABLING, WIFI_STATE_ENABLED, WIFI_STATE_ENABLING, WIFI_STATE_UNKNOWN
+        '''
+        
+        result = self.device.shell('dumpsys wifi')
+        if result:
+            state = result.splitlines()[0]
+            if self.WIFI_IS_ENABLED_RE.match(state):
+                return self.WIFI_STATE_ENABLED
+            elif self.WIFI_IS_DISABLED_RE.match(state):
+                return self.WIFI_STATE_DISABLED
+        print >> sys.stderr, "UNKNOWN WIFI STATE:", state
+        return self.WIFI_STATE_UNKNOWN
 
 class AdbClient:
 
@@ -760,6 +797,10 @@ class AdbClient:
         if verbose or priority == 'V':
             print >> sys.stderr, tag+':', message
         self.shell('log -p %c -t "%s" %s' % (priority, tag, message))
+        
+    def getSystemService(self, name):
+        if name == WIFI_SERVICE:
+            return WifiManager(self)
 
 
 
