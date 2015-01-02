@@ -2800,7 +2800,7 @@ class CulebraTestCase(unittest.TestCase):
     only on the default (first) device.
     
     When a I{multi-device} test is running the available devices are available in a list named
-    L{self.devices} which has the corresponding L{ConnectedDevices} entrieserialno'}.
+    L{self.devices} which has the corresponding L{ConnectedDevices} entries.
     
     Also, in the case of I{multi-devices} tests and to be backward compatible with I{single-device} tests
     the default device, the first one in the devices list, is assigned to L{self.device}, L{self.vc} and

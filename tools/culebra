@@ -41,6 +41,7 @@ from com.dtmilano.android.culebron import Culebron, Operation, Unit
 
 DEBUG = False
 USAGE = 'usage: %s [OPTION]... [serialno]'
+TAG = 'CULEBRA'
 
 class Descriptor:
     CONTENT_DESCRIPTION = 'content-description'
@@ -247,7 +248,7 @@ You have to set PYTHONIOENCODING environment variable. For example:
                 print u'%s%s = %svc.findViewWithTextOrRaise(%s)' % (indent, var, prefix, text)
         elif op == Operation.TOUCH_VIEW:
             if options[CulebraOptions.MULTI_DEVICE]:
-                print u'%s[vc.findViewWithTextOrRaise(%s).touch() for vc in %sallVcs()]' % (indent, text, prefix)
+                print u'%s[_vc.findViewWithTextOrRaise(%s).touch() for _vc in %sallVcs()]' % (indent, text, prefix)
             else:
                 logAction(u'touching view with text=%s' % text)
                 print u'%s%svc.findViewWithTextOrRaise(%s).touch()' % (indent, prefix, text)
@@ -325,13 +326,13 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
     _id = view.getId() if view.getId() else view.getUniqueId()
     if op == Operation.ASSIGN:
         if options[CulebraOptions.MULTI_DEVICE]:
-            print '%s%s = [vc.findViewByIdOrRaise("%s") for vc in %sallVcs()]' % (indent, var, _id, prefix)
+            print '%s%s = [_vc.findViewByIdOrRaise("%s") for _vc in %sallVcs()]' % (indent, var, _id, prefix)
         else:
             print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
     elif op == Operation.TOUCH_VIEW:
         if options[CulebraOptions.MULTI_DEVICE]:
-            logAction(u'touching views with id=%s in all devices' % _id)
-            print '%s[vc.findViewByIdOrRaise("%s").touch() for vc in %sallVcs()]' % (indent, _id, prefix)
+            logAction(u'touching views with id=%s on ${serialno}' % _id)
+            print '%s[_vc.findViewByIdOrRaise("%s").touch() for _vc in %sallVcs()]' % (indent, _id, prefix)
         else:
             logAction(u'touching view with id=%s' % _id)
             print '%s%svc.findViewByIdOrRaise("%s").touch()' % (indent, prefix, _id)
@@ -364,7 +365,7 @@ def printDump(window):
     '''
     
     if options[CulebraOptions.MULTI_DEVICE]:
-        print '%s[vc.dump(window=%d) for vc in %sallVcs()]' % (indent, window, prefix)
+        print '%s[_vc.dump(window=%d) for _vc in %sallVcs()]' % (indent, window, prefix)
     else:
         print '%s%svc.dump(window=%d)' % (indent, prefix, window)
     
@@ -373,13 +374,15 @@ def printDump(window):
     
 def printSleep(secs):
     '''
-    Prints a sleep
+    Prints a sleep.
+    
+    This method relies on shortcut variables being set (i.e. _s)
     '''
     
     if options[CulebraOptions.MULTI_DEVICE]:
-        print '%s[vc.sleep(%s) for vc in %sallVcs()]' % (indent, secs if secs != Operation.DEFAULT else 'CulebraTests.sleep', prefix)
+        print '%s[_vc.sleep(%s) for _vc in %sallVcs()]' % (indent, secs if secs != Operation.DEFAULT else '_s', prefix)
     else:
-        print '%s%svc.sleep(%s)' % (indent, prefix, secs if secs != Operation.DEFAULT else 'CulebraTests.sleep')
+        print '%s%svc.sleep(%s)' % (indent, prefix, secs if secs != Operation.DEFAULT else '_s')
     
 def printPress(keycode):
     '''
@@ -387,11 +390,11 @@ def printPress(keycode):
     '''
     
     if options[CulebraOptions.MULTI_DEVICE]:
-        logAction(u'pressing key=%s on all devices' % keycode)
-        print '%s[vc.device.press("%s") for vc in %sallVcs()]' % (indent, keycode, prefix)
+        logAction(u'pressing key=%s on ${serialno}' % keycode)
+        print '%s[_d.press(\'%s\') for _d in %sallDevices()]' % (indent, keycode, prefix)
     else:
         logAction(u'pressing key=%s' % keycode)
-        print '%s%svc.device.press("%s")' % (indent, prefix, keycode)
+        print '%s%sdevice.press(\'%s\')' % (indent, prefix, keycode)
     
 def printDrag(start, end, duration, steps, unit, orientation):
     '''
@@ -402,12 +405,12 @@ def printDrag(start, end, duration, steps, unit, orientation):
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%svc.device.drag(%s, %s, %d, %d, %d)' % (indent, prefix, start, end, duration, steps, orientation) 
+            print '%s%sdevice.drag(%s, %s, %d, %d, %d)' % (indent, prefix, start, end, duration, steps, orientation) 
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%svc.device.dragDip(%s, %s, %d, %d, %d)' % (indent, prefix, start, end, duration, steps, orientation) 
+            print '%s%sdevice.dragDip(%s, %s, %d, %d, %d)' % (indent, prefix, start, end, duration, steps, orientation) 
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
     
@@ -421,13 +424,13 @@ def printTouch(x, y, unit, orientation):
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             logAction(u'touching point by PX @ (%s, %s) orientation=%s' % (x, y, orientation))
-            print '%s%svc.device.touch(%s, %s, %s)' % (indent, prefix, x, y, orientation)
+            print '%s%sdevice.touch(%s, %s, %s)' % (indent, prefix, x, y, orientation)
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             logAction(u'touching point by DIP @ (%s, %s) orientation=%s' % (x, y, orientation))
-            print '%s%svc.device.touchDip(%s, %s, %s)' % (indent, prefix, x, y, orientation)
+            print '%s%sdevice.touchDip(%s, %s, %s)' % (indent, prefix, x, y, orientation)
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
     
@@ -440,12 +443,12 @@ def printLongTouch(x, y, duration, unit, orientation):
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%svc.device.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation) 
+            print '%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation) 
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%svc.device.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation) 
+            print '%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation) 
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
     
@@ -602,7 +605,12 @@ except:
 '''
 
 def printLogAction(action, priority='D'):
-    print '%s%slog("%s", "%s")' % (indent, prefix, action, priority)
+    # FIXME: This works only for CulebraTestCases
+    # This relies on shortcut variables already set (i.e. _v)
+    if options[CulebraOptions.MULTI_DEVICE]:
+        print u'%s[_d.Log.%s(TAG, "%s", _v) for _d in %sallDevices()]' % (indent, priority.lower(), action, prefix)
+    else:
+        print '%s%sdevice.Log.%s("%s",  _v)' % (indent, prefix, priority.lower(), action)
     
 def logAction(action):
     if options[CulebraOptions.LOG_ACTIONS]:
@@ -758,7 +766,9 @@ if options[CulebraOptions.PREPEND_TO_SYS_PATH]:
 if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
     print '''\
 from com.dtmilano.android.viewclient import ViewClient%s
-''' % (', CulebraTestCase' if options[CulebraOptions.UNIT_TEST_CLASS] else '')
+
+TAG = '%s'
+''' % (', CulebraTestCase' if options[CulebraOptions.UNIT_TEST_CLASS] else '', TAG)
 
 if options[CulebraOptions.UNIT_TEST_CLASS]:
     print '''
@@ -794,6 +804,12 @@ class CulebraTests(CulebraTestCase):
             self.fail('Preconditions failed')
         ''' % (options[CulebraOptions.UNIT_TEST_METHOD] if options[CulebraOptions.UNIT_TEST_METHOD] else 'testSomething')
 
+    # shortcut variables
+    print '''\
+        _s = CulebraTests.sleep
+        _v = CulebraTests.verbose
+        '''
+    
     if options[CulebraOptions.SAVE_SCREENSHOT]:
         print '''\
         self.vc.writeImageToFile('%s')

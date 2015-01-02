@@ -112,7 +112,7 @@ class Culebron:
     @staticmethod
     def checkDependencies():
         if not PIL_AVAILABLE:
-            raise Exception('''PIL is needed for GUI mode
+            raise Exception('''PIL or Pillow is needed for GUI mode
 
 On Ubuntu install
 
