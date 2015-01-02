@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.27.0'
+__version__ = '8.27.1'
 
 import re
 import sys
@@ -610,7 +610,7 @@ def printLogAction(action, priority='D'):
     if options[CulebraOptions.MULTI_DEVICE]:
         print u'%s[_d.Log.%s(TAG, "%s", _v) for _d in %sallDevices()]' % (indent, priority.lower(), action, prefix)
     else:
-        print '%s%sdevice.Log.%s("%s",  _v)' % (indent, prefix, priority.lower(), action)
+        print '%s%sdevice.Log.%s(TAG, "%s",  _v)' % (indent, prefix, priority.lower(), action)
     
 def logAction(action):
     if options[CulebraOptions.LOG_ACTIONS]:

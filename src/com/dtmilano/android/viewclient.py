@@ -2835,6 +2835,7 @@ class CulebraTestCase(unittest.TestCase):
         unittest.TestCase.__init__(self, methodName=methodName)
         
     def setUp(self):
+        __devices = None
         if self.serialno:
             # serialno can be 1 serialno, multiple serialnos, 'all' or 'default'
             if self.serialno.lower() == 'all':
