@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.26.0'
+__version__ = '8.27.0'
 
 import sys
 import warnings
@@ -56,6 +56,7 @@ DEBUG_STATUSBAR = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
 DEBUG_BOUNDS = DEBUG and False
 DEBUG_DISTANCE = DEBUG and False
+DEBUG_MULTI = DEBUG and False
 
 WARNINGS = False
 
@@ -2680,6 +2681,12 @@ You should force ViewServer back-end.''')
         else:
             return code
 
+class ConnectedDevice:
+    def __init__(self, device, vc, serialno):
+        self.device = device
+        self.vc = vc
+        self.serialno = serialno
+
 class CulebraOptions:
     '''
     Culebra options helper class
@@ -2789,10 +2796,12 @@ class CulebraTestCase(unittest.TestCase):
     There are some class variables that can be used to change the behavior of the tests.
     
     B{serialno}: The serial number of the device. This can also be a list of devices for I{mutli-devices} 
-    tests or the keyword C{all} to run the tests on all available devices.
+    tests or the keyword C{all} to run the tests on all available devices or C{default} to run the tests
+    only on the default (first) device.
+    
     When a I{multi-device} test is running the available devices are available in a list named
-    L{self.devices} which has the corresponding values in a dictionary with C{'device'}, C{'vc'} and C{'serialno'}
-    keys respectively.
+    L{self.devices} which has the corresponding L{ConnectedDevices} entrieserialno'}.
+    
     Also, in the case of I{multi-devices} tests and to be backward compatible with I{single-device} tests
     the default device, the first one in the devices list, is assigned to L{self.device}, L{self.vc} and
     L{self.serialno} too.
@@ -2804,9 +2813,15 @@ class CulebraTestCase(unittest.TestCase):
     kwargs1 = None
     kwargs2 = None
     devices = None
+    ''' The list of connected devices '''
+    defaultDevice = None
+    ''' The default L{ConnectedDevice}. Set to the first one found for multi-device cases '''
     serialno = None
+    ''' The default connected device C{serialno} '''
     device = None
+    ''' The default connected device '''
     vc = None
+    ''' The default connected device C{ViewClient} '''
     verbose = False
     options = {}
 
@@ -2821,13 +2836,17 @@ class CulebraTestCase(unittest.TestCase):
         
     def setUp(self):
         if self.serialno:
+            # serialno can be 1 serialno, multiple serialnos, 'all' or 'default'
             if self.serialno.lower() == 'all':
                 __devices = [d.serialno for d in adbclient.AdbClient().getDevices()]
+            elif self.serialno.lower() == 'default':
+                __devices = [adbclient.AdbClient().getDevices()[0].serialno]
             else:
                 __devices = self.serialno.split()
             if len(__devices) > 1:
                 self.devices = __devices
 
+        # FIXME: both cases should be unified
         if self.devices:
             __devices = self.devices
             self.devices = []
@@ -2836,20 +2855,23 @@ class CulebraTestCase(unittest.TestCase):
                 if self.options[CulebraOptions.START_ACTIVITY]:
                     device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
                 vc = ViewClient(device, serialno, **self.kwargs2)
-                self.devices.append({'serialno':serialno, 'device':device, 'vc':vc})
+                self.devices.append(ConnectedDevice(serialno=serialno, device=device, vc=vc))
             # Select the first devices as default
-            defaultDevice = self.devices[0]
-            self.device = defaultDevice['device']
-            self.serialno = defaultDevice['serialno']
-            self.vc = defaultDevice['vc']
+            self.defaultDevice = self.devices[0]
+            self.device = self.defaultDevice.device
+            self.serialno = self.defaultDevice.serialno
+            self.vc = self.defaultDevice.vc
         else:
             self.devices = []
+            if __devices:
+                # A list containing only one device was specified
+                self.serialno = __devices[0]
             self.device, self.serialno = ViewClient.connectToDeviceOrExit(serialno=self.serialno, **self.kwargs1)
             if self.options[CulebraOptions.START_ACTIVITY]:
                 self.device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
             self.vc = ViewClient(self.device, self.serialno, **self.kwargs2)
-            # Select the default device as first one
-            self.devices.append({'serialno':self.serialno, 'device':self.device, 'vc':self.vc})
+            # Set the default device, to be consistent with multi-devices case
+            self.devices.append(ConnectedDevice(serialno=self.serialno, device=self.device, vc=self.vc))
 
     def tearDown(self):
         pass
@@ -2872,15 +2894,20 @@ class CulebraTestCase(unittest.TestCase):
         # CulebraTestCase.__passAll cannot be specified as the default argument value
         if _filter is None:
             _filter = CulebraTestCase.__passAll
-        return filter(_filter, (d[arg] for d in self.devices))
+        if DEBUG_MULTI:
+            print >> sys.stderr, "all(%s, %s)" % (arg, _filter)
+            l = (getattr(d, arg) for d in self.devices)
+            for i in l:
+                print >> sys.stderr, "    i=", i
+        return filter(_filter, (getattr(d, arg) for d in self.devices))
 
     def allVcs(self, _filter=None):
         return self.all('vc', _filter)
 
-    def allDevices(self, _filter=__passAll):
+    def allDevices(self, _filter=None):
         return self.all('device', _filter)
 
-    def allSerialnos(self, _filter=__passAll):
+    def allSerialnos(self, _filter=None):
         return self.all('serialno', _filter)
 
     def log(self, message, priority='D'):
@@ -2892,7 +2919,7 @@ class CulebraTestCase(unittest.TestCase):
     
     class __Log():
         '''
-        Log class to simulate android.util.Log
+        Log class to simulate C{android.util.Log}
         '''
 
         def __init__(self, culebraTestCase):
