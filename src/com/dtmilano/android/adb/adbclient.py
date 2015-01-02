@@ -21,6 +21,7 @@ __version__ = '8.26.0'
 
 import sys
 import warnings
+import string
 if sys.executable:
     if 'monkeyrunner' in sys.executable:
         warnings.warn(
@@ -41,6 +42,7 @@ from com.dtmilano.android.adb.androidkeymap import KEY_MAP
 
 DEBUG = False
 DEBUG_TOUCH = DEBUG and False
+DEBUG_LOG = DEBUG and False
 
 HOSTNAME = 'localhost'
 try:
@@ -121,6 +123,8 @@ class WifiManager:
 class AdbClient:
 
     def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True, ignoreversioncheck=False):
+        self.Log = AdbClient.__Log(self)
+        
         self.serialno = serialno
         self.hostname = hostname
         self.port = port
@@ -794,10 +798,30 @@ class AdbClient:
         self.display['orientation'] = self.getProperty('display.orientation')
         
     def log(self, tag, message, priority='D', verbose=False):
+        if DEBUG_LOG:
+            print >> sys.stderr, "log(tag=%s, message=%s, priority=%s, verbose=%s)" % (tag, message, priority, verbose)
+        message = string.Template(message).substitute({'serialno': self.serialno})
         if verbose or priority == 'V':
             print >> sys.stderr, tag+':', message
         self.shell('log -p %c -t "%s" %s' % (priority, tag, message))
         
+    class __Log():
+        '''
+        Log class to simulate C{android.util.Log}
+        '''
+
+        def __init__(self, adbClient):
+            self.adbClient = adbClient
+            
+        def __getattr__(self, attr):
+            '''
+            Returns the corresponding log method or @C{AttributeError}.
+            '''
+            
+            if attr in ['v', 'd', 'i', 'w', 'e']:
+                return lambda tag, message, verbose: self.adbClient.log(tag, message, priority=attr.upper(), verbose=verbose)
+            raise AttributeError(self.__class__.__name__ + ' has no attribute "%s"' % attr)
+    
     def getSystemService(self, name):
         if name == WIFI_SERVICE:
             return WifiManager(self)
