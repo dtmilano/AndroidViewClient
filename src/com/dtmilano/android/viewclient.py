@@ -42,6 +42,9 @@ import pickle
 import platform
 import xml.parsers.expat
 import unittest
+from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy,\
+    obtainVwVh
+from com.dtmilano.android.window import Window
 from com.dtmilano.android.adb import adbclient
 
 DEBUG = False
@@ -118,80 +121,6 @@ GONE = 0x8
 RegexType = type(re.compile(''))
 IP_RE = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
-
-def _nd(name):
-    '''
-    @return: Returns a named decimal regex
-    '''
-    return '(?P<%s>\d+)' % name
-
-def _nh(name):
-    '''
-    @return: Returns a named hex regex
-    '''
-    return '(?P<%s>[0-9a-f]+)' % name
-
-def _ns(name, greedy=False):
-    '''
-    NOTICE: this is using a non-greedy (or minimal) regex
-
-    @type name: str
-    @param name: the name used to tag the expression
-    @type greedy: bool
-    @param greedy: Whether the regex is greedy or not
-
-    @return: Returns a named string regex (only non-whitespace characters allowed)
-    '''
-    return '(?P<%s>\S+%s)' % (name, '' if greedy else '?')
-
-
-class Window:
-    '''
-    Window class
-    '''
-
-    def __init__(self, num, winId, activity, wvx, wvy, wvw, wvh, px, py, visibility):
-        '''
-        Constructor
-
-        @type num: int
-        @param num: Ordering number in Window Manager
-        @type winId: str
-        @param winId: the window ID
-        @type activity: str
-        @param activity: the activity (or sometimes other component) owning the window
-        @type wvx: int
-        @param wvx: window's virtual X
-        @type wvy: int
-        @param wvy: window's virtual Y
-        @type wvw: int
-        @param wvw: window's virtual width
-        @type wvh: int
-        @param wvh: window's virtual height
-        @type px: int
-        @param px: parent's X
-        @type py: int
-        @param py: parent's Y
-        @type visibility: int
-        @param visibility: visibility of the window
-        '''
-
-        if DEBUG_COORDS: print >> sys.stderr, "Window(%d, %s, %s, %d, %d, %d, %d, %d, %d, %d)" % \
-                (num, winId, activity, wvx, wvy, wvw, wvh, px, py, visibility)
-        self.num = num
-        self.winId = winId
-        self.activity = activity
-        self.wvx = wvx
-        self.wvy = wvy
-        self.wvw = wvw
-        self.wvh = wvh
-        self.px = px
-        self.py = py
-        self.visibility = visibility
-
-    def __str__(self):
-        return "Window(%d, wid=%s, a=%s, x=%d, y=%d, w=%d, h=%d, px=%d, py=%d, v=%d)" % \
-                (self.num, self.winId, self.activity, self.wvx, self.wvy, self.wvw, self.wvh, self.px, self.py, self.visibility)
 
 
 class ViewNotFoundException(Exception):
@@ -739,20 +668,13 @@ class View:
         return (sbw, sbh)
 
     def __obtainVxVy(self, m):
-        wvx = int(m.group('vx'))
-        wvy = int(m.group('vy'))
-        return wvx, wvy
+        return obtainVxVy(m)
 
     def __obtainVwVh(self, m):
-        (wvx, wvy) = self.__obtainVxVy(m)
-        wvx1 = int(m.group('vx1'))
-        wvy1 = int(m.group('vy1'))
-        return (wvx1-wvx, wvy1-wvy)
+        return obtainVwVh(m)
 
     def __obtainPxPy(self, m):
-        px = int(m.group('px'))
-        py = int(m.group('py'))
-        return (px, py)
+        return obtainPxPy(m)
 
     def __dumpWindowsInformation(self, debug=False):
         self.windows = {}

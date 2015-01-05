@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.27.0'
+__version__ = '8.28.0'
 
 import sys
 import warnings
@@ -38,11 +38,16 @@ import os
 import types
 import platform
 
+from com.dtmilano.android.window import Window
+from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy,\
+    obtainVwVh
 from com.dtmilano.android.adb.androidkeymap import KEY_MAP
 
 DEBUG = False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_LOG = DEBUG and False
+DEBUG_WINDOWS = DEBUG and False
+DEBUG_COORDS = DEBUG and False
 
 HOSTNAME = 'localhost'
 try:
@@ -826,7 +831,129 @@ class AdbClient:
         if name == WIFI_SERVICE:
             return WifiManager(self)
 
+    def getWindows(self):
+        windows = {}
+        dww = self.shell('dumpsys window windows')
+        if DEBUG_WINDOWS: print >> sys.stderr, dww
+        lines = dww.splitlines()
+        widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s?.*}:' %
+                            (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
+        currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % _nh('winId'))
+        viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % _nh('visibility'))
+        # This is for 4.0.4 API-15
+        containingFrameRE = re.compile('^   *mContainingFrame=\[%s,%s\]\[%s,%s\] mParentFrame=\[%s,%s\]\[%s,%s\]' %
+                             (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'), _nd('ph')))
+        contentFrameRE = re.compile('^   *mContentFrame=\[%s,%s\]\[%s,%s\] mVisibleFrame=\[%s,%s\]\[%s,%s\]' %
+                             (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'), _nd('vy1')))
+        # This is for 4.1 API-16
+        framesRE = re.compile('^   *Frames: containing=\[%s,%s\]\[%s,%s\] parent=\[%s,%s\]\[%s,%s\]' %
+                               (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'), _nd('ph')))
+        contentRE = re.compile('^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]\[%s,%s\]' %
+                               (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'), _nd('vy1')))
+        policyVisibilityRE = re.compile('mPolicyVisibility=%s ' % _ns('policyVisibility', greedy=True))
 
+        for l in range(len(lines)):
+            m = widRE.search(lines[l])
+            if m:
+                num = int(m.group('num'))
+                winId = m.group('winId')
+                activity = m.group('activity')
+                wvx = 0
+                wvy = 0
+                wvw = 0
+                wvh = 0
+                px = 0
+                py = 0
+                visibility = -1
+                policyVisibility = 0x0
+
+                for l2 in range(l+1, len(lines)):
+                    m = widRE.search(lines[l2])
+                    if m:
+                        l += (l2-1)
+                        break
+                    m = viewVisibilityRE.search(lines[l2])
+                    if m:
+                        visibility = int(m.group('visibility'))
+                        if DEBUG_COORDS: print >> sys.stderr, "getWindows: visibility=", visibility
+                    if self.build[VERSION_SDK_PROPERTY] >= 17:
+                        wvx, wvy = (0, 0)
+                        wvw, wvh = (0, 0)
+                    if self.build[VERSION_SDK_PROPERTY] >= 16:
+                        m = framesRE.search(lines[l2])
+                        if m:
+                            px, py = obtainPxPy(m)
+                            m = contentRE.search(lines[l2+1])
+                            if m:
+                                # FIXME: the information provided by 'dumpsys window windows' in 4.2.1 (API 16)
+                                # when there's a system dialog may not be correct and causes the View coordinates
+                                # be offset by this amount, see
+                                # https://github.com/dtmilano/AndroidViewClient/issues/29
+                                wvx, wvy = obtainVxVy(m)
+                                wvw, wvh = obtainVwVh(m)
+                    elif self.build[VERSION_SDK_PROPERTY] == 15:
+                        m = containingFrameRE.search(lines[l2])
+                        if m:
+                            px, py = obtainPxPy(m)
+                            m = contentFrameRE.search(lines[l2+1])
+                            if m:
+                                wvx, wvy = obtainVxVy(m)
+                                wvw, wvh = obtainVwVh(m)
+                    elif self.build[VERSION_SDK_PROPERTY] == 10:
+                        m = containingFrameRE.search(lines[l2])
+                        if m:
+                            px, py = obtainPxPy(m)
+                            m = contentFrameRE.search(lines[l2+1])
+                            if m:
+                                wvx, wvy = obtainVxVy(m)
+                                wvw, wvh = obtainVwVh(m)
+                    else:
+                        warnings.warn("Unsupported Android version %d" % self.build[VERSION_SDK_PROPERTY])
+
+                    #print >> sys.stderr, "Searching policyVisibility in", lines[l2]
+                    m = policyVisibilityRE.search(lines[l2])
+                    if m:
+                        policyVisibility = 0x0 if m.group('policyVisibility') == 'true' else 0x8
+
+                windows[winId] = Window(num, winId, activity, wvx, wvy, wvw, wvh, px, py, visibility + policyVisibility)
+            else:
+                m = currentFocusRE.search(lines[l])
+                if m:
+                    currentFocus = m.group('winId')
+        
+        if currentFocus in windows and windows[currentFocus].visibility == 0:
+            if DEBUG_COORDS:
+                print >> sys.stderr, "getWindows: focus=", currentFocus
+                print >> sys.stderr, "getWindows:", windows[currentFocus]
+            windows[currentFocus].focused = True
+
+        return windows
+    
+    def getFocusedWindow(self):
+        '''
+        Gets the focused window.
+        
+        @return: The focused L{Window}.
+        '''
+
+        for window in self.getWindows().values():
+            if window.focused:
+                return window
+        return None
+    
+    def getFocusedWindowName(self):
+        '''
+        Gets the focused window name.
+        
+        This is much like monkeyRunner's C{HierarchyView.getWindowName()}
+        
+        @return: The focused window name
+        '''
+
+        window = self.getFocusedWindow()
+        if window:
+            return window.activity
+        return None
 
 if __name__ == '__main__':
     adbClient = AdbClient(os.environ['ANDROID_SERIAL'])
