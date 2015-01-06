@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.27.1'
+__version__ = '8.28.0'
 
 import sys
 import warnings
@@ -100,6 +100,7 @@ TEXT_PROPERTY = 'text:mText'
 TEXT_PROPERTY_API_10 = 'mText'
 TEXT_PROPERTY_UI_AUTOMATOR = 'text'
 WS = u"\xfe" # the whitespace replacement char for TEXT_PROPERTY
+TAG_PROPERTY = 'getTag()'
 LEFT_PROPERTY = 'layout:mLeft'
 LEFT_PROPERTY_API_8 = 'mLeft'
 TOP_PROPERTY = 'layout:mTop'
@@ -241,6 +242,8 @@ class View:
         ''' The id property depending on the View attribute format '''
         self.textProperty = None
         ''' The text property depending on the View attribute format '''
+        self.tagProperty = None
+        ''' The tag property depending on the View attribute format '''
         self.leftProperty = None
         ''' The left property depending on the View attribute format '''
         self.topProperty = None
@@ -263,6 +266,7 @@ class View:
         elif version > 10 and (version < 16 or self.useUiAutomator):
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
+            self.tagProperty = TAG_PROPERTY
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
@@ -271,6 +275,7 @@ class View:
         elif version == 10:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
+            self.tagProperty = TAG_PROPERTY
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
@@ -279,6 +284,7 @@ class View:
         elif version >= 7 and version < 10:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
+            self.tagProperty = TAG_PROPERTY
             self.leftProperty = LEFT_PROPERTY_API_8
             self.topProperty = TOP_PROPERTY_API_8
             self.widthProperty = WIDTH_PROPERTY_API_8
@@ -287,6 +293,7 @@ class View:
         elif version > 0 and version < 7:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY_API_10
+            self.tagProperty = TAG_PROPERTY
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
@@ -295,6 +302,7 @@ class View:
         elif version == -1:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
+            self.tagProperty = TAG_PROPERTY
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
@@ -303,6 +311,7 @@ class View:
         else:
             self.idProperty = ID_PROPERTY
             self.textProperty = TEXT_PROPERTY
+            self.tagProperty = TAG_PROPERTY
             self.leftProperty = LEFT_PROPERTY
             self.topProperty = TOP_PROPERTY
             self.widthProperty = WIDTH_PROPERTY
@@ -408,6 +417,16 @@ class View:
 
         try:
             return self.map['content-desc']
+        except:
+            return None
+
+    def getTag(self):
+        '''
+        Gets the tag.
+        '''
+
+        try:
+            return self.map[self.tagProperty]
         except:
             return None
 
@@ -1508,7 +1527,7 @@ class ViewClient:
     @staticmethod
     def traverseShowClassIdTextAndContentDescription(view):
         '''
-        Shows the View class, id, text if available and unique id.
+        Shows the View class, id, text if available and content description.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
@@ -1517,6 +1536,19 @@ class ViewClient:
         '''
 
         return ViewClient.traverseShowClassIdAndText(view, View.getContentDescription, 'NAF')
+
+    @staticmethod
+    def traverseShowClassIdTextAndTag(view):
+        '''
+        Shows the View class, id, text if available and tag.
+        This function can be used as a transform function to L{ViewClient.traverse()}
+
+        @type view: I{View}
+        @param view: the View
+        @return: the string containing class, id, and text if available and tag
+        '''
+
+        return ViewClient.traverseShowClassIdAndText(view, View.getTag, None)
 
     @staticmethod
     def traverseShowClassIdTextContentDescriptionAndScreenshot(view):
@@ -1534,7 +1566,7 @@ class ViewClient:
     @staticmethod
     def traverseShowClassIdTextAndCenter(view):
         '''
-        Shows the View class, id and text if available.
+        Shows the View class, id and text if available and center.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
@@ -1578,6 +1610,8 @@ class ViewClient:
     ''' An alias for L{traverseShowClassIdTextAndUniqueId(view)} '''
     TRAVERSE_CITCD = traverseShowClassIdTextAndContentDescription
     ''' An alias for L{traverseShowClassIdTextAndContentDescription(view)} '''
+    TRAVERSE_CITG = traverseShowClassIdTextAndTag
+    ''' An alias for L{traverseShowClassIdTextAndTag(view)} '''
     TRAVERSE_CITC = traverseShowClassIdTextAndCenter
     ''' An alias for L{traverseShowClassIdTextAndCenter(view)} '''
     TRAVERSE_CITPS = traverseShowClassIdTextPositionAndSize

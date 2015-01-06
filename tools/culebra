@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2013-2014  Diego Torres Milano
+Copyright (C) 2013-2015  Diego Torres Milano
 Created on Mar 28, 2013
 
 Culebra helps you create AndroidViewClient scripts generating a working template that can be
@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.27.1'
+__version__ = '8.27.2'
 
 import re
 import sys
@@ -165,13 +165,19 @@ def printVerboseComments(view):
             u = 'u' if isinstance(text, unicode) else ''
             if '\n' in text:
                 text = re.sub(r'\n(.)', r'\n#\1', text)
-            print "text=%c'%s'" % (u, text),
+            print " text=%c'%s'" % (u, text),
+    except:
+        pass
+    try:
+        contentDescription = view.getContentDescription()
+        if contentDescription:
+            print u" cd='%s'" % contentDescription,
     except:
         pass
     try:
         tag = view.getTag()
         if tag != 'null':
-            print 'tag=%s' % tag,
+            print ' tag=%s' % tag,
     except:
         pass
     print

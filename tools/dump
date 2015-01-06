@@ -31,6 +31,7 @@ WINDOW = 'window'
 UNIQUE_ID = 'uniqueId'
 POSITION = 'position'
 CONTENT_DESCRIPTION = 'content-description'
+TAG = 'tag'
 CENTER = 'center'
 SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
@@ -39,16 +40,17 @@ DO_NOT_DUMP_VIEWS = 'do-not-dump-views'
 MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        'x':ViewClient.TRAVERSE_CITPS, POSITION:ViewClient.TRAVERSE_CITPS,
        'd':ViewClient.TRAVERSE_CITCD, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
+       'g':ViewClient.TRAVERSE_CITG, TAG:ViewClient.TRAVERSE_CITG, 
        'c':ViewClient.TRAVERSE_CITC, CENTER:ViewClient.TRAVERSE_CITC,
        'W':ViewClient.TRAVERSE_CITCDS, SAVE_VIEW_SCREENSHOTS:ViewClient.TRAVERSE_CITCDS,
        'D':ViewClient.TRAVERSE_S, DO_NOT_DUMP_VIEWS:ViewClient.TRAVERSE_S
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:ixdcf:W:D'
+SHORT_OPTS = 'HVvIEFSkw:ixdgcf:W:D'
 LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
-              UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, CENTER,
+              UNIQUE_ID, POSITION, CONTENT_DESCRIPTION, TAG, CENTER,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
               DO_NOT_DUMP_VIEWS,
               ]
@@ -64,6 +66,7 @@ OPTS_HELP = {
     'i': 'dump View unique IDs',
     'x': 'dump View positions',
     'd': 'dump View content descriptions',
+    'g': 'dump View tags',
     'c': 'dump View centers',
     'f': 'save screenshot to file',
     'W': 'save View screenshots to files in directory',
