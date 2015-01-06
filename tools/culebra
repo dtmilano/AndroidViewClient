@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.27.2'
+__version__ = '8.28.1'
 
 import re
 import sys
@@ -176,7 +176,7 @@ def printVerboseComments(view):
         pass
     try:
         tag = view.getTag()
-        if tag != 'null':
+        if tag and tag != 'null':
             print ' tag=%s' % tag,
     except:
         pass
