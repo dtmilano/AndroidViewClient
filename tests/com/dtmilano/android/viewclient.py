@@ -314,6 +314,10 @@ class ViewClientTest(unittest.TestCase):
             if re.search('Is adb running on your computer?', msg):
                 # This test required adb running
                 self.fail(msg)
+            elif re.search("There are no connected devices", msg):
+                # special case, when there are no devices connected then the
+                # serialno specified doesn't matter
+                pass
             elif not re.search("couldn't find device that matches 'ABC123'", msg):
                 self.fail(msg)
         except exceptions.SystemExit, e:
@@ -330,6 +334,10 @@ class ViewClientTest(unittest.TestCase):
             if re.search('Is adb running on your computer?', msg):
                 # This test required adb running
                 self.fail(msg)
+            elif re.search("There are no connected devices", msg):
+                # special case, when there are no devices connected then the
+                # serialno specified doesn't matter
+                pass
             elif not re.search("couldn't find device that matches 'ABC123'", msg):
                 self.fail(msg)
         except exceptions.SystemExit, e:

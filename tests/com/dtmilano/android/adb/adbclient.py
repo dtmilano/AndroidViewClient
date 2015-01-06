@@ -7,8 +7,16 @@ import sys
 import time
 import re
 import unittest
+import os
+import subprocess
+
+try:
+    sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
+except:
+    pass
 
 from com.dtmilano.android.adb.adbclient import AdbClient
+from com.dtmilano.android.common import obtainAdbPath
 
 VERBOSE = True
 
@@ -21,6 +29,7 @@ class AdbClientTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.adb = obtainAdbPath()
         # we use 'fakeserialno' and settransport=False so AdbClient does not try to find the
         # serialno in setTransport()
         try:
@@ -41,15 +50,19 @@ class AdbClientTest(unittest.TestCase):
         raise RuntimeError("No on-line devices found")
 
     def setUp(self):
+        subprocess.check_call([self.adb, '-s', self.androidSerial, 'forward', '--remove-all'])
         self.adbClient = AdbClient(self.androidSerial)
         self.assertIsNotNone(self.adbClient, "adbClient is None")
 
     def tearDown(self):
         self.adbClient.close()
+        subprocess.check_call([self.adb, '-s', self.androidSerial, 'forward', '--remove-all'])
 
     def testSerialno_none(self):
         try:
-            AdbClient(None)
+            adbClient = AdbClient(None)
+            self.assertTrue(adbClient.checkConnected())
+            print adbClient.getSdkVersion()
             self.fail("No exception was generated")
         except ValueError:
             pass
@@ -111,6 +124,8 @@ class AdbClientTest(unittest.TestCase):
         serialno = self.adbClient.getProperty('ro.serialno')
         self.assertIsNotNone(serialno)
         if re.search('emulator-.*', self.androidSerial):
+            self.assertEqual(serialno, '')
+        elif re.search('VirtualBox', self.adbClient.getProperty('ro.product.model')):
             self.assertEqual(serialno, '')
         else:
             self.assertEqual(serialno, self.androidSerial)

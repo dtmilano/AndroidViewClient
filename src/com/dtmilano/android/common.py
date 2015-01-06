@@ -17,6 +17,8 @@ limitations under the License.
 
 @author: Diego Torres Milano
 '''
+import platform
+import os
 
 def _nd(name):
     '''
@@ -58,3 +60,53 @@ def obtainVwVh(m):
     wvx1 = int(m.group('vx1'))
     wvy1 = int(m.group('vy1'))
     return (wvx1-wvx, wvy1-wvy)
+
+def obtainAdbPath():
+    '''
+    Obtains the ADB path attempting know locations for different OSs
+    '''
+
+    osName = platform.system()
+    isWindows = False
+    if osName.startswith('Windows'):
+        adb = 'adb.exe'
+        isWindows = True
+    else:
+        adb = 'adb'
+
+    ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
+    HOME = os.environ['HOME'] if os.environ.has_key('HOME') else ''
+
+    possibleChoices = [ os.path.join(ANDROID_HOME, 'platform-tools', adb),
+                       os.path.join(HOME,  "android", 'platform-tools', adb),
+                       os.path.join(HOME,  "android-sdk", 'platform-tools', adb),
+                       adb,
+                       ]
+
+    if osName.startswith('Windows'):
+        possibleChoices.append(os.path.join("""C:\Program Files\Android\android-sdk\platform-tools""", adb))
+        possibleChoices.append(os.path.join("""C:\Program Files (x86)\Android\android-sdk\platform-tools""", adb))
+    elif osName.startswith('Linux'):
+        possibleChoices.append(os.path.join("opt", "android-sdk-linux",  'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-linux",  'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME,  "android-sdk-linux",  'platform-tools', adb))
+    elif osName.startswith('Mac'):
+        possibleChoices.append(os.path.join("opt", "android-sdk-mac_x86",  'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-mac", 'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME,  "android-sdk-mac", 'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-mac_x86",  'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME,  "android-sdk-mac_x86",  'platform-tools', adb))
+    else:
+        # Unsupported OS
+        pass
+
+    for exeFile in possibleChoices:
+        if os.access(exeFile, os.X_OK):
+            return exeFile
+
+    for path in os.environ["PATH"].split(os.pathsep):
+        exeFile = os.path.join(path, adb)
+        if exeFile != None and os.access(exeFile, os.X_OK if not isWindows else os.F_OK):
+            return exeFile
+
+    raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
