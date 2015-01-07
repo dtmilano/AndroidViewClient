@@ -301,6 +301,10 @@ class AdbClient:
         self.__send(msg, reconnect=False)
         self.isTransportSet = True
 
+    def __checkTransport(self):
+        if not self.isTransportSet:
+            raise RuntimeError("ERROR: Transport is not set")
+    
     def __readExactly(self, sock, size):
         if DEBUG:
             print >> sys.stderr, "__readExactly(socket=%s, size=%d)" % (socket, size)
@@ -330,6 +334,7 @@ class AdbClient:
     def shell(self, cmd=None):
         if DEBUG:
             print >> sys.stderr, "shell(cmd=%s)" % cmd
+        self.__checkTransport()
         if cmd:
             self.__send('shell:%s' % cmd, checkok=True, reconnect=False)
             out = ''
@@ -368,6 +373,7 @@ class AdbClient:
         raise RuntimeError("Couldn't find mRestrictedScreen in 'dumpsys window'")
 
     def getDisplayInfo(self):
+        self.__checkTransport()
         displayInfo = self.getLogicalDisplayInfo()
         if displayInfo:
             return displayInfo
@@ -382,6 +388,7 @@ class AdbClient:
         This is a method to obtain display logical dimensions and density
         '''
 
+        self.__checkTransport()
         logicalDisplayRE = re.compile('.*DisplayViewport{valid=true, .*orientation=(?P<orientation>\d+), .*deviceWidth=(?P<width>\d+), deviceHeight=(?P<height>\d+).*')
         for line in self.shell('dumpsys display').splitlines():
             m = logicalDisplayRE.search(line, 0)
@@ -402,6 +409,7 @@ class AdbClient:
     def getPhysicalDisplayInfo(self):
         ''' Gets C{mPhysicalDisplayInfo} values from dumpsys. This is a method to obtain display dimensions and density'''
 
+        self.__checkTransport()
         phyDispRE = re.compile('Physical size: (?P<width>)x(?P<height>).*Physical density: (?P<density>)', re.MULTILINE)
         m = phyDispRE.search(self.shell('wm size; wm density'))
         if m:
@@ -490,11 +498,13 @@ class AdbClient:
         return -1.0
 
     def getSystemProperty(self, key, strip=True):
+        self.__checkTransport()
         return self.getProperty(key, strip)
 
     def getProperty(self, key, strip=True):
         ''' Gets the property value for key '''
 
+        self.__checkTransport()
         import collections
         MAP_PROPS = collections.OrderedDict([
                           (re.compile('display.width'), self.__getDisplayWidth),
@@ -515,9 +525,11 @@ class AdbClient:
         Gets the SDK version.
         '''
 
+        self.__checkTransport()
         return self.build[VERSION_SDK_PROPERTY]
 
     def press(self, name, eventType=DOWN_AND_UP):
+        self.__checkTransport()
         if isinstance(name, unicode):
             name = name.decode('ascii', errors='replace')
         cmd = 'input keyevent %s' % name
@@ -526,6 +538,7 @@ class AdbClient:
         self.shell(cmd)
 
     def longPress(self, name, duration=0.5, dev='/dev/input/event0'):
+        self.__checkTransport()
         # WORKAROUND:
         # Using 'input keyevent --longpress POWER' does not work correctly in
         # KitKat (API 19), it sends a short instead of a long press.
@@ -555,6 +568,7 @@ class AdbClient:
             raise RuntimeError("longpress: not supported for API < 19 (version=%d)" % version)
 
     def startActivity(self, component=None, flags=None, uri=None):
+        self.__checkTransport()
         cmd = 'am start'
         if component:
             cmd += ' -n %s' % component
@@ -573,6 +587,7 @@ class AdbClient:
         Takes a snapshot of the device and return it as a PIL Image.
         '''
 
+        self.__checkTransport()
         try:
             from PIL import Image
         except:
@@ -637,6 +652,7 @@ class AdbClient:
     def touch(self, x, y, orientation=-1, eventType=DOWN_AND_UP):
         if DEBUG_TOUCH:
             print >> sys.stderr, "touch(x=", x, ", y=", y, ", orientation=", orientation, ", eventType=", eventType, ")"
+        self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
         self.shell('input tap %d %d' % self.__transformPointByOrientation((x, y), orientation, self.display['orientation']))
@@ -644,6 +660,7 @@ class AdbClient:
     def touchDip(self, x, y, orientation=-1, eventType=DOWN_AND_UP):
         if DEBUG_TOUCH:
             print >> sys.stderr, "touchDip(x=", x, ", y=", y, ", orientation=", orientation, ", eventType=", eventType, ")"
+        self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
         x = x * self.display['density']
@@ -659,6 +676,7 @@ class AdbClient:
         This workaround was suggested by U{HaMi<http://stackoverflow.com/users/2571957/hami>}
         '''
         
+        self.__checkTransport()
         self.drag((x, y), (x, y), duration, 1)
 
     def drag(self, (x0, y0), (x1, y1), duration, steps=1, orientation=-1):
@@ -671,6 +689,7 @@ class AdbClient:
         @param steps: number of steps (currently ignored by @{input swipe}
         '''
 
+        self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
         (x0, y0) = self.__transformPointByOrientation((x0, y0), orientation, self.display['orientation'])
@@ -694,6 +713,7 @@ class AdbClient:
         @param steps: number of steps (currently ignored by @{input swipe}
         '''
 
+        self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
         density = self.display['density'] if self.display['density'] > 0 else 1
@@ -704,9 +724,11 @@ class AdbClient:
         self.drag((x0, y0), (x1, y1), duration, steps, orientation)
         
     def type(self, text):
+        self.__checkTransport()
         self.shell(u'input text "%s"' % text)
 
     def wake(self):
+        self.__checkTransport()
         if not self.isScreenOn():
             self.shell('input keyevent POWER')
 
@@ -717,6 +739,7 @@ class AdbClient:
         @return True if the device screen is locked
         '''
 
+        self.__checkTransport()
         lockScreenRE = re.compile('mShowingLockscreen=(true|false)')
         m = lockScreenRE.search(self.shell('dumpsys window policy'))
         if m:
@@ -730,6 +753,7 @@ class AdbClient:
         @return True if the device screen is ON
         '''
 
+        self.__checkTransport()
         screenOnRE = re.compile('mScreenOnFully=(true|false)')
         m = screenOnRE.search(self.shell('dumpsys window policy'))
         if m:
@@ -741,6 +765,7 @@ class AdbClient:
         Unlocks the screen of the device.
         '''
 
+        self.__checkTransport()
         self.shell('input keyevent MENU')
         self.shell('input keyevent BACK')
 
@@ -789,6 +814,7 @@ class AdbClient:
         Whether the keyboard is displayed.
         '''
 
+        self.__checkTransport()
         dim = self.shell('dumpsys input_method')
         if dim:
             # FIXME: API >= 15 ?
@@ -796,6 +822,7 @@ class AdbClient:
         return False
 
     def initDisplayProperties(self):
+        self.__checkTransport()
         self.__displayInfo = None
         self.display['width'] = self.getProperty('display.width')
         self.display['height'] = self.getProperty('display.height')
@@ -805,6 +832,7 @@ class AdbClient:
     def log(self, tag, message, priority='D', verbose=False):
         if DEBUG_LOG:
             print >> sys.stderr, "log(tag=%s, message=%s, priority=%s, verbose=%s)" % (tag, message, priority, verbose)
+        self.__checkTransport()
         message = string.Template(message).substitute({'serialno': self.serialno})
         if verbose or priority == 'V':
             print >> sys.stderr, tag+':', message
@@ -832,6 +860,7 @@ class AdbClient:
             return WifiManager(self)
 
     def getWindows(self):
+        self.__checkTransport()
         windows = {}
         dww = self.shell('dumpsys window windows')
         if DEBUG_WINDOWS: print >> sys.stderr, dww
