@@ -290,10 +290,17 @@ class ViewClientTest(unittest.TestCase):
         self.assertNotEqual(None, vc)
 
     def testInit_adbNone(self):
+        # FIXME: there's a problem here when the mock device is created,
+        # it's intended to be API=15, mock ViewServer is started and then
+        # adb tries (unsuccessfuly) to forward the ports (expected because
+        # adb does not know anything about mock devices).
+        # Then
+        #    error: device not found
+        # appears in the console
         device = MockDevice()
         try:
             vc = ViewClient(device, device.serialno, adb=None, autodump=False)
-            self.assertNotEqual(None, vc)
+            self.assertIsNotNone(vc)
         except subprocess.CalledProcessError:
             # This is needed because the ports cannot be forwarded if there is no device connected
             pass
