@@ -17,7 +17,8 @@ ___________________/  /__/  /__/  /__/  /________________________________
 @author: Diego Torres Milano
 @author: Jennifer E. Swofford (ascii art snake)
 
-'''
+
+''' 
 
 __version__ = '9.0.1'
 
@@ -367,13 +368,13 @@ def printTraverse():
 
 def printDump(window):
     '''
-    Prints a dump
+    Prints a dump.
     '''
     
     if options[CulebraOptions.MULTI_DEVICE]:
-        print '%s[_vc.dump(window=%d) for _vc in %sallVcs()]' % (indent, window, prefix)
+        print '%s[_vc.dump(window=%s) for _vc in %sallVcs()]' % (indent, window, prefix)
     else:
-        print '%s%svc.dump(window=%d)' % (indent, prefix, window)
+        print '%s%svc.dump(window=%s)' % (indent, prefix, window)
     
     if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
         printTraverse()
@@ -643,6 +644,12 @@ def runCulebron():
     culebron.takeScreenshotAndShowItOnWindow()
     culebron.mainloop()
     
+def printShortcutVariables():
+    print '''\
+        _s = CulebraTests.sleep
+        _v = CulebraTests.verbose
+'''
+    
 ################
 # __main__
 ################
@@ -825,11 +832,7 @@ class CulebraTests(CulebraTestCase):
             self.fail('Preconditions failed')
         ''' % (options[CulebraOptions.UNIT_TEST_METHOD] if options[CulebraOptions.UNIT_TEST_METHOD] else 'testSomething')
 
-    # shortcut variables
-    print '''\
-        _s = CulebraTests.sleep
-        _v = CulebraTests.verbose
-        '''
+    printShortcutVariables()
     
     if options[CulebraOptions.SAVE_SCREENSHOT]:
         print '''\
@@ -844,15 +847,17 @@ class CulebraTests(CulebraTestCase):
     indent = ' ' * 8
     prefix = 'self.'
     
-    if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
-        print '''\
-        self.vc.dump(%s)
-        ''' % getWindowOption()
-        vc.traverse(transform=transform)
-        print
+#     if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
+#         print '''\
+#         self.vc.dump(%s)
+#         ''' % getWindowOption()
+#         vc.traverse(transform=transform)
+#         print
 
     if options[CulebraOptions.GUI]:
         runCulebron()
+    elif not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
+        printDump(getWindowOption())
 
     print '''
 
@@ -860,6 +865,7 @@ if __name__ == '__main__':
     CulebraTests.main()
 '''
 else:
+    # Not a unittest class, still could be a unittest method as we allow to generate methods separately from their classes
     if not options[CulebraOptions.UNIT_TEST_METHOD]:
         print '''
 kwargs1 = %s
@@ -874,7 +880,7 @@ device.startActivity(component='%s')''' % options[CulebraOptions.START_ACTIVITY]
         print '''\
 kwargs2 = %s
 vc = ViewClient(device, serialno, **kwargs2)
-vc.dump(window=%s)
+#vc.dump(window=%s) # FIXME: seems not needed
 ''' % (kwargs2, getWindowOption())
 
         if options[CulebraOptions.USE_DICTIONARY]:
@@ -898,9 +904,15 @@ vc.writeImageToFile('%s')
 ''' % (options[CulebraOptions.UNIT_TEST_METHOD])
         indent = ' ' * 8
         prefix = 'self.'
-    if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
-        vc.traverse(transform=transform)
-        print
+        
+        printShortcutVariables()
+    
+    if options[CulebraOptions.GUI]:
+        runCulebron()
+    elif not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
+        printDump(getWindowOption())
+    
+    
 
 if options[CulebraOptions.INTERACTIVE]:
     import socket

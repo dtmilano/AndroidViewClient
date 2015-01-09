@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '9.0.1'
+__version__ = '9.0.2'
 
 import sys
 import threading
@@ -620,6 +620,11 @@ This is usually installed by python package. Check your distribution details.
         self.saveSnapshot()
         
     def saveSnapshot(self):
+        '''
+        Saves the current shanpshot to the specified file.
+        Current snapshot is the image being displayed on the main window.
+        '''
+        
         filename = self.snapshotDir + os.sep + '${serialno}-${focusedwindowname}-${timestamp}' + '.' + self.snapshotFormat.lower()
         # We have the snapshot already taken, no need to retake
         d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
@@ -631,9 +636,10 @@ This is usually installed by python package. Check your distribution details.
 
     def toggleTouchPointDip(self):
         '''
-    Toggles the touch point operation using L{Unit.DIP}.
-    This invokes L{toggleTouchPoint}.
-    '''
+        Toggles the touch point operation using L{Unit.DIP}.
+        This invokes L{toggleTouchPoint}.
+        '''
+
         self.coordinatesUnit = Unit.DIP
         self.toggleTouchPoint()
 
