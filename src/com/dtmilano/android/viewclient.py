@@ -18,10 +18,12 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.28.0'
+__version__ = '9.0.0'
 
 import sys
 import warnings
+import string
+import datetime
 if sys.executable:
     if 'monkeyrunner' in sys.executable:
         warnings.warn(
@@ -2369,6 +2371,7 @@ You should force ViewServer back-end.''')
         @param _format: Image format (default format is PNG)
         '''
 
+        filename = self.device.substituteDeviceTemplate(filename)
         if not os.path.isabs(filename):
             raise ValueError("writeImageToFile expects an absolute path (filename='%s')" % filename)
         if os.path.isdir(filename):

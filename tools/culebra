@@ -19,7 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
-__version__ = '8.28.1'
+__version__ = '9.0.0'
 
 import re
 import sys
@@ -474,6 +474,18 @@ def printSaveViewScreenshot(view, dir):
     else:
         print '%s%s.writeImageToFile(\'%s/%s.png\')' % (indent, var, dir, var)
     
+def printTakeSnapshot(filename, _format):
+    '''
+    Prints the corresponding writeImageToFile() to take a snapshot
+    '''
+    
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(u'taking snapshot @ %s format=%s' % (filename, _format))
+        print '%s%svc.writeImageToFile(\'%s\', \'%s\')' % (indent, prefix, filename, _format)
+        
+    
 def traverseAndPrint(view):
     '''
     Traverses the View tree and prints the corresponding statement.
@@ -528,6 +540,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.TRAVERSE:
         printTraverse()
+        return
+    elif op == Operation.SNAPSHOT:
+        printTakeSnapshot(args[0], args[1])
         return
     
     bd = Descriptor.findBestDescriptor(view)
@@ -642,7 +657,7 @@ except getopt.GetoptError, e:
 kwargs1 = {CulebraOptions.VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
 serialno = None
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
-options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH_TEXT: False, CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION: False,
+options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH_TEXT: True, CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION: True,
         CulebraOptions.USE_REGEXPS: False, CulebraOptions.VERBOSE_COMMENTS: False,
         CulebraOptions.UNIT_TEST_CLASS: False, CulebraOptions.UNIT_TEST_METHOD: None, CulebraOptions.USE_JAR: False,
         CulebraOptions.USE_DICTIONARY: False, CulebraOptions.DICTIONARY_KEYS_FROM: 'id',

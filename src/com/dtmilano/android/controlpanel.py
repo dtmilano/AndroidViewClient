@@ -19,7 +19,7 @@
     @author: Ahmed Kasem
     '''
 
-__version__ = '8.27.1'
+__version__ = '9.0.0'
 
 import sys, os
 import Tkinter, tkFileDialog, ttk
@@ -145,7 +145,5 @@ class ControlPanelButton(Tkinter.Button):
         self.culebron.takeScreenshotAndShowItOnWindow()
 
     def takeSnapshot(self):
-        #FIXME: Add printOperation <printSaveViewScreenshot(view, foldername)>
-        path = tkFileDialog.asksaveasfilename(parent=self.master, defaultextension='.png', initialfile='Snapshot')
-        if path:
-            self.device.takeSnapshot(reconnect=True).save(path)
+        # No need to retake snapshot as it is already shown
+        self.culebron.saveSnapshot()

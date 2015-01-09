@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '8.29.0'
+__version__ = '9.0.0'
 
 import sys
 import threading
@@ -27,6 +27,7 @@ import warnings
 import copy
 import string
 import os
+import datetime
 
 try:
     from PIL import Image, ImageTk
@@ -78,6 +79,7 @@ class Operation:
     LONG_TOUCH_POINT = 'long_touch_point'
     TYPE = 'type'
     PRESS = 'press'
+    SNAPSHOT = 'snapshot'
     SLEEP = 'sleep'
     TRAVERSE = 'traverse'
 
@@ -111,6 +113,7 @@ class Culebron:
     isLongTouchingPoint = False
     onTouchListener = None
     snapshotDir = '/tmp'
+    snapshotFormat = 'PNG'
     
     @staticmethod
     def checkDependencies():
@@ -614,16 +617,17 @@ This is usually installed by python package. Check your distribution details.
         self.showDragDialog()
 
     def onCtrlF(self, event):
-        self.saveSnapshot(self.snapshotDir + os.sep + "XXX" + '.png')
+        self.saveSnapshot()
         
-    def saveSnapshot(self, filename, _format="PNG"):
+    def saveSnapshot(self):
+        filename = self.snapshotDir + os.sep + '${serialno}-${focusedwindowname}-${timestamp}' + '.' + self.snapshotFormat.lower()
         # We have the snapshot already taken, no need to retake
-        #FIXME: Add printOperation <printSaveViewScreenshot(view, foldername)>
-        #ext = '.' + _format.lower()
-        path = FileDialog(self, filename)
-        #path = tkFileDialog.asksaveasfilename(parent=self.master, defaultextension=ext, initialfile=filename)
-        if path:
-            self.unscaledScreenshot.save(filename, _format)
+        d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
+        saveAsFilename = d.askSaveAsFilename()
+        if saveAsFilename:
+            _format = os.path.splitext(saveAsFilename)[1][1:].upper()
+            self.printOperation(None, Operation.SNAPSHOT, filename, _format)
+            self.unscaledScreenshot.save(saveAsFilename, _format)
 
     def toggleTouchPointDip(self):
         '''
@@ -1175,6 +1179,7 @@ if TKINTER_AVAILABLE:
     --------
     Ctrl-A: Toggle message area
     Ctrl-D: Drag dialog
+    Ctrl-F: Take snapshot and save to file
     Ctrl-K: Control Panel
     Ctrl-L: Long touch point using PX
     Ctrl-I: Touch using DIP
@@ -1210,6 +1215,12 @@ if TKINTER_AVAILABLE:
 
     class FileDialog():
         def __init__(self, culebron, filename):
-            parent = culebron.window
-            ext = os.path.splitext(filename)
-            return tkFileDialog.asksaveasfilename(parent=parent, defaultextension=ext, initialfile=filename)
+            self.parent = culebron.window
+            self.filename = filename
+            self.basename = os.path.basename(self.filename)
+            self.dirname = os.path.dirname(self.filename)
+            self.ext = os.path.splitext(self.filename)[1]
+            self.fileTypes = [('images', self.ext)]
+            
+        def askSaveAsFilename(self):
+            return tkFileDialog.asksaveasfilename(parent=self.parent, filetypes=self.fileTypes, defaultextension=self.ext, initialdir=self.dirname, initialfile=self.basename)

@@ -17,11 +17,12 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '8.27.1'
+__version__ = '9.0.0'
 
 import sys
 import warnings
 import string
+import datetime
 if sys.executable:
     if 'monkeyrunner' in sys.executable:
         warnings.warn(
@@ -833,7 +834,7 @@ class AdbClient:
         if DEBUG_LOG:
             print >> sys.stderr, "log(tag=%s, message=%s, priority=%s, verbose=%s)" % (tag, message, priority, verbose)
         self.__checkTransport()
-        message = string.Template(message).substitute({'serialno': self.serialno})
+        message = self.substituteDeviceTemplate(message)
         if verbose or priority == 'V':
             print >> sys.stderr, tag+':', message
         self.shell('log -p %c -t "%s" %s' % (priority, tag, message))
@@ -983,6 +984,17 @@ class AdbClient:
         if window:
             return window.activity
         return None
+
+    def substituteDeviceTemplate(self, template):
+        serialno = self.serialno.replace('.', '_').replace(':', '-')
+        focusedWindowName = self.getFocusedWindowName().replace('/', '-').replace('.', '_')
+        timestamp = datetime.datetime.now().isoformat()
+        _map = {
+                'serialno': serialno,
+                'focusedwindowname': focusedWindowName,
+                'timestamp': timestamp
+             }
+        return string.Template(template).substitute(_map)
 
 if __name__ == '__main__':
     adbClient = AdbClient(os.environ['ANDROID_SERIAL'])
