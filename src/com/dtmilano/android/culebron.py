@@ -19,13 +19,14 @@ limitations under the License.
 
 '''
 
-__version__ = '8.27.1'
+__version__ = '8.29.0'
 
 import sys
 import threading
 import warnings
 import copy
 import string
+import os
 
 try:
     from PIL import Image, ImageTk
@@ -36,6 +37,7 @@ except:
 try:
     import Tkinter
     import tkSimpleDialog
+    import tkFileDialog
     import tkFont
     import ScrolledText
     TKINTER_AVAILABLE = True
@@ -108,6 +110,7 @@ class Culebron:
     isTouchingPoint = False
     isLongTouchingPoint = False
     onTouchListener = None
+    snapshotDir = '/tmp'
     
     @staticmethod
     def checkDependencies():
@@ -163,10 +166,11 @@ This is usually installed by python package. Check your distribution details.
          - hides the vignette (that could have been showed before)
         '''
         
-        image = self.device.takeSnapshot(reconnect=True)
+        self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
+        image = self.unscaledScreenshot
         (width, height) = image.size
         if self.scale != 1:
-            image = image.resize((int(width*self.scale), int(height*self.scale)), Image.ANTIALIAS)
+            self.image = image.resize((int(width*self.scale), int(height*self.scale)), Image.ANTIALIAS)
             (width, height) = image.size
         if self.canvas is None:
             if DEBUG:
@@ -609,6 +613,17 @@ This is usually installed by python package. Check your distribution details.
     def onCtrlD(self, event):
         self.showDragDialog()
 
+    def onCtrlF(self, event):
+        self.saveSnapshot(self.snapshotDir + os.sep + "XXX" + '.png')
+        
+    def saveSnapshot(self, filename, _format="PNG"):
+        # We have the snapshot already taken, no need to retake
+        #FIXME: Add printOperation <printSaveViewScreenshot(view, foldername)>
+        #ext = '.' + _format.lower()
+        path = FileDialog(self, filename)
+        #path = tkFileDialog.asksaveasfilename(parent=self.master, defaultextension=ext, initialfile=filename)
+        if path:
+            self.unscaledScreenshot.save(filename, _format)
 
     def toggleTouchPointDip(self):
         '''
@@ -1192,3 +1207,9 @@ if TKINTER_AVAILABLE:
             # put focus back to the parent window's canvas
             self.culebron.canvas.focus_set()
             self.destroy()
+
+    class FileDialog():
+        def __init__(self, culebron, filename):
+            parent = culebron.window
+            ext = os.path.splitext(filename)
+            return tkFileDialog.asksaveasfilename(parent=parent, defaultextension=ext, initialfile=filename)
