@@ -170,11 +170,11 @@ This is usually installed by python package. Check your distribution details.
         '''
         
         self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
-        image = self.unscaledScreenshot
-        (width, height) = image.size
+        self.image = self.unscaledScreenshot
+        (width, height) = self.image.size
         if self.scale != 1:
-            self.image = image.resize((int(width*self.scale), int(height*self.scale)), Image.ANTIALIAS)
-            (width, height) = image.size
+            self.image = self.image.resize((int(width*self.scale), int(height*self.scale)), Image.ANTIALIAS)
+            (width, height) = self.image.size
         if self.canvas is None:
             if DEBUG:
                 print >> sys.stderr, "Creating canvas", width, 'x', height
@@ -183,7 +183,7 @@ This is usually installed by python package. Check your distribution details.
             self.enableEvents()
             self.createMessageArea(width, height)
             self.createVignette(width, height)
-        self.screenshot = ImageTk.PhotoImage(image)
+        self.screenshot = ImageTk.PhotoImage(self.image)
         if self.imageId is not None:
             self.canvas.delete(self.imageId)
         self.imageId = self.canvas.create_image(0, 0, anchor=Tkinter.NW, image=self.screenshot)
