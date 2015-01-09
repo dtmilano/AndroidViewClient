@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '9.0.2'
+__version__ = '9.0.3'
 
 import sys
 import threading
@@ -27,7 +27,7 @@ import warnings
 import copy
 import string
 import os
-import datetime
+import platform
 
 try:
     from PIL import Image, ImageTk
@@ -285,7 +285,6 @@ This is usually installed by python package. Check your distribution details.
             self.waitMessageId = None
 
     def showPopupMenu(self, event):
-        self.popup = Tkinter.Menu(self.window, tearoff=0)
         (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
         v = self.findViewContainingPointInTargets(scaledX, scaledY)
         ContextMenu(self, view=v).showPopupMenu(event)
@@ -348,7 +347,6 @@ This is usually installed by python package. Check your distribution details.
                 self.printOperation(v, Operation.TEST, text)
                 break
                 
-
 
     def findViewContainingPointInTargets(self, x, y):
         vlist = self.vc.findViewsContainingPoint((x, y))
@@ -495,6 +493,13 @@ This is usually installed by python package. Check your distribution details.
         else:
             self.getViewContainingPointAndTouch(scaledX, scaledY)
     
+    def onButton2Pressed(self, event):
+        if DEBUG:
+            print >> sys.stderr, "onButton2Pressed((", event.x, ", ", event.y, "))"
+        osName = platform.system()
+        if osName == 'Darwin':
+            self.showPopupMenu(event)
+
     def onButton3Pressed(self, event):
         if DEBUG:
             print >> sys.stderr, "onButton3Pressed((", event.x, ", ", event.y, "))"
@@ -777,6 +782,7 @@ This is usually installed by python package. Check your distribution details.
     def enableEvents(self):
         self.canvas.update_idletasks()
         self.canvas.bind("<Button-1>", self.onButton1Pressed)
+        self.canvas.bind("<Button-2>", self.onButton2Pressed)
         self.canvas.bind("<Button-3>", self.onButton3Pressed)
         self.canvas.bind("<BackSpace>", self.onKeyPressed)
         #self.canvas.bind("<Control-Key-S>", self.onCtrlS)
@@ -1117,10 +1123,14 @@ if TKINTER_AVAILABLE:
                 self.command = command 
 
         def __init__(self, culebron, view):
-            Tkinter.Menu.__init__(self, tearoff=False)
+            # Tkninter.Menu is not extending object, so we can't do this:
+            #super(ContextMenu, self).__init__(culebron.window, tearoff=False)
+            Tkinter.Menu.__init__(self, culebron.window, tearoff=False)
+            self.view = view
             items = [
                #ContextMenu.Command('Toggle message area',          15,     'Ctrl+A',   '<Control-A>',  None),
                ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog),
+               ContextMenu.Command('Take snapshot and save to file',           26,  'Ctrl+F',   '<Control-F>',  culebron.saveSnapshot),
                ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  culebron.showControlPanel),
                ContextMenu.Command('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  culebron.toggleLongTouchPoint),
                ContextMenu.Command('Touch using DIP',             13,      'Ctrl+I',   '<Control-I>',  culebron.toggleTouchPointDip),
