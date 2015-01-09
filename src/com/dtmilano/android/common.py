@@ -80,7 +80,6 @@ def obtainAdbPath():
     possibleChoices = [ os.path.join(ANDROID_HOME, 'platform-tools', adb),
                        os.path.join(HOME,  "android", 'platform-tools', adb),
                        os.path.join(HOME,  "android-sdk", 'platform-tools', adb),
-                       adb,
                        ]
 
     if osName.startswith('Windows'):
@@ -90,6 +89,7 @@ def obtainAdbPath():
         possibleChoices.append(os.path.join("opt", "android-sdk-linux",  'platform-tools', adb))
         possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-linux",  'platform-tools', adb))
         possibleChoices.append(os.path.join(HOME,  "android-sdk-linux",  'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME,  'Android', 'Sdk', 'platform-tools', adb))
     elif osName.startswith('Mac'):
         possibleChoices.append(os.path.join("opt", "android-sdk-mac_x86",  'platform-tools', adb))
         possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-mac", 'platform-tools', adb))
@@ -100,6 +100,8 @@ def obtainAdbPath():
         # Unsupported OS
         pass
 
+    possibleChoices.append(adb)
+    
     for exeFile in possibleChoices:
         if os.access(exeFile, os.X_OK):
             return exeFile

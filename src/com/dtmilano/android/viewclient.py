@@ -1199,7 +1199,7 @@ class ViewClient:
         else:
             # Using adbclient we don't need adb executable yet (maybe it's needed if we want to
             # start adb if not running)
-            adb = ViewClient.__obtainAdbPath()
+            adb = obtainAdbPath()
 
         self.adb = adb
         ''' The adb command '''

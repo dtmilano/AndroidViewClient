@@ -18,7 +18,10 @@ except:
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
 
-VERBOSE = True
+VERBOSE = False
+
+PKG = 'com.example.i2at.tc'
+ACTIVITY = 'TemperatureConverterActivity'
 
 #ANDROIANDROID_SERIAL = 'emulator-5554'
 
@@ -62,10 +65,12 @@ class AdbClientTest(unittest.TestCase):
         try:
             adbClient = AdbClient(None)
             self.assertTrue(adbClient.checkConnected())
-            print adbClient.getSdkVersion()
+            # because serialno is None, transport cannot be set, so next statement
+            # will raise an exception
+            adbClient.getSdkVersion()
             self.fail("No exception was generated")
-        except ValueError:
-            pass
+        except RuntimeError, ex:
+            self.assertIsNotNone(re.search("ERROR: Transport is not set", str(ex)), "Couldn't find error message: %s" % ex)
 
     def testSerialno_nonExistent(self):
         try:
@@ -94,9 +99,9 @@ class AdbClientTest(unittest.TestCase):
         adbclient = AdbClient('.*', settransport=False)
         self.assertTrue(len(adbclient.getDevices()) >= 1)
 
-    #@unittest.skipIf(not re.search('emulator', AdbClientTest.androidSerial), "Supported only when emulator is connected")
+    #@unittest.skipIf(not re.search('emulator-5554', AdbClientTest.androidSerial), "Supported only when emulator is connected")
     def testAdbClient_serialnoNoRegex(self):
-        if re.search('emulator', AdbClientTest.androidSerial):
+        if re.search('emulator-5554', AdbClientTest.androidSerial):
             adbClient = AdbClient('emulator-5554')
             self.assertIsNotNone(adbClient)
             self.assertEqual('emulator-5554', adbClient.serialno)
@@ -107,6 +112,13 @@ class AdbClientTest(unittest.TestCase):
             adbClient = AdbClient('emulator-.*')
             self.assertIsNotNone(adbClient)
             self.assertTrue(re.match('emulator-.*', adbClient.serialno))
+
+    def testAdbClient_serialnoRegexIP(self):
+        IPRE = re.compile('(\d+\.){3}\d+')
+        if IPRE.search(AdbClientTest.androidSerial):
+            adbClient = AdbClient('\d+.*')
+            self.assertIsNotNone(adbClient)
+            self.assertTrue(IPRE.match(adbClient.serialno))
 
     def testCheckVersion(self):
         self.adbClient.checkVersion()
@@ -153,9 +165,34 @@ class AdbClientTest(unittest.TestCase):
     def testType_digits_asInt(self):
         self.adbClient.type(1234)
 
-    def testStartActivity_component(self):
-        self.adbClient.startActivity('com.example.i2at.tc/.TemperatureConverterActivity')
 
+    def __checkPackageInstalled(self):
+        packages = self.adbClient.shell('pm list packages').splitlines()
+        self.assertIn('package:' + PKG, packages, PKG + " is not installed")
+
+    def testStartActivity_component(self):
+        self.__checkPackageInstalled()
+        self.adbClient.startActivity(PKG + '/.' + ACTIVITY)
+
+    def testGetWindows(self):
+        self.assertIsNotNone(self.adbClient.getWindows())
+        
+    def testGetFocusedWindow(self):
+        self.__checkPackageInstalled()
+        self.adbClient.startActivity(PKG + '/.' + ACTIVITY)
+        time.sleep(3)
+        w = self.adbClient.getFocusedWindow()
+        self.assertIsNotNone(w)
+        self.assertEqual(PKG + '/' + PKG + '.' + ACTIVITY, w.activity)
+        
+    def testGetFocusedWindowName(self):
+        self.__checkPackageInstalled()
+        self.adbClient.startActivity(PKG + '/.' + ACTIVITY)
+        time.sleep(3)
+        n = self.adbClient.getFocusedWindowName()
+        self.assertIsNotNone(n)
+        self.assertEqual(PKG + '/' + PKG + '.' + ACTIVITY, n)
+        
     def testStartActivity_uri(self):
         self.adbClient.startActivity(uri='http://www.google.com')
 
