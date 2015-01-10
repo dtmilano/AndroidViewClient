@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '9.0.3'
+__version__ = '9.0.4'
 
 import sys
 import threading
@@ -82,6 +82,7 @@ class Operation:
     SNAPSHOT = 'snapshot'
     SLEEP = 'sleep'
     TRAVERSE = 'traverse'
+    VIEW_SNAPSHOT = 'view_snapshot'
 
 class Culebron:
     APPLICATION_NAME = "Culebra"
@@ -493,6 +494,18 @@ This is usually installed by python package. Check your distribution details.
         else:
             self.getViewContainingPointAndTouch(scaledX, scaledY)
     
+    def onCtrlButton1Pressed(self, event):
+        if DEBUG or True:
+            print >> sys.stderr, "onCtrlButton1Pressed((", event.x, ", ", event.y, "))"
+        (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
+        l = self.vc.findViewsContainingPoint((scaledX, scaledY))
+        if l and len(l) > 0:
+            self.saveViewSnapshot(l[-1])
+        else:
+            msg = "There are no views here!"
+            self.toast(msg)
+            return
+    
     def onButton2Pressed(self, event):
         if DEBUG:
             print >> sys.stderr, "onButton2Pressed((", event.x, ", ", event.y, "))"
@@ -639,6 +652,21 @@ This is usually installed by python package. Check your distribution details.
             self.printOperation(None, Operation.SNAPSHOT, filename, _format)
             self.unscaledScreenshot.save(saveAsFilename, _format)
 
+    def saveViewSnapshot(self, view):
+        '''
+        Saves the View snapshot.
+        '''
+        
+        if not view:
+            raise ValueError("view must be provided to take snapshot")
+        filename = self.snapshotDir + os.sep + '${serialno}-' + view.variableNameFromId() + '-${timestamp}' + '.' + self.snapshotFormat.lower()
+        d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
+        saveAsFilename = d.askSaveAsFilename()
+        if saveAsFilename:
+            _format = os.path.splitext(saveAsFilename)[1][1:].upper()
+            self.printOperation(view, Operation.VIEW_SNAPSHOT, filename, _format)
+            view.writeImageToFile(saveAsFilename, _format)
+        
     def toggleTouchPointDip(self):
         '''
         Toggles the touch point operation using L{Unit.DIP}.
@@ -745,7 +773,6 @@ This is usually installed by python package. Check your distribution details.
             print >>sys.stderr, "onCtrlV()"
         self.printOperation(None, Operation.TRAVERSE)
         
-
     def toggleTargetZones(self):
         self.toggleTargets()
         self.canvas.update_idletasks()
@@ -782,6 +809,7 @@ This is usually installed by python package. Check your distribution details.
     def enableEvents(self):
         self.canvas.update_idletasks()
         self.canvas.bind("<Button-1>", self.onButton1Pressed)
+        self.canvas.bind("<Control-Button-1>", self.onCtrlButton1Pressed)
         self.canvas.bind("<Button-2>", self.onButton2Pressed)
         self.canvas.bind("<Button-3>", self.onButton3Pressed)
         self.canvas.bind("<BackSpace>", self.onKeyPressed)
@@ -794,6 +822,8 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.update_idletasks()
             self.areEventsDisabled = True
             self.canvas.unbind("<Button-1>")
+            self.canvas.unbind("<Control-Button-1>")
+            self.canvas.unbind("<Button-2>")
             self.canvas.unbind("<Button-3>")
             self.canvas.unbind("<BackSpace>")
             #self.canvas.unbind("<Control-Key-S>")
@@ -1103,9 +1133,13 @@ if TKINTER_AVAILABLE:
             self.__cleanUpEpId()
     
 
-                
     class ContextMenu(Tkinter.Menu):
+        '''
+        The context menu (popup).
+        '''
+        
         PADDING = '  '
+        ''' Padding used to separate menu entries from border '''
 
         class Separator():
             SEPARATOR = 'SEPARATOR'
@@ -1128,7 +1162,6 @@ if TKINTER_AVAILABLE:
             Tkinter.Menu.__init__(self, culebron.window, tearoff=False)
             self.view = view
             items = [
-               #ContextMenu.Command('Toggle message area',          15,     'Ctrl+A',   '<Control-A>',  None),
                ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog),
                ContextMenu.Command('Take snapshot and save to file',           26,  'Ctrl+F',   '<Control-F>',  culebron.saveSnapshot),
                ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  culebron.showControlPanel),
@@ -1141,6 +1174,9 @@ if TKINTER_AVAILABLE:
                ContextMenu.Separator(),
                ContextMenu.Command('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit),
             ]
+            if self.view:
+                _saveViewSnapshotForSelectedView = lambda: culebron.saveViewSnapshot(self.view)
+                items.insert(2, ContextMenu.Command('Take view snapshot and save to file',  5, 'Ctrl+W', '<Control-W>', _saveViewSnapshotForSelectedView))
             for item in items:
                 self.addItem(item)
 

@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '9.0.1'
+__version__ = '9.0.4'
 
 import re
 import sys
@@ -459,21 +459,22 @@ def printLongTouch(x, y, duration, unit, orientation):
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
     
-def printSaveViewScreenshot(view, dir):
+def printSaveViewScreenshot(view, filename, _format):
     '''
-    Prints the writeImageToFile.
+    Prints the writeImageToFile for the specified L{View}.
     
     @type view: L{View}
     @param view: the View
-    @type dir: str
-    @param dir: the directory to store the images
+    @type filename: str
+    @param filename: the filename to store the image
+    @type _format: str
+    @param _format: The image format (i.e. PNG)
     '''
 
-    var = variableNameFromIdOrKey(view)
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        print '%s%s.writeImageToFile(\'%s/%s.png\')' % (indent, var, dir, var)
+        print '%s%s.writeImageToFile(\'%s\', \'%s\')' % (indent, view.variableNameFromId(), filename, _format)
     
 def printTakeSnapshot(filename, _format):
     '''
@@ -504,7 +505,9 @@ def traverseAndPrint(view):
     if options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
         printFindViewWithContentDescription(view, options[CulebraOptions.USE_REGEXPS])
     if options[CulebraOptions.SAVE_VIEW_SCREENSHOTS]:
-        printSaveViewScreenshot(view, options[CulebraOptions.SAVE_VIEW_SCREENSHOTS])
+        _format = 'PNG'
+        filename = options[CulebraOptions.SAVE_VIEW_SCREENSHOTS] + os.sep + view.variableNameFromId() + '.' + _format.lower()
+        printSaveViewScreenshot(view, filename, _format)
 
 def printOperation(view, op, *args):
     if len(args) == 0:
@@ -522,28 +525,31 @@ def printOperation(view, op, *args):
                 print >> sys.stderr, a,
         print >> sys.stderr, ")"
     if op == Operation.SLEEP:
-        printSleep(args[0])
+        printSleep(secs=args[0])
         return
     elif op == Operation.PRESS:
-        printPress(args[0])
+        printPress(keycode=args[0])
         return
     elif op == Operation.DUMP:
-        printDump(args[0])
+        printDump(window=args[0])
         return
     elif op == Operation.DRAG:
-        printDrag(args[0], args[1], args[2], args[3], args[4], args[5])
+        printDrag(start=args[0], end=args[1], duration=args[2], steps=args[3], unit=args[4], orientation=args[5])
         return
     elif op == Operation.TOUCH_POINT:
-        printTouch(args[0], args[1], args[2], args[3])
+        printTouch(x=args[0], y=args[1], unit=args[2], orientation=args[3])
         return
     elif op == Operation.LONG_TOUCH_POINT:
-        printLongTouch(args[0], args[1], args[2], args[3], args[4])
+        printLongTouch(x=args[0], y=args[1], duration=args[2], unit=args[3], orientation=args[4])
         return
     elif op == Operation.TRAVERSE:
         printTraverse()
         return
     elif op == Operation.SNAPSHOT:
-        printTakeSnapshot(args[0], args[1])
+        printTakeSnapshot(filename=args[0], _format=args[1])
+        return
+    elif op == Operation.VIEW_SNAPSHOT:
+        printSaveViewScreenshot(view, filename=args[0], _format=args[1])
         return
     
     bd = Descriptor.findBestDescriptor(view)
