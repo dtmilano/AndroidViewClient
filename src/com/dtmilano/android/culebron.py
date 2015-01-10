@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2014  Diego Torres Milano
+Copyright (C) 2012-2015  Diego Torres Milano
 Created on oct 6, 2014
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '9.0.4'
+__version__ = '9.1.0'
 
 import sys
 import threading
@@ -401,8 +401,25 @@ This is usually installed by python package. Check your distribution details.
                 self.hideVignette()
                 return
         else:
-            v.touch()
-            self.printOperation(v, Operation.TOUCH_VIEW)
+            candidates = [v]
+            def findBestCandidate(view):
+                isccf = Culebron.isClickableCheckableOrFocusable(view)
+                cd = view.getContentDescription()
+                text = view.getText()
+                if (cd or text) and not isccf:
+                    # because isccf==False this view was not added to the list of targets
+                    # (i.e. Settings)
+                    candidates.insert(0, view)
+                return None
+            if not (v.getText() or v.getContentDescription()) and v.getChildren():
+                self.vc.traverse(root=v, transform=findBestCandidate, stream=None)
+            if len(candidates) > 2:
+                warnings.warn("We are in trouble, we have more than one candidate to touch", stacklevel=0)
+            candidate = candidates[0]
+            candidate.touch()
+            # we pass root=v as an argument so the corresponding findView*() searches in this
+            # subtree instead of the full tree
+            self.printOperation(candidate, Operation.TOUCH_VIEW, v if candidate != v else None)
 
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)

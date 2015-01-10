@@ -439,6 +439,13 @@ class View:
 
         return self.parent
 
+    def getChildren(self):
+        '''
+        Gets the children of this L{View}.
+        '''
+        
+        return self.children
+    
     def getText(self):
         '''
         Gets the text attribute.
@@ -1848,7 +1855,7 @@ class ViewClient:
             return
 
         s = transform(root)
-        if s:
+        if stream and s:
             ius = "%s%s" % (indent, s if isinstance(s, unicode) else unicode(s, 'utf-8', 'replace'))
             print >>stream, ius.encode('utf-8', 'replace')
 
