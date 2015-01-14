@@ -1331,7 +1331,7 @@ class ViewClient:
             return serialno
 
         if re.search("[.*()+]", serialno):
-            raise ValueError("Regular expression not supported as serialno in ViewClient")
+            raise ValueError("Regular expression not supported as serialno in ViewClient. Found '%s'" % serialno)
 
         return serialno
 
