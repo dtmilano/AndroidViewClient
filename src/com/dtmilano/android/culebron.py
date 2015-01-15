@@ -228,12 +228,12 @@ This is usually installed by python package. Check your distribution details.
             self.__message.config(background=background)
         self.showMessageArea()
 
-    def toast(self, text, background=None):
+    def toast(self, text, background=None, timeout=5):
         if DEBUG:
             print >> sys.stderr, "toast(", text, ",", background,  ")"
         self.message(text, background)
         if text:
-            t = threading.Timer(5, self.hideMessageArea)
+            t = threading.Timer(timeout, self.hideMessageArea)
             t.start()
         else:
             self.hideMessageArea()
@@ -346,6 +346,7 @@ This is usually installed by python package. Check your distribution details.
         for v in vlist:
             text = v.getText()
             if text:
+                self.toast(u'Asserting view with text=%s' % text, timeout=2)
                 # FIXME: only getText() is invoked by the generated assert(), a parameter
                 # should be used to provide different alternatives to printOperation()
                 self.printOperation(v, Operation.TEST, text)
@@ -782,6 +783,7 @@ This is usually installed by python package. Check your distribution details.
     def onCtrlT(self, event):
         if DEBUG:
             print >>sys.stderr, "onCtrlT()"
+        # FIXME: This is only valid if we are generating a test case
         self.toggleGenerateTestCondition()
     
     def onCtrlU(self, event):
