@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '9.0.4'
+__version__ = '9.0.5'
 
 import re
 import sys
@@ -254,12 +254,12 @@ You have to set PYTHONIOENCODING environment variable. For example:
             else:
                 print u'%s%s = %svc.findViewWithTextOrRaise(%s)' % (indent, var, prefix, text)
         elif op == Operation.TOUCH_VIEW:
-            root = '%svc.findViewByIdOrRaise(\'%s\')' % (prefix, arg.getUniqueId()) if arg else '"ROOT"'
+            root = ', root=%svc.findViewByIdOrRaise(\'%s\')' % (prefix, arg.getUniqueId()) if arg else ''
             if options[CulebraOptions.MULTI_DEVICE]:
-                print u'%s[_vc.findViewWithTextOrRaise(%s, root=%s).touch() for _vc in %sallVcs()]' % (indent, text, prefix, root)
+                print u'%s[_vc.findViewWithTextOrRaise(%s%s).touch() for _vc in %sallVcs()]' % (indent, text, prefix, root)
             else:
                 logAction(u'touching view with text=%s' % text)
-                print u'%s%svc.findViewWithTextOrRaise(%s, root=%s).touch()' % (indent, prefix, text, root)
+                print u'%s%svc.findViewWithTextOrRaise(%s%s).touch()' % (indent, prefix, text, root)
         elif op == Operation.TYPE:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
