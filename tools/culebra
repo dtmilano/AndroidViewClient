@@ -334,12 +334,14 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
     _id = view.getId() if view.getId() else view.getUniqueId()
     if op == Operation.ASSIGN:
         if options[CulebraOptions.MULTI_DEVICE]:
+            logAction('finding view with id=%s on ${serialno}' % _id)
             print '%s%s = [_vc.findViewByIdOrRaise("%s") for _vc in %sallVcs()]' % (indent, var, _id, prefix)
         else:
+            logAction('finding view with id=%s' % _id)
             print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
     elif op == Operation.TOUCH_VIEW:
         if options[CulebraOptions.MULTI_DEVICE]:
-            logAction(u'touching views with id=%s on ${serialno}' % _id)
+            logAction(u'touching view with id=%s on ${serialno}' % _id)
             print '%s[_vc.findViewByIdOrRaise("%s").touch() for _vc in %sallVcs()]' % (indent, _id, prefix)
         else:
             logAction(u'touching view with id=%s' % _id)
@@ -348,6 +350,7 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
+            logAction('typing "%s" on view with id=' % (arg, _id))
             print '%s%svc.findViewByIdOrRaise("%s").type(u"%s")' % (indent, prefix, _id, arg)
     elif op == Operation.TEST:
         if options[CulebraOptions.MULTI_DEVICE]:
@@ -358,27 +361,43 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
         error("Invalid operation: %s" % op)
 
 
-def printTraverse():
+def printTraverse(dump=None):
     '''
-    Prints the result of traversing the tree
+    Prints the result of traversing the tree.
+    A previously obtained dump can be passed as a parameter and in such case that
+    tree is used.
+    
+    @param dump: Dump of Views previously obtained via L{ViewClient.dump()}
+    @type dump: list
     '''
     
     print 
-    vc.traverse(transform=transform)
+    if dump:
+        for view in dump:
+            transform(view)
+    else:
+        vc.traverse(transform=transform)
     print
 
-def printDump(window):
+def printDump(window, dump=None):
     '''
     Prints a dump.
+    
+    @param window: The window id to use to print the dump
+    @type window: int or str
+    @param dump: Dump of Views previously obtained via L{ViewClient.dump()}
+    @type dump: list
     '''
     
     if options[CulebraOptions.MULTI_DEVICE]:
+        logAction('dumping content of window=%s on ${serialno}' % window)
         print '%s[_vc.dump(window=%s) for _vc in %sallVcs()]' % (indent, window, prefix)
     else:
+        logAction('dumping content of window=%s' % window)
         print '%s%svc.dump(window=%s)' % (indent, prefix, window)
     
     if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
-        printTraverse()
+        printTraverse(dump)
     
 def printSleep(secs):
     '''
@@ -497,6 +516,8 @@ def traverseAndPrint(view):
     @param view: the View
     '''
 
+    if DEBUG:
+        print >> sys.stderr, "traverseAndPrint(view=%s)" % view.getId()
     if options[CulebraOptions.VERBOSE_COMMENTS]:
         printVerboseComments(view)
     if options[CulebraOptions.FIND_VIEWS_BY_ID]:
@@ -532,7 +553,7 @@ def printOperation(view, op, *args):
         printPress(keycode=args[0])
         return
     elif op == Operation.DUMP:
-        printDump(window=args[0])
+        printDump(window=args[0], dump=args[1])
         return
     elif op == Operation.DRAG:
         printDrag(start=args[0], end=args[1], duration=args[2], steps=args[3], unit=args[4], orientation=args[5])
@@ -652,9 +673,15 @@ def runCulebron():
     culebron.mainloop()
     
 def printShortcutVariables():
-    print '''\
+    if options[CulebraOptions.UNIT_TEST_CLASS] or options[CulebraOptions.UNIT_TEST_METHOD]:
+        print '''\
         _s = CulebraTests.sleep
         _v = CulebraTests.verbose
+'''
+    else:
+        print '''\
+_s = 5
+_v = False
 '''
     
 ################
@@ -912,7 +939,7 @@ vc.writeImageToFile('%s')
         indent = ' ' * 8
         prefix = 'self.'
         
-        printShortcutVariables()
+    printShortcutVariables()
     
     if options[CulebraOptions.GUI]:
         runCulebron()

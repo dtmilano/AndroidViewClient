@@ -170,6 +170,8 @@ This is usually installed by python package. Check your distribution details.
          - hides the vignette (that could have been showed before)
         '''
         
+        if DEBUG:
+            print >> sys.stderr, "takeScreenshotAndShowItOnWindow()"
         self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
         self.image = self.unscaledScreenshot
         (width, height) = self.image.size
@@ -313,10 +315,11 @@ This is usually installed by python package. Check your distribution details.
             window = -1
         else:
             window = -1
-        self.printOperation(None, Operation.DUMP, window)
-        for v in self.vc.dump(window=window):
+        dump = self.vc.dump(window=window)
+        self.printOperation(None, Operation.DUMP, window, dump)
+        for v in dump:
             if DEBUG:
-                print >> sys.stderr, "    findTargets: analyzing", v.getClass()
+                print >> sys.stderr, "    findTargets: analyzing", v.getClass(), v.getId()
             if v.getClass() == LISTVIEW_CLASS:
                 # We may want to touch ListView elements, not just the ListView
                 continue
