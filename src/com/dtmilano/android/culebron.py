@@ -383,8 +383,9 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "self.vc=", self.vc
         v = self.findViewContainingPointInTargets(x, y)
         if v is None:
+            # FIXME: We can touch by DIP by default if no Views were found
             self.hideVignette()
-            msg = "There are no clickable views here!"
+            msg = "There are no touchable or clickable views here!"
             self.toast(msg)
             return
         clazz = v.getClass()
