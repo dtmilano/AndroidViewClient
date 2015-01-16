@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '9.2.0'
+__version__ = '9.2.1'
 
 import re
 import sys
@@ -727,7 +727,7 @@ for o, a in optlist:
         version()
     elif o in ['I', CulebraOptions.IGNORE_SECURE_DEVICE]:
         kwargs1['ignoresecuredevice'] = True
-    elif o in ['K', CulebraOptions.IGNORE_VERSION_CHECK]:
+    elif o in ['E', CulebraOptions.IGNORE_VERSION_CHECK]:
         kwargs1['ignoreversioncheck'] = True
     elif o in ['F', CulebraOptions.FORCE_VIEW_SERVER_USE]:
         kwargs2['forceviewserveruse'] = True
