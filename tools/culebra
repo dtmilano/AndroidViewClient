@@ -535,7 +535,11 @@ def printOperation(view, op, *args):
     if len(args) == 0:
         # We use tuple values in the rest of this method, so if an empty tuple was passed
         # replace it by one containing None
-        args = ( None, )
+        args = ( None, None )
+    elif len(args) < 2:
+        # We use tuple values in the rest of this method, so if an empty tuple was passed
+        # replace it by one containing None
+        args = ( args[0], None )
     if DEBUG:
         print >> sys.stderr, "printOperation(",
         print >> sys.stderr, view.__str__(),
@@ -681,7 +685,7 @@ def printShortcutVariables():
     else:
         print '''\
 _s = 5
-_v = False
+_v = '--verbose' in sys.argv
 '''
     
 ################
@@ -901,6 +905,7 @@ if __name__ == '__main__':
 else:
     # Not a unittest class, still could be a unittest method as we allow to generate methods separately from their classes
     if not options[CulebraOptions.UNIT_TEST_METHOD]:
+        printShortcutVariables()
         print '''
 kwargs1 = %s
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
@@ -938,8 +943,7 @@ vc.writeImageToFile('%s')
 ''' % (options[CulebraOptions.UNIT_TEST_METHOD])
         indent = ' ' * 8
         prefix = 'self.'
-        
-    printShortcutVariables()
+        printShortcutVariables()
     
     if options[CulebraOptions.GUI]:
         runCulebron()

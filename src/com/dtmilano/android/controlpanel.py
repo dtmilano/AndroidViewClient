@@ -141,8 +141,7 @@ class ControlPanelButton(Tkinter.Button):
             self.printOperation(None, Operation.PRESS, key)
 
     def refreshScreen(self):
-        self.culebron.showVignette()
-        self.culebron.takeScreenshotAndShowItOnWindow()
+        self.culebron.refresh()
 
     def takeSnapshot(self):
         # No need to retake snapshot as it is already shown

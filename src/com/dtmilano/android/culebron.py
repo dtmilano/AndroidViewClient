@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '9.1.0'
+__version__ = '9.2.0'
 
 import sys
 import threading
@@ -582,21 +582,7 @@ This is usually installed by python package. Check your distribution details.
             self.showHelp()
             return
         elif keysym == 'F5':
-            self.showVignette()
-            display = copy.copy(self.device.display)
-            self.device.initDisplayProperties()
-            changed = False
-            for prop in display:
-                if display[prop] != self.device.display[prop]:
-                    changed = True
-                    break
-            if changed:
-                self.window.geometry('%dx%d' % (self.device.display['width']*self.scale, self.device.display['height']*self.scale+int(self.statusBar.winfo_height())))
-                self.deleteVignette()
-                self.canvas.destroy()
-                self.canvas = None
-                self.window.update_idletasks()
-            self.takeScreenshotAndShowItOnWindow()
+            self.refresh()
             return
         elif keysym == 'Alt_L':
             return
@@ -631,6 +617,23 @@ This is usually installed by python package. Check your distribution details.
         self.vc.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
+    
+    def refresh(self):
+            self.showVignette()
+            display = copy.copy(self.device.display)
+            self.device.initDisplayProperties()
+            changed = False
+            for prop in display:
+                if display[prop] != self.device.display[prop]:
+                    changed = True
+                    break
+            if changed:
+                self.window.geometry('%dx%d' % (self.device.display['width']*self.scale, self.device.display['height']*self.scale+int(self.statusBar.winfo_height())))
+                self.deleteVignette()
+                self.canvas.destroy()
+                self.canvas = None
+                self.window.update_idletasks()
+            self.takeScreenshotAndShowItOnWindow()
     
     def cancelOperation(self):
         '''
@@ -1184,22 +1187,26 @@ if TKINTER_AVAILABLE:
             #super(ContextMenu, self).__init__(culebron.window, tearoff=False)
             Tkinter.Menu.__init__(self, culebron.window, tearoff=False)
             self.view = view
-            items = [
-               ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog),
-               ContextMenu.Command('Take snapshot and save to file',           26,  'Ctrl+F',   '<Control-F>',  culebron.saveSnapshot),
-               ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  culebron.showControlPanel),
-               ContextMenu.Command('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  culebron.toggleLongTouchPoint),
-               ContextMenu.Command('Touch using DIP',             13,      'Ctrl+I',   '<Control-I>',  culebron.toggleTouchPointDip),
-               ContextMenu.Command('Touch using PX',              12,      'Ctrl+P',   '<Control-P>',   culebron.toggleTouchPointPx),
-               ContextMenu.Command('Generates a Sleep() on output script',     12,  'Ctrl+S', '<Control-S>', culebron.showSleepDialog),
-               ContextMenu.Command('Toggle generating Test Condition',         18,  'Ctrl+T', '<Control-T>', culebron.toggleGenerateTestCondition),
-               ContextMenu.Command('Touch Zones',                  6,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones),
-               ContextMenu.Separator(),
-               ContextMenu.Command('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit),
-            ]
+            items = []
+
             if self.view:
                 _saveViewSnapshotForSelectedView = lambda: culebron.saveViewSnapshot(self.view)
-                items.insert(2, ContextMenu.Command('Take view snapshot and save to file',  5, 'Ctrl+W', '<Control-W>', _saveViewSnapshotForSelectedView))
+                items.append(ContextMenu.Command('Take view snapshot and save to file',  5, 'Ctrl+W', '<Control-W>', _saveViewSnapshotForSelectedView))
+                items.append(ContextMenu.Separator())
+
+            items.append(ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog))
+            items.append(ContextMenu.Command('Take snapshot and save to file',           26,  'Ctrl+F',   '<Control-F>',  culebron.saveSnapshot))
+            items.append(ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  culebron.showControlPanel))
+            items.append(ContextMenu.Command('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  culebron.toggleLongTouchPoint))
+            items.append(ContextMenu.Command('Touch using DIP',             13,      'Ctrl+I',   '<Control-I>',  culebron.toggleTouchPointDip))
+            items.append(ContextMenu.Command('Touch using PX',              12,      'Ctrl+P',   '<Control-P>',   culebron.toggleTouchPointPx))
+            items.append(ContextMenu.Command('Generates a Sleep() on output script',     12,  'Ctrl+S', '<Control-S>', culebron.showSleepDialog))
+            items.append(ContextMenu.Command('Toggle generating Test Condition',         18,  'Ctrl+T', '<Control-T>', culebron.toggleGenerateTestCondition))
+            items.append(ContextMenu.Command('Touch Zones',                  6,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones))
+            items.append(ContextMenu.Command('Refresh',                      0,      'F5',   '<F5>',  culebron.refresh))
+            items.append(ContextMenu.Separator())
+            items.append(ContextMenu.Command('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit))
+
             for item in items:
                 self.addItem(item)
 
