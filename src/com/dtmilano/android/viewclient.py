@@ -18,12 +18,10 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '9.2.1'
+__version__ = '9.2.3'
 
 import sys
 import warnings
-import string
-import datetime
 if sys.executable:
     if 'monkeyrunner' in sys.executable:
         warnings.warn(
@@ -62,6 +60,8 @@ DEBUG_WINDOWS = DEBUG and False
 DEBUG_BOUNDS = DEBUG and False
 DEBUG_DISTANCE = DEBUG and False
 DEBUG_MULTI = DEBUG and False
+DEBUG_VIEW = DEBUG and False
+DEBUG_VIEW_FACTORY = DEBUG and False
 
 WARNINGS = False
 
@@ -152,6 +152,8 @@ class View:
         @type arg2: View instance or AdbClient
         '''
 
+        if DEBUG_VIEW_FACTORY:
+            print >> sys.stderr, "View.factory(%s, %s, %s, %s)" % (arg1, arg2, version, forceviewserveruse)
         if type(arg1) == types.ClassType:
             cls = arg1
             attrs = None
@@ -167,6 +169,8 @@ class View:
 
         if attrs and attrs.has_key('class'):
             clazz = attrs['class']
+            if DEBUG_VIEW_FACTORY:
+                print >> sys.stderr, "    View.factory: creating View with specific class: %s" % clazz
             if clazz == 'android.widget.TextView':
                 return TextView(attrs, device, version, forceviewserveruse)
             elif clazz == 'android.widget.EditText':
@@ -181,6 +185,8 @@ class View:
         elif view:
             return copy.copy(view)
         else:
+            if DEBUG_VIEW_FACTORY:
+                print >> sys.stderr, "    View.factory: creating generic View"
             return View(attrs, device, version, forceviewserveruse)
 
     @classmethod
@@ -197,7 +203,7 @@ class View:
 
         @type _map: map
         @param _map: the map containing the (attribute, value) pairs
-        @type device: MonkeyDevice
+        @type device: AdbClient
         @param device: the device containing this View
         @type version: int
         @param version: the Android SDK version number of the platform where this View belongs. If
@@ -208,10 +214,18 @@ class View:
                         to use C{UiAutomator}.
         '''
 
+        if DEBUG_VIEW:
+            print >> sys.stderr, "View.__init__(%s, %s, %s, %s)" % ("map" if _map is not None else None, device, version, forceviewserveruse)
+            if _map:
+                print >> sys.stderr, "    map:", type(_map)
+                for attr, val in _map.iteritems():
+                    if len(val) > 50:
+                        val = val[:50] + "..."
+                    print >> sys.stderr, "        %s=%s" % (attr, val)
         self.map = _map
         ''' The map that contains the C{attr},C{value} pairs '''
         self.device = device
-        ''' The MonkeyDevice '''
+        ''' The AdbClient '''
         self.children = []
         ''' The children of this View '''
         self.parent = None
