@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '9.2.1'
+__version__ = '9.2.2'
 
 import sys
 import warnings
@@ -481,6 +481,13 @@ class AdbClient:
         displayInfo = self.getDisplayInfo()
         if 'orientation' in displayInfo:
             return displayInfo['orientation']
+        # Fallback method to obtain the orientation
+        # See https://github.com/dtmilano/AndroidViewClient/issues/128
+        surfaceOrientationRE = re.compile('SurfaceOrientation:\s+(\d+)')
+        output = self.shell('dumpsys input')
+        m = surfaceOrientationRE.search(output)
+        if m:
+            return int(m.group(1))
         # We couldn't obtain the orientation
         return -1
 
