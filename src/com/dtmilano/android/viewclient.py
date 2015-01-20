@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '9.2.4'
+__version__ = '9.2.5'
 
 import sys
 import warnings
@@ -532,6 +532,13 @@ class View:
         Gets the View X coordinate
         '''
 
+        return self.getXY()[0]
+
+    def __getX(self):
+        '''
+        Gets the View X coordinate
+        '''
+
         if DEBUG_COORDS:
             print >>sys.stderr, "getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
         x = 0
@@ -551,6 +558,13 @@ class View:
         return x
 
     def getY(self):
+        '''
+        Gets the View Y coordinate
+        '''
+
+        return self.getXY()[1]
+
+    def __getY(self):
         '''
         Gets the View Y coordinate
         '''
@@ -577,6 +591,9 @@ class View:
         '''
         Returns the I{screen} coordinates of this C{View}.
 
+        WARNING: Don't call self.getX() or self.getY() inside this method
+        or it will enter an infinite loop
+
         @return: The I{screen} coordinates of this C{View}
         '''
 
@@ -587,8 +604,8 @@ class View:
                 _id = "NO_ID"
             print >> sys.stderr, "getXY(%s %s ## %s)" % (self.getClass(), _id, self.getUniqueId())
 
-        x = self.getX()
-        y = self.getY()
+        x = self.__getX()
+        y = self.__getY()
         if self.useUiAutomator:
             return (x, y)
 
@@ -607,12 +624,12 @@ class View:
                                    'com.android.internal.widget.ActionBarContextView',
                                    'com.android.internal.view.menu.ActionMenuView',
                                    'com.android.internal.policy.impl.PhoneWindow$DecorView' ]:
-                    if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.getX(), parent.getY())
+                    if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.__getX(), parent.__getY())
                     parent = parent.parent
                     continue
             if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy)
-            hx += parent.getX()
-            hy += parent.getY()
+            hx += parent.__getX()
+            hy += parent.__getY()
             parent = parent.parent
 
         (wvx, wvy) = self.__dumpWindowsInformation(debug=debug)
@@ -723,7 +740,7 @@ class View:
         self.currentFocus = None
         dww = self.device.shell('dumpsys window windows')
         if DEBUG_WINDOWS or debug: print >> sys.stderr, dww
-        lines = dww.split('\n')
+        lines = dww.splitlines()
         widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s?.*}:' %
                             (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
         currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % _nh('winId'))
@@ -765,9 +782,14 @@ class View:
                         visibility = int(m.group('visibility'))
                         if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: visibility=", visibility
                     if self.build[VERSION_SDK_PROPERTY] >= 17:
-                        wvx, wvy = (0, 0)
-                        wvw, wvh = (0, 0)
-                    if self.build[VERSION_SDK_PROPERTY] >= 16:
+                        m = framesRE.search(lines[l2])
+                        if m:
+                            px, py = obtainPxPy(m)
+                            m = contentRE.search(lines[l2+2])
+                            if m:
+                                wvx, wvy = obtainVxVy(m)
+                                wvw, wvh = obtainVwVh(m)
+                    elif self.build[VERSION_SDK_PROPERTY] >= 16:
                         m = framesRE.search(lines[l2])
                         if m:
                             px, py = self.__obtainPxPy(m)

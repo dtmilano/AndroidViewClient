@@ -70,4 +70,4 @@ class Window(object):
     def __str__(self):
         return "Window(%d, wid=%s, a=%s, x=%d, y=%d, w=%d, h=%d, px=%d, py=%d, v=%d, f=%s)" % \
                 (self.num, self.winId, self.activity, self.wvx, self.wvy, self.wvw, self.wvh, self.px, self.py, self.visibility, self.focused)
-    
+
