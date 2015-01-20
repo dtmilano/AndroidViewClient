@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '9.2.3'
+__version__ = '9.2.4'
 
 import sys
 import warnings
@@ -1182,7 +1182,7 @@ class ViewClient:
         '''
         Constructor
 
-        @type device: MonkeyDevice
+        @type device: AdbClient
         @param device: The device running the C{View server} to which this client will connect
         @type serialno: str
         @param serialno: the serial number of the device or emulator to connect to
@@ -1207,7 +1207,7 @@ class ViewClient:
         if not device:
             raise Exception('Device is not connected')
         self.device = device
-        ''' The C{MonkeyDevice} device instance '''
+        ''' The C{AdbClient} device instance '''
 
         if not serialno:
             raise ValueError("Serialno cannot be None")
@@ -1392,6 +1392,10 @@ class ViewClient:
         or using the default regex C{.*}.
 
         If the connection is not successful the script exits.
+        
+        History
+        -------
+        In MonkeyRunner times, this method was a way of overcoming one of its limitations.
         L{MonkeyRunner.waitForConnection()} returns a L{MonkeyDevice} even if the connection failed.
         Then, to detect this situation, C{device.wake()} is attempted and if it fails then it is
         assumed the previous connection failed.
