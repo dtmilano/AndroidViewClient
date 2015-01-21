@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '9.2.1'
+__version__ = '9.3.0'
 
 import sys
 import threading
@@ -28,6 +28,7 @@ import copy
 import string
 import os
 import platform
+from Tkconstants import DISABLED
 
 try:
     from PIL import Image, ImageTk
@@ -153,6 +154,8 @@ This is usually installed by python package. Check your distribution details.
         self.serialno = vc.serialno
         self.scale = scale
         self.window = Tkinter.Tk()
+        self.mainMenu = MainMenu(self)
+        self.window.config(menu=self.mainMenu)
         self.statusBar = StatusBar(self.window)
         self.statusBar.pack(side=Tkinter.BOTTOM, padx=2, pady=2, fill=Tkinter.X)
         self.statusBar.set("Always press F1 for help")
@@ -941,6 +944,23 @@ This is usually installed by python package. Check your distribution details.
 
 
 if TKINTER_AVAILABLE:
+    class MainMenu(Tkinter.Menu):
+        def __init__(self, culebron):
+            Tkinter.Menu.__init__(self, culebron.window)
+            self.culebron = culebron
+            self.fileMenu = Tkinter.Menu(self)
+            self.fileMenu.add_command(label="Quit", underline=0, accelerator='Command-Q', command=self.culebron.quit)
+            self.add_cascade(label="File", underline=0, menu=self.fileMenu)
+            self.viewMenu = Tkinter.Menu(self)
+            self.showTree = Tkinter.BooleanVar()
+            self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True, offvalue=False, variable=self.showTree, state=DISABLED)
+            self.showViewDetails = Tkinter.BooleanVar()
+            self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True, offvalue=False, variable=self.showViewDetails, state=DISABLED)
+            self.add_cascade(label="View", underline=0, menu=self.viewMenu)
+            
+        def callback(self):
+            pass
+    
     class StatusBar(Tkinter.Frame):
 
         def __init__(self, parent):
