@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '9.2.5'
+__version__ = '9.3.1'
 
 import sys
 import warnings
@@ -358,7 +358,7 @@ class View:
             else:
                 # Default behavior
                 raise AttributeError, name
-        else:
+        elif name.startswith('is'):
             # try removing 'is' prefix
             if DEBUG_GETATTR:
                 print >> sys.stderr, "    __getattr__: trying without 'is' prefix"
@@ -368,6 +368,18 @@ class View:
             else:
                 # Default behavior
                 raise AttributeError, name
+        elif name == 'getResourceId':
+            if DEBUG_GETATTR:
+                print >> sys.stderr, "    __getattr__: getResourceId"
+            if self.map.has_key('resource-id'):
+                r = self.map['resource-id']
+            else:
+                # Default behavior
+                raise AttributeError, name
+        else:
+            # Default behavior
+            raise AttributeError, name
+            
 
         # if the method name starts with 'is' let's assume its return value is boolean
 #         if name[:2] == 'is':
