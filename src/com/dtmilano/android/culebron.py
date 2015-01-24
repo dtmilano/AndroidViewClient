@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '9.3.0'
+__version__ = '9.4.0'
 
 import sys
 import threading
@@ -957,6 +957,9 @@ if TKINTER_AVAILABLE:
             self.showViewDetails = Tkinter.BooleanVar()
             self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True, offvalue=False, variable=self.showViewDetails, state=DISABLED)
             self.add_cascade(label="View", underline=0, menu=self.viewMenu)
+            self.helpMenu = Tkinter.Menu(self)
+            self.helpMenu.add_command(label="Keyboard shortcuts", underline=0, accelerator='Command-K', command=self.culebron.showHelp)
+            self.add_cascade(label="Help", underline=0, menu=self.helpMenu)
             
         def callback(self):
             pass
@@ -1265,7 +1268,7 @@ if TKINTER_AVAILABLE:
             #self.transient(self.parent)
             self.title("%s: help" % Culebron.APPLICATION_NAME)
     
-            self.text = ScrolledText.ScrolledText(self, width=50, height=40)
+            self.text = ScrolledText.ScrolledText(self, width=60, height=40)
             self.text.insert(Tkinter.INSERT, '''
     Special keys
     ------------
