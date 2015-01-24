@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '9.3.1'
+__version__ = '9.5.0'
 
 import sys
 import warnings
@@ -175,6 +175,8 @@ class View:
                 return TextView(attrs, device, version, forceviewserveruse)
             elif clazz == 'android.widget.EditText':
                 return EditText(attrs, device, version, forceviewserveruse)
+            elif clazz == 'android.widget.ListView':
+                return ListView(attrs, device, version, forceviewserveruse)
             else:
                 return View(attrs, device, version, forceviewserveruse)
         elif cls:
@@ -1075,6 +1077,13 @@ class EditText(TextView):
         self.touch()
         time.sleep(1)
         self.device.press('KEYCODE_DEL', adbclient.DOWN_AND_UP)
+
+class ListView(View):
+    '''
+    ListView class.
+    '''
+
+    pass
 
 class UiAutomator2AndroidViewClient():
     '''
