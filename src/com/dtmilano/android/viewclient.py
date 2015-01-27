@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '9.5.1'
+__version__ = '9.6.0'
 
 import sys
 import warnings
@@ -712,6 +712,15 @@ class View:
         h = self.getHeight()
         return (x, y, w, h)
 
+    def getBounds(self):
+        '''
+        Gets the View bounds
+        '''
+
+        if 'bounds' in self.map:
+            return self.map['bounds']
+        else:
+            return self.getCoords()
 
     def getCenter(self):
         '''
@@ -1613,6 +1622,20 @@ class ViewClient:
         return ViewClient.traverseShowClassIdAndText(view, View.getPositionAndSize)
 
     @staticmethod
+    def traverseShowClassIdTextAndBounds(view):
+        '''
+        Shows the View class, id and text if available.
+        This function can be used as a transform function to L{ViewClient.traverse()}
+
+        @type view: I{View}
+        @param view: the View
+        @return: the string containing class, id, and text if available plus
+                 View bounds
+        '''
+
+        return ViewClient.traverseShowClassIdAndText(view, View.getBounds)
+
+    @staticmethod
     def traverseTakeScreenshot(view):
         '''
         Don't show any any, just takes the screenshot.
@@ -1639,6 +1662,8 @@ class ViewClient:
     ''' An alias for L{traverseShowClassIdTextAndCenter(view)} '''
     TRAVERSE_CITPS = traverseShowClassIdTextPositionAndSize
     ''' An alias for L{traverseShowClassIdTextPositionAndSize(view)} '''
+    TRAVERSE_CITB = traverseShowClassIdTextAndBounds
+    ''' An alias for L{traverseShowClassIdTextAndBounds(view)} '''
     TRAVERSE_CITCDS = traverseShowClassIdTextContentDescriptionAndScreenshot
     ''' An alias for L{traverseShowClassIdTextContentDescriptionAndScreenshot(view)} '''
     TRAVERSE_S = traverseTakeScreenshot
@@ -1881,7 +1906,7 @@ class ViewClient:
         '''
         return self.root
 
-    def traverse(self, root="ROOT", indent="", transform=View.__str__, stream=sys.stdout):
+    def traverse(self, root="ROOT", indent="", transform=None, stream=sys.stdout):
         '''
         Traverses the C{View} tree and prints its nodes.
 
@@ -1895,6 +1920,12 @@ class ViewClient:
         @type transform: method
         @param transform: a method to use to transform the node before is printed
         '''
+
+        if transform is None:
+            # this cannot be a default value, otherwise
+            # TypeError: 'staticmethod' object is not callable
+            # is raised
+            transform = ViewClient.TRAVERSE_CIT
 
         if type(root) == types.StringType and root == "ROOT":
             root = self.root
