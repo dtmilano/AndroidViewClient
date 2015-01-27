@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '9.6.0'
+__version__ = '9.6.1'
 
 import sys
 import threading
@@ -948,16 +948,16 @@ if TKINTER_AVAILABLE:
         def __init__(self, culebron):
             Tkinter.Menu.__init__(self, culebron.window)
             self.culebron = culebron
-            self.fileMenu = Tkinter.Menu(self)
+            self.fileMenu = Tkinter.Menu(self, tearoff=False)
             self.fileMenu.add_command(label="Quit", underline=0, accelerator='Command-Q', command=self.culebron.quit)
             self.add_cascade(label="File", underline=0, menu=self.fileMenu)
-            self.viewMenu = Tkinter.Menu(self)
+            self.viewMenu = Tkinter.Menu(self, tearoff=False)
             self.showTree = Tkinter.BooleanVar()
             self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True, offvalue=False, variable=self.showTree, state=DISABLED)
             self.showViewDetails = Tkinter.BooleanVar()
             self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True, offvalue=False, variable=self.showViewDetails, state=DISABLED)
             self.add_cascade(label="View", underline=0, menu=self.viewMenu)
-            self.helpMenu = Tkinter.Menu(self)
+            self.helpMenu = Tkinter.Menu(self, tearoff=False)
             self.helpMenu.add_command(label="Keyboard shortcuts", underline=0, accelerator='Command-K', command=self.culebron.showHelp)
             self.add_cascade(label="Help", underline=0, menu=self.helpMenu)
             
