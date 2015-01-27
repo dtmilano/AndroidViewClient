@@ -17,6 +17,7 @@ version_str='__version__ ='
 
 case "$1" in
     get)
+        (
         for f in $(find src tools -type f -exec grep -l "$version_str" {} \;)
         do
             echo -n "$f: "
@@ -24,6 +25,18 @@ case "$1" in
         done
         echo -n "setup.py: "
         grep version setup.py
+        ) | awk "
+            BEGIN { FS = \"[=:]+\"; max=-1 };
+            { gsub(/[,' ]+/, \"\", \$NF); files[NR]=\$1; v=\$NF; versions[NR]=v; if (v > max) max=v;}
+            END {
+                for (i in files) {
+                    if (versions[i] == max) {
+                        s=\" MAX\"
+                    } else {
+                        s = \"\"};
+                    printf(\"%-45s: %s%s\\n\", files[i], versions[i], s)};
+            }
+            "
         ;;
 
     set)
