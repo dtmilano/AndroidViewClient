@@ -332,6 +332,29 @@ class AdbClient:
         self.__connect()
         return devices
 
+    def reboot(self):
+        cmd = "reboot"
+        if DEBUG:
+            print >> sys.stderr, "shell(cmd=%s)" % cmd
+        self.__checkTransport()
+        if cmd:
+            self.__send('shell:%s' % cmd, checkok=True, reconnect=False)
+            out = ''
+            while True:
+                _str = None
+                try:
+                    _str = self.socket.recv(4096)
+                except Exception, ex:
+                    print >> sys.stderr, "ERROR:", ex
+                if not _str:
+                    break
+                out += _str
+            return out
+        else:
+            self.__send('shell:')
+            sout = adbClient.socket.makefile("r")
+            return sout
+
     def shell(self, cmd=None):
         if DEBUG:
             print >> sys.stderr, "shell(cmd=%s)" % cmd
