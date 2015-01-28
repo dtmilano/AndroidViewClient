@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '9.6.0'
+__version__ = '9.6.1'
 
 import sys
 import warnings
@@ -1982,7 +1982,7 @@ class ViewClient:
         if self.useUiAutomator:
             # NOTICE:
             # Using /dev/tty this works even on devices with no sdcard
-            received = unicode(self.device.shell('uiautomator dump --compressed /dev/tty >/dev/null'), encoding='utf-8', errors='replace')
+            received = unicode(self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.getSdkVersion() >= 18 else '')), encoding='utf-8', errors='replace')
             if not received:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             if DEBUG:
