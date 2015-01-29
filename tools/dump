@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '9.6.1'
+__version__ = '9.6.2'
 
 import sys
 import os
@@ -17,7 +17,7 @@ try:
 except:
     pass
 
-from com.dtmilano.android.viewclient import ViewClient
+from com.dtmilano.android.viewclient import ViewClient, View
 
 HELP = 'help'
 VERBOSE = 'verbose'
@@ -28,6 +28,7 @@ FORCE_VIEW_SERVER_USE = 'force-view-server-use'
 DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
 DO_NOT_IGNORE_UIAUTOMATOR_KILLED = 'do-not-ignore-uiautomator-killed'
 WINDOW = 'window'
+ALL = 'all'
 UNIQUE_ID = 'uniqueId'
 POSITION = 'position'
 BOUNDS = 'bounds'
@@ -38,7 +39,9 @@ SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
 DO_NOT_DUMP_VIEWS = 'do-not-dump-views'
 
-MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
+MAP = {
+       'a':View.__str__, ALL:View.__str__,
+       'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        'x':ViewClient.TRAVERSE_CITPS, POSITION:ViewClient.TRAVERSE_CITPS,
        'b':ViewClient.TRAVERSE_CITB, BOUNDS:ViewClient.TRAVERSE_CITB,
        'd':ViewClient.TRAVERSE_CITCD, CONTENT_DESCRIPTION:ViewClient.TRAVERSE_CITCD,
@@ -49,10 +52,10 @@ MAP = {'i':ViewClient.TRAVERSE_CITUI, UNIQUE_ID:ViewClient.TRAVERSE_CITUI,
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:ixbdgcf:W:D'
+SHORT_OPTS = 'HVvIEFSkw:aixbdgcf:W:D'
 LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
-              UNIQUE_ID, POSITION, BOUNDS, CONTENT_DESCRIPTION, TAG, CENTER,
+              ALL, UNIQUE_ID, POSITION, BOUNDS, CONTENT_DESCRIPTION, TAG, CENTER,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
               DO_NOT_DUMP_VIEWS,
               ]
@@ -65,6 +68,7 @@ OPTS_HELP = {
     'S': 'don\'t start ViewServer',
     'k': 'don\'t ignore UiAutomator killed',
     'w': 'dump WINDOW content (default: -1, all windows)',
+    'a': 'dump all information about Views',
     'i': 'dump View unique IDs',
     'x': 'dump View positions',
     'b': 'dump View bounds', 
