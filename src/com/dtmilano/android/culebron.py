@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '9.6.1'
+__version__ = '10.0.0'
 
 import sys
 import threading
@@ -29,6 +29,7 @@ import string
 import os
 import platform
 from Tkconstants import DISABLED
+from __builtin__ import False
 
 try:
     from PIL import Image, ImageTk
@@ -54,6 +55,8 @@ DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and False
 DEBUG_KEY = DEBUG and True
 DEBUG_ISCCOF = DEBUG and False
+DEBUG_FIND_VIEW = DEBUG and False
+DEBUG_CONTEXT_MENU = DEBUG and False
 
 
 class Color:
@@ -358,6 +361,10 @@ This is usually installed by python package. Check your distribution details.
 
     def findViewContainingPointInTargets(self, x, y):
         vlist = self.vc.findViewsContainingPoint((x, y))
+        if DEBUG_FIND_VIEW:
+            print >> sys.stderr, "Views found:"
+            for v in vlist:
+                print >> sys.stderr, "   ", v.__smallStr__()
         vlist.reverse()
         for v in vlist:
             if DEBUG:
@@ -903,6 +910,14 @@ This is usually installed by python package. Check your distribution details.
         width = 15
         return self.canvas.create_line(x0*self.scale, y0*self.scale, x1*self.scale, y1*self.scale, width=width, fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
     
+    def executeCommandAndRefresh(self, command):
+        self.showVignette()
+        # FIXME: print operation
+        command()
+        self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
+        self.vc.sleep(5)
+        self.takeScreenshotAndShowItOnWindow()
+        
     def setOnTouchListener(self, listener):
         self.onTouchListener = listener
 
@@ -1183,6 +1198,8 @@ if TKINTER_AVAILABLE:
     
 
     class ContextMenu(Tkinter.Menu):
+        # FIXME: should get rid of the nested classes, otherwise it's not possible to create a parent class
+        # SubMenu for UiScrollableSubMenu
         '''
         The context menu (popup).
         '''
@@ -1203,20 +1220,41 @@ if TKINTER_AVAILABLE:
                 self.underline = underline
                 self.shortcut = shortcut
                 self.event = event
-                self.command = command 
-
+                self.command = command
+                
+        class UiScrollableSubMenu(Tkinter.Menu):
+            def __init__(self, menu, description, view, culebron):
+                # Tkninter.Menu is not extending object, so we can't do this:
+                #super(ContextMenu, self).__init__(culebron.window, tearoff=False)
+                Tkinter.Menu.__init__(self, menu, tearoff=False)
+                self.description = description
+                self.add_command(label='Fling backward', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingBackward))
+                self.add_command(label='Fling forward', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingForward))
+                self.add_command(label='Fling to beginning', command=lambda: culebron.executeCommandAndRefresh(lambda: view.uiScrollable.flingToBeginning(10)))
+                self.add_command(label='Fling to end', command=lambda: culebron.executeCommandAndRefresh(lambda: view.uiScrollable.flingToEnd(10)))
+        
         def __init__(self, culebron, view):
             # Tkninter.Menu is not extending object, so we can't do this:
             #super(ContextMenu, self).__init__(culebron.window, tearoff=False)
             Tkinter.Menu.__init__(self, culebron.window, tearoff=False)
+            if DEBUG_CONTEXT_MENU:
+                print >> sys.stderr, "Creating ContextMenu for", view.__smallStr__() if view else "No View"
             self.view = view
             items = []
 
             if self.view:
                 _saveViewSnapshotForSelectedView = lambda: culebron.saveViewSnapshot(self.view)
                 items.append(ContextMenu.Command('Take view snapshot and save to file',  5, 'Ctrl+W', '<Control-W>', _saveViewSnapshotForSelectedView))
+                if self.view.uiScrollable:
+                    items.append(ContextMenu.UiScrollableSubMenu(self, 'UiScrollable', view, culebron))
+                elif self.view.parent.uiScrollable:
+                    # WARNING:
+                    # A bit dangerous, but may work
+                    # If we click ona ListView then the View pased to this ContextMenu is the child,
+                    # perhaps we want to scroll the parent
+                    items.append(ContextMenu.UiScrollableSubMenu(self, 'UiScrollable', view.parent, culebron))
                 items.append(ContextMenu.Separator())
-
+            
             items.append(ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog))
             items.append(ContextMenu.Command('Take snapshot and save to file',           26,  'Ctrl+F',   '<Control-F>',  culebron.saveSnapshot))
             items.append(ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  culebron.showControlPanel))
@@ -1238,6 +1276,8 @@ if TKINTER_AVAILABLE:
                 self.addSeparator()
             elif isinstance(item, ContextMenu.Command):
                 self.addCommand(item)
+            elif isinstance(item, ContextMenu.UiScrollableSubMenu):
+                self.addSubMenu(item)
             else:
                 raise RuntimeError("Unsupported item=" + str(item))
 
@@ -1248,6 +1288,9 @@ if TKINTER_AVAILABLE:
             self.add_command(label=self.PADDING + item.description, underline=item.underline + len(self.PADDING), command=item.command, accelerator=item.shortcut)
             if item.event:
                 self.bind_all(item.event, item.command)
+            
+        def addSubMenu(self, item):
+            self.add_cascade(label=self.PADDING + item.description, menu=item)
             
         def showPopupMenu(self, event):
             try:

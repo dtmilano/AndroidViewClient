@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '9.6.1'
+__version__ = '10.0.0'
 
 import sys
 import warnings
@@ -241,6 +241,8 @@ class View:
         ''' API version number '''
         self.forceviewserveruse = forceviewserveruse
         ''' Force ViewServer use '''
+        self.uiScrollable = None
+        ''' If this is a scrollable View this keeps the L{UiScrollable} object ''' 
 
         if version != -1:
             self.build[VERSION_SDK_PROPERTY] = version
@@ -335,6 +337,9 @@ class View:
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
             self.isFocusedProperty = IS_FOCUSED_PROPERTY
+            
+        if self.isScrollable():
+            self.uiScrollable = UiScrollable(self)
 
     def __getitem__(self, key):
         return self.map[key]
@@ -1086,6 +1091,70 @@ class EditText(TextView):
         self.touch()
         time.sleep(1)
         self.device.press('KEYCODE_DEL', adbclient.DOWN_AND_UP)
+
+class UiCollection():
+    '''
+    Used to enumerate a container's user interface (UI) elements for the purpose of counting, or
+    targeting a sub elements by a child's text or description.
+    '''
+    
+    pass
+
+class UiScrollable(UiCollection):
+    '''
+    A L{UiCollection} that supports searching for items in scrollable layout elements.
+    
+    This class can be used with horizontally or vertically scrollable controls.
+    '''
+
+    def __init__(self, view):
+        self.view = view
+        self.vertical = True
+        self.bounds = view.getBounds()
+        (self.x, self.y, self.w, self.h) = view.getPositionAndSize()
+        self.steps = 10
+        self.duration = 500
+        self.swipeDeadZonePercentage = 0.1
+        
+    def flingBackward(self):
+        if self.vertical:
+            s = (self.x + self.w/2, self.y + self.h * self.swipeDeadZonePercentage)
+            e = (self.x + self.w/2, self.y + self.h - self.h * self.swipeDeadZonePercentage)
+        else:
+            raise RuntimeError('Not implemented yet')
+        print >> sys.stderr, "flingBackward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
+        print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
+        self.view.device.drag(s, e, self.duration, self.steps, 0)
+    
+    def flingForward(self):
+        if self.vertical:
+            s = (self.x + self.w/2, (self.y + self.h ) - self.h * self.swipeDeadZonePercentage)
+            e = (self.x + self.w/2, self.y + self.h * self.swipeDeadZonePercentage)
+        else:
+            raise RuntimeError('Not implemented yet')
+        print >> sys.stderr, "flingForward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
+        print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
+        self.view.device.drag(s, e, self.duration, self.steps, 0)
+    
+    def flingToBeginning(self, maxSwipes):
+        if self.vertical:
+            for _ in range(maxSwipes):
+                print >> sys.stderr, "flinging to beginning"
+                self.flingBackward()
+    
+    def flingToEnd(self, maxSwipes):
+        if self.vertical:
+            for _ in range(maxSwipes):
+                print >> sys.stderr, "flinging to end"
+                self.flingForward()
+    
+    def setAsHorizontalList(self):
+        self.vertical = False
+        
+    def setAsVerticalList(self):
+        self.vertical = True
+    
+    
 
 class ListView(View):
     '''
