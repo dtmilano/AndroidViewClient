@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2012-2013  Diego Torres Milano
+Copyright (C) 2012-2015  Diego Torres Milano
 Created on Dec 1, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.0'
+__version__ = '10.0.1'
 
 import sys
 import warnings
@@ -50,7 +50,11 @@ DEBUG_LOG = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
 DEBUG_COORDS = DEBUG and False
 
-HOSTNAME = 'localhost'
+try:
+    HOSTNAME = os.environ['ANDROID_ADB_SERVER_HOST']
+except:
+    HOSTNAME = 'localhost'
+
 try:
     PORT = int(os.environ['ANDROID_ADB_SERVER_PORT'])
 except KeyError:
