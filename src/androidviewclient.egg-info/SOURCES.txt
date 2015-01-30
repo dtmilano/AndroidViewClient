@@ -15,5 +15,7 @@ src/com/dtmilano/android/window.py
 src/com/dtmilano/android/adb/__init__.py
 src/com/dtmilano/android/adb/adbclient.py
 src/com/dtmilano/android/adb/androidkeymap.py
+src/share/__init__.py
+src/share/pixmaps/__init__.py
 tools/culebra
 tools/dump

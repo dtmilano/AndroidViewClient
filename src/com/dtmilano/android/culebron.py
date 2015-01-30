@@ -30,6 +30,7 @@ import os
 import platform
 from Tkconstants import DISABLED
 from __builtin__ import False
+from pkg_resources import Requirement, resource_filename
 
 try:
     from PIL import Image, ImageTk
@@ -157,6 +158,10 @@ This is usually installed by python package. Check your distribution details.
         self.serialno = vc.serialno
         self.scale = scale
         self.window = Tkinter.Tk()
+        icon = resource_filename(Requirement.parse("androidviewclient"),
+            "share/pixmaps/culebra.png")
+        self.window.tk.call('wm', 'iconphoto',  self.window._w,
+            ImageTk.PhotoImage(file=icon))
         self.mainMenu = MainMenu(self)
         self.window.config(menu=self.mainMenu)
         self.statusBar = StatusBar(self.window)
@@ -630,6 +635,7 @@ This is usually installed by python package. Check your distribution details.
     
     def refresh(self):
             self.showVignette()
+            self.device.wake()
             display = copy.copy(self.device.display)
             self.device.initDisplayProperties()
             changed = False

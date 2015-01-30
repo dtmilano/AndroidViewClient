@@ -3,10 +3,11 @@
 from setuptools import setup, find_packages
 
 setup(name='androidviewclient',
-    version='9.6.1',
-    description='''AndroidViewClient is a 100% pure python tool that
-        simplifies test script creation providing higher level operations and the ability of
-        obtaining the tree of Views present at any given moment on the device or emulator screen.
+    version='10.0.0',
+    description='''AndroidViewClient is a 100% pure python library and tools
+        that simplifies test script creation providing higher level
+        operations and the ability of obtaining the tree of Views present at
+        any given moment on the device or emulator screen.
         ''',
     license='Apache',
     keywords='android uiautomator viewclient monkeyrunner test automation',
@@ -15,6 +16,8 @@ setup(name='androidviewclient',
     url='https://github.com/dtmilano/AndroidViewClient/',
     packages=find_packages('src'),
     package_dir={'':'src'},
+    package_data={'':['*.png']},
+    include_package_data=True,
     scripts=['tools/culebra', 'tools/dump'],
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Developers',
