@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.0.3'
+__version__ = '10.0.4'
 
 import sys
 import threading
@@ -77,6 +77,7 @@ class Operation:
     DEFAULT = 'default'
     DRAG = 'drag'
     DUMP = 'dump'
+    FLING_BACKWARD = 'fling_backward'
     TEST = 'test'
     TEST_TEXT = 'test_text'
     TOUCH_VIEW = 'touch_view'
@@ -88,6 +89,11 @@ class Operation:
     SLEEP = 'sleep'
     TRAVERSE = 'traverse'
     VIEW_SNAPSHOT = 'view_snapshot'
+    
+    @staticmethod
+    def fromCommandName(commandName):
+        if commandName == 'flingBackward':
+            return Operation.FLING_BACKWARD
 
 class Culebron:
     APPLICATION_NAME = "Culebra"
@@ -532,7 +538,7 @@ This is usually installed by python package. Check your distribution details.
             self.getViewContainingPointAndTouch(scaledX, scaledY)
     
     def onCtrlButton1Pressed(self, event):
-        if DEBUG or True:
+        if DEBUG:
             print >> sys.stderr, "onCtrlButton1Pressed((", event.x, ", ", event.y, "))"
         (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
         l = self.vc.findViewsContainingPoint((scaledX, scaledY))
@@ -918,7 +924,9 @@ This is usually installed by python package. Check your distribution details.
     
     def executeCommandAndRefresh(self, command):
         self.showVignette()
-        # FIXME: print operation
+        if DEBUG:
+            print >> sys.stderr, 'command=', command, command.__name__, command.__self__, command.__self__.view
+        self.printOperation(command.__self__.view, Operation.fromCommandName(command.__name__))
         command()
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)

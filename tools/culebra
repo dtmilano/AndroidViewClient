@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.0.0'
+__version__ = '10.0.4'
 
 import re
 import sys
@@ -317,7 +317,7 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
             else:
                 print '%s%sassertEquals(%svc.findViewWithContentDescriptionOrRaise(%s).getText(), u\'\'\'%s\'\'\')' % (indent, prefix, prefix, contentDescription, arg)
         else:
-            error("Invalid operation: %s" % op)
+            error("Invalid operation in %s: %s" % (sys._getframe().f_code.co_name), op)
             
     elif kwargs1[CulebraOptions.VERBOSE]:
         warnings.warn('View with id=%s has no content-description' % view.getUniqueId())
@@ -358,7 +358,7 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
         else:
             print '%s%sassertEquals(%svc.findViewByIdOrRaise("%s").getText(), u\'\'\'%s\'\'\')' % (indent, prefix, prefix, _id, arg)
     else:
-        error("Invalid operation: %s" % op)
+        error("Invalid operation in %s: %s" % (sys._getframe().f_code.co_name, op))
 
 
 def printTraverse(dump=None):
@@ -494,7 +494,18 @@ def printSaveViewScreenshot(view, filename, _format):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
+        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # next line will generate an error in the script as the variable is 'undefined'
         print '%s%s.writeImageToFile(\'%s\', \'%s\')' % (indent, view.variableNameFromId(), filename, _format)
+    
+def printFlingBackward(view):
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # next line will generate an error in the script as the variable is 'undefined'
+        logAction('flinging backward view with id=%s' % view.getId())
+        print '%s%s.uiScrollable.flingBackward()' % (indent, view.variableNameFromId())
     
 def printTakeSnapshot(filename, _format):
     '''
@@ -576,6 +587,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.VIEW_SNAPSHOT:
         printSaveViewScreenshot(view, filename=args[0], _format=args[1])
+        return
+    elif op == Operation.FLING_BACKWARD:
+        printFlingBackward(view)
         return
     
     bd = Descriptor.findBestDescriptor(view)
