@@ -1155,8 +1155,9 @@ class UiScrollable(UiCollection):
             e = (self.x + self.w/2, self.y + self.h - self.h * self.swipeDeadZonePercentage)
         else:
             raise RuntimeError('Not implemented yet')
-        print >> sys.stderr, "flingBackward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
-        print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
+        if DEBUG:
+            print >> sys.stderr, "flingBackward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
+            print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
         self.view.device.drag(s, e, self.duration, self.steps, 0)
     
     def flingForward(self):
@@ -1165,8 +1166,9 @@ class UiScrollable(UiCollection):
             e = (self.x + self.w/2, self.y + self.h * self.swipeDeadZonePercentage)
         else:
             raise RuntimeError('Not implemented yet')
-        print >> sys.stderr, "flingForward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
-        print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
+        if DEBUG:
+            print >> sys.stderr, "flingForward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
+            print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
         self.view.device.drag(s, e, self.duration, self.steps, 0)
     
     def flingToBeginning(self, maxSwipes):

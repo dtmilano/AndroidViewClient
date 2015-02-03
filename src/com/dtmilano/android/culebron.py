@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.0.0'
+__version__ = '10.0.3'
 
 import sys
 import threading
@@ -1253,12 +1253,17 @@ if TKINTER_AVAILABLE:
                 items.append(ContextMenu.Command('Take view snapshot and save to file',  5, 'Ctrl+W', '<Control-W>', _saveViewSnapshotForSelectedView))
                 if self.view.uiScrollable:
                     items.append(ContextMenu.UiScrollableSubMenu(self, 'UiScrollable', view, culebron))
-                elif self.view.parent.uiScrollable:
-                    # WARNING:
-                    # A bit dangerous, but may work
-                    # If we click ona ListView then the View pased to this ContextMenu is the child,
-                    # perhaps we want to scroll the parent
-                    items.append(ContextMenu.UiScrollableSubMenu(self, 'UiScrollable', view.parent, culebron))
+                else:
+                    parent = self.view.parent
+                    while parent:
+                        if parent.uiScrollable:
+                            # WARNING:
+                            # A bit dangerous, but may work
+                            # If we click ona ListView then the View pased to this ContextMenu is the child,
+                            # perhaps we want to scroll the parent
+                            items.append(ContextMenu.UiScrollableSubMenu(self, 'UiScrollable', parent, culebron))
+                            break
+                        parent = parent.parent
                 items.append(ContextMenu.Separator())
             
             items.append(ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog))
