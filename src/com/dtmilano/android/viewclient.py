@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.0'
+__version__ = '10.0.2'
 
 import sys
 import warnings
@@ -1092,6 +1092,39 @@ class EditText(TextView):
         time.sleep(1)
         self.device.press('KEYCODE_DEL', adbclient.DOWN_AND_UP)
 
+class UiDevice():
+    '''
+    Provides access to state information about the device. You can also use this class to simulate
+    user actions on the device, such as pressing the d-pad or pressing the Home and Menu buttons.
+    '''
+    
+    def __init__(self, vc):
+        self.vc = vc
+        self.device = self.vc.device
+        
+    def openNotification(self):
+        '''
+        Opens the notification shade.
+        '''
+        
+        w2 = self.device.display['width'] / 2
+        s = (w2, 0)
+        e = (w2, self.device.display['height']/2)
+        self.device.drag(s, e, 500, 20, -1)
+        self.vc.sleep(1)
+        self.vc.dump(-1)
+        
+    def openQuickSettings(self):
+        '''
+        Opens the Quick Settings shade.
+        '''
+        
+        self.openNotification()
+        self.vc.findViewWithContentDescriptionOrRaise(u'''System settings''').touch()
+        self.vc.sleep(1)
+        self.vc.dump(window=-1)
+        
+        
 class UiCollection():
     '''
     Used to enumerate a container's user interface (UI) elements for the purpose of counting, or
@@ -1139,13 +1172,15 @@ class UiScrollable(UiCollection):
     def flingToBeginning(self, maxSwipes):
         if self.vertical:
             for _ in range(maxSwipes):
-                print >> sys.stderr, "flinging to beginning"
+                if DEBUG:
+                    print >> sys.stderr, "flinging to beginning"
                 self.flingBackward()
     
     def flingToEnd(self, maxSwipes):
         if self.vertical:
             for _ in range(maxSwipes):
-                print >> sys.stderr, "flinging to end"
+                if DEBUG:
+                    print >> sys.stderr, "flinging to end"
                 self.flingForward()
     
     def setAsHorizontalList(self):
@@ -1441,6 +1476,9 @@ class ViewClient:
         self.windows = None
         ''' The list of windows as obtained by L{ViewClient.list()} '''
 
+        self.uiDevice = UiDevice(self)
+        ''' The L{UiDevice} '''
+        
         if autodump:
             self.dump()
 
