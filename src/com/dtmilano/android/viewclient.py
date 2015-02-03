@@ -1158,7 +1158,7 @@ class UiScrollable(UiCollection):
         if DEBUG:
             print >> sys.stderr, "flingBackward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
             print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
-        self.view.device.drag(s, e, self.duration, self.steps, 0)
+        self.view.device.drag(s, e, self.duration, self.steps, self.view.device.display['orientation'])
     
     def flingForward(self):
         if self.vertical:
@@ -1169,7 +1169,7 @@ class UiScrollable(UiCollection):
         if DEBUG:
             print >> sys.stderr, "flingForward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
             print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
-        self.view.device.drag(s, e, self.duration, self.steps, 0)
+        self.view.device.drag(s, e, self.duration, self.steps, self.view.device.display['orientation'])
     
     def flingToBeginning(self, maxSwipes):
         if self.vertical:
