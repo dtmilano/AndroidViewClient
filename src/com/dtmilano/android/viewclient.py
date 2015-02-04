@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.2'
+__version__ = '10.0.5'
 
 import sys
 import warnings
@@ -1171,14 +1171,14 @@ class UiScrollable(UiCollection):
             print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
         self.view.device.drag(s, e, self.duration, self.steps, self.view.device.display['orientation'])
     
-    def flingToBeginning(self, maxSwipes):
+    def flingToBeginning(self, maxSwipes=10):
         if self.vertical:
             for _ in range(maxSwipes):
                 if DEBUG:
                     print >> sys.stderr, "flinging to beginning"
                 self.flingBackward()
     
-    def flingToEnd(self, maxSwipes):
+    def flingToEnd(self, maxSwipes=10):
         if self.vertical:
             for _ in range(maxSwipes):
                 if DEBUG:

@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.0.4'
+__version__ = '10.0.5'
 
 import sys
 import threading
@@ -78,6 +78,9 @@ class Operation:
     DRAG = 'drag'
     DUMP = 'dump'
     FLING_BACKWARD = 'fling_backward'
+    FLING_FORWARD = 'fling_forward'
+    FLING_TO_BEGINNING = 'fling_to_beginning'
+    FLING_TO_END = 'fling_to_end'
     TEST = 'test'
     TEST_TEXT = 'test_text'
     TOUCH_VIEW = 'touch_view'
@@ -92,8 +95,10 @@ class Operation:
     
     @staticmethod
     def fromCommandName(commandName):
-        if commandName == 'flingBackward':
-            return Operation.FLING_BACKWARD
+        MAP = {'flingBackward': Operation.FLING_BACKWARD, 'flingForward': Operation.FLING_FORWARD,
+            'flingToBeginning': Operation.FLING_TO_BEGINNING, 'flingToEnd': Operation.FLING_TO_END
+            }
+        return MAP[commandName]
 
 class Culebron:
     APPLICATION_NAME = "Culebra"
@@ -925,7 +930,8 @@ This is usually installed by python package. Check your distribution details.
     def executeCommandAndRefresh(self, command):
         self.showVignette()
         if DEBUG:
-            print >> sys.stderr, 'command=', command, command.__name__, command.__self__, command.__self__.view
+            print >> sys.stderr, 'DEBUG: command=', command, command.__name__
+            print >> sys.stderr, 'DEBUG: command=', command.__self__, command.__self__.view
         self.printOperation(command.__self__.view, Operation.fromCommandName(command.__name__))
         command()
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
@@ -1244,8 +1250,8 @@ if TKINTER_AVAILABLE:
                 self.description = description
                 self.add_command(label='Fling backward', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingBackward))
                 self.add_command(label='Fling forward', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingForward))
-                self.add_command(label='Fling to beginning', command=lambda: culebron.executeCommandAndRefresh(lambda: view.uiScrollable.flingToBeginning(10)))
-                self.add_command(label='Fling to end', command=lambda: culebron.executeCommandAndRefresh(lambda: view.uiScrollable.flingToEnd(10)))
+                self.add_command(label='Fling to beginning', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingToBeginning))
+                self.add_command(label='Fling to end', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingToEnd))
         
         def __init__(self, culebron, view):
             # Tkninter.Menu is not extending object, so we can't do this:

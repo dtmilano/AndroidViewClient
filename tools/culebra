@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.0.4'
+__version__ = '10.0.5'
 
 import re
 import sys
@@ -507,6 +507,33 @@ def printFlingBackward(view):
         logAction('flinging backward view with id=%s' % view.getId())
         print '%s%s.uiScrollable.flingBackward()' % (indent, view.variableNameFromId())
     
+def printFlingForward(view):
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # next line will generate an error in the script as the variable is 'undefined'
+        logAction('flinging forward view with id=%s' % view.getId())
+        print '%s%s.uiScrollable.flingForward()' % (indent, view.variableNameFromId())
+    
+def printFlingToBeginning(view):
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # next line will generate an error in the script as the variable is 'undefined'
+        logAction('flinging to beginning view with id=%s' % view.getId())
+        print '%s%s.uiScrollable.flingToBeginning()' % (indent, view.variableNameFromId())
+    
+def printFlingToEnd(view):
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # next line will generate an error in the script as the variable is 'undefined'
+        logAction('flinging to end view with id=%s' % view.getId())
+        print '%s%s.uiScrollable.flingToEnd()' % (indent, view.variableNameFromId())
+    
 def printTakeSnapshot(filename, _format):
     '''
     Prints the corresponding writeImageToFile() to take a snapshot
@@ -590,6 +617,15 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.FLING_BACKWARD:
         printFlingBackward(view)
+        return
+    elif op == Operation.FLING_FORWARD:
+        printFlingForward(view)
+        return
+    elif op == Operation.FLING_TO_BEGINNING:
+        printFlingToBeginning(view)
+        return
+    elif op == Operation.FLING_TO_END:
+        printFlingToEnd(view)
         return
     
     bd = Descriptor.findBestDescriptor(view)
