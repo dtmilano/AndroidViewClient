@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2014  Diego Torres Milano
+Copyright (C) 2012-2015  Diego Torres Milano
 Created on Feb 2, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.5'
+__version__ = '10.0.6'
 
 import sys
 import warnings
@@ -1107,9 +1107,10 @@ class UiDevice():
         Opens the notification shade.
         '''
         
-        w2 = self.device.display['width'] / 2
-        s = (w2, 0)
-        e = (w2, self.device.display['height']/2)
+        # the tablets has a different Notification bar depending on x
+        w23 = 2 * self.device.display['width'] / 3
+        s = (w23, 0)
+        e = (w23, self.device.display['height']/2)
         self.device.drag(s, e, 500, 20, -1)
         self.vc.sleep(1)
         self.vc.dump(-1)
@@ -1120,7 +1121,18 @@ class UiDevice():
         '''
         
         self.openNotification()
-        self.vc.findViewWithContentDescriptionOrRaise(u'''System settings''').touch()
+        # this works on API >= 20
+        view = self.vc.findViewWithContentDescription(u'''System settings''')
+        if view:
+            view.touch()
+        else:
+            # for previous APIs, let's find the text
+            view = self.vc.findViewWithText(u'''Settings''')
+            if view:
+                view.touch()
+            else:
+                raise ViewNotFoundException("content-description", "'System settings' or 'Settings'", "ROOT")
+            
         self.vc.sleep(1)
         self.vc.dump(window=-1)
         
