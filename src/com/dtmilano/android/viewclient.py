@@ -1358,7 +1358,7 @@ class ViewClient:
     imageDirectory = None
     ''' The directory used to store screenshot images '''
 
-    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True, ignoreuiautomatorkilled=False):
+    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True, ignoreuiautomatorkilled=False, compresseddump=True):
         '''
         Constructor
 
@@ -1382,6 +1382,8 @@ class ViewClient:
         @param startviewserver: Whether to start the B{global} ViewServer
         @type ignoreuiautomatorkilled: boolean
         @param ignoreuiautomatorkilled: Ignores received B{Killed} message from C{uiautomator}
+        @type compresseddump: boolean
+        @param compresseddump: turns --compressed flag for uiautomator dump on/off
         '''
 
         if not device:
@@ -1502,7 +1504,12 @@ class ViewClient:
 
         self.uiDevice = UiDevice(self)
         ''' The L{UiDevice} '''
-        
+
+        ''' The output of compressed dump is different than output of uncompressed one.
+        If one requires uncompressed output, this option should be set to False
+        '''
+        self.compressedDump = compresseddump
+
         if autodump:
             self.dump()
 
@@ -2113,7 +2120,7 @@ class ViewClient:
         if self.useUiAutomator:
             # NOTICE:
             # Using /dev/tty this works even on devices with no sdcard
-            received = unicode(self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.getSdkVersion() >= 18 else '')), encoding='utf-8', errors='replace')
+            received = unicode(self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.getSdkVersion() >= 18 and self.compressedDump else '')), encoding='utf-8', errors='replace')
             if not received:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             if DEBUG:
