@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.6'
+__version__ = '10.0.7'
 
 import sys
 import warnings
@@ -370,6 +370,16 @@ class View:
             if DEBUG_GETATTR:
                 print >> sys.stderr, "    __getattr__: trying without 'is' prefix"
             suffix = name[2:].lower()
+            if self.map.has_key(suffix):
+                r = self.map[suffix]
+            else:
+                # Default behavior
+                raise AttributeError, name
+        elif name.startswith('get'):
+            # try removing 'get' prefix
+            if DEBUG_GETATTR:
+                print >> sys.stderr, "    __getattr__: trying without 'get' prefix"
+            suffix = name[3:].lower()
             if self.map.has_key(suffix):
                 r = self.map[suffix]
             else:
