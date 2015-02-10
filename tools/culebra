@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.0.5'
+__version__ = '10.0.8'
 
 import re
 import sys
@@ -534,6 +534,20 @@ def printFlingToEnd(view):
         logAction('flinging to end view with id=%s' % view.getId())
         print '%s%s.uiScrollable.flingToEnd()' % (indent, view.variableNameFromId())
     
+def printOpenNotification():
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction('opening Notification')
+        print '%s%svc.uiDevice.openNotification()' % (indent, prefix)
+    
+def printOpenQuickSettings():
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction('opening Quick Settings')
+        print '%s%svc.uiDevice.openQuickSettings()' % (indent, prefix)
+    
 def printTakeSnapshot(filename, _format):
     '''
     Prints the corresponding writeImageToFile() to take a snapshot
@@ -627,7 +641,16 @@ def printOperation(view, op, *args):
     elif op == Operation.FLING_TO_END:
         printFlingToEnd(view)
         return
+    elif op == Operation.OPEN_NOTIFICATION:
+        printOpenNotification()
+        return
+    elif op == Operation.OPEN_QUICK_SETTINGS:
+        printOpenQuickSettings()
+        return
     
+    if view is None:
+        warnings.warn('view is None. Perhaps you forgot to add some "op" in the previous if.')
+        
     bd = Descriptor.findBestDescriptor(view)
     if bd == Descriptor.CONTENT_DESCRIPTION:
         printFindViewWithContentDescription(view, options[CulebraOptions.USE_REGEXPS], op, args[0])

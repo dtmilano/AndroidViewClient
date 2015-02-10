@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.0.5'
+__version__ = '10.0.8'
 
 import sys
 import threading
@@ -86,6 +86,8 @@ class Operation:
     TOUCH_VIEW = 'touch_view'
     TOUCH_POINT = 'touch_point'
     LONG_TOUCH_POINT = 'long_touch_point'
+    OPEN_NOTIFICATION = 'open_notification'
+    OPEN_QUICK_SETTINGS = 'open_quick_settings'
     TYPE = 'type'
     PRESS = 'press'
     SNAPSHOT = 'snapshot'
@@ -96,7 +98,8 @@ class Operation:
     @staticmethod
     def fromCommandName(commandName):
         MAP = {'flingBackward': Operation.FLING_BACKWARD, 'flingForward': Operation.FLING_FORWARD,
-            'flingToBeginning': Operation.FLING_TO_BEGINNING, 'flingToEnd': Operation.FLING_TO_END
+            'flingToBeginning': Operation.FLING_TO_BEGINNING, 'flingToEnd': Operation.FLING_TO_END,
+            'openNotification': Operation.OPEN_NOTIFICATION, 'openQuickSettings': Operation.OPEN_QUICK_SETTINGS,
             }
         return MAP[commandName]
 
@@ -932,7 +935,11 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG:
             print >> sys.stderr, 'DEBUG: command=', command, command.__name__
             print >> sys.stderr, 'DEBUG: command=', command.__self__, command.__self__.view
-        self.printOperation(command.__self__.view, Operation.fromCommandName(command.__name__))
+        try:
+            view = command.__self__.view
+        except AttributeError:
+            view = None
+        self.printOperation(view, Operation.fromCommandName(command.__name__))
         command()
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)
@@ -983,15 +990,23 @@ if TKINTER_AVAILABLE:
         def __init__(self, culebron):
             Tkinter.Menu.__init__(self, culebron.window)
             self.culebron = culebron
+
             self.fileMenu = Tkinter.Menu(self, tearoff=False)
             self.fileMenu.add_command(label="Quit", underline=0, accelerator='Command-Q', command=self.culebron.quit)
             self.add_cascade(label="File", underline=0, menu=self.fileMenu)
+
             self.viewMenu = Tkinter.Menu(self, tearoff=False)
             self.showTree = Tkinter.BooleanVar()
             self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True, offvalue=False, variable=self.showTree, state=DISABLED)
             self.showViewDetails = Tkinter.BooleanVar()
             self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True, offvalue=False, variable=self.showViewDetails, state=DISABLED)
             self.add_cascade(label="View", underline=0, menu=self.viewMenu)
+
+            self.uiDeviceMenu = Tkinter.Menu(self, tearoff=False)
+            self.uiDeviceMenu.add_command(label="open Notification", underline=6, command=lambda: culebron.executeCommandAndRefresh(self.culebron.vc.uiDevice.openNotification))
+            self.uiDeviceMenu.add_command(label="open Quick settings", underline=6, command=lambda: culebron.executeCommandAndRefresh(command=self.culebron.vc.uiDevice.openQuickSettings))
+            self.add_cascade(label="UiDevice", menu=self.uiDeviceMenu)
+
             self.helpMenu = Tkinter.Menu(self, tearoff=False)
             self.helpMenu.add_command(label="Keyboard shortcuts", underline=0, accelerator='Command-K', command=self.culebron.showHelp)
             self.add_cascade(label="Help", underline=0, menu=self.helpMenu)
