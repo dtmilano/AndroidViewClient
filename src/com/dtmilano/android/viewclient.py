@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.9'
+__version__ = '10.0.10'
 
 import sys
 import warnings
@@ -1117,10 +1117,10 @@ class UiDevice():
         Opens the notification shade.
         '''
         
-        # the tablets has a different Notification bar depending on x
-        w23 = 2 * self.device.display['width'] / 3
-        s = (w23, 0)
-        e = (w23, self.device.display['height']/2)
+        # the tablet has a different Notification/Quick Settings bar depending on x
+        w13 = self.device.display['width'] / 3
+        s = (w13, 0)
+        e = (w13, self.device.display['height']/2)
         self.device.drag(s, e, 500, 20, -1)
         self.vc.sleep(1)
         self.vc.dump(-1)
@@ -1130,7 +1130,21 @@ class UiDevice():
         Opens the Quick Settings shade.
         '''
         
-        self.openNotification()
+        # the tablet has a different Notification/Quick Settings bar depending on x
+        w23 = 2 * self.device.display['width'] / 3
+        s = (w23, 0)
+        e = (w23, self.device.display['height']/2)
+        self.device.drag(s, e, 500, 20, -1)
+        self.vc.sleep(1)
+        self.vc.dump(-1)
+
+    def openQuickSettingsSettings(self):
+        '''
+        Opens the Quick Settings shade and then tries to open Settings from there.
+        '''
+
+        self.openQuickSettings()
+
         # this works on API >= 20
         view = self.vc.findViewWithContentDescription(u'''System settings''')
         if view:
