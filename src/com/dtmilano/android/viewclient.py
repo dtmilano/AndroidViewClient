@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.8'
+__version__ = '10.0.9'
 
 import sys
 import warnings
@@ -1670,16 +1670,23 @@ class ViewClient:
         try:
             eis = ''
             if extraInfo:
-                eis = extraInfo(view).__str__()
+                eis = extraInfo(view)
                 if not eis and noExtraInfo:
                     eis = noExtraInfo
             if eis:
                 eis = ' ' + eis
             if extraAction:
                 extraAction(view)
-            return u'%s %s %s%s' % (view.getClass(), view.getId(), view.getText(), eis)
+            _str = unicode(view.getClass())
+            _str += ' '
+            _str += view.getId()
+            _str += ' '
+            _str += view.getText()
+            _str += eis
+            return _str
         except Exception, e:
-            return u'Exception in view=%s: %s' % (view.__smallStr__(), e)
+            import traceback
+            return u'Exception in view=%s: %s:%s\n%s' % (view.__smallStr__(), sys.exc_info()[0].__name__, e, traceback.format_exc())
 
     @staticmethod
     def traverseShowClassIdTextAndUniqueId(view):
