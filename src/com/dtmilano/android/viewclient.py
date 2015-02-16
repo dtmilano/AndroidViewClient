@@ -1136,6 +1136,9 @@ class UiDevice():
         e = (w23, self.device.display['height']/2)
         self.device.drag(s, e, 500, 20, -1)
         self.vc.sleep(1)
+        if self.vc.getSdkVersion() >= 20:
+            self.device.drag(s, e, 500, 20, -1)
+            self.vc.sleep(1)
         self.vc.dump(-1)
 
     def openQuickSettingsSettings(self):
@@ -1143,23 +1146,224 @@ class UiDevice():
         Opens the Quick Settings shade and then tries to open Settings from there.
         '''
 
+        STATUS_BAR_SETTINGS_SETTINGS_BUTTON = [
+            "Settings", "Cài đặt", "Instellingen", "Կարգավորումներ", "设置", "Nastavitve", "සැකසීම්", "Ayarlar", "Setelan",
+            "Настройки", "تنظیمات", "Mga Setting", "Тохиргоо", "Configuració", "Setări", "Налады", "Einstellungen",
+            "პარამეტრები", "सेटिङहरू", "Կարգավորումներ", "Nustatymai", "Beállítások", "設定", "सेटिंग", "Настройки",
+            "Inställningar", "設定", "ການຕັ້ງຄ່າ", "Configurações", "Tetapan", "설정", "ការ​កំណត់", "Ajustes",
+            "הגדרות", "Ustawienia", "Nastavení", "Ρυθμίσεις", "Тохиргоо", "Ayarlar", "Indstillinger", "Налаштування",
+            "Mipangilio", "Izilungiselelo", "設定", "Nastavenia", "Paramètres", "ቅንብሮች", "การตั้งค่า", "Seaded",
+            "Iestatījumi", "Innstillinger", "Подешавања", "الإعدادات", "සැකසීම්", "Definições", "Configuración",
+            "პარამეტრები", "Postavke", "Ayarlar", "Impostazioni", "Asetukset", "Instellings", "Seaded", "ការ​កំណត់",
+            "सेटिङहरू", "Tetapan"]
+        
         self.openQuickSettings()
 
         # this works on API >= 20
-        view = self.vc.findViewWithContentDescription(u'''System settings''')
-        if view:
-            view.touch()
-        else:
-            # for previous APIs, let's find the text
-            view = self.vc.findViewWithText(u'''Settings''')
+        found = False
+        for s in STATUS_BAR_SETTINGS_SETTINGS_BUTTON:
+            view = self.vc.findViewWithContentDescription(u'''%s''' % s)
             if view:
+                found = True
                 view.touch()
-            else:
-                raise ViewNotFoundException("content-description", "'System settings' or 'Settings'", "ROOT")
+                break
+        
+        if not found:
+            # for previous APIs, let's find the text
+            for s in STATUS_BAR_SETTINGS_SETTINGS_BUTTON:
+                view = self.vc.findViewWithText(u'''%s''' % s)
+                if view:
+                    found = True
+                    view.touch()
+                    break
+
+        if not found:
+            raise ViewNotFoundException("content-description", "'Settings' or text 'Settings'", "ROOT")
             
         self.vc.sleep(1)
         self.vc.dump(window=-1)
         
+    def changeLanguage(self, languageTo):
+        LANGUAGE_SETTINGS = {
+            "en":    "Language & input",
+            "af":    "Taal en invoer",
+            "am":    "ቋንቋ እና ግቤት",
+            "ar":    "اللغة والإدخال",
+            "az":    "Dil və daxiletmə",
+            "az-rAZ":    "Dil və daxiletmə",
+            "be":    "Мова і ўвод",
+            "bg":    "Език и въвеждане",
+            "ca":    "Idioma i introducció de text",
+            "cs":    "Jazyk a zadávání",
+            "da":    "Sprog og input",
+            "de":    "Sprache & Eingabe",
+            "el":    "Γλώσσα και εισαγωγή",
+            "en-rGB":    "Language & input",
+            "en-rIN":    "Language & input",
+            "es":    "Idioma e introducción de texto",
+            "es-rUS":    "Teclado e idioma",
+            "et":    "Keeled ja sisestamine",
+            "et-rEE":    "Keeled ja sisestamine",
+            "fa":    "زبان و ورود اطلاعات",
+            "fi":    "Kieli ja syöttötapa",
+            "fr":    "Langue et saisie",
+            "fr-rCA":    "Langue et saisie",
+            "hi":    "भाषा और अक्षर",
+            "hr":    "Jezik i ulaz",
+            "hu":    "Nyelv és bevitel",
+            "hy":    "Լեզվի & ներմուծում",
+            "hy-rAM":    "Լեզու և ներմուծում",
+            "in":    "Bahasa & masukan",
+            "it":    "Lingua e immissione",
+            "iw":    "שפה וקלט",
+            "ja":    "言語と入力",
+            "ka":    "ენისა და შეყვანის პარამეტრები",
+            "ka-rGE":    "ენისა და შეყვანის პარამეტრები",
+            "km":    "ភាសា & ការ​បញ្ចូល",
+            "km-rKH":    "ភាសា & ការ​បញ្ចូល",
+            "ko":    "언어 및 키보드",
+            "lo":    "ພາສາ & ການປ້ອນຂໍ້ມູນ",
+            "lo-rLA":    "ພາສາ & ການປ້ອນຂໍ້ມູນ",
+            "lt":    "Kalba ir įvestis",
+            "lv":    "Valodas ievade",
+            "mn":    "Хэл & оруулах",
+            "mn-rMN":    "Хэл & оруулах",
+            "ms":    "Bahasa & input",
+            "ms-rMY":    "Bahasa & input",
+            "nb":    "Språk og inndata",
+            "ne":    "भाषा र इनपुट",
+            "ne-rNP":    "भाषा र इनपुट",
+            "nl":    "Taal en invoer",
+            "pl":    "Język, klawiatura, głos",
+            "pt":    "Idioma e entrada",
+            "pt-rPT":    "Idioma e entrada",
+            "ro":    "Limbă și introducere de text",
+            "ru":    "Язык и ввод",
+            "si":    "භාෂාව සහ ආදානය",
+            "si-rLK":    "භාෂාව සහ ආදානය",
+            "sk":    "Jazyk & vstup",
+            "sl":    "Jezik in vnos",
+            "sr":    "Језик и унос",
+            "sv":    "Språk och inmatning",
+            "sw":    "Lugha, Kibodi na Sauti",
+            "th":    "ภาษาและการป้อนข้อมูล",
+            "tl":    "Wika at input",
+            "tr":    "Dil ve giriş",
+            "uk":    "Мова та введення",
+            "vi":    "Ngôn ngữ & phương thức nhập",
+            "zh-rCN":    "语言和输入法",
+            "zh-rHK":    "語言與輸入裝置",
+            "zh-rTW":    "語言與輸入設定",
+            "zu":    "Ulimi & ukufakwa",
+        }
+
+        PHONE_LANGUAGE = {
+            "en":    "Language",
+            "af":    "Taal",
+            "am":    "ቋንቋ",
+            "ar":    "اللغة",
+            "az":    "Dil",
+            "az-rAZ":    "Dil",
+            "be":    "Мова",
+            "bg":    "Език",
+            "ca":    "Idioma",
+            "cs":    "Jazyk",
+            "da":    "Sprog",
+            "de":    "Sprache",
+            "el":    "Γλώσσα",
+            "en-rGB":    "Language",
+            "en-rIN":    "Language",
+            "es":    "Idioma",
+            "es-rUS":    "Idioma",
+            "et":    "Keel",
+            "et-rEE":    "Keel",
+            "fa":    "زبان",
+            "fi":    "Kieli",
+            "fr":    "Langue",
+            "fr-rCA":    "Langue",
+            "hi":    "भाषा",
+            "hr":    "Jezik",
+            "hu":    "Nyelv",
+            "hy":    "Lեզուն",
+            "hy-rAM":    "Lեզուն",
+            "in":    "Bahasa",
+            "it":    "Lingua",
+            "iw":    "שפה",
+            "ja":    "言語",
+            "ka":    "ენა",
+            "ka-rGE":    "ენა",
+            "km":    "ភាសា",
+            "km-rKH":    "ភាសា",
+            "ko":    "언어",
+            "lo":    "ພາສາ",
+            "lo-rLA":    "ພາສາ",
+            "lt":    "Kalba",
+            "lv":    "Valoda",
+            "mn":    "Хэл",
+            "mn-rMN":    "Хэл",
+            "ms":    "Bahasa",
+            "ms-rMY":    "Bahasa",
+            "nb":    "Språk",
+            "ne":    "भाषा",
+            "nl":    "Taal",
+            "pl":    "Język",
+            "pt":    "Idioma",
+            "pt-rPT":    "Idioma",
+            "ro":    "Limba",
+            "ru":    "Язык",
+            "si":    "භාෂාව",
+            "si-rLK":    "භාෂාව",
+            "sk":    "Jazyk",
+            "sl":    "Jezik",
+            "sr":    "Језик",
+            "sv":    "Språk",
+            "sw":    "Lugha",
+            "th":    "ภาษา",
+            "tl":    "Wika",
+            "tr":    "Dil",
+            "uk":    "Мова",
+            "vi":    "Ngôn ngữ",
+            "zh-rCN":    "语言",
+            "zh-rHK":    "語言",
+            "zh-rTW":    "語言",
+            "zu":    "Ulimi",
+        }
+
+        LANGUAGES = {
+            # FIXME: add languages
+            'en': u"English",
+            'es-rUS': u"Español (Estados Unidos)",
+        }
+
+        self.openQuickSettingsSettings()
+        view = None
+        currentLanguage = None
+        ATTEMPTS = 10
+        for n in range(ATTEMPTS):
+            com_android_settings___id_dashboard = self.vc.findViewByIdOrRaise("com.android.settings:id/dashboard")
+            for k, v in LANGUAGE_SETTINGS.iteritems():
+                view = self.vc.findViewWithText(u'''%s''' % unicode(v, encoding='utf-8', errors='replace'), root=com_android_settings___id_dashboard)
+                if view:
+                    currentLanguage = k
+                    break
+            if view:
+                break
+            com_android_settings___id_dashboard.uiScrollable.flingForward()
+            self.vc.sleep(1)
+            self.vc.dump(-1)
+        if view is None:
+            raise ViewNotFoundException("text", "'Language & input' (any language)", "ROOT")
+        view.touch()
+        self.vc.sleep(1)
+        self.vc.dump(-1)
+        self.vc.findViewWithTextOrRaise(PHONE_LANGUAGE[currentLanguage]).touch()
+        self.vc.sleep(1)
+        self.vc.dump(-1)
+        android___id_list = self.vc.findViewByIdOrRaise("android:id/list")
+        android___id_list.uiScrollable.setViewClient(self.vc)
+        view = android___id_list.uiScrollable.scrollTextIntoView(LANGUAGES[languageTo])
+        if view is not None:
+            print >> sys.stderr, "***** I'm going to touch on", view
         
 class UiCollection():
     '''
@@ -1177,6 +1381,7 @@ class UiScrollable(UiCollection):
     '''
 
     def __init__(self, view):
+        self.vc = None
         self.view = view
         self.vertical = True
         self.bounds = view.getBounds()
@@ -1184,6 +1389,7 @@ class UiScrollable(UiCollection):
         self.steps = 10
         self.duration = 500
         self.swipeDeadZonePercentage = 0.1
+        self.maxSearchSwipes = 10
         
     def flingBackward(self):
         if self.vertical:
@@ -1221,12 +1427,35 @@ class UiScrollable(UiCollection):
                     print >> sys.stderr, "flinging to end"
                 self.flingForward()
     
+    def scrollTextIntoView(self, text):
+        '''
+        Performs a forward scroll action on the scrollable layout element until the text you provided is visible,
+        or until swipe attempts have been exhausted. See setMaxSearchSwipes(int)
+        '''
+
+        if self.vc is None:
+            raise ValueError('vc must be set in order to use this method')
+        for n in range(self.maxSearchSwipes):
+            # FIXME: now I need to figure out the best way of navigating to the ViewClient asossiated
+            # with this UiScrollable
+            v = self.vc.findViewWithText(text, root=self.view)
+            if v is not None:
+                return v
+            self.flingForward()
+            self.vc.dump(-1)
+        return None
+
     def setAsHorizontalList(self):
         self.vertical = False
         
     def setAsVerticalList(self):
         self.vertical = True
+
+    def setMaxSearchSwipes(self, maxSwipes):
+        self.maxSearchSwipes = maxSwipes
     
+    def setViewClient(self, vc):
+        self.vc = vc
     
 
 class ListView(View):
