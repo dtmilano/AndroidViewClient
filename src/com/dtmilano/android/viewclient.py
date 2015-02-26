@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.10'
+__version__ = '10.0.11'
 
 import sys
 import warnings
@@ -1147,22 +1147,25 @@ class UiDevice():
         '''
 
         STATUS_BAR_SETTINGS_SETTINGS_BUTTON = [
-            "Settings", "Cài đặt", "Instellingen", "Կարգավորումներ", "设置", "Nastavitve", "සැකසීම්", "Ayarlar", "Setelan",
-            "Настройки", "تنظیمات", "Mga Setting", "Тохиргоо", "Configuració", "Setări", "Налады", "Einstellungen",
-            "პარამეტრები", "सेटिङहरू", "Կարգավորումներ", "Nustatymai", "Beállítások", "設定", "सेटिंग", "Настройки",
-            "Inställningar", "設定", "ການຕັ້ງຄ່າ", "Configurações", "Tetapan", "설정", "ការ​កំណត់", "Ajustes",
-            "הגדרות", "Ustawienia", "Nastavení", "Ρυθμίσεις", "Тохиргоо", "Ayarlar", "Indstillinger", "Налаштування",
-            "Mipangilio", "Izilungiselelo", "設定", "Nastavenia", "Paramètres", "ቅንብሮች", "การตั้งค่า", "Seaded",
-            "Iestatījumi", "Innstillinger", "Подешавања", "الإعدادات", "සැකසීම්", "Definições", "Configuración",
-            "პარამეტრები", "Postavke", "Ayarlar", "Impostazioni", "Asetukset", "Instellings", "Seaded", "ការ​កំណត់",
-            "सेटिङहरू", "Tetapan"]
+            u"Settings", u"Cài đặt", u"Instellingen", u"Կարգավորումներ", u"设置", u"Nastavitve", u"සැකසීම්", u"Ayarlar",
+            u"Setelan", u"Настройки", u"تنظیمات", u"Mga Setting", u"Тохиргоо", u"Configuració", u"Setări", u"Налады",
+            u"Einstellungen", u"პარამეტრები", u"सेटिङहरू", u"Կարգավորումներ", u"Nustatymai", u"Beállítások", u"設定",
+            u"सेटिंग", u"Настройки", u"Inställningar", u"設定", u"ການຕັ້ງຄ່າ", u"Configurações", u"Tetapan", u"설정",
+            u"ការ​កំណត់", u"Ajustes", u"הגדרות", u"Ustawienia", u"Nastavení", u"Ρυθμίσεις", u"Тохиргоо", u"Ayarlar",
+            u"Indstillinger", u"Налаштування", u"Mipangilio", u"Izilungiselelo", u"設定", u"Nastavenia", u"Paramètres",
+            u"ቅንብሮች", u"การตั้งค่า", u"Seaded", u"Iestatījumi", u"Innstillinger", u"Подешавања", u"الإعدادات", u"සැකසීම්",
+            u"Definições", u"Configuración", u"პარამეტრები", u"Postavke", u"Ayarlar", u"Impostazioni", u"Asetukset",
+            u"Instellings", u"Seaded", u"ការ​កំណត់", u"सेटिङहरू", u"Tetapan"
+            ]
         
         self.openQuickSettings()
 
         # this works on API >= 20
         found = False
         for s in STATUS_BAR_SETTINGS_SETTINGS_BUTTON:
-            view = self.vc.findViewWithContentDescription(u'''%s''' % s)
+            if DEBUG:
+                print >> sys.stderr, u"finding view with cd=", type(s)
+            view = self.vc.findViewWithContentDescription(u'''{0}'''.format(s))
             if view:
                 found = True
                 view.touch()
@@ -1171,7 +1174,13 @@ class UiDevice():
         if not found:
             # for previous APIs, let's find the text
             for s in STATUS_BAR_SETTINGS_SETTINGS_BUTTON:
-                view = self.vc.findViewWithText(u'''%s''' % s)
+                if DEBUG:
+                    print >> sys.stderr, "s=", type(s)
+                    try:
+                        print >> sys.stderr, "finding view with text=", u'''{0}'''.format(s)
+                    except:
+                        pass
+                view = self.vc.findViewWithText(s)
                 if view:
                     found = True
                     view.touch()
@@ -1185,153 +1194,153 @@ class UiDevice():
         
     def changeLanguage(self, languageTo):
         LANGUAGE_SETTINGS = {
-            "en":    "Language & input",
-            "af":    "Taal en invoer",
-            "am":    "ቋንቋ እና ግቤት",
-            "ar":    "اللغة والإدخال",
-            "az":    "Dil və daxiletmə",
-            "az-rAZ":    "Dil və daxiletmə",
-            "be":    "Мова і ўвод",
-            "bg":    "Език и въвеждане",
-            "ca":    "Idioma i introducció de text",
-            "cs":    "Jazyk a zadávání",
-            "da":    "Sprog og input",
-            "de":    "Sprache & Eingabe",
-            "el":    "Γλώσσα και εισαγωγή",
-            "en-rGB":    "Language & input",
-            "en-rIN":    "Language & input",
-            "es":    "Idioma e introducción de texto",
-            "es-rUS":    "Teclado e idioma",
-            "et":    "Keeled ja sisestamine",
-            "et-rEE":    "Keeled ja sisestamine",
-            "fa":    "زبان و ورود اطلاعات",
-            "fi":    "Kieli ja syöttötapa",
-            "fr":    "Langue et saisie",
-            "fr-rCA":    "Langue et saisie",
-            "hi":    "भाषा और अक्षर",
-            "hr":    "Jezik i ulaz",
-            "hu":    "Nyelv és bevitel",
-            "hy":    "Լեզվի & ներմուծում",
-            "hy-rAM":    "Լեզու և ներմուծում",
-            "in":    "Bahasa & masukan",
-            "it":    "Lingua e immissione",
-            "iw":    "שפה וקלט",
-            "ja":    "言語と入力",
-            "ka":    "ენისა და შეყვანის პარამეტრები",
-            "ka-rGE":    "ენისა და შეყვანის პარამეტრები",
-            "km":    "ភាសា & ការ​បញ្ចូល",
-            "km-rKH":    "ភាសា & ការ​បញ្ចូល",
-            "ko":    "언어 및 키보드",
-            "lo":    "ພາສາ & ການປ້ອນຂໍ້ມູນ",
-            "lo-rLA":    "ພາສາ & ການປ້ອນຂໍ້ມູນ",
-            "lt":    "Kalba ir įvestis",
-            "lv":    "Valodas ievade",
-            "mn":    "Хэл & оруулах",
-            "mn-rMN":    "Хэл & оруулах",
-            "ms":    "Bahasa & input",
-            "ms-rMY":    "Bahasa & input",
-            "nb":    "Språk og inndata",
-            "ne":    "भाषा र इनपुट",
-            "ne-rNP":    "भाषा र इनपुट",
-            "nl":    "Taal en invoer",
-            "pl":    "Język, klawiatura, głos",
-            "pt":    "Idioma e entrada",
-            "pt-rPT":    "Idioma e entrada",
-            "ro":    "Limbă și introducere de text",
-            "ru":    "Язык и ввод",
-            "si":    "භාෂාව සහ ආදානය",
-            "si-rLK":    "භාෂාව සහ ආදානය",
-            "sk":    "Jazyk & vstup",
-            "sl":    "Jezik in vnos",
-            "sr":    "Језик и унос",
-            "sv":    "Språk och inmatning",
-            "sw":    "Lugha, Kibodi na Sauti",
-            "th":    "ภาษาและการป้อนข้อมูล",
-            "tl":    "Wika at input",
-            "tr":    "Dil ve giriş",
-            "uk":    "Мова та введення",
-            "vi":    "Ngôn ngữ & phương thức nhập",
-            "zh-rCN":    "语言和输入法",
-            "zh-rHK":    "語言與輸入裝置",
-            "zh-rTW":    "語言與輸入設定",
-            "zu":    "Ulimi & ukufakwa",
+            "en":    u"Language & input",
+            "af":    u"Taal en invoer",
+            "am":    u"ቋንቋ እና ግቤት",
+            "ar":    u"اللغة والإدخال",
+            "az":    u"Dil və daxiletmə",
+            "az-rAZ":    u"Dil və daxiletmə",
+            "be":    u"Мова і ўвод",
+            "bg":    u"Език и въвеждане",
+            "ca":    u"Idioma i introducció de text",
+            "cs":    u"Jazyk a zadávání",
+            "da":    u"Sprog og input",
+            "de":    u"Sprache & Eingabe",
+            "el":    u"Γλώσσα και εισαγωγή",
+            "en-rGB":    u"Language & input",
+            "en-rIN":    u"Language & input",
+            "es":    u"Idioma e introducción de texto",
+            "es-rUS":    u"Teclado e idioma",
+            "et":    u"Keeled ja sisestamine",
+            "et-rEE":    u"Keeled ja sisestamine",
+            "fa":    u"زبان و ورود اطلاعات",
+            "fi":    u"Kieli ja syöttötapa",
+            "fr":    u"Langue et saisie",
+            "fr-rCA":    u"Langue et saisie",
+            "hi":    u"भाषा और अक्षर",
+            "hr":    u"Jezik i ulaz",
+            "hu":    u"Nyelv és bevitel",
+            "hy":    u"Լեզվի & ներմուծում",
+            "hy-rAM":    u"Լեզու և ներմուծում",
+            "in":    u"Bahasa & masukan",
+            "it":    u"Lingua e immissione",
+            "iw":    u"שפה וקלט",
+            "ja":    u"言語と入力",
+            "ka":    u"ენისა და შეყვანის პარამეტრები",
+            "ka-rGE":    u"ენისა და შეყვანის პარამეტრები",
+            "km":    u"ភាសា & ការ​បញ្ចូល",
+            "km-rKH":    u"ភាសា & ការ​បញ្ចូល",
+            "ko":    u"언어 및 키보드",
+            "lo":    u"ພາສາ & ການປ້ອນຂໍ້ມູນ",
+            "lo-rLA":    u"ພາສາ & ການປ້ອນຂໍ້ມູນ",
+            "lt":    u"Kalba ir įvestis",
+            "lv":    u"Valodas ievade",
+            "mn":    u"Хэл & оруулах",
+            "mn-rMN":    u"Хэл & оруулах",
+            "ms":    u"Bahasa & input",
+            "ms-rMY":    u"Bahasa & input",
+            "nb":    u"Språk og inndata",
+            "ne":    u"भाषा र इनपुट",
+            "ne-rNP":    u"भाषा र इनपुट",
+            "nl":    u"Taal en invoer",
+            "pl":    u"Język, klawiatura, głos",
+            "pt":    u"Idioma e entrada",
+            "pt-rPT":    u"Idioma e entrada",
+            "ro":    u"Limbă și introducere de text",
+            "ru":    u"Язык и ввод",
+            "si":    u"භාෂාව සහ ආදානය",
+            "si-rLK":    u"භාෂාව සහ ආදානය",
+            "sk":    u"Jazyk & vstup",
+            "sl":    u"Jezik in vnos",
+            "sr":    u"Језик и унос",
+            "sv":    u"Språk och inmatning",
+            "sw":    u"Lugha, Kibodi na Sauti",
+            "th":    u"ภาษาและการป้อนข้อมูล",
+            "tl":    u"Wika at input",
+            "tr":    u"Dil ve giriş",
+            "uk":    u"Мова та введення",
+            "vi":    u"Ngôn ngữ & phương thức nhập",
+            "zh-rCN":    u"语言和输入法",
+            "zh-rHK":    u"語言與輸入裝置",
+            "zh-rTW":    u"語言與輸入設定",
+            "zu":    u"Ulimi & ukufakwa",
         }
 
         PHONE_LANGUAGE = {
-            "en":    "Language",
-            "af":    "Taal",
-            "am":    "ቋንቋ",
-            "ar":    "اللغة",
-            "az":    "Dil",
-            "az-rAZ":    "Dil",
-            "be":    "Мова",
-            "bg":    "Език",
-            "ca":    "Idioma",
-            "cs":    "Jazyk",
-            "da":    "Sprog",
-            "de":    "Sprache",
-            "el":    "Γλώσσα",
-            "en-rGB":    "Language",
-            "en-rIN":    "Language",
-            "es":    "Idioma",
-            "es-rUS":    "Idioma",
-            "et":    "Keel",
-            "et-rEE":    "Keel",
-            "fa":    "زبان",
-            "fi":    "Kieli",
-            "fr":    "Langue",
-            "fr-rCA":    "Langue",
-            "hi":    "भाषा",
-            "hr":    "Jezik",
-            "hu":    "Nyelv",
-            "hy":    "Lեզուն",
-            "hy-rAM":    "Lեզուն",
-            "in":    "Bahasa",
-            "it":    "Lingua",
-            "iw":    "שפה",
-            "ja":    "言語",
-            "ka":    "ენა",
-            "ka-rGE":    "ენა",
-            "km":    "ភាសា",
-            "km-rKH":    "ភាសា",
-            "ko":    "언어",
-            "lo":    "ພາສາ",
-            "lo-rLA":    "ພາສາ",
-            "lt":    "Kalba",
-            "lv":    "Valoda",
-            "mn":    "Хэл",
-            "mn-rMN":    "Хэл",
-            "ms":    "Bahasa",
-            "ms-rMY":    "Bahasa",
-            "nb":    "Språk",
-            "ne":    "भाषा",
-            "nl":    "Taal",
-            "pl":    "Język",
-            "pt":    "Idioma",
-            "pt-rPT":    "Idioma",
-            "ro":    "Limba",
-            "ru":    "Язык",
-            "si":    "භාෂාව",
-            "si-rLK":    "භාෂාව",
-            "sk":    "Jazyk",
-            "sl":    "Jezik",
-            "sr":    "Језик",
-            "sv":    "Språk",
-            "sw":    "Lugha",
-            "th":    "ภาษา",
-            "tl":    "Wika",
-            "tr":    "Dil",
-            "uk":    "Мова",
-            "vi":    "Ngôn ngữ",
-            "zh-rCN":    "语言",
-            "zh-rHK":    "語言",
-            "zh-rTW":    "語言",
-            "zu":    "Ulimi",
+            "en":    u"Language",
+            "af":    u"Taal",
+            "am":    u"ቋንቋ",
+            "ar":    u"اللغة",
+            "az":    u"Dil",
+            "az-rAZ":    u"Dil",
+            "be":    u"Мова",
+            "bg":    u"Език",
+            "ca":    u"Idioma",
+            "cs":    u"Jazyk",
+            "da":    u"Sprog",
+            "de":    u"Sprache",
+            "el":    u"Γλώσσα",
+            "en-rGB":    u"Language",
+            "en-rIN":    u"Language",
+            "es":    u"Idioma",
+            "es-rUS":    u"Idioma",
+            "et":    u"Keel",
+            "et-rEE":    u"Keel",
+            "fa":    u"زبان",
+            "fi":    u"Kieli",
+            "fr":    u"Langue",
+            "fr-rCA":    u"Langue",
+            "hi":    u"भाषा",
+            "hr":    u"Jezik",
+            "hu":    u"Nyelv",
+            "hy":    u"Lեզուն",
+            "hy-rAM":    u"Lեզուն",
+            "in":    u"Bahasa",
+            "it":    u"Lingua",
+            "iw":    u"שפה",
+            "ja":    u"言語",
+            "ka":    u"ენა",
+            "ka-rGE":    u"ენა",
+            "km":    u"ភាសា",
+            "km-rKH":    u"ភាសា",
+            "ko":    u"언어",
+            "lo":    u"ພາສາ",
+            "lo-rLA":    u"ພາສາ",
+            "lt":    u"Kalba",
+            "lv":    u"Valoda",
+            "mn":    u"Хэл",
+            "mn-rMN":    u"Хэл",
+            "ms":    u"Bahasa",
+            "ms-rMY":    u"Bahasa",
+            "nb":    u"Språk",
+            "ne":    u"भाषा",
+            "nl":    u"Taal",
+            "pl":    u"Język",
+            "pt":    u"Idioma",
+            "pt-rPT":    u"Idioma",
+            "ro":    u"Limba",
+            "ru":    u"Язык",
+            "si":    u"භාෂාව",
+            "si-rLK":    u"භාෂාව",
+            "sk":    u"Jazyk",
+            "sl":    u"Jezik",
+            "sr":    u"Језик",
+            "sv":    u"Språk",
+            "sw":    u"Lugha",
+            "th":    u"ภาษา",
+            "tl":    u"Wika",
+            "tr":    u"Dil",
+            "uk":    u"Мова",
+            "vi":    u"Ngôn ngữ",
+            "zh-rCN":    u"语言",
+            "zh-rHK":    u"語言",
+            "zh-rTW":    u"語言",
+            "zu":    u"Ulimi",
         }
 
         LANGUAGES = {
             # FIXME: add languages
-            'en': u"English",
+            'en': u"English (United States)",
             'es-rUS': u"Español (Estados Unidos)",
         }
 
@@ -1339,31 +1348,57 @@ class UiDevice():
         view = None
         currentLanguage = None
         ATTEMPTS = 10
-        for n in range(ATTEMPTS):
-            com_android_settings___id_dashboard = self.vc.findViewByIdOrRaise("com.android.settings:id/dashboard")
-            for k, v in LANGUAGE_SETTINGS.iteritems():
-                view = self.vc.findViewWithText(u'''%s''' % unicode(v, encoding='utf-8', errors='replace'), root=com_android_settings___id_dashboard)
+        if self.vc.getSdkVersion() >= 20:
+            for n in range(ATTEMPTS):
+                com_android_settings___id_dashboard = self.vc.findViewByIdOrRaise("com.android.settings:id/dashboard")
+                for k, v in LANGUAGE_SETTINGS.iteritems():
+                    view = self.vc.findViewWithText(v, root=com_android_settings___id_dashboard)
+                    if view:
+                        currentLanguage = k
+                        break
                 if view:
-                    currentLanguage = k
                     break
-            if view:
-                break
-            com_android_settings___id_dashboard.uiScrollable.flingForward()
+                com_android_settings___id_dashboard.uiScrollable.flingForward()
+                self.vc.sleep(1)
+                self.vc.dump(-1)
+            if view is None:
+                raise ViewNotFoundException("text", "'Language & input' (any language)", "ROOT")
+            view.touch()
             self.vc.sleep(1)
             self.vc.dump(-1)
-        if view is None:
-            raise ViewNotFoundException("text", "'Language & input' (any language)", "ROOT")
-        view.touch()
-        self.vc.sleep(1)
-        self.vc.dump(-1)
-        self.vc.findViewWithTextOrRaise(PHONE_LANGUAGE[currentLanguage]).touch()
-        self.vc.sleep(1)
-        self.vc.dump(-1)
+            self.vc.findViewWithTextOrRaise(PHONE_LANGUAGE[currentLanguage]).touch()
+            self.vc.sleep(1)
+            self.vc.dump(-1)
+        else:
+            for n in range(ATTEMPTS):
+                android___id_list = self.vc.findViewByIdOrRaise("android:id/list")
+                for k, v in LANGUAGE_SETTINGS.iteritems():
+                    view = self.vc.findViewWithText(v, root=android___id_list)
+                    if view:
+                        currentLanguage = k
+                        break
+                if view:
+                    break
+                com_android_settings___id_dashboard.uiScrollable.flingForward()
+                self.vc.sleep(1)
+                self.vc.dump(-1)
+            if view is None:
+                raise ViewNotFoundException("text", "'Language & input' (any language)", "ROOT")
+            view.touch()
+            self.vc.sleep(1)
+            self.vc.dump(-1)
+            self.vc.findViewWithTextOrRaise(PHONE_LANGUAGE[currentLanguage]).touch()
+            self.vc.sleep(1)
+            self.vc.dump(-1)
+
         android___id_list = self.vc.findViewByIdOrRaise("android:id/list")
         android___id_list.uiScrollable.setViewClient(self.vc)
         view = android___id_list.uiScrollable.scrollTextIntoView(LANGUAGES[languageTo])
         if view is not None:
-            print >> sys.stderr, "***** I'm going to touch on", view
+            view.touch()
+        self.vc.device.press('BACK')
+        self.vc.sleep(1)
+        self.vc.device.press('BACK')
         
 class UiCollection():
     '''
@@ -1437,12 +1472,24 @@ class UiScrollable(UiCollection):
             raise ValueError('vc must be set in order to use this method')
         for n in range(self.maxSearchSwipes):
             # FIXME: now I need to figure out the best way of navigating to the ViewClient asossiated
-            # with this UiScrollable
-            v = self.vc.findViewWithText(text, root=self.view)
+            # with this UiScrollable.
+            # It's using setViewClient() now.
+            if DEBUG:
+                for v in self.vc.views:
+                    try:
+                        print >> sys.stderr, "    scrollTextIntoView: v=", v.getId(),
+                        print >> sys.stderr, v.getText()
+                    except:
+                        pass
+            #v = self.vc.findViewWithText(text, root=self.view)
+            v = self.vc.findViewWithText(text)
             if v is not None:
                 return v
             self.flingForward()
+            #self.vc.sleep(1)
             self.vc.dump(-1)
+            # WARNING: after this dump, the value kept in self.view is outdated, it should be refreshed
+            # in some way
         return None
 
     def setAsHorizontalList(self):
@@ -2637,6 +2684,7 @@ You should force ViewServer back-end.''')
             raise ViewNotFoundException("tag", tag, root)
 
     def __findViewsWithAttributeInTree(self, attr, val, root):
+        # Note the plural in this method name
         matchingViews = []
         if not self.root:
             print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
@@ -2658,6 +2706,24 @@ You should force ViewServer back-end.''')
         return matchingViews
 
     def __findViewWithAttributeInTree(self, attr, val, root):
+        if DEBUG:
+            print >> sys.stderr, "    __findViewWithAttributeInTree: type(val)=", type(val)
+            if type(val) != types.UnicodeType:
+                u = unicode(val, encoding='utf-8', errors='ignore')
+            else:
+                u = val
+            print >> sys.stderr, u'''__findViewWithAttributeInTree({0}'''.format(attr),
+            try:
+                print >> sys.stderr, u''', {0}'''.format(u),
+            except:
+                pass
+            print >> sys.stderr, u'>>>>>>>>>>>>>>>>>>', type(root)
+            if type(root) == types.StringType:
+                print >> sys.stderr, u'>>>>>>>>>>>>>>>>>>', root
+                print >> sys.stderr, u''', {0})'''.format(root)
+            else:
+                print >> sys.stderr, u''', {0})'''.format(root.__smallStr__())
+
         if not self.root:
             print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
             return None
@@ -2666,11 +2732,28 @@ You should force ViewServer back-end.''')
             root = self.root
 
         if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: type val=", type(val)
-        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
+        if DEBUG:
+            #print >> sys.stderr, u'''__findViewWithAttributeInTree: checking if root={0}: '''.format(root),
+            print >> sys.stderr, u'''has  {0} == '''.format(attr),
+            if type(val) == types.UnicodeType:
+                u = val
+            else:
+                u = unicode(val, encoding='utf-8', errors='replace')
+            try:
+                print >> sys.stderr, u'''{0}'''.format(u)
+            except:
+                pass
 
         if isinstance(val, RegexType):
             return self.__findViewWithAttributeInTreeThatMatches(attr, val, root)
         else:
+            try:
+                if DEBUG:
+                    print >> sys.stderr, u'''__findViewWithAttributeInTree: comparing {0}: '''.format(attr),
+                    print >> sys.stderr, u'''{0} == '''.format(root.map[attr]),
+                    print >> sys.stderr, u'''{0}'''.format(val)
+            except:
+                pass
             if root and attr in root.map and root.map[attr] == val:
                 if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
                 return root
@@ -2719,6 +2802,13 @@ You should force ViewServer back-end.''')
         '''
         Finds the View with the specified attribute and value
         '''
+        if DEBUG:
+            try:
+                print >> sys.stderr, u'findViewWithAttribute({0}, {1}, {2})'.format(attr, unicode(val, encoding='utf-8', errors='replace'), root)
+            except:
+                pass
+            print >> sys.stderr, "    findViewWithAttribute: type(val)=", type(val)
+
 
         return self.__findViewWithAttributeInTree(attr, val, root)
 
@@ -2758,7 +2848,12 @@ You should force ViewServer back-end.''')
 
     def findViewWithText(self, text, root="ROOT"):
         if DEBUG:
-            print >>sys.stderr, "findViewWithText(%s, %s)" % (text, root)
+            try:
+                print >>sys.stderr, '''findViewWithText({0}, {1})'''.format(text, root)
+                print >> sys.stderr, "    findViewWithText: type(text)=", type(text)
+            except:
+                pass
+
         if isinstance(text, RegexType):
             return self.findViewWithAttributeThatMatches(self.textProperty, text, root)
             #l = self.findViewWithAttributeThatMatches(TEXT_PROPERTY, text)
