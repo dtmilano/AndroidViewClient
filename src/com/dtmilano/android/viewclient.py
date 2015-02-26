@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.11'
+__version__ = '10.0.12'
 
 import sys
 import warnings
@@ -338,8 +338,11 @@ class View:
             self.heightProperty = HEIGHT_PROPERTY
             self.isFocusedProperty = IS_FOCUSED_PROPERTY
             
-        if self.isScrollable():
-            self.uiScrollable = UiScrollable(self)
+        try:
+            if self.isScrollable():
+                self.uiScrollable = UiScrollable(self)
+        except AttributeError:
+            pass
 
     def __getitem__(self, key):
         return self.map[key]
@@ -1971,7 +1974,7 @@ class ViewClient:
             _str += ' '
             _str += view.getId()
             _str += ' '
-            _str += view.getText()
+            _str += view.getText() if view.getText() else ''
             _str += eis
             return _str
         except Exception, e:
