@@ -144,7 +144,7 @@ class View:
     '''
 
     @staticmethod
-    def factory(arg1, arg2, version=-1, forceviewserveruse=False):
+    def factory(arg1, arg2, version=-1, forceviewserveruse=False, windowId=None):
         '''
         View factory
 
@@ -172,24 +172,24 @@ class View:
             if DEBUG_VIEW_FACTORY:
                 print >> sys.stderr, "    View.factory: creating View with specific class: %s" % clazz
             if clazz == 'android.widget.TextView':
-                return TextView(attrs, device, version, forceviewserveruse)
+                return TextView(attrs, device, version, forceviewserveruse, windowId)
             elif clazz == 'android.widget.EditText':
-                return EditText(attrs, device, version, forceviewserveruse)
+                return EditText(attrs, device, version, forceviewserveruse, windowId)
             elif clazz == 'android.widget.ListView':
-                return ListView(attrs, device, version, forceviewserveruse)
+                return ListView(attrs, device, version, forceviewserveruse, windowId)
             else:
-                return View(attrs, device, version, forceviewserveruse)
+                return View(attrs, device, version, forceviewserveruse, windowId)
         elif cls:
             if view:
                 return cls.__copy(view)
             else:
-                return cls(attrs, device, version, forceviewserveruse)
+                return cls(attrs, device, version, forceviewserveruse, windowId)
         elif view:
             return copy.copy(view)
         else:
             if DEBUG_VIEW_FACTORY:
                 print >> sys.stderr, "    View.factory: creating generic View"
-            return View(attrs, device, version, forceviewserveruse)
+            return View(attrs, device, version, forceviewserveruse, windowId)
 
     @classmethod
     def __copy(cls, view):
@@ -197,9 +197,9 @@ class View:
         Copy constructor
         '''
 
-        return cls(view.map, view.device, view.version, view.forceviewserveruse)
+        return cls(view.map, view.device, view.version, view.forceviewserveruse, view.windowId)
 
-    def __init__(self, _map, device, version=-1, forceviewserveruse=False):
+    def __init__(self, _map, device, version=-1, forceviewserveruse=False, windowId=None):
         '''
         Constructor
 
@@ -235,6 +235,8 @@ class View:
         self.windows = {}
         self.currentFocus = None
         ''' The current focus '''
+        self.windowId = windowId
+        ''' The window this view resides '''
         self.build = {}
         ''' Build properties '''
         self.version = version
@@ -668,7 +670,10 @@ class View:
         if DEBUG_COORDS or debug:
             print >>sys.stderr, "   getXY: wv=(%d, %d) (windows information)" % (wvx, wvy)
         try:
-            fw = self.windows[self.currentFocus]
+            if self.windowId:
+                fw = self.windows[self.windowId]
+            else:
+                fw = self.windows[self.currentFocus]
             if DEBUG_STATUSBAR:
                 print >> sys.stderr, "    getXY: focused window=", fw
                 print >> sys.stderr, "    getXY: deciding whether to consider statusbar offset because current focused windows is at", (fw.wvx, fw.wvy), "parent", (fw.px, fw.py)
@@ -872,7 +877,10 @@ class View:
                 if m:
                     self.currentFocus = m.group('winId')
 
-        if self.currentFocus in self.windows and self.windows[self.currentFocus].visibility == 0:
+        if  self.windowId and self.windowId in self.windows and self.windows[self.windowId].visibility == 0:
+            w = self.windows[self.windowId]
+            return (w.wvx, w.wvy)
+        elif self.currentFocus in self.windows and self.windows[self.currentFocus].visibility == 0:
             if DEBUG_COORDS or debug:
                 print >> sys.stderr, "__dumpWindowsInformation: focus=", self.currentFocus
                 print >> sys.stderr, "__dumpWindowsInformation:", self.windows[self.currentFocus]
@@ -2143,7 +2151,7 @@ class ViewClient:
             print >>sys.stderr, "serviceResponse: comparing '%s' vs Parcel(%s)" % (response, PARCEL_TRUE)
         return response == PARCEL_TRUE
 
-    def setViews(self, received):
+    def setViews(self, received, windowId=None):
         '''
         Sets L{self.views} to the received value splitting it into lines.
 
@@ -2155,7 +2163,7 @@ class ViewClient:
             raise ValueError("received is empty")
         self.views = []
         ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
-        self.__parseTree(received.split("\n"))
+        self.__parseTree(received.split("\n"), windowId)
         if DEBUG:
             print >>sys.stderr, "there are %d views in this dump" % len(self.views)
 
@@ -2265,7 +2273,7 @@ class ViewClient:
 
         return attrs
 
-    def __parseTree(self, receivedLines):
+    def __parseTree(self, receivedLines, windowId=None):
         '''
         Parses the View tree contained in L{receivedLines}. The tree is created and the root node assigned to L{self.root}.
         This method also assigns L{self.viewsById} values using L{View.getUniqueId} as the key.
@@ -2289,7 +2297,7 @@ class ViewClient:
             if not self.root:
                 if v[0] == ' ':
                     raise Exception("Unexpected root element starting with ' '.")
-                self.root = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse)
+                self.root = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse, windowId)
                 if DEBUG: self.root.raw = v
                 treeLevel = 0
                 newLevel = 0
@@ -2300,7 +2308,7 @@ class ViewClient:
                 newLevel = (len(v) - len(v.lstrip()))
                 if newLevel == 0:
                     raise Exception("newLevel==0 treeLevel=%d but tree can have only one root, v=%s" % (treeLevel, v))
-                child = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse)
+                child = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse, windowId)
                 if DEBUG: child.raw = v
                 if newLevel == treeLevel:
                     parent.add(child)
@@ -2528,7 +2536,7 @@ You should force ViewServer back-end.''')
                     if ord(c) > 127:
                         received = unicode(received, encoding='utf-8', errors='replace')
                         break
-            self.setViews(received)
+            self.setViews(received, hex(window)[2:])
 
             if DEBUG_TREE:
                 self.traverse(self.root)
