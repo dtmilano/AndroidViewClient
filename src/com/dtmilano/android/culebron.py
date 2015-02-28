@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.0.8'
+__version__ = '10.0.13'
 
 import sys
 import threading
@@ -135,6 +135,11 @@ class Culebron:
     snapshotDir = '/tmp'
     snapshotFormat = 'PNG'
     
+    @staticmethod
+    def checkSupportedSdkVersion(sdkVersion):
+        if sdkVersion <= 10:
+            raise Exception('''culebra GUI requires Android API > 10 to work''')
+
     @staticmethod
     def checkDependencies():
         if not PIL_AVAILABLE:

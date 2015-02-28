@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.0.8'
+__version__ = '10.0.13'
 
 import re
 import sys
@@ -494,7 +494,7 @@ def printSaveViewScreenshot(view, filename, _format):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
         print '%s%s.writeImageToFile(\'%s\', \'%s\')' % (indent, view.variableNameFromId(), filename, _format)
     
@@ -502,7 +502,7 @@ def printFlingBackward(view):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
         logAction('flinging backward view with id=%s' % view.getId())
         print '%s%s.uiScrollable.flingBackward()' % (indent, view.variableNameFromId())
@@ -511,7 +511,7 @@ def printFlingForward(view):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
         logAction('flinging forward view with id=%s' % view.getId())
         print '%s%s.uiScrollable.flingForward()' % (indent, view.variableNameFromId())
@@ -520,7 +520,7 @@ def printFlingToBeginning(view):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
         logAction('flinging to beginning view with id=%s' % view.getId())
         print '%s%s.uiScrollable.flingToBeginning()' % (indent, view.variableNameFromId())
@@ -529,7 +529,7 @@ def printFlingToEnd(view):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        # FIXME: if -u was passed in the command line the we are not saving the variables and thus
+        # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
         logAction('flinging to end view with id=%s' % view.getId())
         print '%s%s.uiScrollable.flingToEnd()' % (indent, view.variableNameFromId())
@@ -744,6 +744,7 @@ def logAction(action):
         printLogAction(action)
     
 def runCulebron():
+    Culebron.checkSupportedSdkVersion(device.getSdkVersion())
     Culebron.checkDependencies()
     culebron = Culebron(vc, printOperation, options[CulebraOptions.SCALE])
     culebron.takeScreenshotAndShowItOnWindow()
