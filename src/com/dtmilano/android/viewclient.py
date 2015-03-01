@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.12'
+__version__ = '10.0.13'
 
 import sys
 import warnings
@@ -1350,17 +1350,615 @@ class UiDevice():
         }
 
         LANGUAGES = {
-            # FIXME: add languages
-            'en': u"English (United States)",
-            'es-rUS': u"Español (Estados Unidos)",
+            "en": u"English (United States)",
+            "es-rUS": u"Español (Estados Unidos)",
+            "af": u"Afrikaans", # Afrikaans
+            "af-rNA": u"Afrikaans (Namibië)", # Afrikaans (Namibia)
+            "af-rZA": u"Afrikaans (Suid-Afrika)", # Afrikaans (South Africa)
+            "agq": u"Aghem", # Aghem
+            "agq-rCM": u"Aghem (Kàmàlûŋ)", # Aghem (Cameroon)
+            "ak": u"Akan", # Akan
+            "ak-rGH": u"Akan (Gaana)", # Akan (Ghana)
+            "am": u"አማርኛ", # Amharic
+            "am-rET": u"አማርኛ (ኢትዮጵያ)", # Amharic (Ethiopia)
+            "ar": u"العربية", # Arabic
+            "ar_001": u"العربية (العالم)", # Arabic (World)
+            "ar-rAE": u"العربية (الإمارات العربية المتحدة)", # Arabic (United Arab Emirates)
+            "ar-rBH": u"العربية (البحرين)", # Arabic (Bahrain)
+            "ar-rDJ": u"العربية (جيبوتي)", # Arabic (Djibouti)
+            "ar-rDZ": u"العربية (الجزائر)", # Arabic (Algeria)
+            "ar-rEG": u"العربية (مصر)", # Arabic (Egypt)
+            "ar-rEH": u"العربية (الصحراء الغربية)", # Arabic (Western Sahara)
+            "ar-rER": u"العربية (أريتريا)", # Arabic (Eritrea)
+            "ar-rIL": u"العربية (إسرائيل)", # Arabic (Israel)
+            "ar-rIQ": u"العربية (العراق)", # Arabic (Iraq)
+            "ar-rJO": u"العربية (الأردن)", # Arabic (Jordan)
+            "ar-rKM": u"العربية (جزر القمر)", # Arabic (Comoros)
+            "ar-rKW": u"العربية (الكويت)", # Arabic (Kuwait)
+            "ar-rLB": u"العربية (لبنان)", # Arabic (Lebanon)
+            "ar-rLY": u"العربية (ليبيا)", # Arabic (Libya)
+            "ar-rMA": u"العربية (المغرب)", # Arabic (Morocco)
+            "ar-rMR": u"العربية (موريتانيا)", # Arabic (Mauritania)
+            "ar-rOM": u"العربية (عُمان)", # Arabic (Oman)
+            "ar-rPS": u"العربية (فلسطين)", # Arabic (Palestine)
+            "ar-rQA": u"العربية (قطر)", # Arabic (Qatar)
+            "ar-rSA": u"العربية (المملكة العربية السعودية)", # Arabic (Saudi Arabia)
+            "ar-rSD": u"العربية (السودان)", # Arabic (Sudan)
+            "ar-rSO": u"العربية (الصومال)", # Arabic (Somalia)
+            "ar-rSY": u"العربية (سوريا)", # Arabic (Syria)
+            "ar-rTD": u"العربية (تشاد)", # Arabic (Chad)
+            "ar-rTN": u"العربية (تونس)", # Arabic (Tunisia)
+            "ar-rYE": u"العربية (اليمن)", # Arabic (Yemen)
+            "as": u"অসমীয়া", # Assamese
+            "as-rIN": u"অসমীয়া (ভাৰত)", # Assamese (India)
+            "asa": u"Kipare", # Asu
+            "asa-rTZ": u"Kipare (Tadhania)", # Asu (Tanzania)
+            "az": u"azərbaycanca", # Azerbaijani
+            "az-rCYRL": u"Азәрбајҹан (CYRL)", # Azerbaijani (CYRL)
+            "az-rCYRL_AZ": u"Азәрбајҹан (Азәрбајҹан,AZ)", # Azerbaijani (Azerbaijan,AZ)
+            "az-rLATN": u"azərbaycanca (LATN)", # Azerbaijani (LATN)
+            "az-rLATN_AZ": u"azərbaycanca (Azərbaycan,AZ)", # Azerbaijani (Azerbaijan,AZ)
+            "bas": u"Ɓàsàa", # Basaa
+            "bas-rCM": u"Ɓàsàa (Kàmɛ̀rûn)", # Basaa (Cameroon)
+            "be": u"беларуская", # Belarusian
+            "be-rBY": u"беларуская (Беларусь)", # Belarusian (Belarus)
+            "bem": u"Ichibemba", # Bemba
+            "bem-rZM": u"Ichibemba (Zambia)", # Bemba (Zambia)
+            "bez": u"Hibena", # Bena
+            "bez-rTZ": u"Hibena (Hutanzania)", # Bena (Tanzania)
+            "bg": u"български", # Bulgarian
+            "bg-rBG": u"български (България)", # Bulgarian (Bulgaria)
+            "bm": u"bamanakan", # Bambara
+            "bm-rML": u"bamanakan (Mali)", # Bambara (Mali)
+            "bn": u"বাংলা", # Bengali
+            "bn-rBD": u"বাংলা (বাংলাদেশ)", # Bengali (Bangladesh)
+            "bn-rIN": u"বাংলা (ভারত)", # Bengali (India)
+            "bo": u"པོད་སྐད་", # Tibetan
+            "bo-rCN": u"པོད་སྐད་ (རྒྱ་ནག)", # Tibetan (China)
+            "bo-rIN": u"པོད་སྐད་ (རྒྱ་གར་)", # Tibetan (India)
+            "br": u"brezhoneg", # Breton
+            "br-rFR": u"brezhoneg (Frañs)", # Breton (France)
+            "brx": u"बड़ो", # Bodo
+            "brx-rIN": u"बड़ो (भारत)", # Bodo (India)
+            "bs": u"bosanski", # Bosnian
+            "bs-rCYRL": u"босански (CYRL)", # Bosnian (CYRL)
+            "bs-rCYRL_BA": u"босански (Босна и Херцеговина,BA)", # Bosnian (Bosnia and Herzegovina,BA)
+            "bs-rLATN": u"bosanski (LATN)", # Bosnian (LATN)
+            "bs-rLATN_BA": u"bosanski (Bosna i Hercegovina,BA)", # Bosnian (Bosnia and Herzegovina,BA)
+            "ca": u"català", # Catalan
+            "ca-rAD": u"català (Andorra)", # Catalan (Andorra)
+            "ca-rES": u"català (Espanya)", # Catalan (Spain)
+            "cgg": u"Rukiga", # Chiga
+            "cgg-rUG": u"Rukiga (Uganda)", # Chiga (Uganda)
+            "chr": u"ᏣᎳᎩ", # Cherokee
+            "chr-rUS": u"ᏣᎳᎩ (ᎠᎹᏰᏟ)", # Cherokee (United States)
+            "cs": u"čeština", # Czech
+            "cs-rCZ": u"čeština (Česká republika)", # Czech (Czech Republic)
+            "cy": u"Cymraeg", # Welsh
+            "cy-rGB": u"Cymraeg (y Deyrnas Unedig)", # Welsh (United Kingdom)
+            "da": u"dansk", # Danish
+            "da-rDK": u"dansk (Danmark)", # Danish (Denmark)
+            "dav": u"Kitaita", # Taita
+            "dav-rKE": u"Kitaita (Kenya)", # Taita (Kenya)
+            "de": u"Deutsch", # German
+            "de-rAT": u"Deutsch (Österreich)", # German (Austria)
+            "de-rBE": u"Deutsch (Belgien)", # German (Belgium)
+            "de-rCH": u"Deutsch (Schweiz)", # German (Switzerland)
+            "de-rDE": u"Deutsch (Deutschland)", # German (Germany)
+            "de-rLI": u"Deutsch (Liechtenstein)", # German (Liechtenstein)
+            "de-rLU": u"Deutsch (Luxemburg)", # German (Luxembourg)
+            "dje": u"Zarmaciine", # Zarma
+            "dje-rNE": u"Zarmaciine (Nižer)", # Zarma (Niger)
+            "dua": u"duálá", # Duala
+            "dua-rCM": u"duálá (Cameroun)", # Duala (Cameroon)
+            "dyo": u"joola", # Jola-Fonyi
+            "dyo-rSN": u"joola (Senegal)", # Jola-Fonyi (Senegal)
+            "dz": u"རྫོང་ཁ", # Dzongkha
+            "dz-rBT": u"རྫོང་ཁ (འབྲུག)", # Dzongkha (Bhutan)
+            "ebu": u"Kĩembu", # Embu
+            "ebu-rKE": u"Kĩembu (Kenya)", # Embu (Kenya)
+            "ee": u"eʋegbe", # Ewe
+            "ee-rGH": u"eʋegbe (Ghana nutome)", # Ewe (Ghana)
+            "ee-rTG": u"eʋegbe (Togo nutome)", # Ewe (Togo)
+            "el": u"Ελληνικά", # Greek
+            "el-rCY": u"Ελληνικά (Κύπρος)", # Greek (Cyprus)
+            "el-rGR": u"Ελληνικά (Ελλάδα)", # Greek (Greece)
+            "en": u"English", # English
+            "en_150": u"English (Europe)", # English (Europe)
+            "en-rAG": u"English (Antigua and Barbuda)", # English (Antigua and Barbuda)
+            "en-rAS": u"English (American Samoa)", # English (American Samoa)
+            "en-rAU": u"English (Australia)", # English (Australia)
+            "en-rBB": u"English (Barbados)", # English (Barbados)
+            "en-rBE": u"English (Belgium)", # English (Belgium)
+            "en-rBM": u"English (Bermuda)", # English (Bermuda)
+            "en-rBS": u"English (Bahamas)", # English (Bahamas)
+            "en-rBW": u"English (Botswana)", # English (Botswana)
+            "en-rBZ": u"English (Belize)", # English (Belize)
+            "en-rCA": u"English (Canada)", # English (Canada)
+            "en-rCM": u"English (Cameroon)", # English (Cameroon)
+            "en-rDM": u"English (Dominica)", # English (Dominica)
+            "en-rFJ": u"English (Fiji)", # English (Fiji)
+            "en-rFM": u"English (Micronesia)", # English (Micronesia)
+            "en-rGB": u"English (United Kingdom)", # English (United Kingdom)
+            "en-rGD": u"English (Grenada)", # English (Grenada)
+            "en-rGG": u"English (Guernsey)", # English (Guernsey)
+            "en-rGH": u"English (Ghana)", # English (Ghana)
+            "en-rGI": u"English (Gibraltar)", # English (Gibraltar)
+            "en-rGM": u"English (Gambia)", # English (Gambia)
+            "en-rGU": u"English (Guam)", # English (Guam)
+            "en-rGY": u"English (Guyana)", # English (Guyana)
+            "en-rHK": u"English (Hong Kong)", # English (Hong Kong)
+            "en-rIE": u"English (Ireland)", # English (Ireland)
+            "en-rIM": u"English (Isle of Man)", # English (Isle of Man)
+            "en-rIN": u"English (India)", # English (India)
+            "en-rJE": u"English (Jersey)", # English (Jersey)
+            "en-rJM": u"English (Jamaica)", # English (Jamaica)
+            "en-rKE": u"English (Kenya)", # English (Kenya)
+            "en-rKI": u"English (Kiribati)", # English (Kiribati)
+            "en-rKN": u"English (Saint Kitts and Nevis)", # English (Saint Kitts and Nevis)
+            "en-rKY": u"English (Cayman Islands)", # English (Cayman Islands)
+            "en-rLC": u"English (Saint Lucia)", # English (Saint Lucia)
+            "en-rLR": u"English (Liberia)", # English (Liberia)
+            "en-rLS": u"English (Lesotho)", # English (Lesotho)
+            "en-rMG": u"English (Madagascar)", # English (Madagascar)
+            "en-rMH": u"English (Marshall Islands)", # English (Marshall Islands)
+            "en-rMP": u"English (Northern Mariana Islands)", # English (Northern Mariana Islands)
+            "en-rMT": u"English (Malta)", # English (Malta)
+            "en-rMU": u"English (Mauritius)", # English (Mauritius)
+            "en-rMW": u"English (Malawi)", # English (Malawi)
+            "en-rNA": u"English (Namibia)", # English (Namibia)
+            "en-rNG": u"English (Nigeria)", # English (Nigeria)
+            "en-rNZ": u"English (New Zealand)", # English (New Zealand)
+            "en-rPG": u"English (Papua New Guinea)", # English (Papua New Guinea)
+            "en-rPH": u"English (Philippines)", # English (Philippines)
+            "en-rPK": u"English (Pakistan)", # English (Pakistan)
+            "en-rPR": u"English (Puerto Rico)", # English (Puerto Rico)
+            "en-rPW": u"English (Palau)", # English (Palau)
+            "en-rSB": u"English (Solomon Islands)", # English (Solomon Islands)
+            "en-rSC": u"English (Seychelles)", # English (Seychelles)
+            "en-rSG": u"English (Singapore)", # English (Singapore)
+            "en-rSL": u"English (Sierra Leone)", # English (Sierra Leone)
+            "en-rSS": u"English (South Sudan)", # English (South Sudan)
+            "en-rSZ": u"English (Swaziland)", # English (Swaziland)
+            "en-rTC": u"English (Turks and Caicos Islands)", # English (Turks and Caicos Islands)
+            "en-rTO": u"English (Tonga)", # English (Tonga)
+            "en-rTT": u"English (Trinidad and Tobago)", # English (Trinidad and Tobago)
+            "en-rTZ": u"English (Tanzania)", # English (Tanzania)
+            "en-rUG": u"English (Uganda)", # English (Uganda)
+            "en-rUM": u"English (U.S. Outlying Islands)", # English (U.S. Outlying Islands)
+            "en-rUS": u"English (United States)", # English (United States)
+            "en-rUS_POSIX": u"English (United States,Computer)", # English (United States,Computer)
+            "en-rVC": u"English (Saint Vincent and the Grenadines)", # English (Saint Vincent and the Grenadines)
+            "en-rVG": u"English (British Virgin Islands)", # English (British Virgin Islands)
+            "en-rVI": u"English (U.S. Virgin Islands)", # English (U.S. Virgin Islands)
+            "en-rVU": u"English (Vanuatu)", # English (Vanuatu)
+            "en-rWS": u"English (Samoa)", # English (Samoa)
+            "en-rZA": u"English (South Africa)", # English (South Africa)
+            "en-rZM": u"English (Zambia)", # English (Zambia)
+            "en-rZW": u"English (Zimbabwe)", # English (Zimbabwe)
+            "eo": u"esperanto", # Esperanto
+            "es": u"español", # Spanish
+            "es_419": u"español (Latinoamérica)", # Spanish (Latin America)
+            "es-rAR": u"español (Argentina)", # Spanish (Argentina)
+            "es-rBO": u"español (Bolivia)", # Spanish (Bolivia)
+            "es-rCL": u"español (Chile)", # Spanish (Chile)
+            "es-rCO": u"español (Colombia)", # Spanish (Colombia)
+            "es-rCR": u"español (Costa Rica)", # Spanish (Costa Rica)
+            "es-rCU": u"español (Cuba)", # Spanish (Cuba)
+            "es-rDO": u"español (República Dominicana)", # Spanish (Dominican Republic)
+            "es-rEA": u"español (Ceuta y Melilla)", # Spanish (Ceuta and Melilla)
+            "es-rEC": u"español (Ecuador)", # Spanish (Ecuador)
+            "es-rES": u"español (España)", # Spanish (Spain)
+            "es-rGQ": u"español (Guinea Ecuatorial)", # Spanish (Equatorial Guinea)
+            "es-rGT": u"español (Guatemala)", # Spanish (Guatemala)
+            "es-rHN": u"español (Honduras)", # Spanish (Honduras)
+            "es-rIC": u"español (Islas Canarias)", # Spanish (Canary Islands)
+            "es-rMX": u"español (México)", # Spanish (Mexico)
+            "es-rNI": u"español (Nicaragua)", # Spanish (Nicaragua)
+            "es-rPA": u"español (Panamá)", # Spanish (Panama)
+            "es-rPE": u"español (Perú)", # Spanish (Peru)
+            "es-rPH": u"español (Filipinas)", # Spanish (Philippines)
+            "es-rPR": u"español (Puerto Rico)", # Spanish (Puerto Rico)
+            "es-rPY": u"español (Paraguay)", # Spanish (Paraguay)
+            "es-rSV": u"español (El Salvador)", # Spanish (El Salvador)
+            "es-rUS": u"Español (Estados Unidos)", # Spanish (United States)
+            "es-rUY": u"español (Uruguay)", # Spanish (Uruguay)
+            "es-rVE": u"español (Venezuela)", # Spanish (Venezuela)
+            "et": u"eesti", # Estonian
+            "et-rEE": u"eesti (Eesti)", # Estonian (Estonia)
+            "eu": u"euskara", # Basque
+            "eu-rES": u"euskara (Espainia)", # Basque (Spain)
+            "ewo": u"ewondo", # Ewondo
+            "ewo-rCM": u"ewondo (Kamərún)", # Ewondo (Cameroon)
+            "fa": u"فارسی", # Persian
+            "fa-rAF": u"دری (افغانستان)", # Persian (Afghanistan)
+            "fa-rIR": u"فارسی (ایران)", # Persian (Iran)
+            "ff": u"Pulaar", # Fulah
+            "ff-rSN": u"Pulaar (Senegaal)", # Fulah (Senegal)
+            "fi": u"suomi", # Finnish
+            "fi-rFI": u"suomi (Suomi)", # Finnish (Finland)
+            "fil": u"Filipino", # Filipino
+            "fil-rPH": u"Filipino (Pilipinas)", # Filipino (Philippines)
+            "fo": u"føroyskt", # Faroese
+            "fo-rFO": u"føroyskt (Føroyar)", # Faroese (Faroe Islands)
+            "fr": u"français", # French
+            "fr-rBE": u"français (Belgique)", # French (Belgium)
+            "fr-rBF": u"français (Burkina Faso)", # French (Burkina Faso)
+            "fr-rBI": u"français (Burundi)", # French (Burundi)
+            "fr-rBJ": u"français (Bénin)", # French (Benin)
+            "fr-rBL": u"français (Saint-Barthélémy)", # French (Saint Barthélemy)
+            "fr-rCA": u"français (Canada)", # French (Canada)
+            "fr-rCD": u"français (République démocratique du Congo)", # French (Congo [DRC])
+            "fr-rCF": u"français (République centrafricaine)", # French (Central African Republic)
+            "fr-rCG": u"français (Congo-Brazzaville)", # French (Congo [Republic])
+            "fr-rCH": u"français (Suisse)", # French (Switzerland)
+            "fr-rCI": u"français (Côte d’Ivoire)", # French (Côte d’Ivoire)
+            "fr-rCM": u"français (Cameroun)", # French (Cameroon)
+            "fr-rDJ": u"français (Djibouti)", # French (Djibouti)
+            "fr-rDZ": u"français (Algérie)", # French (Algeria)
+            "fr-rFR": u"français (France)", # French (France)
+            "fr-rGA": u"français (Gabon)", # French (Gabon)
+            "fr-rGF": u"français (Guyane française)", # French (French Guiana)
+            "fr-rGN": u"français (Guinée)", # French (Guinea)
+            "fr-rGP": u"français (Guadeloupe)", # French (Guadeloupe)
+            "fr-rGQ": u"français (Guinée équatoriale)", # French (Equatorial Guinea)
+            "fr-rHT": u"français (Haïti)", # French (Haiti)
+            "fr-rKM": u"français (Comores)", # French (Comoros)
+            "fr-rLU": u"français (Luxembourg)", # French (Luxembourg)
+            "fr-rMA": u"français (Maroc)", # French (Morocco)
+            "fr-rMC": u"français (Monaco)", # French (Monaco)
+            "fr-rMF": u"français (Saint-Martin [partie française])", # French (Saint Martin)
+            "fr-rMG": u"français (Madagascar)", # French (Madagascar)
+            "fr-rML": u"français (Mali)", # French (Mali)
+            "fr-rMQ": u"français (Martinique)", # French (Martinique)
+            "fr-rMR": u"français (Mauritanie)", # French (Mauritania)
+            "fr-rMU": u"français (Maurice)", # French (Mauritius)
+            "fr-rNC": u"français (Nouvelle-Calédonie)", # French (New Caledonia)
+            "fr-rNE": u"français (Niger)", # French (Niger)
+            "fr-rPF": u"français (Polynésie française)", # French (French Polynesia)
+            "fr-rRE": u"français (Réunion)", # French (Réunion)
+            "fr-rRW": u"français (Rwanda)", # French (Rwanda)
+            "fr-rSC": u"français (Seychelles)", # French (Seychelles)
+            "fr-rSN": u"français (Sénégal)", # French (Senegal)
+            "fr-rSY": u"français (Syrie)", # French (Syria)
+            "fr-rTD": u"français (Tchad)", # French (Chad)
+            "fr-rTG": u"français (Togo)", # French (Togo)
+            "fr-rTN": u"français (Tunisie)", # French (Tunisia)
+            "fr-rVU": u"français (Vanuatu)", # French (Vanuatu)
+            "fr-rYT": u"français (Mayotte)", # French (Mayotte)
+            "ga": u"Gaeilge", # Irish
+            "ga-rIE": u"Gaeilge (Éire)", # Irish (Ireland)
+            "gl": u"galego", # Galician
+            "gl-rES": u"galego (España)", # Galician (Spain)
+            "gsw": u"Schwiizertüütsch", # Swiss German
+            "gsw-rCH": u"Schwiizertüütsch (Schwiiz)", # Swiss German (Switzerland)
+            "gu": u"ગુજરાતી", # Gujarati
+            "gu-rIN": u"ગુજરાતી (ભારત)", # Gujarati (India)
+            "guz": u"Ekegusii", # Gusii
+            "guz-rKE": u"Ekegusii (Kenya)", # Gusii (Kenya)
+            "gv": u"Gaelg", # Manx
+            "gv-rGB": u"Gaelg (Rywvaneth Unys)", # Manx (United Kingdom)
+            "ha": u"Hausa", # Hausa
+            "ha-rLATN": u"Hausa (LATN)", # Hausa (LATN)
+            "ha-rLATN_GH": u"Hausa (Gana,GH)", # Hausa (Ghana,GH)
+            "ha-rLATN_NE": u"Hausa (Nijar,NE)", # Hausa (Niger,NE)
+            "ha-rLATN_NG": u"Hausa (Najeriya,NG)", # Hausa (Nigeria,NG)
+            "haw": u"ʻŌlelo Hawaiʻi", # Hawaiian
+            "haw-rUS": u"ʻŌlelo Hawaiʻi (ʻAmelika Hui Pū ʻIa)", # Hawaiian (United States)
+            "iw": u"עברית", # Hebrew
+            "iw-rIL": u"עברית (ישראל)", # Hebrew (Israel)
+            "hi": u"हिन्दी", # Hindi
+            "hi-rIN": u"हिन्दी (भारत)", # Hindi (India)
+            "hr": u"hrvatski", # Croatian
+            "hr-rBA": u"hrvatski (Bosna i Hercegovina)", # Croatian (Bosnia and Herzegovina)
+            "hr-rHR": u"hrvatski (Hrvatska)", # Croatian (Croatia)
+            "hu": u"magyar", # Hungarian
+            "hu-rHU": u"magyar (Magyarország)", # Hungarian (Hungary)
+            "hy": u"հայերեն", # Armenian
+            "hy-rAM": u"հայերեն (Հայաստան)", # Armenian (Armenia)
+            "in": u"Bahasa Indonesia", # Indonesian
+            "in-rID": u"Bahasa Indonesia (Indonesia)", # Indonesian (Indonesia)
+            "ig": u"Igbo", # Igbo
+            "ig-rNG": u"Igbo (Nigeria)", # Igbo (Nigeria)
+            "ii": u"ꆈꌠꉙ", # Sichuan Yi
+            "ii-rCN": u"ꆈꌠꉙ (ꍏꇩ)", # Sichuan Yi (China)
+            "is": u"íslenska", # Icelandic
+            "is-rIS": u"íslenska (Ísland)", # Icelandic (Iceland)
+            "it": u"italiano", # Italian
+            "it-rCH": u"italiano (Svizzera)", # Italian (Switzerland)
+            "it-rIT": u"italiano (Italia)", # Italian (Italy)
+            "it-rSM": u"italiano (San Marino)", # Italian (San Marino)
+            "ja": u"日本語", # Japanese
+            "ja-rJP": u"日本語 (日本)", # Japanese (Japan)
+            "jgo": u"Ndaꞌa", # Ngomba
+            "jgo-rCM": u"Ndaꞌa (Kamɛlûn)", # Ngomba (Cameroon)
+            "jmc": u"Kimachame", # Machame
+            "jmc-rTZ": u"Kimachame (Tanzania)", # Machame (Tanzania)
+            "ka": u"ქართული", # Georgian
+            "ka-rGE": u"ქართული (საქართველო)", # Georgian (Georgia)
+            "kab": u"Taqbaylit", # Kabyle
+            "kab-rDZ": u"Taqbaylit (Lezzayer)", # Kabyle (Algeria)
+            "kam": u"Kikamba", # Kamba
+            "kam-rKE": u"Kikamba (Kenya)", # Kamba (Kenya)
+            "kde": u"Chimakonde", # Makonde
+            "kde-rTZ": u"Chimakonde (Tanzania)", # Makonde (Tanzania)
+            "kea": u"kabuverdianu", # Kabuverdianu
+            "kea-rCV": u"kabuverdianu (Kabu Verdi)", # Kabuverdianu (Cape Verde)
+            "khq": u"Koyra ciini", # Koyra Chiini
+            "khq-rML": u"Koyra ciini (Maali)", # Koyra Chiini (Mali)
+            "ki": u"Gikuyu", # Kikuyu
+            "ki-rKE": u"Gikuyu (Kenya)", # Kikuyu (Kenya)
+            "kk": u"қазақ тілі", # Kazakh
+            "kk-rCYRL": u"қазақ тілі (CYRL)", # Kazakh (CYRL)
+            "kk-rCYRL_KZ": u"қазақ тілі (Қазақстан,KZ)", # Kazakh (Kazakhstan,KZ)
+            "kl": u"kalaallisut", # Kalaallisut
+            "kl-rGL": u"kalaallisut (Kalaallit Nunaat)", # Kalaallisut (Greenland)
+            "kln": u"Kalenjin", # Kalenjin
+            "kln-rKE": u"Kalenjin (Emetab Kenya)", # Kalenjin (Kenya)
+            "km": u"ខ្មែរ", # Khmer
+            "km-rKH": u"ខ្មែរ (កម្ពុជា)", # Khmer (Cambodia)
+            "kn": u"ಕನ್ನಡ", # Kannada
+            "kn-rIN": u"ಕನ್ನಡ (ಭಾರತ)", # Kannada (India)
+            "ko": u"한국어", # Korean
+            "ko-rKP": u"한국어 (조선 민주주의 인민 공화국)", # Korean (North Korea)
+            "ko-rKR": u"한국어 (대한민국)", # Korean (South Korea)
+            "kok": u"कोंकणी", # Konkani
+            "kok-rIN": u"कोंकणी (भारत)", # Konkani (India)
+            "ks": u"کٲشُر", # Kashmiri
+            "ks-rARAB": u"کٲشُر (ARAB)", # Kashmiri (ARAB)
+            "ks-rARAB_IN": u"کٲشُر (ہِنٛدوستان,IN)", # Kashmiri (India,IN)
+            "ksb": u"Kishambaa", # Shambala
+            "ksb-rTZ": u"Kishambaa (Tanzania)", # Shambala (Tanzania)
+            "ksf": u"rikpa", # Bafia
+            "ksf-rCM": u"rikpa (kamɛrún)", # Bafia (Cameroon)
+            "kw": u"kernewek", # Cornish
+            "kw-rGB": u"kernewek (Rywvaneth Unys)", # Cornish (United Kingdom)
+            "lag": u"Kɨlaangi", # Langi
+            "lag-rTZ": u"Kɨlaangi (Taansanía)", # Langi (Tanzania)
+            "lg": u"Luganda", # Ganda
+            "lg-rUG": u"Luganda (Yuganda)", # Ganda (Uganda)
+            "ln": u"lingála", # Lingala
+            "ln-rAO": u"lingála (Angóla)", # Lingala (Angola)
+            "ln-rCD": u"lingála (Repibiki demokratiki ya Kongó)", # Lingala (Congo [DRC])
+            "ln-rCF": u"lingála (Repibiki ya Afríka ya Káti)", # Lingala (Central African Republic)
+            "ln-rCG": u"lingála (Kongo)", # Lingala (Congo [Republic])
+            "lo": u"ລາວ", # Lao
+            "lo-rLA": u"ລາວ (ສ.ປ.ປ ລາວ)", # Lao (Laos)
+            "lt": u"lietuvių", # Lithuanian
+            "lt-rLT": u"lietuvių (Lietuva)", # Lithuanian (Lithuania)
+            "lu": u"Tshiluba", # Luba-Katanga
+            "lu-rCD": u"Tshiluba (Ditunga wa Kongu)", # Luba-Katanga (Congo [DRC])
+            "luo": u"Dholuo", # Luo
+            "luo-rKE": u"Dholuo (Kenya)", # Luo (Kenya)
+            "luy": u"Luluhia", # Luyia
+            "luy-rKE": u"Luluhia (Kenya)", # Luyia (Kenya)
+            "lv": u"latviešu", # Latvian
+            "lv-rLV": u"latviešu (Latvija)", # Latvian (Latvia)
+            "mas": u"Maa", # Masai
+            "mas-rKE": u"Maa (Kenya)", # Masai (Kenya)
+            "mas-rTZ": u"Maa (Tansania)", # Masai (Tanzania)
+            "mer": u"Kĩmĩrũ", # Meru
+            "mer-rKE": u"Kĩmĩrũ (Kenya)", # Meru (Kenya)
+            "mfe": u"kreol morisien", # Morisyen
+            "mfe-rMU": u"kreol morisien (Moris)", # Morisyen (Mauritius)
+            "mg": u"Malagasy", # Malagasy
+            "mg-rMG": u"Malagasy (Madagasikara)", # Malagasy (Madagascar)
+            "mgh": u"Makua", # Makhuwa-Meetto
+            "mgh-rMZ": u"Makua (Umozambiki)", # Makhuwa-Meetto (Mozambique)
+            "mgo": u"metaʼ", # Meta'
+            "mgo-rCM": u"metaʼ (Kamalun)", # Meta' (Cameroon)
+            "mk": u"македонски", # Macedonian
+            "mk-rMK": u"македонски (Македонија)", # Macedonian (Macedonia [FYROM])
+            "ml": u"മലയാളം", # Malayalam
+            "ml-rIN": u"മലയാളം (ഇന്ത്യ)", # Malayalam (India)
+            "mn": u"монгол", # Mongolian
+            "mn-rCYRL": u"монгол (CYRL)", # Mongolian (CYRL)
+            "mn-rCYRL_MN": u"монгол (Монгол,MN)", # Mongolian (Mongolia,MN)
+            "mr": u"मराठी", # Marathi
+            "mr-rIN": u"मराठी (भारत)", # Marathi (India)
+            "ms": u"Bahasa Melayu", # Malay
+            "ms-rLATN": u"Bahasa Melayu (LATN)", # Malay (LATN)
+            "ms-rLATN_BN": u"Bahasa Melayu (Brunei,BN)", # Malay (Brunei,BN)
+            "ms-rLATN_MY": u"Bahasa Melayu (Malaysia,MY)", # Malay (Malaysia,MY)
+            "ms-rLATN_SG": u"Bahasa Melayu (Singapura,SG)", # Malay (Singapore,SG)
+            "mt": u"Malti", # Maltese
+            "mt-rMT": u"Malti (Malta)", # Maltese (Malta)
+            "mua": u"MUNDAŊ", # Mundang
+            "mua-rCM": u"MUNDAŊ (kameruŋ)", # Mundang (Cameroon)
+            "my": u"ဗမာ", # Burmese
+            "my-rMM": u"ဗမာ (မြန်မာ)", # Burmese (Myanmar [Burma])
+            "naq": u"Khoekhoegowab", # Nama
+            "naq-rNA": u"Khoekhoegowab (Namibiab)", # Nama (Namibia)
+            "nb": u"norsk bokmål", # Norwegian Bokmål
+            "nb-rNO": u"norsk bokmål (Norge)", # Norwegian Bokmål (Norway)
+            "nd": u"isiNdebele", # North Ndebele
+            "nd-rZW": u"isiNdebele (Zimbabwe)", # North Ndebele (Zimbabwe)
+            "ne": u"नेपाली", # Nepali
+            "ne-rIN": u"नेपाली (भारत)", # Nepali (India)
+            "ne-rNP": u"नेपाली (नेपाल)", # Nepali (Nepal)
+            "nl": u"Nederlands", # Dutch
+            "nl-rAW": u"Nederlands (Aruba)", # Dutch (Aruba)
+            "nl-rBE": u"Nederlands (België)", # Dutch (Belgium)
+            "nl-rCW": u"Nederlands (Curaçao)", # Dutch (Curaçao)
+            "nl-rNL": u"Nederlands (Nederland)", # Dutch (Netherlands)
+            "nl-rSR": u"Nederlands (Suriname)", # Dutch (Suriname)
+            "nl-rSX": u"Nederlands (Sint-Maarten)", # Dutch (Sint Maarten)
+            "nmg": u"nmg", # Kwasio
+            "nmg-rCM": u"nmg (Kamerun)", # Kwasio (Cameroon)
+            "nn": u"nynorsk", # Norwegian Nynorsk
+            "nn-rNO": u"nynorsk (Noreg)", # Norwegian Nynorsk (Norway)
+            "nus": u"Thok Nath", # Nuer
+            "nus-rSD": u"Thok Nath (Sudan)", # Nuer (Sudan)
+            "nyn": u"Runyankore", # Nyankole
+            "nyn-rUG": u"Runyankore (Uganda)", # Nyankole (Uganda)
+            "om": u"Oromoo", # Oromo
+            "om-rET": u"Oromoo (Itoophiyaa)", # Oromo (Ethiopia)
+            "om-rKE": u"Oromoo (Keeniyaa)", # Oromo (Kenya)
+            "or": u"ଓଡ଼ିଆ", # Oriya
+            "or-rIN": u"ଓଡ଼ିଆ (ଭାରତ)", # Oriya (India)
+            "pa": u"ਪੰਜਾਬੀ", # Punjabi
+            "pa-rARAB": u"پنجاب (ARAB)", # Punjabi (ARAB)
+            "pa-rARAB_PK": u"پنجاب (پکستان,PK)", # Punjabi (Pakistan,PK)
+            "pa-rGURU": u"ਪੰਜਾਬੀ (GURU)", # Punjabi (GURU)
+            "pa-rGURU_IN": u"ਪੰਜਾਬੀ (ਭਾਰਤ,IN)", # Punjabi (India,IN)
+            "pl": u"polski", # Polish
+            "pl-rPL": u"polski (Polska)", # Polish (Poland)
+            "ps": u"پښتو", # Pashto
+            "ps-rAF": u"پښتو (افغانستان)", # Pashto (Afghanistan)
+            "pt": u"português", # Portuguese
+            "pt-rAO": u"português (Angola)", # Portuguese (Angola)
+            "pt-rBR": u"português (Brasil)", # Portuguese (Brazil)
+            "pt-rCV": u"português (Cabo Verde)", # Portuguese (Cape Verde)
+            "pt-rGW": u"português (Guiné Bissau)", # Portuguese (Guinea-Bissau)
+            "pt-rMO": u"português (Macau)", # Portuguese (Macau)
+            "pt-rMZ": u"português (Moçambique)", # Portuguese (Mozambique)
+            "pt-rPT": u"português (Portugal)", # Portuguese (Portugal)
+            "pt-rST": u"português (São Tomé e Príncipe)", # Portuguese (São Tomé and Príncipe)
+            "pt-rTL": u"português (Timor-Leste)", # Portuguese (Timor-Leste)
+            "rm": u"rumantsch", # Romansh
+            "rm-rCH": u"rumantsch (Svizra)", # Romansh (Switzerland)
+            "rn": u"Ikirundi", # Rundi
+            "rn-rBI": u"Ikirundi (Uburundi)", # Rundi (Burundi)
+            "ro": u"română", # Romanian
+            "ro-rMD": u"română (Republica Moldova)", # Romanian (Moldova)
+            "ro-rRO": u"română (România)", # Romanian (Romania)
+            "rof": u"Kihorombo", # Rombo
+            "rof-rTZ": u"Kihorombo (Tanzania)", # Rombo (Tanzania)
+            "ru": u"русский", # Russian
+            "ru-rBY": u"русский (Беларусь)", # Russian (Belarus)
+            "ru-rKG": u"русский (Киргизия)", # Russian (Kyrgyzstan)
+            "ru-rKZ": u"русский (Казахстан)", # Russian (Kazakhstan)
+            "ru-rMD": u"русский (Молдова)", # Russian (Moldova)
+            "ru-rRU": u"русский (Россия)", # Russian (Russia)
+            "ru-rUA": u"русский (Украина)", # Russian (Ukraine)
+            "rw": u"Kinyarwanda", # Kinyarwanda
+            "rw-rRW": u"Kinyarwanda (Rwanda)", # Kinyarwanda (Rwanda)
+            "rwk": u"Kiruwa", # Rwa
+            "rwk-rTZ": u"Kiruwa (Tanzania)", # Rwa (Tanzania)
+            "saq": u"Kisampur", # Samburu
+            "saq-rKE": u"Kisampur (Kenya)", # Samburu (Kenya)
+            "sbp": u"Ishisangu", # Sangu
+            "sbp-rTZ": u"Ishisangu (Tansaniya)", # Sangu (Tanzania)
+            "seh": u"sena", # Sena
+            "seh-rMZ": u"sena (Moçambique)", # Sena (Mozambique)
+            "ses": u"Koyraboro senni", # Koyraboro Senni
+            "ses-rML": u"Koyraboro senni (Maali)", # Koyraboro Senni (Mali)
+            "sg": u"Sängö", # Sango
+            "sg-rCF": u"Sängö (Ködörösêse tî Bêafrîka)", # Sango (Central African Republic)
+            "shi": u"ⵜⴰⵎⴰⵣⵉⵖⵜ", # Tachelhit
+            "shi-rLATN": u"tamazight (LATN)", # Tachelhit (LATN)
+            "shi-rLATN_MA": u"tamazight (lmɣrib,MA)", # Tachelhit (Morocco,MA)
+            "shi-rTFNG": u"ⵜⴰⵎⴰⵣⵉⵖⵜ (TFNG)", # Tachelhit (TFNG)
+            "shi-rTFNG_MA": u"ⵜⴰⵎⴰⵣⵉⵖⵜ (ⵍⵎⵖⵔⵉⴱ,MA)", # Tachelhit (Morocco,MA)
+            "si": u"සිංහල", # Sinhala
+            "si-rLK": u"සිංහල (ශ්‍රී ලංකාව)", # Sinhala (Sri Lanka)
+            "sk": u"slovenčina", # Slovak
+            "sk-rSK": u"slovenčina (Slovensko)", # Slovak (Slovakia)
+            "sl": u"slovenščina", # Slovenian
+            "sl-rSI": u"slovenščina (Slovenija)", # Slovenian (Slovenia)
+            "sn": u"chiShona", # Shona
+            "sn-rZW": u"chiShona (Zimbabwe)", # Shona (Zimbabwe)
+            "so": u"Soomaali", # Somali
+            "so-rDJ": u"Soomaali (Jabuuti)", # Somali (Djibouti)
+            "so-rET": u"Soomaali (Itoobiya)", # Somali (Ethiopia)
+            "so-rKE": u"Soomaali (Kiiniya)", # Somali (Kenya)
+            "so-rSO": u"Soomaali (Soomaaliya)", # Somali (Somalia)
+            "sq": u"shqip", # Albanian
+            "sq-rAL": u"shqip (Shqipëria)", # Albanian (Albania)
+            "sq-rMK": u"shqip (Maqedoni)", # Albanian (Macedonia [FYROM])
+            "sr": u"Српски", # Serbian
+            "sr-rCYRL": u"Српски (CYRL)", # Serbian (CYRL)
+            "sr-rCYRL_BA": u"Српски (Босна и Херцеговина,BA)", # Serbian (Bosnia and Herzegovina,BA)
+            "sr-rCYRL_ME": u"Српски (Црна Гора,ME)", # Serbian (Montenegro,ME)
+            "sr-rCYRL_RS": u"Српски (Србија,RS)", # Serbian (Serbia,RS)
+            "sr-rLATN": u"Srpski (LATN)", # Serbian (LATN)
+            "sr-rLATN_BA": u"Srpski (Bosna i Hercegovina,BA)", # Serbian (Bosnia and Herzegovina,BA)
+            "sr-rLATN_ME": u"Srpski (Crna Gora,ME)", # Serbian (Montenegro,ME)
+            "sr-rLATN_RS": u"Srpski (Srbija,RS)", # Serbian (Serbia,RS)
+            "sv": u"svenska", # Swedish
+            "sv-rAX": u"svenska (Åland)", # Swedish (Åland Islands)
+            "sv-rFI": u"svenska (Finland)", # Swedish (Finland)
+            "sv-rSE": u"svenska (Sverige)", # Swedish (Sweden)
+            "sw": u"Kiswahili", # Swahili
+            "sw-rKE": u"Kiswahili (Kenya)", # Swahili (Kenya)
+            "sw-rTZ": u"Kiswahili (Tanzania)", # Swahili (Tanzania)
+            "sw-rUG": u"Kiswahili (Uganda)", # Swahili (Uganda)
+            "swc": u"Kiswahili ya Kongo", # Congo Swahili
+            "swc-rCD": u"Kiswahili ya Kongo (Jamhuri ya Kidemokrasia ya Kongo)", # Congo Swahili (Congo [DRC])
+            "ta": u"தமிழ்", # Tamil
+            "ta-rIN": u"தமிழ் (இந்தியா)", # Tamil (India)
+            "ta-rLK": u"தமிழ் (இலங்கை)", # Tamil (Sri Lanka)
+            "ta-rMY": u"தமிழ் (மலேஷியா)", # Tamil (Malaysia)
+            "ta-rSG": u"தமிழ் (சிங்கப்பூர்)", # Tamil (Singapore)
+            "te": u"తెలుగు", # Telugu
+            "te-rIN": u"తెలుగు (భారత దేశం)", # Telugu (India)
+            "teo": u"Kiteso", # Teso
+            "teo-rKE": u"Kiteso (Kenia)", # Teso (Kenya)
+            "teo-rUG": u"Kiteso (Uganda)", # Teso (Uganda)
+            "th": u"ไทย", # Thai
+            "th-rTH": u"ไทย (ไทย)", # Thai (Thailand)
+            "ti": u"ትግርኛ", # Tigrinya
+            "ti-rER": u"ትግርኛ (ER)", # Tigrinya (Eritrea)
+            "ti-rET": u"ትግርኛ (ET)", # Tigrinya (Ethiopia)
+            "to": u"lea fakatonga", # Tongan
+            "to-rTO": u"lea fakatonga (Tonga)", # Tongan (Tonga)
+            "tr": u"Türkçe", # Turkish
+            "tr-rCY": u"Türkçe (Güney Kıbrıs Rum Kesimi)", # Turkish (Cyprus)
+            "tr-rTR": u"Türkçe (Türkiye)", # Turkish (Turkey)
+            "twq": u"Tasawaq senni", # Tasawaq
+            "twq-rNE": u"Tasawaq senni (Nižer)", # Tasawaq (Niger)
+            "tzm": u"Tamaziɣt", # Central Atlas Tamazight
+            "tzm-rLATN": u"Tamaziɣt (LATN)", # Central Atlas Tamazight (LATN)
+            "tzm-rLATN_MA": u"Tamaziɣt (Meṛṛuk,MA)", # Central Atlas Tamazight (Morocco,MA)
+            "uk": u"українська", # Ukrainian
+            "uk-rUA": u"українська (Україна)", # Ukrainian (Ukraine)
+            "ur": u"اردو", # Urdu
+            "ur-rIN": u"اردو (بھارت)", # Urdu (India)
+            "ur-rPK": u"اردو (پاکستان)", # Urdu (Pakistan)
+            "uz": u"Ўзбек", # Uzbek
+            "uz-rARAB": u"اوزبیک (ARAB)", # Uzbek (ARAB)
+            "uz-rARAB_AF": u"اوزبیک (افغانستان,AF)", # Uzbek (Afghanistan,AF)
+            "uz-rCYRL": u"Ўзбек (CYRL)", # Uzbek (CYRL)
+            "uz-rCYRL_UZ": u"Ўзбек (Ўзбекистон,UZ)", # Uzbek (Uzbekistan,UZ)
+            "uz-rLATN": u"oʻzbekcha (LATN)", # Uzbek (LATN)
+            "uz-rLATN_UZ": u"oʻzbekcha (Oʻzbekiston,UZ)", # Uzbek (Uzbekistan,UZ)
+            "vai": u"ꕙꔤ", # Vai
+            "vai-rLATN": u"Vai (LATN)", # Vai (LATN)
+            "vai-rLATN_LR": u"Vai (Laibhiya,LR)", # Vai (Liberia,LR)
+            "vai-rVAII": u"ꕙꔤ (VAII)", # Vai (VAII)
+            "vai-rVAII_LR": u"ꕙꔤ (ꕞꔤꔫꕩ,LR)", # Vai (Liberia,LR)
+            "vi": u"Tiếng Việt", # Vietnamese
+            "vi-rVN": u"Tiếng Việt (Việt Nam)", # Vietnamese (Vietnam)
+            "vun": u"Kyivunjo", # Vunjo
+            "vun-rTZ": u"Kyivunjo (Tanzania)", # Vunjo (Tanzania)
+            "xog": u"Olusoga", # Soga
+            "xog-rUG": u"Olusoga (Yuganda)", # Soga (Uganda)
+            "yav": u"nuasue", # Yangben
+            "yav-rCM": u"nuasue (Kemelún)", # Yangben (Cameroon)
+            "yo": u"Èdè Yorùbá", # Yoruba
+            "yo-rNG": u"Èdè Yorùbá (Orílẹ́ède Nàìjíríà)", # Yoruba (Nigeria)
+            "zh": u"中文", # Chinese
+            "zh-rHANS": u"中文 (HANS)", # Chinese (HANS)
+            "zh-rHANS_CN": u"中文 (中国,CN)", # Chinese (China,CN)
+            "zh-rHANS_HK": u"中文 (香港,HK)", # Chinese (Hong Kong,HK)
+            "zh-rHANS_MO": u"中文 (澳门,MO)", # Chinese (Macau,MO)
+            "zh-rHANS_SG": u"中文 (新加坡,SG)", # Chinese (Singapore,SG)
+            "zh-rHANT": u"中文 (HANT)", # Chinese (HANT)
+            "zh-rHANT_HK": u"中文 (香港,HK)", # Chinese (Hong Kong,HK)
+            "zh-rHANT_MO": u"中文 (澳門,MO)", # Chinese (Macau,MO)
+            "zh-rHANT_TW": u"中文 (台灣,TW)", # Chinese (Taiwan,TW)
+            "zu": u"isiZulu", # Zulu
+            "zu-rZA": u"isiZulu (iNingizimu Afrika)", # Zulu (South Africa)
         }
 
+        if not languageTo in LANGUAGES.keys():
+            raise RuntimeError("%s is not a supported language by AndroidViewClient" % languageTo)
         self.openQuickSettingsSettings()
         view = None
         currentLanguage = None
         ATTEMPTS = 10
         if self.vc.getSdkVersion() >= 20:
-            for n in range(ATTEMPTS):
+            for _ in range(ATTEMPTS):
                 com_android_settings___id_dashboard = self.vc.findViewByIdOrRaise("com.android.settings:id/dashboard")
                 for k, v in LANGUAGE_SETTINGS.iteritems():
                     view = self.vc.findViewWithText(v, root=com_android_settings___id_dashboard)
@@ -1381,7 +1979,7 @@ class UiDevice():
             self.vc.sleep(1)
             self.vc.dump(-1)
         else:
-            for n in range(ATTEMPTS):
+            for _ in range(ATTEMPTS):
                 android___id_list = self.vc.findViewByIdOrRaise("android:id/list")
                 for k, v in LANGUAGE_SETTINGS.iteritems():
                     view = self.vc.findViewWithText(v, root=android___id_list)
@@ -1390,7 +1988,7 @@ class UiDevice():
                         break
                 if view:
                     break
-                com_android_settings___id_dashboard.uiScrollable.flingForward()
+                android___id_list.uiScrollable.flingForward()
                 self.vc.sleep(1)
                 self.vc.dump(-1)
             if view is None:
@@ -1407,6 +2005,9 @@ class UiDevice():
         view = android___id_list.uiScrollable.scrollTextIntoView(LANGUAGES[languageTo])
         if view is not None:
             view.touch()
+        else:
+            #raise RuntimeError(u"Couldn't change language to %s (%s)" % (LANGUAGES[languageTo], languageTo))
+            raise RuntimeError("Couldn't change language")
         self.vc.device.press('BACK')
         self.vc.sleep(1)
         self.vc.device.press('BACK')
