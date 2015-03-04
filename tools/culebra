@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.0.13'
+__version__ = '10.1.0'
 
 import re
 import sys
@@ -548,6 +548,13 @@ def printOpenQuickSettings():
         logAction('opening Quick Settings')
         print '%s%svc.uiDevice.openQuickSettings()' % (indent, prefix)
     
+def printChangeLanguage(code):
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction('Changing language to %s' % code)
+        print '%s%svc.uiDevice.changeLanguage("%s")' % (indent, prefix, code)
+
 def printTakeSnapshot(filename, _format):
     '''
     Prints the corresponding writeImageToFile() to take a snapshot
@@ -646,6 +653,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.OPEN_QUICK_SETTINGS:
         printOpenQuickSettings()
+        return
+    elif op == Operation.CHANGE_LANGUAGE:
+        printChangeLanguage(code=args[0])
         return
     
     if view is None:

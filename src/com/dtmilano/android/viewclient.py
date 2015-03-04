@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.0.13'
+__version__ = '10.1.0'
 
 import sys
 import warnings
@@ -245,6 +245,8 @@ class View:
         ''' Force ViewServer use '''
         self.uiScrollable = None
         ''' If this is a scrollable View this keeps the L{UiScrollable} object ''' 
+        self.target = False
+        ''' Is this a touch target zone '''
 
         if version != -1:
             self.build[VERSION_SDK_PROPERTY] = version
@@ -983,6 +985,12 @@ class View:
                 if re.match('^\d', var):
                     var = 'id_' + var
         return var
+
+    def setTarget(self, target):
+        self.target = target
+
+    def isTarget(self):
+        return self.target
 
     def writeImageToFile(self, filename, _format="PNG"):
         '''

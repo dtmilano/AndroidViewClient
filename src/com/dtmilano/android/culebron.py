@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.0.13'
+__version__ = '10.1.0'
 
 import sys
 import threading
@@ -28,7 +28,6 @@ import copy
 import string
 import os
 import platform
-from Tkconstants import DISABLED
 from __builtin__ import False
 from pkg_resources import Requirement, resource_filename
 
@@ -44,6 +43,8 @@ try:
     import tkFileDialog
     import tkFont
     import ScrolledText
+    import ttk
+    from Tkconstants import DISABLED, NORMAL
     TKINTER_AVAILABLE = True
 except:
     TKINTER_AVAILABLE = False
@@ -74,6 +75,7 @@ class Unit:
 
 class Operation:
     ASSIGN = 'assign'
+    CHANGE_LANGUAGE = 'change_language'
     DEFAULT = 'default'
     DRAG = 'drag'
     DUMP = 'dump'
@@ -183,9 +185,16 @@ This is usually installed by python package. Check your distribution details.
             ImageTk.PhotoImage(file=icon))
         self.mainMenu = MainMenu(self)
         self.window.config(menu=self.mainMenu)
+        self.mainFrame = Tkinter.Frame(self.window)
+        self.placeholder = Tkinter.Frame(self.mainFrame, width=400, height=400, background=Color.LIGHT_GRAY)
+        self.placeholder.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH)
+        self.viewTree = ViewTree(self.mainFrame)
+        #self.viewTree.pack(side=Tkinter.RIGHT, fill=Tkinter.Y, expand=True)
+        self.mainFrame.pack(fill=Tkinter.BOTH, expand=True)
         self.statusBar = StatusBar(self.window)
         self.statusBar.pack(side=Tkinter.BOTTOM, padx=2, pady=2, fill=Tkinter.X)
         self.statusBar.set("Always press F1 for help")
+        self.window.update_idletasks()
 
     def takeScreenshotAndShowItOnWindow(self):
         '''
@@ -211,7 +220,8 @@ This is usually installed by python package. Check your distribution details.
         if self.canvas is None:
             if DEBUG:
                 print >> sys.stderr, "Creating canvas", width, 'x', height
-            self.canvas = Tkinter.Canvas(self.window, width=width, height=height)
+            self.placeholder.pack_forget()
+            self.canvas = Tkinter.Canvas(self.mainFrame, width=width, height=height)
             self.canvas.focus_set()
             self.enableEvents()
             self.createMessageArea(width, height)
@@ -326,6 +336,39 @@ This is usually installed by python package. Check your distribution details.
         d = HelpDialog(self)
         self.window.wait_window(d)
 
+    def showViewTree(self):
+        self.viewTree.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
+
+    def hideViewTree(self):
+        self.viewTree.pack_forget()
+
+    def viewTreeItemClicked(self, event):
+        if DEBUG:
+            print >> sys.stderr, "viewTreeItemClicked: event=", repr(event)
+        viewStr = self.viewTree.viewTree.identify_row(event.y)
+        #if view.isTarget():
+        #    self.markTarget(view.getCoords())           
+
+    def populateViewTree(self, view):
+        '''
+        Populates the View tree.
+        '''
+
+        if view.getParent() is None:
+            self.viewTree.insert('', Tkinter.END, view, text=view.__smallStr__())
+        else:
+            text = view.__smallStr__()
+            try:
+                _view = view
+                self.viewTree.insert(_view.getParent(), Tkinter.END, _view, text=text, tags=('ttk'))
+            except UnicodeEncodeError:
+                parent = view.getParent().__str__().encode(encoding='ascii', errors='replace')
+                _view = view.__str__().encode(encoding='ascii', errors='replace')
+                text = text.encode(encoding='ascii', errors='replace')
+                self.viewTree.insert(parent, Tkinter.END, _view, text=text, tags=('ttk'))
+            self.viewTree.set(_view, 'T', '*' if view.isTarget() else ' ')
+            self.viewTree.tag_bind('ttk', '<1>', self.viewTreeItemClicked)
+
     def findTargets(self):
         '''
         Finds the target Views (i.e. for touches).
@@ -347,6 +390,9 @@ This is usually installed by python package. Check your distribution details.
             window = -1
         dump = self.vc.dump(window=window)
         self.printOperation(None, Operation.DUMP, window, dump)
+        # the root element cannot be deleted from Treeview once added.
+        # We have no option but to recreate it
+        self.viewTree = ViewTree(self.mainFrame)
         for v in dump:
             if DEBUG:
                 print >> sys.stderr, "    findTargets: analyzing", v.getClass(), v.getId()
@@ -361,11 +407,14 @@ This is usually installed by python package. Check your distribution details.
                 ((x1, y1), (x2, y2)) = v.getCoords()
                 if DEBUG:
                     print >> sys.stderr, "appending target", ((x1, y1, x2, y2))
+                v.setTarget(True)
                 self.targets.append((x1, y1, x2, y2))
                 self.targetViews.append(v)
+                target = True
             else:
-                #print v
-                pass
+                target = False
+
+        self.vc.traverse(transform=self.populateViewTree)
     
     def getViewContainingPointAndGenerateTestCondition(self, x, y):
         if DEBUG:
@@ -909,9 +958,16 @@ This is usually installed by python package. Check your distribution details.
         for (x1, y1, x2, y2) in self.targets:
             if DEBUG:
                 print "adding rectangle:", x1, y1, x2, y2
-            self.targetIds.append(self.canvas.create_rectangle(x1*self.scale, y1*self.scale, x2*self.scale, y2*self.scale, fill=colors[c%len(colors)], stipple="gray25"))
+            self.targetIds.append(self.markTarget(x1, y1, x2, y2, colors[c%len(colors)]))
             c += 1
         self.areTargetsMarked = True
+
+    def markTarget(self, x1, y1, x2, y2, color='#ff00ff'):
+        '''
+        @return the id of the rectangle added
+        '''
+
+        return self.canvas.create_rectangle(x1*self.scale, y1*self.scale, x2*self.scale, y2*self.scale, fill=color, stipple="gray25")
 
     def unmarkTargets(self):
         if not self.areTargetsMarked:
@@ -948,8 +1004,15 @@ This is usually installed by python package. Check your distribution details.
         command()
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)
+        # FIXME: perhaps refresh() should be invoked here just in case size or orientation changed
         self.takeScreenshotAndShowItOnWindow()
         
+    def changeLanguage(self):
+        code = tkSimpleDialog.askstring("Change language", "Enter the language code")
+        self.vc.uiDevice.changeLanguage(code)
+        self.printOperation(None, Operation.CHANGE_LANGUAGE, code)
+        self.refresh()
+
     def setOnTouchListener(self, listener):
         self.onTouchListener = listener
 
@@ -1002,14 +1065,16 @@ if TKINTER_AVAILABLE:
 
             self.viewMenu = Tkinter.Menu(self, tearoff=False)
             self.showTree = Tkinter.BooleanVar()
-            self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True, offvalue=False, variable=self.showTree, state=DISABLED)
+            self.showTree.set(False)
+            self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True, offvalue=False, variable=self.showTree, state=NORMAL, command=self.onShowTreeChanged)
             self.showViewDetails = Tkinter.BooleanVar()
             self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True, offvalue=False, variable=self.showViewDetails, state=DISABLED)
             self.add_cascade(label="View", underline=0, menu=self.viewMenu)
 
             self.uiDeviceMenu = Tkinter.Menu(self, tearoff=False)
-            self.uiDeviceMenu.add_command(label="open Notification", underline=6, command=lambda: culebron.executeCommandAndRefresh(self.culebron.vc.uiDevice.openNotification))
-            self.uiDeviceMenu.add_command(label="open Quick settings", underline=6, command=lambda: culebron.executeCommandAndRefresh(command=self.culebron.vc.uiDevice.openQuickSettings))
+            self.uiDeviceMenu.add_command(label="Open Notification", underline=6, command=lambda: culebron.executeCommandAndRefresh(self.culebron.vc.uiDevice.openNotification))
+            self.uiDeviceMenu.add_command(label="Open Quick settings", underline=6, command=lambda: culebron.executeCommandAndRefresh(command=self.culebron.vc.uiDevice.openQuickSettings))
+            self.uiDeviceMenu.add_command(label="Change Language", underline=7, command=self.culebron.changeLanguage)
             self.add_cascade(label="UiDevice", menu=self.uiDeviceMenu)
 
             self.helpMenu = Tkinter.Menu(self, tearoff=False)
@@ -1018,7 +1083,60 @@ if TKINTER_AVAILABLE:
             
         def callback(self):
             pass
+
+        def onShowTreeChanged(self):
+            if self.showTree.get() == 1:
+                self.culebron.showViewTree()
+            else:
+                self.culebron.hideViewTree()
     
+    class ViewTree(Tkinter.Frame):
+        def __init__(self, parent):
+            Tkinter.Frame.__init__(self, parent)
+            self.viewTree = ttk.Treeview(self, columns=['T'])
+            self.viewTree.column(0, width=20)
+            self.viewTree.heading('#0', None, text='View', anchor=Tkinter.W)
+            self.viewTree.heading(0, None, text='T', anchor=Tkinter.W)
+            #self.scrollbar = Tkinter.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.viewTree.xview)
+            self.scrollbar = Tkinter.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.__xscroll)
+            #self.viewTree.configure(xscrollcommand=self.scrollbar.set)
+            self.viewTree.pack(side=Tkinter.TOP, fill=Tkinter.Y, expand=True)
+            self.scrollbar.pack(side=Tkinter.BOTTOM, fill=Tkinter.X ,expand=False)
+
+        def __xscroll(self, *args):
+            if DEBUG:
+                print >> sys.stderr, "__xscroll:", args
+            self.viewTree.xview(*args)
+            self.scrollbar.set(float(args[1])-0.1, float(args[1])+0.1)
+
+        def insert(self, parent, index, iid=None, **kw):
+            """Creates a new item and return the item identifier of the newly
+            created item.
+    
+            parent is the item ID of the parent item, or the empty string
+            to create a new top-level item. index is an integer, or the value
+            end, specifying where in the list of parent's children to insert
+            the new item. If index is less than or equal to zero, the new node
+            is inserted at the beginning, if index is greater than or equal to
+            the current number of children, it is inserted at the end. If iid
+            is specified, it is used as the item identifier, iid must not
+            already exist in the tree. Otherwise, a new unique identifier
+            is generated."""
+
+            return self.viewTree.insert(parent, index, iid, **kw)
+
+        def set(self, item, column=None, value=None):
+            """With one argument, returns a dictionary of column/value pairs
+            for the specified item. With two arguments, returns the current
+            value of the specified column. With three arguments, sets the
+            value of given column in given item to the specified value."""
+
+            return self.viewTree.set(item, column, value)
+
+        def tag_bind(self, tagname, sequence=None, callback=None):
+            return self.viewTree.tag_bind(tagname, sequence, callback)
+
+
     class StatusBar(Tkinter.Frame):
 
         def __init__(self, parent):
