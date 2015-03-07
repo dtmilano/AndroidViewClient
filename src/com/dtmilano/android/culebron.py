@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.1.0'
+__version__ = '10.1.1'
 
 import sys
 import threading
@@ -187,14 +187,29 @@ This is usually installed by python package. Check your distribution details.
         self.window.config(menu=self.mainMenu)
         self.mainFrame = Tkinter.Frame(self.window)
         self.placeholder = Tkinter.Frame(self.mainFrame, width=400, height=400, background=Color.LIGHT_GRAY)
-        self.placeholder.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH)
-        self.viewTree = ViewTree(self.mainFrame)
-        #self.viewTree.pack(side=Tkinter.RIGHT, fill=Tkinter.Y, expand=True)
-        self.mainFrame.pack(fill=Tkinter.BOTH, expand=True)
+        self.placeholder.grid(row=1, column=1, rowspan=4)
+        self.sideFrame = Tkinter.Frame(self.window)
+        self.viewTree = ViewTree(self.sideFrame)
+        self.viewDetails = ViewDetails(self.sideFrame)
+        self.mainFrame.grid(row=1, column=1, columnspan=1, rowspan=4)
+        self.sideFrame.grid(row=1, column=2, columnspan=1, rowspan=4)
         self.statusBar = StatusBar(self.window)
-        self.statusBar.pack(side=Tkinter.BOTTOM, padx=2, pady=2, fill=Tkinter.X)
+        self.statusBar.grid(row=5, column=1, columnspan=2)
         self.statusBar.set("Always press F1 for help")
         self.window.update_idletasks()
+        if DEBUG:
+            self.printGridInfo()
+
+    def printGridInfo(self):
+        print >> sys.stderr, "window:", repr(self.window)
+        print >> sys.stderr, "main:", repr(self.mainFrame)
+        print >> sys.stderr, "main:", self.mainFrame.grid_info()
+        print >> sys.stderr, "side:", repr(self.sideFrame)
+        print >> sys.stderr, "side:", self.sideFrame.grid_info()
+        print >> sys.stderr, "tree:", repr(self.viewTree)
+        print >> sys.stderr, "tree:", self.viewTree.grid_info()
+        print >> sys.stderr, "details:", repr(self.viewDetails)
+        print >> sys.stderr, "details:", self.viewDetails.grid_info()
 
     def takeScreenshotAndShowItOnWindow(self):
         '''
@@ -220,7 +235,7 @@ This is usually installed by python package. Check your distribution details.
         if self.canvas is None:
             if DEBUG:
                 print >> sys.stderr, "Creating canvas", width, 'x', height
-            self.placeholder.pack_forget()
+            self.placeholder.grid_forget()
             self.canvas = Tkinter.Canvas(self.mainFrame, width=width, height=height)
             self.canvas.focus_set()
             self.enableEvents()
@@ -230,12 +245,24 @@ This is usually installed by python package. Check your distribution details.
         if self.imageId is not None:
             self.canvas.delete(self.imageId)
         self.imageId = self.canvas.create_image(0, 0, anchor=Tkinter.NW, image=self.screenshot)
+        if DEBUG:
+            try:
+                print >> sys.stderr, "Grid info", self.canvas.grid_info()
+            except:
+                print >> sys.stderr, "Exception getting grid info"
+        gridInfo = None
         try:
-            self.canvas.pack_info()
+            gridInfo = self.canvas.grid_info()
         except:
-            self.canvas.pack(fill=Tkinter.BOTH)
+            if DEBUG:
+                print >> sys.stderr, "Adding canvas to grid (1,1)"
+            self.canvas.grid(row=1, column=1, rowspan=4)
+        if not gridInfo:
+            self.canvas.grid(row=1, column=1, rowspan=4)
         self.findTargets()
         self.hideVignette()
+        if DEBUG:
+            self.printGridInfo()
 
     def createMessageArea(self, width, height):
         self.__message = Tkinter.Label(self.window, text='', background=Color.GOLD, font=('Helvetica', 16), anchor=Tkinter.W)
@@ -336,16 +363,51 @@ This is usually installed by python package. Check your distribution details.
         d = HelpDialog(self)
         self.window.wait_window(d)
 
+    def showSideFrame(self):
+        if self.sideFrame.grid_info() == {}:
+            self.sideFrame.grid(row=1, column=2, rowspan=4, sticky=Tkinter.N+Tkinter.S)
+        if DEBUG:
+            self.printGridInfo()
+
+    def hideSideFrame(self):
+        self.sideFrame.grid_forget()
+        if DEBUG:
+            self.printGridInfo()
+
     def showViewTree(self):
-        self.viewTree.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
+        self.showSideFrame()
+        self.viewTree.grid(row=1, column=2, rowspan=1, sticky=Tkinter.N+Tkinter.S)
+        if DEBUG:
+            self.printGridInfo()
 
     def hideViewTree(self):
-        self.viewTree.pack_forget()
+        self.viewTree.grid_forget()
+        if self.viewDetails.grid_info() == {}:
+            self.hideSideFrame()
+        if DEBUG:
+            self.printGridInfo()
+
+    def showViewDetails(self):
+        self.showSideFrame()
+        row = 1
+        if self.viewTree.grid_info() != {}:
+            row = 2
+        self.viewDetails.grid(row=row, column=2, rowspan=1, sticky=Tkinter.N+Tkinter.S)
+        if DEBUG:
+            self.printGridInfo()
+        
+    def hideViewDetails(self):
+        self.viewDetails.grid_forget()
+        if self.viewTree.grid_info() == {}:
+            self.hideSideFrame()
+        if DEBUG:
+            self.printGridInfo()
 
     def viewTreeItemClicked(self, event):
         if DEBUG:
             print >> sys.stderr, "viewTreeItemClicked: event=", repr(event)
         viewStr = self.viewTree.viewTree.identify_row(event.y)
+        # FIXME:
         #if view.isTarget():
         #    self.markTarget(view.getCoords())           
 
@@ -384,7 +446,7 @@ This is usually installed by python package. Check your distribution details.
         ''' The list of target Views '''
         if self.device.isKeyboardShown():
             print >> sys.stderr, "#### keyboard is show but handling it is not implemented yet ####"
-            # fixme: still no windows in uiautomator
+            # FIXME: still no windows in uiautomator
             window = -1
         else:
             window = -1
@@ -392,7 +454,7 @@ This is usually installed by python package. Check your distribution details.
         self.printOperation(None, Operation.DUMP, window, dump)
         # the root element cannot be deleted from Treeview once added.
         # We have no option but to recreate it
-        self.viewTree = ViewTree(self.mainFrame)
+        self.viewTree = ViewTree(self.sideFrame)
         for v in dump:
             if DEBUG:
                 print >> sys.stderr, "    findTargets: analyzing", v.getClass(), v.getId()
@@ -666,6 +728,9 @@ This is usually installed by python package. Check your distribution details.
             return
         elif keysym == 'F5':
             self.refresh()
+            return
+        elif keysym == 'F8':
+            self.printGridInfo()
             return
         elif keysym == 'Alt_L':
             return
@@ -1068,7 +1133,7 @@ if TKINTER_AVAILABLE:
             self.showTree.set(False)
             self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True, offvalue=False, variable=self.showTree, state=NORMAL, command=self.onShowTreeChanged)
             self.showViewDetails = Tkinter.BooleanVar()
-            self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True, offvalue=False, variable=self.showViewDetails, state=DISABLED)
+            self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True, offvalue=False, variable=self.showViewDetails, state=NORMAL, command=self.onShowViewDetailsChanged)
             self.add_cascade(label="View", underline=0, menu=self.viewMenu)
 
             self.uiDeviceMenu = Tkinter.Menu(self, tearoff=False)
@@ -1090,6 +1155,12 @@ if TKINTER_AVAILABLE:
             else:
                 self.culebron.hideViewTree()
     
+        def onShowViewDetailsChanged(self):
+            if self.showViewDetails.get() == 1:
+                self.culebron.showViewDetails()
+            else:
+                self.culebron.hideViewDetails()
+    
     class ViewTree(Tkinter.Frame):
         def __init__(self, parent):
             Tkinter.Frame.__init__(self, parent)
@@ -1100,8 +1171,8 @@ if TKINTER_AVAILABLE:
             #self.scrollbar = Tkinter.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.viewTree.xview)
             self.scrollbar = Tkinter.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.__xscroll)
             #self.viewTree.configure(xscrollcommand=self.scrollbar.set)
-            self.viewTree.pack(side=Tkinter.TOP, fill=Tkinter.Y, expand=True)
-            self.scrollbar.pack(side=Tkinter.BOTTOM, fill=Tkinter.X ,expand=False)
+            self.viewTree.grid(row=1, column=1, sticky=Tkinter.N+Tkinter.S)
+            self.scrollbar.grid(row=2, column=1, sticky=Tkinter.E+Tkinter.W+Tkinter.S)
 
         def __xscroll(self, *args):
             if DEBUG:
@@ -1137,12 +1208,22 @@ if TKINTER_AVAILABLE:
             return self.viewTree.tag_bind(tagname, sequence, callback)
 
 
+    class ViewDetails(Tkinter.Frame):
+        def __init__(self, parent):
+            Tkinter.Frame.__init__(self, parent)
+            if DEBUG:
+                self.configure(bg="magenta")
+            self.label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
+            self.label.configure(text="Under construction")
+            self.label.configure(bg="gray")
+            self.label.grid(row=3, column=1, rowspan=2)
+
     class StatusBar(Tkinter.Frame):
 
         def __init__(self, parent):
             Tkinter.Frame.__init__(self, parent)
             self.label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
-            self.label.pack(fill=Tkinter.X)
+            self.label.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
     
         def set(self, fmt, *args):
             self.label.config(text=fmt % args)
@@ -1156,12 +1237,12 @@ if TKINTER_AVAILABLE:
     class LabeledEntry():
         def __init__(self, parent, text, validate, validatecmd):
             self.f = Tkinter.Frame(parent)
-            Tkinter.Label(self.f, text=text, anchor="w", padx=8).pack(fill="x")
+            Tkinter.Label(self.f, text=text, anchor="w", padx=8).grid(row=1, column=1, sticky=Tkinter.E+Tkinter.W)
             self.entry = Tkinter.Entry(self.f, validate=validate, validatecommand=validatecmd)
-            self.entry.pack(padx=5)
+            self.entry.grid(row=1, column=2, padx=5)
     
-        def pack(self, **kwargs):
-            self.f.pack(kwargs)
+        def grid(self, **kwargs):
+            self.f.grid(kwargs)
     
         def get(self):
             return self.entry.get()
@@ -1174,7 +1255,7 @@ if TKINTER_AVAILABLE:
         def __init__(self, parent, text, buttonText, command, validate, validatecmd):
             LabeledEntry.__init__(self, parent, text, validate, validatecmd)
             self.button = Tkinter.Button(self.f, text=buttonText, command=command)
-            self.button.pack(side="right")
+            self.button.grid(row=1, column=3)
     
     class DragDialog(Tkinter.Toplevel):
         
@@ -1208,25 +1289,27 @@ if TKINTER_AVAILABLE:
             # %W = the tk name of the widget
             self.validate = (self.parent.register(self.onValidate), '%P')
             self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp, validate="focusout", validatecmd=self.validate)
-            self.sp.pack(pady=5)
+            self.sp.grid(row=1, column=1, pady=5)
     
             self.ep = LabeledEntryWithButton(self, "End point", "Grab", command=self.onGrabEp, validate="focusout", validatecmd=self.validate)
-            self.ep.pack(pady=5)
+            self.ep.grid(row=2, column=1, pady=5)
     
             self.units = Tkinter.StringVar()
             self.units.set(Unit.DIP)
+            col = 1
             for u in dir(Unit):
                 if u.startswith('_'):
                     continue
-                Tkinter.Radiobutton(self, text=u, variable=self.units, value=u).pack(padx=40, anchor=Tkinter.W)
+                Tkinter.Radiobutton(self, text=u, variable=self.units, value=u).grid(row=3, column=col, padx=40, sticky=Tkinter.W)
+                col += 1
             
             self.d = LabeledEntry(self, "Duration", validate="focusout", validatecmd=self.validate)
             self.d.set(DragDialog.DEFAULT_DURATION)
-            self.d.pack(pady=5)
+            self.d.grid(row=4, column=1, pady=5)
     
             self.s = LabeledEntry(self, "Steps", validate="focusout", validatecmd=self.validate)
             self.s.set(DragDialog.DEFAULT_STEPS)
-            self.s.pack(pady=5)
+            self.s.grid(row=5, column=1, pady=5)
     
             self.buttonBox()
     
@@ -1237,14 +1320,14 @@ if TKINTER_AVAILABLE:
             box = Tkinter.Frame(self)
     
             self.ok = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE, state=Tkinter.DISABLED)
-            self.ok.pack(side=Tkinter.LEFT, padx=5, pady=5)
+            self.ok.grid(row=1, column=1, sticky=Tkinter.E, padx=5, pady=5)
             w = Tkinter.Button(box, text="Cancel", width=10, command=self.onCancel)
-            w.pack(side=Tkinter.LEFT, padx=5, pady=5)
+            w.grid(row=1, column=1, sticky=Tkinter.E, padx=5, pady=5)
     
             self.bind("<Return>", self.onOk)
             self.bind("<Escape>", self.onCancel)
     
-            box.pack()
+            box.grid(row=6, column=1)
             
         def onValidate(self, value):
             if self.sp.get() and self.ep.get() and self.d.get() and self.s.get():
@@ -1501,7 +1584,7 @@ if TKINTER_AVAILABLE:
     Ctrl-V: Verifies the content of the screen dump
     Ctrl-Z: Touch zones
     ''')
-            self.text.pack()
+            self.text.grid(row=1, column=1)
     
             self.buttonBox()
     
@@ -1512,12 +1595,12 @@ if TKINTER_AVAILABLE:
             box = Tkinter.Frame(self)
     
             w = Tkinter.Button(box, text="Dismiss", width=10, command=self.onDismiss, default=Tkinter.ACTIVE)
-            w.pack(side=Tkinter.LEFT, padx=5, pady=5)
+            w.grid(row=1, column=1, padx=5, pady=5)
     
             self.bind("<Return>", self.onDismiss)
             self.bind("<Escape>", self.onDismiss)
     
-            box.pack()
+            box.grid(row=1, column=1)
     
         def onDismiss(self, event=None):
             # put focus back to the parent window's canvas
