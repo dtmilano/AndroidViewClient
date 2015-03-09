@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.1.1'
+__version__ = '10.1.2'
 
 import sys
 import threading
@@ -191,8 +191,8 @@ This is usually installed by python package. Check your distribution details.
         self.sideFrame = Tkinter.Frame(self.window)
         self.viewTree = ViewTree(self.sideFrame)
         self.viewDetails = ViewDetails(self.sideFrame)
-        self.mainFrame.grid(row=1, column=1, columnspan=1, rowspan=4)
-        self.sideFrame.grid(row=1, column=2, columnspan=1, rowspan=4)
+        self.mainFrame.grid(row=1, column=1, columnspan=1, rowspan=4, sticky=Tkinter.N+Tkinter.S)
+        self.sideFrame.grid(row=1, column=2, columnspan=1, rowspan=4, sticky=Tkinter.N+Tkinter.S)
         self.statusBar = StatusBar(self.window)
         self.statusBar.grid(row=5, column=1, columnspan=2)
         self.statusBar.set("Always press F1 for help")
@@ -376,7 +376,7 @@ This is usually installed by python package. Check your distribution details.
 
     def showViewTree(self):
         self.showSideFrame()
-        self.viewTree.grid(row=1, column=2, rowspan=1, sticky=Tkinter.N+Tkinter.S)
+        self.viewTree.grid(row=1, column=1, rowspan=3, sticky=Tkinter.N+Tkinter.S)
         if DEBUG:
             self.printGridInfo()
 
@@ -389,10 +389,10 @@ This is usually installed by python package. Check your distribution details.
 
     def showViewDetails(self):
         self.showSideFrame()
-        row = 1
-        if self.viewTree.grid_info() != {}:
-            row = 2
-        self.viewDetails.grid(row=row, column=2, rowspan=1, sticky=Tkinter.N+Tkinter.S)
+        row = 4
+        #if self.viewTree.grid_info() != {}:
+        #    row += 1
+        self.viewDetails.grid(row=row, column=1, rowspan=1, sticky=Tkinter.S)
         if DEBUG:
             self.printGridInfo()
         
@@ -1171,8 +1171,8 @@ if TKINTER_AVAILABLE:
             #self.scrollbar = Tkinter.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.viewTree.xview)
             self.scrollbar = Tkinter.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.__xscroll)
             #self.viewTree.configure(xscrollcommand=self.scrollbar.set)
-            self.viewTree.grid(row=1, column=1, sticky=Tkinter.N+Tkinter.S)
-            self.scrollbar.grid(row=2, column=1, sticky=Tkinter.E+Tkinter.W+Tkinter.S)
+            self.viewTree.grid(row=1, rowspan=3, column=1, sticky=Tkinter.N+Tkinter.S)
+            self.scrollbar.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W+Tkinter.S)
 
         def __xscroll(self, *args):
             if DEBUG:
@@ -1211,12 +1211,10 @@ if TKINTER_AVAILABLE:
     class ViewDetails(Tkinter.Frame):
         def __init__(self, parent):
             Tkinter.Frame.__init__(self, parent)
-            if DEBUG:
-                self.configure(bg="magenta")
-            self.label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
-            self.label.configure(text="Under construction")
+            self.label = Tkinter.Label(self, bd=1, anchor=Tkinter.W)
+            self.label.configure(text="ViewDetails: Under construction")
             self.label.configure(bg="gray")
-            self.label.grid(row=3, column=1, rowspan=2)
+            self.label.grid(row=1, column=1, rowspan=1)
 
     class StatusBar(Tkinter.Frame):
 
