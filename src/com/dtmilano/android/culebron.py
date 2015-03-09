@@ -1237,9 +1237,9 @@ if TKINTER_AVAILABLE:
     class LabeledEntry():
         def __init__(self, parent, text, validate, validatecmd):
             self.f = Tkinter.Frame(parent)
-            Tkinter.Label(self.f, text=text, anchor="w", padx=8).grid(row=1, column=1, sticky=Tkinter.E+Tkinter.W)
+            Tkinter.Label(self.f, text=text, anchor="w", padx=8).grid(row=1, column=1, sticky=Tkinter.E)
             self.entry = Tkinter.Entry(self.f, validate=validate, validatecommand=validatecmd)
-            self.entry.grid(row=1, column=2, padx=5)
+            self.entry.grid(row=1, column=2, padx=5, sticky=Tkinter.E)
     
         def grid(self, **kwargs):
             self.f.grid(kwargs)
@@ -1289,27 +1289,31 @@ if TKINTER_AVAILABLE:
             # %W = the tk name of the widget
             self.validate = (self.parent.register(self.onValidate), '%P')
             self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp, validate="focusout", validatecmd=self.validate)
-            self.sp.grid(row=1, column=1, pady=5)
+            self.sp.grid(row=1, column=1, columnspan=3, pady=5)
     
             self.ep = LabeledEntryWithButton(self, "End point", "Grab", command=self.onGrabEp, validate="focusout", validatecmd=self.validate)
-            self.ep.grid(row=2, column=1, pady=5)
+            self.ep.grid(row=2, column=1, columnspan=3, pady=5)
     
+            l = Tkinter.Label(self, text="Units")
+            l.grid(row=3, column=1, sticky=Tkinter.E)
+
             self.units = Tkinter.StringVar()
             self.units.set(Unit.DIP)
-            col = 1
+            col = 2
             for u in dir(Unit):
                 if u.startswith('_'):
                     continue
-                Tkinter.Radiobutton(self, text=u, variable=self.units, value=u).grid(row=3, column=col, padx=40, sticky=Tkinter.W)
+                rb = Tkinter.Radiobutton(self, text=u, variable=self.units, value=u)
+                rb.grid(row=3, column=col, padx=20, sticky=Tkinter.E)
                 col += 1
             
             self.d = LabeledEntry(self, "Duration", validate="focusout", validatecmd=self.validate)
             self.d.set(DragDialog.DEFAULT_DURATION)
-            self.d.grid(row=4, column=1, pady=5)
+            self.d.grid(row=4, column=1, columnspan=3, pady=5)
     
             self.s = LabeledEntry(self, "Steps", validate="focusout", validatecmd=self.validate)
             self.s.set(DragDialog.DEFAULT_STEPS)
-            self.s.grid(row=5, column=1, pady=5)
+            self.s.grid(row=5, column=1, columnspan=2, pady=5)
     
             self.buttonBox()
     
@@ -1320,14 +1324,14 @@ if TKINTER_AVAILABLE:
             box = Tkinter.Frame(self)
     
             self.ok = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE, state=Tkinter.DISABLED)
-            self.ok.grid(row=1, column=1, sticky=Tkinter.E, padx=5, pady=5)
+            self.ok.grid(row=6, column=1, sticky=Tkinter.E, padx=5, pady=5)
             w = Tkinter.Button(box, text="Cancel", width=10, command=self.onCancel)
-            w.grid(row=1, column=1, sticky=Tkinter.E, padx=5, pady=5)
+            w.grid(row=6, column=2, sticky=Tkinter.E, padx=5, pady=5)
     
             self.bind("<Return>", self.onOk)
             self.bind("<Escape>", self.onCancel)
     
-            box.grid(row=6, column=1)
+            box.grid(row=6, column=1, columnspan=3)
             
         def onValidate(self, value):
             if self.sp.get() and self.ep.get() and self.d.get() and self.s.get():
