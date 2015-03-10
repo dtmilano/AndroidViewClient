@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.1.2'
+__version__ = '10.1.3'
 
 import sys
 import threading
@@ -192,7 +192,9 @@ This is usually installed by python package. Check your distribution details.
         self.viewTree = ViewTree(self.sideFrame)
         self.viewDetails = ViewDetails(self.sideFrame)
         self.mainFrame.grid(row=1, column=1, columnspan=1, rowspan=4, sticky=Tkinter.N+Tkinter.S)
-        self.sideFrame.grid(row=1, column=2, columnspan=1, rowspan=4, sticky=Tkinter.N+Tkinter.S)
+        self.isSideFrameShown = False
+        self.isViewTreeShown = False
+        self.isViewDetailsShown = False
         self.statusBar = StatusBar(self.window)
         self.statusBar.grid(row=5, column=1, columnspan=2)
         self.statusBar.set("Always press F1 for help")
@@ -364,25 +366,29 @@ This is usually installed by python package. Check your distribution details.
         self.window.wait_window(d)
 
     def showSideFrame(self):
-        if self.sideFrame.grid_info() == {}:
+        if not self.isSideFrameShown:
             self.sideFrame.grid(row=1, column=2, rowspan=4, sticky=Tkinter.N+Tkinter.S)
+            self.isSideFrameSown = True
         if DEBUG:
             self.printGridInfo()
 
     def hideSideFrame(self):
         self.sideFrame.grid_forget()
+        self.isSideFrameShown = False
         if DEBUG:
             self.printGridInfo()
 
     def showViewTree(self):
         self.showSideFrame()
         self.viewTree.grid(row=1, column=1, rowspan=3, sticky=Tkinter.N+Tkinter.S)
+        self.isViewTreeShown = True
         if DEBUG:
             self.printGridInfo()
 
     def hideViewTree(self):
         self.viewTree.grid_forget()
-        if self.viewDetails.grid_info() == {}:
+        self.isViewTreeShown = False
+        if not self.isViewDetailsShown:
             self.hideSideFrame()
         if DEBUG:
             self.printGridInfo()
@@ -393,12 +399,14 @@ This is usually installed by python package. Check your distribution details.
         #if self.viewTree.grid_info() != {}:
         #    row += 1
         self.viewDetails.grid(row=row, column=1, rowspan=1, sticky=Tkinter.S)
+        self.isViewDetailsShown = True
         if DEBUG:
             self.printGridInfo()
         
     def hideViewDetails(self):
         self.viewDetails.grid_forget()
-        if self.viewTree.grid_info() == {}:
+        self.isViewDetailsShown = False
+        if not self.isViewTreeShown:
             self.hideSideFrame()
         if DEBUG:
             self.printGridInfo()
@@ -1129,9 +1137,9 @@ if TKINTER_AVAILABLE:
             self.add_cascade(label="File", underline=0, menu=self.fileMenu)
 
             self.viewMenu = Tkinter.Menu(self, tearoff=False)
-            self.showTree = Tkinter.BooleanVar()
-            self.showTree.set(False)
-            self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True, offvalue=False, variable=self.showTree, state=NORMAL, command=self.onShowTreeChanged)
+            self.showViewTree = Tkinter.BooleanVar()
+            self.showViewTree.set(False)
+            self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True, offvalue=False, variable=self.showViewTree, state=NORMAL, command=self.onshowViewTreeChanged)
             self.showViewDetails = Tkinter.BooleanVar()
             self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True, offvalue=False, variable=self.showViewDetails, state=NORMAL, command=self.onShowViewDetailsChanged)
             self.add_cascade(label="View", underline=0, menu=self.viewMenu)
@@ -1149,8 +1157,8 @@ if TKINTER_AVAILABLE:
         def callback(self):
             pass
 
-        def onShowTreeChanged(self):
-            if self.showTree.get() == 1:
+        def onshowViewTreeChanged(self):
+            if self.showViewTree.get() == 1:
                 self.culebron.showViewTree()
             else:
                 self.culebron.hideViewTree()
