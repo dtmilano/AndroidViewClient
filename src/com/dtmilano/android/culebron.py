@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.1.3'
+__version__ = '10.1.4'
 
 import sys
 import threading
@@ -55,7 +55,7 @@ DEBUG = False
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and False
-DEBUG_KEY = DEBUG and True
+DEBUG_KEY = DEBUG and False
 DEBUG_ISCCOF = DEBUG and False
 DEBUG_FIND_VIEW = DEBUG and False
 DEBUG_CONTEXT_MENU = DEBUG and False
@@ -199,6 +199,7 @@ This is usually installed by python package. Check your distribution details.
         self.statusBar.grid(row=5, column=1, columnspan=2)
         self.statusBar.set("Always press F1 for help")
         self.window.update_idletasks()
+        self.targetIds = []
         if DEBUG:
             self.printGridInfo()
 
@@ -386,6 +387,7 @@ This is usually installed by python package. Check your distribution details.
             self.printGridInfo()
 
     def hideViewTree(self):
+        self.unmarkTargets()
         self.viewTree.grid_forget()
         self.isViewTreeShown = False
         if not self.isViewDetailsShown:
@@ -413,30 +415,26 @@ This is usually installed by python package. Check your distribution details.
 
     def viewTreeItemClicked(self, event):
         if DEBUG:
-            print >> sys.stderr, "viewTreeItemClicked: event=", repr(event)
-        viewStr = self.viewTree.viewTree.identify_row(event.y)
-        # FIXME:
-        #if view.isTarget():
-        #    self.markTarget(view.getCoords())           
+            print >> sys.stderr, "viewTreeitemClicked:", event.__dict__
+        self.unmarkTargets()
+        vuid = self.viewTree.viewTree.identify_row(event.y)
+        view = self.vc.viewsById[vuid]
+        coords = view.getCoords()
+        if view.isTarget():
+            self.markTarget(coords[0][0], coords[0][1], coords[1][0], coords[1][1])           
 
     def populateViewTree(self, view):
         '''
         Populates the View tree.
         '''
 
+        vuid = view.getUniqueId()
+        text = view.__smallStr__()
         if view.getParent() is None:
-            self.viewTree.insert('', Tkinter.END, view, text=view.__smallStr__())
+            self.viewTree.insert('', Tkinter.END, vuid, text=text)
         else:
-            text = view.__smallStr__()
-            try:
-                _view = view
-                self.viewTree.insert(_view.getParent(), Tkinter.END, _view, text=text, tags=('ttk'))
-            except UnicodeEncodeError:
-                parent = view.getParent().__str__().encode(encoding='ascii', errors='replace')
-                _view = view.__str__().encode(encoding='ascii', errors='replace')
-                text = text.encode(encoding='ascii', errors='replace')
-                self.viewTree.insert(parent, Tkinter.END, _view, text=text, tags=('ttk'))
-            self.viewTree.set(_view, 'T', '*' if view.isTarget() else ' ')
+            self.viewTree.insert(view.getParent().getUniqueId(), Tkinter.END, vuid, text=text, tags=('ttk'))
+            self.viewTree.set(vuid, 'T', '*' if view.isTarget() else ' ')
             self.viewTree.tag_bind('ttk', '<1>', self.viewTreeItemClicked)
 
     def findTargets(self):
@@ -1031,7 +1029,7 @@ This is usually installed by python package. Check your distribution details.
         for (x1, y1, x2, y2) in self.targets:
             if DEBUG:
                 print "adding rectangle:", x1, y1, x2, y2
-            self.targetIds.append(self.markTarget(x1, y1, x2, y2, colors[c%len(colors)]))
+            self.markTarget(x1, y1, x2, y2, colors[c%len(colors)])
             c += 1
         self.areTargetsMarked = True
 
@@ -1040,13 +1038,15 @@ This is usually installed by python package. Check your distribution details.
         @return the id of the rectangle added
         '''
 
-        return self.canvas.create_rectangle(x1*self.scale, y1*self.scale, x2*self.scale, y2*self.scale, fill=color, stipple="gray25")
+        self.areTargetsMarked = True
+        return self.targetIds.append(self.canvas.create_rectangle(x1*self.scale, y1*self.scale, x2*self.scale, y2*self.scale, fill=color, stipple="gray25"))
 
     def unmarkTargets(self):
         if not self.areTargetsMarked:
             return
         for t in self.targetIds:
             self.canvas.delete(t)
+        self.targetIds = []
         self.areTargetsMarked = False
 
     def setDragDialogShowed(self, showed):
