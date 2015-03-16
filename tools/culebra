@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.1.0'
+__version__ = '10.1.5'
 
 import re
 import sys
@@ -37,7 +37,7 @@ try:
 except:
     pass
 
-from com.dtmilano.android.viewclient import ViewClient, View, CulebraOptions
+from com.dtmilano.android.viewclient import ViewClient, ViewClientOptions, View, CulebraOptions
 from com.dtmilano.android.culebron import Culebron, Operation, Unit
 
 DEBUG = False
@@ -785,7 +785,9 @@ except getopt.GetoptError, e:
 
 kwargs1 = {CulebraOptions.VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
 serialno = None
-kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
+kwargs2 = {ViewClientOptions.FORCE_VIEW_SERVER_USE: False, ViewClientOptions.START_VIEW_SERVER: True,
+        ViewClientOptions.AUTO_DUMP: False, ViewClientOptions.IGNORE_UIAUTOMATOR_KILLED: True,
+        ViewClientOptions.COMPRESSED_DUMP: True}
 options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH_TEXT: True, CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION: True,
         CulebraOptions.USE_REGEXPS: False, CulebraOptions.VERBOSE_COMMENTS: False,
         CulebraOptions.UNIT_TEST_CLASS: False, CulebraOptions.UNIT_TEST_METHOD: None, CulebraOptions.USE_JAR: False,

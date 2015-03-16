@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.1.0'
+__version__ = '10.1.5'
 
 import sys
 import warnings
@@ -2253,6 +2253,21 @@ class Excerpt2Code():
         _ = parser.Parse(excerpt, 1)
         return self.data
 
+class ViewClientOptions:
+    '''
+    ViewClient options helper class
+    '''
+
+    DEVIDE = 'device'
+    SERIALNO = 'serialno'
+    AUTO_DUMP = 'autodump'
+    FORCE_VIEW_SERVER_USE = 'forceviewserveruse'
+    LOCAL_PORT = 'localport' # ViewServer local port
+    REMOTE_PORT = 'remoteport' # ViewServer remote port
+    START_VIEW_SERVER = 'startviewserver'
+    IGNORE_UIAUTOMATOR_KILLED = 'ignoreuiautomatorkilled'
+    COMPRESSED_DUMP = 'compresseddump'
+    
 class ViewClient:
     '''
     ViewClient is a I{ViewServer} client.
