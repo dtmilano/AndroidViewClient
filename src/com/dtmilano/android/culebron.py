@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.1.5'
+__version__ = '10.1.6'
 
 import sys
 import threading
@@ -1542,8 +1542,10 @@ if TKINTER_AVAILABLE:
             
         def addCommand(self, item):
             self.add_command(label=self.PADDING + item.description, underline=item.underline + len(self.PADDING), command=item.command, accelerator=item.shortcut)
-            if item.event:
-                self.bind_all(item.event, item.command)
+            #if item.event:
+            #    # These bindings remain even after the menu has been dismissed, so it seems not a good idea
+            #    #self.bind_all(item.event, item.command)
+            #    pass
             
         def addSubMenu(self, item):
             self.add_cascade(label=self.PADDING + item.description, menu=item)
@@ -1555,7 +1557,6 @@ if TKINTER_AVAILABLE:
                 # make sure to release the grab (Tk 8.0a1 only)
                 #self.grab_release()
                 pass
-                
 
 
     class HelpDialog(Tkinter.Toplevel):
