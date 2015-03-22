@@ -68,9 +68,11 @@ def obtainAdbPath():
 
     osName = platform.system()
     isWindows = False
-    if osName.startswith('Windows'):
-        adb = 'adb.exe'
-        isWindows = True
+    if (osName.startswith('Windows')) or (osName.startswith('Java')):
+        envOSName = os.getenv('os') #this should work as it has been set since xp.
+        if envOSName.startswith('Windows'):
+        	adb = 'adb.exe'
+        	isWindows = True
     else:
         adb = 'adb'
 
