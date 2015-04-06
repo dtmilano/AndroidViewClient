@@ -1172,21 +1172,19 @@ if TKINTER_AVAILABLE:
     class ViewTree(Tkinter.Frame):
         def __init__(self, parent):
             Tkinter.Frame.__init__(self, parent)
-            self.viewTree = ttk.Treeview(self, columns=['T'])
+            self.viewTree = ttk.Treeview(self, columns=['T'], height=35)
             self.viewTree.column(0, width=20)
             self.viewTree.heading('#0', None, text='View', anchor=Tkinter.W)
             self.viewTree.heading(0, None, text='T', anchor=Tkinter.W)
-            #self.scrollbar = Tkinter.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.viewTree.xview)
-            self.scrollbar = Tkinter.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.__xscroll)
-            #self.viewTree.configure(xscrollcommand=self.scrollbar.set)
-            self.viewTree.grid(row=1, rowspan=3, column=1, sticky=Tkinter.N+Tkinter.S)
-            self.scrollbar.grid(row=4, column=1, sticky=Tkinter.E+Tkinter.W+Tkinter.S)
+            self.scrollbar = ttk.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.__xscroll)
+            self.viewTree.grid(row=1, rowspan=1, column=1, sticky=Tkinter.N+Tkinter.S)
+            self.scrollbar.grid(row=2, rowspan=1, column=1, sticky=Tkinter.E+Tkinter.W)
+            self.viewTree.configure(xscrollcommand=self.scrollbar.set)
 
         def __xscroll(self, *args):
             if DEBUG:
                 print >> sys.stderr, "__xscroll:", args
             self.viewTree.xview(*args)
-            self.scrollbar.set(float(args[1])-0.1, float(args[1])+0.1)
 
         def insert(self, parent, index, iid=None, **kw):
             """Creates a new item and return the item identifier of the newly
@@ -1222,7 +1220,7 @@ if TKINTER_AVAILABLE:
             self.label = Tkinter.Label(self, bd=1, anchor=Tkinter.W)
             self.label.configure(text="ViewDetails: Under construction")
             self.label.configure(bg="gray")
-            self.label.grid(row=1, column=1, rowspan=1)
+            self.label.grid(row=3, column=1, rowspan=1)
 
     class StatusBar(Tkinter.Frame):
 
