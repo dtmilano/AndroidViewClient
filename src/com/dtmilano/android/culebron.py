@@ -419,9 +419,11 @@ This is usually installed by python package. Check your distribution details.
         self.unmarkTargets()
         vuid = self.viewTree.viewTree.identify_row(event.y)
         view = self.vc.viewsById[vuid]
-        coords = view.getCoords()
-        if view.isTarget():
-            self.markTarget(coords[0][0], coords[0][1], coords[1][0], coords[1][1])           
+        if view:
+            coords = view.getCoords()
+            if view.isTarget():
+                self.markTarget(coords[0][0], coords[0][1], coords[1][0], coords[1][1])
+            self.viewDetails.set(view)
 
     def populateViewTree(self, view):
         '''
@@ -1211,16 +1213,23 @@ if TKINTER_AVAILABLE:
             return self.viewTree.set(item, column, value)
 
         def tag_bind(self, tagname, sequence=None, callback=None):
+            if DEBUG:
+                print >> sys.stderr, 'ViewTree.tag_bind(', tagname, ',', sequence, ',', callback, ')'
             return self.viewTree.tag_bind(tagname, sequence, callback)
 
 
     class ViewDetails(Tkinter.Frame):
+        VIEW_DETAILS = "View Details:\n"
+
         def __init__(self, parent):
             Tkinter.Frame.__init__(self, parent)
-            self.label = Tkinter.Label(self, bd=1, anchor=Tkinter.W)
-            self.label.configure(text="ViewDetails: Under construction")
-            self.label.configure(bg="gray")
+            self.label = Tkinter.Label(self, bd=1, width=30, wraplength=200, justify=Tkinter.LEFT, anchor=Tkinter.NW)
+            self.label.configure(text=self.VIEW_DETAILS)
+            self.label.configure(bg="white")
             self.label.grid(row=3, column=1, rowspan=1)
+
+        def set(self, view):
+            self.label.configure(text=self.VIEW_DETAILS + view.__str__())
 
     class StatusBar(Tkinter.Frame):
 
