@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.1.7'
+__version__ = '10.1.8'
 
 import sys
 import warnings
@@ -2601,7 +2601,7 @@ class ViewClient:
                 if not eis and noExtraInfo:
                     eis = noExtraInfo
             if eis:
-                eis = ' ' + eis
+                eis = ' {0}'.format(eis)
             if extraAction:
                 extraAction(view)
             _str = unicode(view.getClass())
