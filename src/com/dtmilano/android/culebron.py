@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.1.8'
+__version__ = '10.1.9'
 
 import sys
 import threading
@@ -418,12 +418,13 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "viewTreeitemClicked:", event.__dict__
         self.unmarkTargets()
         vuid = self.viewTree.viewTree.identify_row(event.y)
-        view = self.vc.viewsById[vuid]
-        if view:
-            coords = view.getCoords()
-            if view.isTarget():
-                self.markTarget(coords[0][0], coords[0][1], coords[1][0], coords[1][1])
-            self.viewDetails.set(view)
+        if vuid:
+            view = self.vc.viewsById[vuid]
+            if view:
+                coords = view.getCoords()
+                if view.isTarget():
+                    self.markTarget(coords[0][0], coords[0][1], coords[1][0], coords[1][1])
+                self.viewDetails.set(view)
 
     def populateViewTree(self, view):
         '''
