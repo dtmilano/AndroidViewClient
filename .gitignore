@@ -12,8 +12,14 @@
 .*.swp
 
 # other files #
-##########
+###############
 *~
 build/
 dist/
 **/*.egg-info/
+
+# idea #
+########
+*.iws
+workspace.xml
+tasks.xml
