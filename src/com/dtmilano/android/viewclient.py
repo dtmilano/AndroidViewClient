@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.2.0'
+__version__ = '10.2.1'
 
 import sys
 import warnings
@@ -3610,28 +3610,80 @@ You should force ViewServer back-end.''')
                 deviceArtXml = deviceArtDir + '/device-art.xml'
                 if not os.path.exists(deviceArtXml):
                     warnings.warn("Cannot find device art definition file")
-                if not os.path.isdir(deviceArtDir + '/' + deviceart):
-                    warnings.warn("Cannot find device art for " + deviceart + ' at ' + deviceArtDir + '/' + deviceart)
-                if deviceart != 'nexus_5':
-                    warnings.warn("Only nexus_5 portrait is supported now, more devices coming soon")
-                deviceArtModelDir = deviceArtDir + '/' + deviceart
                 # <device id="nexus_5" name="Nexus 5">
                 #       <orientation name="port" size="1370,2405" screenPos="144,195" screenSize="1080,1920" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
                 #       <orientation name="land" size="2497,1235" screenPos="261,65" screenSize="1920,1080" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
                 # </device>
-                from PIL import Image
-                if dropshadow:
-                    dropShadowImage = Image.open(deviceArtModelDir + '/port_shadow.png')
-                deviceBack = Image.open(deviceArtModelDir + '/port_back.png')
-                if dropshadow:
-                    dropShadowImage.paste(deviceBack, (0, 0), deviceBack)
-                    deviceBack = dropShadowImage
-                box = (144, 195)
-                deviceBack.paste(image, box)
-                if screenglare:
-                    screenGlareImage = Image.open(deviceArtModelDir + '/port_fore.png')
-                    deviceBack.paste(screenGlareImage, (0, 0), screenGlareImage)
-                image = deviceBack
+                orientation = self.display['orientation']
+                if orientation == 0 or orientation == 2:
+                    orientationName = 'port'
+                elif orientation == 1 or orientation == 3:
+                    orientationName = 'land'
+                else:
+                    warnings.warn("Unknown orientation=" + orientation)
+                    orientationName = 'port'
+                separator = '_'
+                if deviceart == 'auto':
+                    hardware = self.device.getProperty('ro.hardware')
+                    if hardware == 'hammerhead':
+                        deviceart = 'nexus_5'
+                    elif hardware == 'mako':
+                        deviceart = 'nexus_4'
+                    elif hardware == 'grouper':
+                        deviceart = 'nexus_7' # 2012
+                    elif hardware == 'mt5861':
+                        deviceart = 'tv_1080p'
+
+                if deviceart == 'nexus_5':
+                    if orientationName == 'port':
+                        screenPos = (144, 195)
+                    else:
+                        screenPos = (261, 65)
+                elif deviceart == 'nexus_4':
+                    if orientationName == 'port':
+                        screenPos = (94, 187)
+                    else:
+                        screenPos = (257, 45)
+                elif deviceart == 'nexus_7': # 2012
+                    if orientationName == 'port':
+                        screenPos = (142, 190)
+                    else:
+                        screenPos = (260, 105)
+                elif deviceart == 'tv_1080p':
+                    screenPos = (85, 59)
+                    orientationName = ''
+                    separator = ''
+
+                SUPPORTED_DEVICES = ['nexus_5', 'nexus_4', 'nexus_7', 'tv_1080p']
+                if deviceart not in SUPPORTED_DEVICES:
+                    warnings.warn("Only %s is supported now, more devices coming soon" % SUPPORTED_DEVICES)
+                if not os.path.isdir(deviceArtDir + '/' + deviceart):
+                    warnings.warn("Cannot find device art for " + deviceart + ' at ' + deviceArtDir + '/' + deviceart)
+                deviceArtModelDir = deviceArtDir + '/' + deviceart
+                try:
+                    from PIL import Image
+                    if dropshadow:
+                        dropShadowImage = Image.open(deviceArtModelDir + '/%s%sshadow.png' % (orientationName, separator))
+                    deviceBack = Image.open(deviceArtModelDir + '/%s%sback.png' % (orientationName, separator))
+                    if dropshadow:
+                        dropShadowImage.paste(deviceBack, (0, 0), deviceBack)
+                        deviceBack = dropShadowImage
+                    deviceBack.paste(image, screenPos)
+                    if screenglare:
+                        screenGlareImage = Image.open(deviceArtModelDir + '/%s%sfore.png' % (orientationName, separator))
+                        deviceBack.paste(screenGlareImage, (0, 0), screenGlareImage)
+                    image = deviceBack
+                except ImportError as ex:
+                    warnings.warn('''PIL or Pillow is needed for image manipulation
+
+On Ubuntu install
+
+   $ sudo apt-get install python-imaging python-imaging-tk
+
+On OSX install
+
+   $ brew install homebrew/python/pillow
+''')
             else:
                 warnings.warn("ViewClient.writeImageToFile: Cannot add device art because STUDIO_DIR environment variable was not set")
         image.save(filename, _format)
