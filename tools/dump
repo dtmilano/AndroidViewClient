@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '10.1.8'
+__version__ = '10.2.0'
 
 import sys
 import os
@@ -38,6 +38,9 @@ CENTER = 'center'
 SAVE_SCREENSHOT = 'save-screenshot'
 SAVE_VIEW_SCREENSHOTS = 'save-view-screenshots'
 DO_NOT_DUMP_VIEWS = 'do-not-dump-views'
+DEVICE_ART = 'device-art'
+DROP_SHADOW = 'drop-shadow'
+SCREEN_GLARE = 'glare'
 
 MAP = {
        'a':View.__str__, ALL:View.__str__,
@@ -52,14 +55,15 @@ MAP = {
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:aixbdgcf:W:D'
+SHORT_OPTS = 'HVvIEFSkw:aixbdgcf:W:DA:ZG'
 LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
               ALL, UNIQUE_ID, POSITION, BOUNDS, CONTENT_DESCRIPTION, TAG, CENTER,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
               DO_NOT_DUMP_VIEWS,
+              DEVICE_ART + '=', DROP_SHADOW, SCREEN_GLARE,
               ]
-LONG_OPTS_ARG = {WINDOW: 'WINDOW', SAVE_SCREENSHOT: 'FILE', SAVE_VIEW_SCREENSHOTS: 'DIR'}
+LONG_OPTS_ARG = {WINDOW: 'WINDOW', SAVE_SCREENSHOT: 'FILE', SAVE_VIEW_SCREENSHOTS: 'DIR', DEVICE_ART: 'MODEL'}
 OPTS_HELP = {
     'H': 'prints this help',
     'V': 'verbose comments',
@@ -79,6 +83,9 @@ OPTS_HELP = {
     'W': 'save View screenshots to files in directory',
     'E': 'ignores ADB version check',
     'D': 'don\'t dump views, only useful if you specified -f or -W',
+    'A': 'device art to frame screenshot',
+    'Z': 'drop shadow for device art screenshot',
+    'G': 'screen glare over screenshot',
     }
 
 def shortAndLongOptions():
@@ -131,7 +138,8 @@ except getopt.GetoptError, e:
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
 kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
-options = {WINDOW: -1, SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None, DO_NOT_DUMP_VIEWS: False}
+options = {WINDOW: -1, SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None, DO_NOT_DUMP_VIEWS: False,
+           DEVICE_ART: None, DROP_SHADOW: False, SCREEN_GLARE: False}
 transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
     o = o.strip('-')
@@ -158,6 +166,12 @@ for o, a in opts:
     elif o in ['W', SAVE_VIEW_SCREENSHOTS]:
         options[SAVE_VIEW_SCREENSHOTS] = a
         transform = MAP[o]
+    elif o in ['A', DEVICE_ART]:
+        options[DEVICE_ART] = a
+    elif o in ['Z', DROP_SHADOW]:
+        options[DROP_SHADOW] = True
+    elif o in ['G', SCREEN_GLARE]:
+        options[SCREEN_GLARE] = True
     elif o in ['D', DO_NOT_DUMP_VIEWS]:
         options[DO_NOT_DUMP_VIEWS] = True
         transform = MAP[o]
@@ -169,8 +183,8 @@ if options[DO_NOT_DUMP_VIEWS]:
 
 vc = ViewClient(*ViewClient.connectToDeviceOrExit(**kwargs1), **kwargs2)
 if options[SAVE_SCREENSHOT]:
-    vc.device.reconnect = (not options[DO_NOT_DUMP_VIEWS])
-    vc.writeImageToFile(options[SAVE_SCREENSHOT])
+    vc.device.reconnect = True #(not options[DO_NOT_DUMP_VIEWS])
+    vc.writeImageToFile(options[SAVE_SCREENSHOT], deviceart=options[DEVICE_ART], dropshadow=options[DROP_SHADOW], screenglare=options[SCREEN_GLARE])
 if not options[DO_NOT_DUMP_VIEWS] or options[SAVE_VIEW_SCREENSHOTS]:
     vc.dump(window=options[WINDOW])
     ViewClient.imageDirectory = options[SAVE_VIEW_SCREENSHOTS]
