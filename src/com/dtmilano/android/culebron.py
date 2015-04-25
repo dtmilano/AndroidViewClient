@@ -136,6 +136,9 @@ class Culebron:
     onTouchListener = None
     snapshotDir = '/tmp'
     snapshotFormat = 'PNG'
+    deviceArt = None
+    dropShadow = False
+    screenGlare = False
     
     @staticmethod
     def checkSupportedSdkVersion(sdkVersion):
@@ -832,7 +835,9 @@ This is usually installed by python package. Check your distribution details.
         saveAsFilename = d.askSaveAsFilename()
         if saveAsFilename:
             _format = os.path.splitext(saveAsFilename)[1][1:].upper()
-            self.printOperation(None, Operation.SNAPSHOT, filename, _format)
+            self.printOperation(None, Operation.SNAPSHOT, filename, _format, self.deviceArt, self.dropShadow, self.screenGlare)
+            #FIXME: we should add deviceArt, dropShadow and screenGlare to the saved image
+            #self.unscaledScreenshot.save(saveAsFilename, _format, self.deviceArt, self.dropShadow, self.screenGlare)
             self.unscaledScreenshot.save(saveAsFilename, _format)
 
     def saveViewSnapshot(self, view):
@@ -873,7 +878,7 @@ This is usually installed by python package. Check your distribution details.
             self.statusBar.set(msg)
             self.isLongTouchingPoint = True
             # FIXME: There should be 2 methods DIP & PX
-            self.coordinatesUnit = Unit.DIP
+            self.coordinatesUnit = Unit.PX
         else:
             self.toast(None)
             self.statusBar.clear()

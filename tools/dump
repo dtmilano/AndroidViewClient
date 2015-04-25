@@ -55,7 +55,7 @@ MAP = {
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:aixbdgcf:W:DA:ZG'
+SHORT_OPTS = 'HVvIEFSkw:aixbdgcf:W:DA:ZB'
 LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
               ALL, UNIQUE_ID, POSITION, BOUNDS, CONTENT_DESCRIPTION, TAG, CENTER,
@@ -83,9 +83,9 @@ OPTS_HELP = {
     'W': 'save View screenshots to files in directory',
     'E': 'ignores ADB version check',
     'D': 'don\'t dump views, only useful if you specified -f or -W',
-    'A': 'device art to frame screenshot',
+    'A': 'device art model to frame screenshot (auto: autodetected)',
     'Z': 'drop shadow for device art screenshot',
-    'G': 'screen glare over screenshot',
+    'B': 'screen glare over screenshot',
     }
 
 def shortAndLongOptions():
@@ -170,7 +170,7 @@ for o, a in opts:
         options[DEVICE_ART] = a
     elif o in ['Z', DROP_SHADOW]:
         options[DROP_SHADOW] = True
-    elif o in ['G', SCREEN_GLARE]:
+    elif o in ['B', SCREEN_GLARE]:
         options[SCREEN_GLARE] = True
     elif o in ['D', DO_NOT_DUMP_VIEWS]:
         options[DO_NOT_DUMP_VIEWS] = True

@@ -679,17 +679,18 @@ class AdbClient:
         y = y * self.display['density']
         self.touch(x, y, orientation, eventType)
 
-    def longTouch(self, x, y, duration=2000):
+    def longTouch(self, x, y, duration=2000, orientation=-1):
         '''
         Long touches at (x, y)
         
         @param duration: duration in ms
-        
+        @param orientation: the orientation (-1: undefined)
+
         This workaround was suggested by U{HaMi<http://stackoverflow.com/users/2571957/hami>}
         '''
         
         self.__checkTransport()
-        self.drag((x, y), (x, y), duration, 1)
+        self.drag((x, y), (x, y), duration, orientation)
 
     def drag(self, (x0, y0), (x1, y1), duration, steps=1, orientation=-1):
         '''
@@ -698,7 +699,8 @@ class AdbClient:
         @param (x0, y0): starting point in PX
         @param (x1, y1): ending point in PX
         @param duration: duration of the event in ms
-        @param steps: number of steps (currently ignored by @{input swipe}
+        @param steps: number of steps (currently ignored by @{input swipe})
+        @param orientation: the orientation (-1: undefined)
         '''
 
         self.__checkTransport()
@@ -1000,6 +1002,9 @@ class AdbClient:
         serialno = self.serialno.replace('.', '_').replace(':', '-')
         focusedWindowName = self.getFocusedWindowName().replace('/', '-').replace('.', '_')
         timestamp = datetime.datetime.now().isoformat()
+        osName = platform.system()
+        if osName.startswith('Windows'):  # ':' not supported in filenames
+            timestamp.replace(':', '_')
         _map = {
                 'serialno': serialno,
                 'focusedwindowname': focusedWindowName,

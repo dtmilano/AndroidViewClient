@@ -3946,8 +3946,11 @@ class CulebraOptions:
     SERIALNO = 'serialno'
     MULTI_DEVICE = 'multi-device'
     LOG_ACTIONS = 'log-actions'
+    DEVICE_ART = 'device-art'
+    DROP_SHADOW = 'drop-shadow'
+    SCREEN_GLARE = 'glare'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:Apf:W:GuP:Os:mL'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -3956,7 +3959,7 @@ class CulebraOptions:
               USE_REGEXPS, VERBOSE_COMMENTS, UNIT_TEST_CLASS, UNIT_TEST_METHOD + '=',
               USE_JAR + '=', USE_DICTIONARY + '=', DICTIONARY_KEYS_FROM + '=', AUTO_REGEXPS + '=',
               START_ACTIVITY + '=',
-              OUTPUT + '=', INTERACTIVE, PREPEND_TO_SYS_PATH,
+              OUTPUT + '=', PREPEND_TO_SYS_PATH,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
               GUI,
               DO_NOT_VERIFY_SCREEN_DUMP,
@@ -3965,6 +3968,7 @@ class CulebraOptions:
               SERIALNO + '=',
               MULTI_DEVICE,
               LOG_ACTIONS,
+              DEVICE_ART + '=', DROP_SHADOW, SCREEN_GLARE,
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
@@ -3974,7 +3978,8 @@ class CulebraOptions:
               SAVE_SCREENSHOT: 'FILENAME', SAVE_VIEW_SCREENSHOTS: 'DIR',
               UNIT_TEST_METHOD: 'NAME',
               SCALE: 'FLOAT',
-              SERIALNO: 'LIST'}
+              SERIALNO: 'LIST',
+              DEVICE_ART: 'MODEL'}
     OPTS_HELP = {
             'H': 'prints this help',
             'V': 'verbose comments',
@@ -3993,7 +3998,6 @@ class CulebraOptions:
             'R': 'auto regexps (i.e. clock), implies -r. help list options',
             'a': 'starts Activity before dump',
             'o': 'output filename',
-            'A': 'interactive',
             'p': 'prepend environment variables values to sys.path',
             'f': 'save screenshot to file',
             'W': 'save View screenshots to files in directory',
@@ -4005,6 +4009,9 @@ class CulebraOptions:
             's': 'device serial number (can be more than 1)',
             'm': 'enables multi-device test generation',
             'L': 'log actions using logcat',
+            'A': 'device art model to frame screenshot (auto: autodetected)',
+            'Z': 'drop shadow for device art screenshot',
+            'B': 'screen glare over screenshot',
             }
 
 class CulebraTestCase(unittest.TestCase):

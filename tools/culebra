@@ -470,12 +470,14 @@ def printLongTouch(x, y, duration, unit, orientation):
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation) 
+            logAction(u'long touching point by PX @ (%s, %s) duration=%s orientation=%s' % (x, y, duration, orientation))
+            print '%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation)
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation) 
+            logAction(u'long touching point by DIP @ (%s, %s) duration=%s orientation=%s' % (x, y, duration, orientation))
+            print '%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation)
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
     
@@ -555,7 +557,7 @@ def printChangeLanguage(code):
         logAction('Changing language to %s' % code)
         print '%s%svc.uiDevice.changeLanguage("%s")' % (indent, prefix, code)
 
-def printTakeSnapshot(filename, _format):
+def printTakeSnapshot(filename, _format, deviceart, dropshadow, screenglare):
     '''
     Prints the corresponding writeImageToFile() to take a snapshot
     '''
@@ -563,8 +565,8 @@ def printTakeSnapshot(filename, _format):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        logAction(u'taking snapshot @ %s format=%s' % (filename, _format))
-        print '%s%svc.writeImageToFile(\'%s\', \'%s\')' % (indent, prefix, filename, _format)
+        logAction(u'taking snapshot @ %s format=%s %s %s %s' % (filename, _format, deviceart, dropshadow, screenglare))
+        print '%s%svc.writeImageToFile(\'%s\', \'%s\', \'%s\', %s, %s)' % (indent, prefix, filename, _format, deviceart, dropshadow, screenglare)
         
     
 def traverseAndPrint(view):
@@ -631,7 +633,7 @@ def printOperation(view, op, *args):
         printTraverse()
         return
     elif op == Operation.SNAPSHOT:
-        printTakeSnapshot(filename=args[0], _format=args[1])
+        printTakeSnapshot(filename=args[0], _format=args[1], deviceart=args[2], dropshadow=args[3], screenglare=args[4])
         return
     elif op == Operation.VIEW_SNAPSHOT:
         printSaveViewScreenshot(view, filename=args[0], _format=args[1])
@@ -757,6 +759,10 @@ def runCulebron():
     Culebron.checkSupportedSdkVersion(device.getSdkVersion())
     Culebron.checkDependencies()
     culebron = Culebron(vc, printOperation, options[CulebraOptions.SCALE])
+    if options[CulebraOptions.DEVICE_ART]:
+        culebron.deviceArt = options[CulebraOptions.DEVICE_ART]
+        culebron.dropShadow = options[CulebraOptions.DROP_SHADOW]
+        culebron.screenGlare = options[CulebraOptions.SCREEN_GLARE]
     culebron.takeScreenshotAndShowItOnWindow()
     culebron.mainloop()
     
@@ -801,6 +807,9 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
         CulebraOptions.ORIENTATION_LOCKED: None,
         CulebraOptions.MULTI_DEVICE: False,
         CulebraOptions.LOG_ACTIONS: False,
+        CulebraOptions.DEVICE_ART: None,
+        CulebraOptions.DROP_SHADOW: False,
+        CulebraOptions.SCREEN_GLARE: False,
         }
 transform = traverseAndPrint
 for o, a in optlist:
@@ -838,7 +847,7 @@ for o, a in optlist:
     elif o in ['M', CulebraOptions.UNIT_TEST_METHOD]:
         if not a.startswith('test'):
             warnings.warn('Method name should start with "test"')
-    	options[CulebraOptions.UNIT_TEST_METHOD] = a
+        options[CulebraOptions.UNIT_TEST_METHOD] = a
     elif o in ['j', CulebraOptions.USE_JAR]:
         options[CulebraOptions.USE_JAR] = str2bool(a)
     elif o in ['D', CulebraOptions.USE_DICTIONARY]:
@@ -862,8 +871,6 @@ for o, a in optlist:
         options[CulebraOptions.START_ACTIVITY] = a
     elif o in ['o', CulebraOptions.OUTPUT]:
         options[CulebraOptions.OUTPUT] = a
-    elif o in ['A', CulebraOptions.INTERACTIVE]:
-        options[CulebraOptions.INTERACTIVE] = True
     elif o in ['p', CulebraOptions.PREPEND_TO_SYS_PATH]:
         options[CulebraOptions.PREPEND_TO_SYS_PATH] = True
     elif o in ['f', CulebraOptions.SAVE_SCREENSHOT]:
@@ -887,6 +894,12 @@ for o, a in optlist:
         options[CulebraOptions.MULTI_DEVICE] = True
     elif o in ['L', CulebraOptions.LOG_ACTIONS]:
         options[CulebraOptions.LOG_ACTIONS] = True
+    elif o in ['A', CulebraOptions.DEVICE_ART]:
+        options[CulebraOptions.DEVICE_ART] = a
+    elif o in ['Z', CulebraOptions.DROP_SHADOW]:
+        options[CulebraOptions.DROP_SHADOW] = True
+    elif o in ['B', CulebraOptions.SCREEN_GLARE]:
+        options[CulebraOptions.SCREEN_GLARE] = True
 
 if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[CulebraOptions.VERBOSE_COMMENTS]:
