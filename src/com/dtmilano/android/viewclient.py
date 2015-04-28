@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.3.0'
+__version__ = '10.3.1'
 
 import sys
 import warnings
@@ -928,8 +928,9 @@ class View:
         @param duration: duration in ms
         '''
 
-        c = self.getCenter()
-        self.device.longTouch(c, c, duration, 1)
+        (x, y) = self.getCenter()
+        # FIXME: get orientation
+        self.device.longTouch(x, y, duration, orientation=-1)
 
     def allPossibleNamesWithColon(self, name):
         l = []
