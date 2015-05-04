@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.3.1'
+__version__ = '10.3.2'
 
 import sys
 import warnings
@@ -3635,6 +3635,13 @@ You should force ViewServer back-end.''')
                     elif hardware == 'mt5861':
                         deviceart = 'tv_1080p'
 
+                SUPPORTED_DEVICES = ['nexus_5', 'nexus_4', 'nexus_7', 'tv_1080p']
+                if deviceart not in SUPPORTED_DEVICES:
+                    warnings.warn("Only %s is supported now, more devices coming soon" % SUPPORTED_DEVICES)
+                if deviceart == 'auto':
+                    # it wasn't detected yet, let's assume generic phone
+                    deviceart = 'phone'
+
                 if deviceart == 'nexus_5':
                     if orientationName == 'port':
                         screenPos = (144, 195)
@@ -3654,13 +3661,15 @@ You should force ViewServer back-end.''')
                     screenPos = (85, 59)
                     orientationName = ''
                     separator = ''
+                elif deviceart == 'phone':
+                    if orientationName == 'port':
+                        screenPos = (113, 93)
+                    else:
+                        screenPos = (141, 36)
 
-                SUPPORTED_DEVICES = ['nexus_5', 'nexus_4', 'nexus_7', 'tv_1080p']
-                if deviceart not in SUPPORTED_DEVICES:
-                    warnings.warn("Only %s is supported now, more devices coming soon" % SUPPORTED_DEVICES)
-                if not os.path.isdir(deviceArtDir + '/' + deviceart):
-                    warnings.warn("Cannot find device art for " + deviceart + ' at ' + deviceArtDir + '/' + deviceart)
                 deviceArtModelDir = deviceArtDir + '/' + deviceart
+                if not os.path.isdir(deviceArtModelDir):
+                    warnings.warn("Cannot find device art for " + deviceart + ' at ' + deviceArtModelDir)
                 try:
                     from PIL import Image
                     if dropshadow:
