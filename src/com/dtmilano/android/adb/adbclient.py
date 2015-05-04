@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.3.0'
+__version__ = '10.3.3'
 
 import sys
 import warnings
@@ -997,6 +997,24 @@ class AdbClient:
         if window:
             return window.activity
         return None
+
+    def getTopActivityNameAndPid(self):
+        dat = self.shell('dumpsys activity top')
+        lines = dat.splitlines()
+        activityRE = re.compile('\s*ACTIVITY ([A-Za-z0_9_.]+)/([A-Za-z0-9_.]+) \w+ pid=(\d+)')
+        m = activityRE.search(lines[1])
+        if m:
+            return (m.group(1), m.group(2), m.group(3))
+        else:
+            warnings.warn("NO MATCH:" + lines[1])
+            return None
+
+    def getTopActivityName(self):
+        tanp = self.getTopActivityNameAndPid()
+        if tanp:
+            return tanp[0] + '/' + tanp[1]
+        else:
+            return None
 
     def substituteDeviceTemplate(self, template):
         serialno = self.serialno.replace('.', '_').replace(':', '-')

@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.3.0'
+__version__ = '10.3.3'
 
 import re
 import sys
@@ -592,6 +592,20 @@ def traverseAndPrint(view):
         filename = options[CulebraOptions.SAVE_VIEW_SCREENSHOTS] + os.sep + view.variableNameFromId() + '.' + _format.lower()
         printSaveViewScreenshot(view, filename, _format)
 
+
+def printStartActivity(component):
+    '''
+    Prints the corresponding startActivity()
+    '''
+
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(u'starting activity=%s' % (component))
+        print '%s%sdevice.startActivity(\'%s\')' % (indent, prefix, component)
+    printSleep(3)
+
+
 def printOperation(view, op, *args):
     if len(args) == 0:
         # We use tuple values in the rest of this method, so if an empty tuple was passed
@@ -658,6 +672,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.CHANGE_LANGUAGE:
         printChangeLanguage(code=args[0])
+        return
+    elif op == Operation.START_ACTIVITY:
+        printStartActivity(component=args[0])
         return
     
     if view is None:

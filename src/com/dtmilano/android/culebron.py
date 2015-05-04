@@ -19,7 +19,7 @@ limitations under the License.
 
 '''
 
-__version__ = '10.3.0'
+__version__ = '10.3.3'
 
 import sys
 import threading
@@ -93,6 +93,7 @@ class Operation:
     TYPE = 'type'
     PRESS = 'press'
     SNAPSHOT = 'snapshot'
+    START_ACTIVITY = 'start_activity'
     SLEEP = 'sleep'
     TRAVERSE = 'traverse'
     VIEW_SNAPSHOT = 'view_snapshot'
@@ -204,7 +205,10 @@ This is usually installed by python package. Check your distribution details.
         self.window.update_idletasks()
         self.targetIds = []
         if DEBUG:
-            self.printGridInfo()
+            try:
+                self.printGridInfo()
+            except:
+                pass
 
     def printGridInfo(self):
         print >> sys.stderr, "window:", repr(self.window)
@@ -268,7 +272,10 @@ This is usually installed by python package. Check your distribution details.
         self.findTargets()
         self.hideVignette()
         if DEBUG:
-            self.printGridInfo()
+            try:
+                self.printGridInfo()
+            except:
+                pass
 
     def createMessageArea(self, width, height):
         self.__message = Tkinter.Label(self.window, text='', background=Color.GOLD, font=('Helvetica', 16), anchor=Tkinter.W)
@@ -806,11 +813,14 @@ This is usually installed by python package. Check your distribution details.
             self.toggleTouchPoint()
         elif self.isGeneratingTestCondition:
             self.toggleGenerateTestCondition()
-        
+
+    def printStartActivityAtTop(self):
+        self.printOperation(None, Operation.START_ACTIVITY, self.device.getTopActivityName())
+
     def onCtrlA(self, event):
         if DEBUG:
-            self.toggleMessageArea()
-
+            print >> sys.stderr, "onCtrlA(", event ,")"
+        self.printStartActivityAtTop()
 
     def showDragDialog(self):
         d = DragDialog(self)
@@ -1533,6 +1543,7 @@ if TKINTER_AVAILABLE:
             items.append(ContextMenu.Command('Generates a Sleep() on output script',     12,  'Ctrl+S', '<Control-S>', culebron.showSleepDialog))
             items.append(ContextMenu.Command('Toggle generating Test Condition',         18,  'Ctrl+T', '<Control-T>', culebron.toggleGenerateTestCondition))
             items.append(ContextMenu.Command('Touch Zones',                  6,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones))
+            items.append(ContextMenu.Command('Generates a startActivity()', 17,      'Ctrl+A',  '<Control-A>', culebron.printStartActivityAtTop))
             items.append(ContextMenu.Command('Refresh',                      0,      'F5',   '<F5>',  culebron.refresh))
             items.append(ContextMenu.Separator())
             items.append(ContextMenu.Command('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit))
@@ -1595,7 +1606,7 @@ if TKINTER_AVAILABLE:
     
     Commands
     --------
-    Ctrl-A: Toggle message area
+    Ctrl-A: Generates startActivity() call on output script
     Ctrl-D: Drag dialog
     Ctrl-F: Take snapshot and save to file
     Ctrl-K: Control Panel
