@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.3.3'
+__version__ = '10.3.4'
 
 import sys
 import warnings
@@ -1001,7 +1001,7 @@ class AdbClient:
     def getTopActivityNameAndPid(self):
         dat = self.shell('dumpsys activity top')
         lines = dat.splitlines()
-        activityRE = re.compile('\s*ACTIVITY ([A-Za-z0_9_.]+)/([A-Za-z0-9_.]+) \w+ pid=(\d+)')
+        activityRE = re.compile('\s*ACTIVITY ([A-Za-z0-9_.]+)/([A-Za-z0-9_.]+) \w+ pid=(\d+)')
         m = activityRE.search(lines[1])
         if m:
             return (m.group(1), m.group(2), m.group(3))
