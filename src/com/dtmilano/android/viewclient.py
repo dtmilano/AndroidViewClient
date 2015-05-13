@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.3.3'
+__version__ = '10.3.5'
 
 import sys
 import warnings
@@ -3632,10 +3632,12 @@ You should force ViewServer back-end.''')
                         deviceart = 'nexus_4'
                     elif hardware == 'grouper':
                         deviceart = 'nexus_7' # 2012
+                    elif hardware == 'flo':
+                        deviceart = 'nexus_7_2013'
                     elif hardware == 'mt5861':
                         deviceart = 'tv_1080p'
 
-                SUPPORTED_DEVICES = ['nexus_5', 'nexus_4', 'nexus_7', 'tv_1080p']
+                SUPPORTED_DEVICES = ['nexus_5', 'nexus_4', 'nexus_7', 'nexus_7_2013', 'tv_1080p']
                 if deviceart not in SUPPORTED_DEVICES:
                     warnings.warn("Only %s is supported now, more devices coming soon" % SUPPORTED_DEVICES)
                 if deviceart == 'auto':
@@ -3657,6 +3659,11 @@ You should force ViewServer back-end.''')
                         screenPos = (142, 190)
                     else:
                         screenPos = (260, 105)
+                elif deviceart == 'nexus_7_2013':
+                    if orientationName == 'port':
+                        screenPos = (130, 201)
+                    else:
+                        screenPos = (282, 80)
                 elif deviceart == 'tv_1080p':
                     screenPos = (85, 59)
                     orientationName = ''
