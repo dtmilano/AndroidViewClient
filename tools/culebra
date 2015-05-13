@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.3.6'
+__version__ = '10.3.7'
 
 import re
 import sys
@@ -353,7 +353,7 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            logAction('typing "%s" on view with id=' % (arg, _id))
+            logAction('typing "%s" on view with id=%s' % (arg, _id))
             print '%s%svc.findViewByIdOrRaise("%s").type(u"%s")' % (indent, prefix, _id, arg)
     elif op == Operation.TEST:
         if options[CulebraOptions.MULTI_DEVICE]:
