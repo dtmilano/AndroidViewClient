@@ -18,8 +18,9 @@ limitations under the License.
 @author: Diego Torres Milano
 
 '''
+import time
 
-__version__ = '10.3.3'
+__version__ = '10.3.4'
 
 import sys
 import threading
@@ -28,7 +29,6 @@ import copy
 import string
 import os
 import platform
-from __builtin__ import False
 from pkg_resources import Requirement, resource_filename
 
 try:
@@ -165,12 +165,16 @@ On OSX install
 This is usually installed by python package. Check your distribution details.
 ''')
 
-    def __init__(self, vc, printOperation, scale=1):
+    def __init__(self, vc, device, serialno, printOperation, scale=1):
         '''
         Culebron constructor.
         
         @param vc: The ViewClient used by this Culebron instance
         @type vc: ViewClient
+        @param device: The device
+        @type device: L{AdbClient}
+        @param serialno: The device's serial number
+        @type serialno: str
         @param printOperation: the method invoked to print operations to the script
         @type printOperation: method
         @param scale: the scale of the device screen used to show it on the window
@@ -179,8 +183,8 @@ This is usually installed by python package. Check your distribution details.
         
         self.vc = vc
         self.printOperation = printOperation
-        self.device = vc.device
-        self.serialno = vc.serialno
+        self.device = device
+        self.serialno = serialno
         self.scale = scale
         self.window = Tkinter.Tk()
         icon = resource_filename(Requirement.parse("androidviewclient"),
@@ -469,8 +473,11 @@ This is usually installed by python package. Check your distribution details.
             window = -1
         else:
             window = -1
-        dump = self.vc.dump(window=window)
-        self.printOperation(None, Operation.DUMP, window, dump)
+        if self.vc:
+            dump = self.vc.dump(window=window)
+            self.printOperation(None, Operation.DUMP, window, dump)
+        else:
+            dump = []
         # the root element cannot be deleted from Treeview once added.
         # We have no option but to recreate it
         self.viewTree = ViewTree(self.sideFrame)
@@ -495,7 +502,8 @@ This is usually installed by python package. Check your distribution details.
             else:
                 target = False
 
-        self.vc.traverse(transform=self.populateViewTree)
+        if self.vc:
+            self.vc.traverse(transform=self.populateViewTree)
     
     def getViewContainingPointAndGenerateTestCondition(self, x, y):
         if DEBUG:
@@ -514,22 +522,23 @@ This is usually installed by python package. Check your distribution details.
                 
 
     def findViewContainingPointInTargets(self, x, y):
-        vlist = self.vc.findViewsContainingPoint((x, y))
-        if DEBUG_FIND_VIEW:
-            print >> sys.stderr, "Views found:"
+        if self.vc:
+            vlist = self.vc.findViewsContainingPoint((x, y))
+            if DEBUG_FIND_VIEW:
+                print >> sys.stderr, "Views found:"
+                for v in vlist:
+                    print >> sys.stderr, "   ", v.__smallStr__()
+            vlist.reverse()
             for v in vlist:
-                print >> sys.stderr, "   ", v.__smallStr__()
-        vlist.reverse()
-        for v in vlist:
-            if DEBUG:
-                print >> sys.stderr, "checking if", v, "is in", self.targetViews
-            if v in self.targetViews:
-                if DEBUG_TOUCH:
-                    print >> sys.stderr
-                    print >> sys.stderr, "I guess you are trying to touch:", v
-                    print >> sys.stderr
-                return v
-        
+                if DEBUG:
+                    print >> sys.stderr, "checking if", v, "is in", self.targetViews
+                if v in self.targetViews:
+                    if DEBUG_TOUCH:
+                        print >> sys.stderr
+                        print >> sys.stderr, "I guess you are trying to touch:", v
+                        print >> sys.stderr
+                    return v
+
         return None
 
     def getViewContainingPointAndTouch(self, x, y):
@@ -615,11 +624,11 @@ This is usually installed by python package. Check your distribution details.
             self.showVignette()
             self.device.touch(x, y)
             if self.coordinatesUnit == Unit.DIP:
-                x = round(x / self.vc.display['density'], 2)
-                y = round(y / self.vc.display['density'], 2)
-            self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit, self.vc.display['orientation'])
+                x = round(x / self.device.display['density'], 2)
+                y = round(y / self.device.display['density'], 2)
+            self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit, self.device.display['orientation'])
             self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
-            self.vc.sleep(5)
+            time.sleep(5)
             self.isTouchingPoint = False
             self.takeScreenshotAndShowItOnWindow()
             self.hideVignette()
@@ -781,7 +790,7 @@ This is usually installed by python package. Check your distribution details.
             pass
         else:
             self.command(char.decode('ascii', errors='replace'))
-        self.vc.sleep(1)
+        time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
     

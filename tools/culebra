@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.3.3'
+__version__ = '10.3.4'
 
 import re
 import sys
@@ -775,7 +775,7 @@ def logAction(action):
 def runCulebron():
     Culebron.checkSupportedSdkVersion(device.getSdkVersion())
     Culebron.checkDependencies()
-    culebron = Culebron(vc, printOperation, options[CulebraOptions.SCALE])
+    culebron = Culebron(vc, device, serialno, printOperation, options[CulebraOptions.SCALE])
     if options[CulebraOptions.DEVICE_ART]:
         culebron.deviceArt = options[CulebraOptions.DEVICE_ART]
         culebron.dropShadow = options[CulebraOptions.DROP_SHADOW]
@@ -809,25 +809,27 @@ except getopt.GetoptError, e:
 kwargs1 = {CulebraOptions.VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
 serialno = None
 kwargs2 = {ViewClientOptions.FORCE_VIEW_SERVER_USE: False, ViewClientOptions.START_VIEW_SERVER: True,
-        ViewClientOptions.AUTO_DUMP: False, ViewClientOptions.IGNORE_UIAUTOMATOR_KILLED: True,
-        ViewClientOptions.COMPRESSED_DUMP: True}
-options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH_TEXT: True, CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION: True,
-        CulebraOptions.USE_REGEXPS: False, CulebraOptions.VERBOSE_COMMENTS: False,
-        CulebraOptions.UNIT_TEST_CLASS: False, CulebraOptions.UNIT_TEST_METHOD: None, CulebraOptions.USE_JAR: False,
-        CulebraOptions.USE_DICTIONARY: False, CulebraOptions.DICTIONARY_KEYS_FROM: 'id',
-        CulebraOptions.AUTO_REGEXPS: None, CulebraOptions.START_ACTIVITY: None, CulebraOptions.OUTPUT: None, CulebraOptions.INTERACTIVE: False,
-        CulebraOptions.WINDOW:-1, CulebraOptions.PREPEND_TO_SYS_PATH: False,
-        CulebraOptions.SAVE_SCREENSHOT: None, CulebraOptions.SAVE_VIEW_SCREENSHOTS: None,
-        CulebraOptions.GUI: False,
-        CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP: False,
-        CulebraOptions.SCALE: 1,
-        CulebraOptions.ORIENTATION_LOCKED: None,
-        CulebraOptions.MULTI_DEVICE: False,
-        CulebraOptions.LOG_ACTIONS: False,
-        CulebraOptions.DEVICE_ART: None,
-        CulebraOptions.DROP_SHADOW: False,
-        CulebraOptions.SCREEN_GLARE: False,
-        }
+           ViewClientOptions.AUTO_DUMP: False, ViewClientOptions.IGNORE_UIAUTOMATOR_KILLED: True,
+           ViewClientOptions.COMPRESSED_DUMP: True}
+options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH_TEXT: True,
+           CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION: True,
+           CulebraOptions.USE_REGEXPS: False, CulebraOptions.VERBOSE_COMMENTS: False,
+           CulebraOptions.UNIT_TEST_CLASS: False, CulebraOptions.UNIT_TEST_METHOD: None, CulebraOptions.USE_JAR: False,
+           CulebraOptions.USE_DICTIONARY: False, CulebraOptions.DICTIONARY_KEYS_FROM: 'id',
+           CulebraOptions.AUTO_REGEXPS: None, CulebraOptions.START_ACTIVITY: None, CulebraOptions.OUTPUT: None,
+           CulebraOptions.INTERACTIVE: False,
+           CulebraOptions.WINDOW: -1, CulebraOptions.PREPEND_TO_SYS_PATH: False,
+           CulebraOptions.SAVE_SCREENSHOT: None, CulebraOptions.SAVE_VIEW_SCREENSHOTS: None,
+           CulebraOptions.GUI: False,
+           CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP: False,
+           CulebraOptions.SCALE: 1,
+           CulebraOptions.ORIENTATION_LOCKED: None,
+           CulebraOptions.MULTI_DEVICE: False,
+           CulebraOptions.LOG_ACTIONS: False,
+           CulebraOptions.DEVICE_ART: None,
+           CulebraOptions.DROP_SHADOW: False,
+           CulebraOptions.SCREEN_GLARE: False,
+           }
 transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
