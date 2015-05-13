@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.3.4'
+__version__ = '10.3.6'
 
 import re
 import sys
@@ -256,7 +256,8 @@ You have to set PYTHONIOENCODING environment variable. For example:
         elif op == Operation.TOUCH_VIEW:
             root = ', root=%svc.findViewByIdOrRaise(\'%s\')' % (prefix, arg.getUniqueId()) if arg else ''
             if options[CulebraOptions.MULTI_DEVICE]:
-                print u'%s[_vc.findViewWithTextOrRaise(%s%s).touch() for _vc in %sallVcs()]' % (indent, text, prefix, root)
+                logAction(u'touching view with text=%s on ${serialno}' % text)
+                print u'%s[_vc.findViewWithTextOrRaise(%s%s).touch() for _vc in %sallVcs()]' % (indent, text, root, prefix)
             else:
                 logAction(u'touching view with text=%s' % text)
                 print u'%s%svc.findViewWithTextOrRaise(%s%s).touch()' % (indent, prefix, text, root)
@@ -302,10 +303,12 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
                 print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (indent, var, prefix, contentDescription)
         elif op == Operation.TOUCH_VIEW:
             if options[CulebraOptions.MULTI_DEVICE]:
-                warnings.warn('Multi-device not implemented yet for this case')
+                logAction(u'touching view with content-description=%s on ${serialno}' % contentDescription)
+                # print u'%s[_vc.findViewWithTextOrRaise(%s).touch() for _vc in %sallVcs()]' % (indent, text, root)
+                print u'%s[_vc.findViewWithContentDescriptionOrRaise(%s).touch() for _vc in %sallVcs()]' % (indent, contentDescription, prefix)
             else:
                 logAction(u'touching view with content-description=%s' % contentDescription)
-                print '%s%svc.findViewWithContentDescriptionOrRaise(%s).touch()' % (indent, prefix, contentDescription)
+                print u'%s%svc.findViewWithContentDescriptionOrRaise(%s).touch()' % (indent, prefix, contentDescription)
         elif op == Operation.TYPE:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
