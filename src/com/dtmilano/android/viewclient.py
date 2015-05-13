@@ -3688,7 +3688,7 @@ You should force ViewServer back-end.''')
                         dropShadowImage.paste(deviceBack, (0, 0), deviceBack)
                         deviceBack = dropShadowImage
                     if screenSize:
-                        image = image.resize(screenSize[0], screenSize[1], Image.ANTIALIAS)
+                        image = image.resize(screenSize, Image.ANTIALIAS)
                     deviceBack.paste(image, screenPos)
                     if screenglare:
                         screenGlareImage = Image.open(deviceArtModelDir + '/%s%sfore.png' % (orientationName, separator))
