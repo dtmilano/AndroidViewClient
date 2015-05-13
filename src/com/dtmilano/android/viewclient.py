@@ -3636,14 +3636,17 @@ You should force ViewServer back-end.''')
                         deviceart = 'nexus_7_2013'
                     elif hardware == 'mt5861':
                         deviceart = 'tv_1080p'
+                    elif hardware == 'universal5410':
+                        deviceart = 'samsung_s4'
 
-                SUPPORTED_DEVICES = ['nexus_5', 'nexus_4', 'nexus_7', 'nexus_7_2013', 'tv_1080p']
+                SUPPORTED_DEVICES = ['nexus_5', 'nexus_4', 'nexus_7', 'nexus_7_2013', 'tv_1080p', 'samsung_s4']
                 if deviceart not in SUPPORTED_DEVICES:
                     warnings.warn("Only %s is supported now, more devices coming soon" % SUPPORTED_DEVICES)
                 if deviceart == 'auto':
                     # it wasn't detected yet, let's assume generic phone
                     deviceart = 'phone'
 
+                screenSize = None
                 if deviceart == 'nexus_5':
                     if orientationName == 'port':
                         screenPos = (144, 195)
@@ -3670,11 +3673,19 @@ You should force ViewServer back-end.''')
                     screenPos = (85, 59)
                     orientationName = ''
                     separator = ''
+                elif deviceart == 'samsung_s4':
+                    if orientationName == 'port':
+                        screenPos = (76, 220)
+                        screenSize = (1078, 1902) # FIXME: (1080, 1920) is the original size
+                    else:
+                        screenPos = (0, 0)
                 elif deviceart == 'phone':
                     if orientationName == 'port':
                         screenPos = (113, 93)
+                        screenSize = (343, 46) # 46?, this is in device-art.xml
                     else:
                         screenPos = (141, 36)
+                        screenSize = (324, 255)
 
                 deviceArtModelDir = deviceArtDir + '/' + deviceart
                 if not os.path.isdir(deviceArtModelDir):
