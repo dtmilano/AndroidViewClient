@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.3.5'
+__version__ = '10.3.7'
 
 import sys
 import warnings
@@ -3662,8 +3662,10 @@ You should force ViewServer back-end.''')
                 elif deviceart == 'nexus_7_2013':
                     if orientationName == 'port':
                         screenPos = (130, 201)
+                        screenSize = (800, 1280)
                     else:
                         screenPos = (282, 80)
+                        screenSize = (1280, 800)
                 elif deviceart == 'tv_1080p':
                     screenPos = (85, 59)
                     orientationName = ''
@@ -3685,6 +3687,8 @@ You should force ViewServer back-end.''')
                     if dropshadow:
                         dropShadowImage.paste(deviceBack, (0, 0), deviceBack)
                         deviceBack = dropShadowImage
+                    if screenSize:
+                        image = image.resize(screenSize[0], screenSize[1], Image.ANTIALIAS)
                     deviceBack.paste(image, screenPos)
                     if screenglare:
                         screenGlareImage = Image.open(deviceArtModelDir + '/%s%sfore.png' % (orientationName, separator))
