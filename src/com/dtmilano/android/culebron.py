@@ -20,7 +20,7 @@ limitations under the License.
 '''
 import time
 
-__version__ = '10.3.4'
+__version__ = '10.4.0'
 
 import sys
 import threading
