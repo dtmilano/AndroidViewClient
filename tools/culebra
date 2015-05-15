@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.4.0'
+__version__ = '10.5.0'
 
 import re
 import sys
@@ -832,6 +832,7 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
            CulebraOptions.DEVICE_ART: None,
            CulebraOptions.DROP_SHADOW: False,
            CulebraOptions.SCREEN_GLARE: False,
+           CulebraOptions.NULL_BACK_END: False,
            }
 transform = traverseAndPrint
 for o, a in optlist:
@@ -922,6 +923,8 @@ for o, a in optlist:
         options[CulebraOptions.DROP_SHADOW] = True
     elif o in ['B', CulebraOptions.SCREEN_GLARE]:
         options[CulebraOptions.SCREEN_GLARE] = True
+    elif o in ['0', CulebraOptions.NULL_BACK_END]:
+        options[CulebraOptions.NULL_BACK_END] = True
 
 if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[CulebraOptions.VERBOSE_COMMENTS]:
@@ -929,12 +932,18 @@ if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_
     else:
         warnings.warn('Only verbose comments will be printed')
 
+if kwargs2[ViewClientOptions.FORCE_VIEW_SERVER_USE] and options[CulebraOptions.NULL_BACK_END]:
+    warnings.warn(ViewClientOptions.FORCE_VIEW_SERVER_USE + " and " + CulebraOptions.NULL_BACK_END + " cannot be specified at the same time.")
+
 device, serialno = ViewClient.connectToDeviceOrExit(serialno=serialno, **kwargs1)
 if options[CulebraOptions.ORIENTATION_LOCKED] == 'PENDING':
     options[CulebraOptions.ORIENTATION_LOCKED] = device.display['orientation']
 if options[CulebraOptions.START_ACTIVITY]:
     device.startActivity(component=options[CulebraOptions.START_ACTIVITY])
-vc = ViewClient(device, serialno, **kwargs2)
+if not options[CulebraOptions.NULL_BACK_END]:
+    vc = ViewClient(device, serialno, **kwargs2)
+else:
+    vc = None
 if options[CulebraOptions.OUTPUT]:
     sys.stdout = codecs.open(options[CulebraOptions.OUTPUT], mode='w', encoding='utf-8', errors='replace')
     import stat
@@ -1050,8 +1059,9 @@ vc = ViewClient(device, serialno, **kwargs2)
             print '''\
 vc.writeImageToFile('%s')
 ''' % options[CulebraOptions.SAVE_SCREENSHOT]
-    
-    vc.dump(window=options[CulebraOptions.WINDOW])
+
+    if vc:
+        vc.dump(window=options[CulebraOptions.WINDOW])
     if options[CulebraOptions.UNIT_TEST_METHOD]:
         print '''
     def %s(self):

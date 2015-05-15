@@ -37,9 +37,8 @@ class Layout:
 
 class ControlPanel(Tkinter.Toplevel):
 
-    def __init__(self, culebron, vc, printOperation, **kwargs):
+    def __init__(self, culebron, printOperation, **kwargs):
         self.culebron = culebron
-        self.vc = vc
         self.printOperation = printOperation
         self.parent = culebron.window
         self.childWindow = Tkinter.Toplevel(self.parent)
@@ -52,7 +51,6 @@ class ControlPanel(Tkinter.Toplevel):
         self.childWindow.title('Control Panel')
         self.childWindow.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
         self.childWindow.printOperation = printOperation
-        self.childWindow.vc = vc
         self.childWindow.grid()
         self.childWindow.column = self.childWindow.row = 0
         self.createKeycodeTab()
@@ -70,7 +68,7 @@ class ControlPanel(Tkinter.Toplevel):
                              'KEYCODE_BRIGHTNESS_UP', 'KEYCODE_VOLUME_MUTE', 'KEYCODE_MEDIA_STOP', 'KEYCODE_CALCULATOR', 'KEYCODE_SETTINGS', 'QUIT'
                             ]
         for keycode in self.keycodeList:
-            self.keycode = ControlPanelButton(self.keycodeTab, self.culebron, self.vc, self.printOperation, value=keycode, text=keycode[8:],
+            self.keycode = ControlPanelButton(self.keycodeTab, self.culebron, self.printOperation, value=keycode, text=keycode[8:],
                                               width=Layout.BUTTON_WIDTH, bg=Color.DARK_GRAY, fg=Color.LIGHT_GRAY,
                                               highlightbackground=Color.DARK_GRAY)
 
@@ -99,7 +97,7 @@ class ControlPanel(Tkinter.Toplevel):
                              ]
 
         for keyboard in self.keyboardList:
-            self.keyboard = ControlPanelButton(self.keyboardTab, self.culebron, self.vc, self.printOperation, value=keyboard, text=keyboard[8:],
+            self.keyboard = ControlPanelButton(self.keyboardTab, self.culebron, self.printOperation, value=keyboard, text=keyboard[8:],
                                                width=Layout.BUTTON_WIDTH, bg=Color.DARK_GRAY, fg=Color.LIGHT_GRAY,
                                                highlightbackground=Color.DARK_GRAY)
 
@@ -117,13 +115,12 @@ class ControlPanel(Tkinter.Toplevel):
 
 class ControlPanelButton(Tkinter.Button):
 
-    def __init__(self, parent, culebron, vc, printOperation, value=None, **kwargs):
+    def __init__(self, parent, culebron, printOperation, value=None, **kwargs):
         Tkinter.Button.__init__(self, parent, kwargs)
         self.culebron = culebron
         self.printOperation = printOperation
         self.value = value
-        self.vc = vc
-        self.device = vc.device
+        self.device = culebron.device
 
     def command(self):
         key = self.value

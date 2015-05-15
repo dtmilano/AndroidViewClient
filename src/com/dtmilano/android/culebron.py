@@ -20,7 +20,7 @@ limitations under the License.
 '''
 import time
 
-__version__ = '10.4.0'
+__version__ = '10.5.0'
 
 import sys
 import threading
@@ -993,7 +993,7 @@ This is usually installed by python package. Check your distribution details.
 
     def showControlPanel(self):
         from com.dtmilano.android.controlpanel import ControlPanel
-        self.controlPanel = ControlPanel(self, self.vc, self.printOperation)
+        self.controlPanel = ControlPanel(self, self.printOperation)
 
     def onCtrlK(self, event):
         self.showControlPanel()
@@ -1003,15 +1003,15 @@ This is usually installed by python package. Check your distribution details.
         # the operation on this device is always done in PX
         self.device.drag(start, end, duration, steps)
         if units == Unit.DIP:
-            x0 = round(start[0] / self.vc.display['density'], 2)
-            y0 = round(start[1] / self.vc.display['density'], 2)
-            x1 = round(end[0] / self.vc.display['density'], 2)
-            y1 = round(end[1] / self.vc.display['density'], 2)
+            x0 = round(start[0] / self.device.display['density'], 2)
+            y0 = round(start[1] / self.device.display['density'], 2)
+            x1 = round(end[0] / self.device.display['density'], 2)
+            y1 = round(end[1] / self.device.display['density'], 2)
             start = (x0, y0)
             end = (x1, y1)
-        self.printOperation(None, Operation.DRAG, start, end, duration, steps, units, self.vc.display['orientation'])
+        self.printOperation(None, Operation.DRAG, start, end, duration, steps, units, self.device.display['orientation'])
         self.printOperation(None, Operation.SLEEP, 1)
-        self.vc.sleep(1)
+        time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
         
     def enableEvents(self):

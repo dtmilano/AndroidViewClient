@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.4.0'
+__version__ = '10.5.0'
 
 import sys
 import warnings
@@ -3949,7 +3949,7 @@ class CulebraOptions:
     VERSION = 'version'
     IGNORE_SECURE_DEVICE = 'ignore-secure-device'
     IGNORE_VERSION_CHECK = 'ignore-version-check'
-    FORCE_VIEW_SERVER_USE = 'force-view-server-use'
+    FORCE_VIEW_SERVER_USE = 'force-view-server-use' # Same a ViewClientOptions.FORCE_VIEW_SERVER_USE but with dashes
     DO_NOT_START_VIEW_SERVER = 'do-not-start-view-server'
     DO_NOT_IGNORE_UIAUTOMATOR_KILLED = 'do-not-ignore-uiautomator-killed'
     FIND_VIEWS_BY_ID = 'find-views-by-id'
@@ -3981,8 +3981,9 @@ class CulebraOptions:
     DEVICE_ART = 'device-art'
     DROP_SHADOW = 'drop-shadow'
     SCREEN_GLARE = 'glare'
+    NULL_BACK_END = 'null-back-end'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB0'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -4001,6 +4002,7 @@ class CulebraOptions:
               MULTI_DEVICE,
               LOG_ACTIONS,
               DEVICE_ART + '=', DROP_SHADOW, SCREEN_GLARE,
+              NULL_BACK_END
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
@@ -4044,6 +4046,7 @@ class CulebraOptions:
             'A': 'device art model to frame screenshot (auto: autodetected)',
             'Z': 'drop shadow for device art screenshot',
             'B': 'screen glare over screenshot',
+            '0': 'use a null back-end (no View tree obtained)',
             }
 
 class CulebraTestCase(unittest.TestCase):
