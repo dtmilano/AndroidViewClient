@@ -17,5 +17,10 @@ src/com/dtmilano/android/adb/adbclient.py
 src/com/dtmilano/android/adb/androidkeymap.py
 src/share/__init__.py
 src/share/pixmaps/__init__.py
+src/share/pixmaps/plugins/__init__.py
+src/share/pixmaps/plugins/android/__init__.py
+src/share/pixmaps/plugins/android/lib/__init__.py
+src/share/pixmaps/plugins/android/lib/device-art-resources/__init__.py
+src/share/pixmaps/plugins/android/lib/device-art-resources/samsung_s4/__init__.py
 tools/culebra
 tools/dump

@@ -20,7 +20,7 @@ limitations under the License.
 '''
 import time
 
-__version__ = '10.5.0'
+__version__ = '10.5.1'
 
 import sys
 import threading
@@ -33,6 +33,7 @@ from pkg_resources import Requirement, resource_filename
 
 try:
     from PIL import Image, ImageTk
+
     PIL_AVAILABLE = True
 except:
     PIL_AVAILABLE = False
@@ -69,9 +70,11 @@ class Color:
     DARK_GRAY = '#222222'
     LIGHT_GRAY = '#dddddd'
 
+
 class Unit:
     PX = 'PX'
     DIP = 'DIP'
+
 
 class Operation:
     ASSIGN = 'assign'
@@ -97,20 +100,21 @@ class Operation:
     SLEEP = 'sleep'
     TRAVERSE = 'traverse'
     VIEW_SNAPSHOT = 'view_snapshot'
-    
+
     @staticmethod
     def fromCommandName(commandName):
         MAP = {'flingBackward': Operation.FLING_BACKWARD, 'flingForward': Operation.FLING_FORWARD,
-            'flingToBeginning': Operation.FLING_TO_BEGINNING, 'flingToEnd': Operation.FLING_TO_END,
-            'openNotification': Operation.OPEN_NOTIFICATION, 'openQuickSettings': Operation.OPEN_QUICK_SETTINGS,
-            }
+               'flingToBeginning': Operation.FLING_TO_BEGINNING, 'flingToEnd': Operation.FLING_TO_END,
+               'openNotification': Operation.OPEN_NOTIFICATION, 'openQuickSettings': Operation.OPEN_QUICK_SETTINGS,
+               }
         return MAP[commandName]
+
 
 class Culebron:
     APPLICATION_NAME = "Culebra"
 
     UPPERCASE_CHARS = string.uppercase[:26]
-    
+
     KEYSYM_TO_KEYCODE_MAP = {
         'Home': 'HOME',
         'BackSpace': 'BACK',
@@ -118,12 +122,12 @@ class Culebron:
         'Right': 'DPAD_RIGHT',
         'Up': 'DPAD_UP',
         'Down': 'DPAD_DOWN',
-         }
-     
+    }
+
     KEYSYM_CULEBRON_COMMANDS = {
         'F1': None,
         'F5': None
-        }
+    }
 
     canvas = None
     imageId = None
@@ -140,7 +144,7 @@ class Culebron:
     deviceArt = None
     dropShadow = False
     screenGlare = False
-    
+
     @staticmethod
     def checkSupportedSdkVersion(sdkVersion):
         if sdkVersion <= 10:
@@ -169,7 +173,7 @@ This is usually installed by python package. Check your distribution details.
         '''
         Culebron constructor.
         
-        @param vc: The ViewClient used by this Culebron instance
+        @param vc: The ViewClient used by this Culebron instance. Can be C{None} if no back-end is used.
         @type vc: ViewClient
         @param device: The device
         @type device: L{AdbClient}
@@ -180,7 +184,7 @@ This is usually installed by python package. Check your distribution details.
         @param scale: the scale of the device screen used to show it on the window
         @type scale: float
         '''
-        
+
         self.vc = vc
         self.printOperation = printOperation
         self.device = device
@@ -188,9 +192,9 @@ This is usually installed by python package. Check your distribution details.
         self.scale = scale
         self.window = Tkinter.Tk()
         icon = resource_filename(Requirement.parse("androidviewclient"),
-            "share/pixmaps/culebra.png")
-        self.window.tk.call('wm', 'iconphoto',  self.window._w,
-            ImageTk.PhotoImage(file=icon))
+                                 "share/pixmaps/culebra.png")
+        self.window.tk.call('wm', 'iconphoto', self.window._w,
+                            ImageTk.PhotoImage(file=icon))
         self.mainMenu = MainMenu(self)
         self.window.config(menu=self.mainMenu)
         self.mainFrame = Tkinter.Frame(self.window)
@@ -199,7 +203,7 @@ This is usually installed by python package. Check your distribution details.
         self.sideFrame = Tkinter.Frame(self.window)
         self.viewTree = ViewTree(self.sideFrame)
         self.viewDetails = ViewDetails(self.sideFrame)
-        self.mainFrame.grid(row=1, column=1, columnspan=1, rowspan=4, sticky=Tkinter.N+Tkinter.S)
+        self.mainFrame.grid(row=1, column=1, columnspan=1, rowspan=4, sticky=Tkinter.N + Tkinter.S)
         self.isSideFrameShown = False
         self.isViewTreeShown = False
         self.isViewDetailsShown = False
@@ -208,6 +212,8 @@ This is usually installed by python package. Check your distribution details.
         self.statusBar.set("Always press F1 for help")
         self.window.update_idletasks()
         self.targetIds = []
+        self.isTouchingPoint = self.vc is None
+        self.coordinatesUnit = Unit.DIP
         if DEBUG:
             try:
                 self.printGridInfo()
@@ -237,14 +243,14 @@ This is usually installed by python package. Check your distribution details.
          - finds the targets (as explained in L{findTargets})
          - hides the vignette (that could have been showed before)
         '''
-        
+
         if DEBUG:
             print >> sys.stderr, "takeScreenshotAndShowItOnWindow()"
         self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
         self.image = self.unscaledScreenshot
         (width, height) = self.image.size
         if self.scale != 1:
-            self.image = self.image.resize((int(width*self.scale), int(height*self.scale)), Image.ANTIALIAS)
+            self.image = self.image.resize((int(width * self.scale), int(height * self.scale)), Image.ANTIALIAS)
             (width, height) = self.image.size
         if self.canvas is None:
             if DEBUG:
@@ -282,18 +288,19 @@ This is usually installed by python package. Check your distribution details.
                 pass
 
     def createMessageArea(self, width, height):
-        self.__message = Tkinter.Label(self.window, text='', background=Color.GOLD, font=('Helvetica', 16), anchor=Tkinter.W)
+        self.__message = Tkinter.Label(self.window, text='', background=Color.GOLD, font=('Helvetica', 16),
+                                       anchor=Tkinter.W)
         self.__message.configure(width=width)
         self.__messageAreaId = self.canvas.create_window(0, 0, anchor=Tkinter.NW, window=self.__message)
         self.canvas.itemconfig(self.__messageAreaId, state='hidden')
         self.isMessageAreaVisible = False
-        
+
     def showMessageArea(self):
         if self.__messageAreaId:
             self.canvas.itemconfig(self.__messageAreaId, state='normal')
             self.isMessageAreaVisible = True
             self.canvas.update_idletasks()
-    
+
     def hideMessageArea(self):
         if self.__messageAreaId and self.isMessageAreaVisible:
             self.canvas.itemconfig(self.__messageAreaId, state='hidden')
@@ -314,7 +321,7 @@ This is usually installed by python package. Check your distribution details.
 
     def toast(self, text, background=None, timeout=5):
         if DEBUG:
-            print >> sys.stderr, "toast(", text, ",", background,  ")"
+            print >> sys.stderr, "toast(", text, ",", background, ")"
         self.message(text, background)
         if text:
             t = threading.Timer(timeout, self.hideMessageArea)
@@ -326,15 +333,15 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG:
             print >> sys.stderr, "createVignette(%d, %d)" % (width, height)
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
-            stipple='gray50')
-        font = tkFont.Font(family='Helvetica',size=int(144*self.scale))
+                                                       stipple='gray50')
+        font = tkFont.Font(family='Helvetica', size=int(144 * self.scale))
         msg = "Please\nwait..."
-        self.waitMessageShadowId = self.canvas.create_text(width/2+2, height/2+2, text=msg,
-            fill=Color.DARK_GRAY, font=font)
-        self.waitMessageId = self.canvas.create_text(width/2, height/2, text=msg,
-            fill=Color.LIGHT_GRAY, font=font)
+        self.waitMessageShadowId = self.canvas.create_text(width / 2 + 2, height / 2 + 2, text=msg,
+                                                           fill=Color.DARK_GRAY, font=font)
+        self.waitMessageId = self.canvas.create_text(width / 2, height / 2, text=msg,
+                                                     fill=Color.LIGHT_GRAY, font=font)
         self.canvas.update_idletasks()
-    
+
     def showVignette(self):
         if DEBUG:
             print >> sys.stderr, "showVignette()"
@@ -349,7 +356,7 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.lift(self.waitMessageShadowId)
             self.canvas.lift(self.waitMessageId)
             self.canvas.update_idletasks()
-    
+
     def hideVignette(self):
         if DEBUG:
             print >> sys.stderr, "hideVignette()"
@@ -372,7 +379,7 @@ This is usually installed by python package. Check your distribution details.
             self.waitMessageId = None
 
     def showPopupMenu(self, event):
-        (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
+        (scaledX, scaledY) = (event.x / self.scale, event.y / self.scale)
         v = self.findViewContainingPointInTargets(scaledX, scaledY)
         ContextMenu(self, view=v).showPopupMenu(event)
 
@@ -382,7 +389,7 @@ This is usually installed by python package. Check your distribution details.
 
     def showSideFrame(self):
         if not self.isSideFrameShown:
-            self.sideFrame.grid(row=1, column=2, rowspan=4, sticky=Tkinter.N+Tkinter.S)
+            self.sideFrame.grid(row=1, column=2, rowspan=4, sticky=Tkinter.N + Tkinter.S)
             self.isSideFrameSown = True
         if DEBUG:
             self.printGridInfo()
@@ -395,7 +402,7 @@ This is usually installed by python package. Check your distribution details.
 
     def showViewTree(self):
         self.showSideFrame()
-        self.viewTree.grid(row=1, column=1, rowspan=3, sticky=Tkinter.N+Tkinter.S)
+        self.viewTree.grid(row=1, column=1, rowspan=3, sticky=Tkinter.N + Tkinter.S)
         self.isViewTreeShown = True
         if DEBUG:
             self.printGridInfo()
@@ -412,13 +419,13 @@ This is usually installed by python package. Check your distribution details.
     def showViewDetails(self):
         self.showSideFrame()
         row = 4
-        #if self.viewTree.grid_info() != {}:
+        # if self.viewTree.grid_info() != {}:
         #    row += 1
         self.viewDetails.grid(row=row, column=1, rowspan=1, sticky=Tkinter.S)
         self.isViewDetailsShown = True
         if DEBUG:
             self.printGridInfo()
-        
+
     def hideViewDetails(self):
         self.viewDetails.grid_forget()
         self.isViewDetailsShown = False
@@ -458,7 +465,7 @@ This is usually installed by python package. Check your distribution details.
         '''
         Finds the target Views (i.e. for touches).
         '''
-        
+
         if DEBUG:
             print >> sys.stderr, "findTargets()"
         LISTVIEW_CLASS = 'android.widget.ListView'
@@ -504,7 +511,7 @@ This is usually installed by python package. Check your distribution details.
 
         if self.vc:
             self.vc.traverse(transform=self.populateViewTree)
-    
+
     def getViewContainingPointAndGenerateTestCondition(self, x, y):
         if DEBUG:
             print >> sys.stderr, 'getViewContainingPointAndGenerateTestCondition(%d, %d)' % (x, y)
@@ -519,7 +526,6 @@ This is usually installed by python package. Check your distribution details.
                 # should be used to provide different alternatives to printOperation()
                 self.printOperation(v, Operation.TEST, text)
                 break
-                
 
     def findViewContainingPointInTargets(self, x, y):
         if self.vc:
@@ -549,7 +555,7 @@ This is usually installed by python package. Check your distribution details.
                 print >> sys.stderr, "Ignoring event"
             self.canvas.update_idletasks()
             return
-         
+
         self.showVignette()
         if DEBUG_POINT:
             print >> sys.stderr, "getViewsContainingPointAndTouch(x=%s, y=%s)" % (x, y)
@@ -566,7 +572,7 @@ This is usually installed by python package. Check your distribution details.
             title = "EditText"
             kwargs = {}
             if DEBUG:
-                print >>sys.stderr, v
+                print >> sys.stderr, v
             if v.isPassword():
                 title = "Password"
                 kwargs = {'show': '*'}
@@ -580,6 +586,7 @@ This is usually installed by python package. Check your distribution details.
                 return
         else:
             candidates = [v]
+
             def findBestCandidate(view):
                 isccf = Culebron.isClickableCheckableOrFocusable(view)
                 cd = view.getContentDescription()
@@ -589,6 +596,7 @@ This is usually installed by python package. Check your distribution details.
                     # (i.e. Settings)
                     candidates.insert(0, view)
                 return None
+
             if not (v.getText() or v.getContentDescription()) and v.getChildren():
                 self.vc.traverse(root=v, transform=findBestCandidate, stream=None)
             if len(candidates) > 2:
@@ -609,7 +617,7 @@ This is usually installed by python package. Check your distribution details.
         The generated operation will use the units specified in L{coordinatesUnit} and the
         orientation in L{vc.display['orientation']}.
         '''
-        
+
         if DEBUG:
             print >> sys.stderr, 'touchPoint(%d, %d)' % (x, y)
             print >> sys.stderr, 'touchPoint:', type(x), type(y)
@@ -626,15 +634,16 @@ This is usually installed by python package. Check your distribution details.
             if self.coordinatesUnit == Unit.DIP:
                 x = round(x / self.device.display['density'], 2)
                 y = round(y / self.device.display['density'], 2)
-            self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit, self.device.display['orientation'])
+            self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit,
+                                self.device.display['orientation'])
             self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
             time.sleep(5)
-            self.isTouchingPoint = False
+            self.isTouchingPoint = self.vc is None
             self.takeScreenshotAndShowItOnWindow()
             self.hideVignette()
             self.statusBar.clear()
             return
-    
+
     def longTouchPoint(self, x, y):
         '''
         Long-touches a point in the device screen.
@@ -655,21 +664,22 @@ This is usually installed by python package. Check your distribution details.
             self.showVignette()
             self.device.longTouch(x, y)
             if self.coordinatesUnit == Unit.DIP:
-                x = round(x / self.vc.display['density'], 2)
-                y = round(y / self.vc.display['density'], 2)
-            self.printOperation(None, Operation.LONG_TOUCH_POINT, x, y, 2000, self.coordinatesUnit, self.vc.display['orientation'])
+                x = round(x / self.device.display['density'], 2)
+                y = round(y / self.device.display['density'], 2)
+            self.printOperation(None, Operation.LONG_TOUCH_POINT, x, y, 2000, self.coordinatesUnit,
+                                self.device.display['orientation'])
             self.printOperation(None, Operation.SLEEP, 5)
-            self.vc.sleep(5)
+            time.sleep(5)
             self.isLongTouchingPoint = False
             self.takeScreenshotAndShowItOnWindow()
             self.hideVignette()
             self.statusBar.clear()
             return
-    
+
     def onButton1Pressed(self, event):
         if DEBUG:
             print >> sys.stderr, "onButton1Pressed((", event.x, ", ", event.y, "))"
-        (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
+        (scaledX, scaledY) = (event.x / self.scale, event.y / self.scale)
         if DEBUG:
             print >> sys.stderr, "    onButton1Pressed: scaled: (", scaledX, ", ", scaledY, ")"
             print >> sys.stderr, "    onButton1Pressed: is grabbing:", self.isGrabbingTouch
@@ -687,12 +697,16 @@ This is usually installed by python package. Check your distribution details.
         elif self.isGeneratingTestCondition:
             self.getViewContainingPointAndGenerateTestCondition(scaledX, scaledY)
         else:
-            self.getViewContainingPointAndTouch(scaledX, scaledY)
-    
+            if self.vc:
+                self.getViewContainingPointAndTouch(scaledX, scaledY)
+            else:
+                # If we don't have Views, there no other option than touching points
+                self.touchPoint(scaledX, scaledY)
+
     def onCtrlButton1Pressed(self, event):
         if DEBUG:
             print >> sys.stderr, "onCtrlButton1Pressed((", event.x, ", ", event.y, "))"
-        (scaledX, scaledY) = (event.x/self.scale, event.y/self.scale)
+        (scaledX, scaledY) = (event.x / self.scale, event.y / self.scale)
         l = self.vc.findViewsContainingPoint((scaledX, scaledY))
         if l and len(l) > 0:
             self.saveViewSnapshot(l[-1])
@@ -700,7 +714,7 @@ This is usually installed by python package. Check your distribution details.
             msg = "There are no views here!"
             self.toast(msg)
             return
-    
+
     def onButton2Pressed(self, event):
         if DEBUG:
             print >> sys.stderr, "onButton2Pressed((", event.x, ", ", event.y, "))"
@@ -712,20 +726,21 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG:
             print >> sys.stderr, "onButton3Pressed((", event.x, ", ", event.y, "))"
         self.showPopupMenu(event)
-            
+
     def command(self, keycode):
         '''
         Presses a key.
         Generates the actual key press on the device and prints the line in the script.
         '''
-        
+
         self.device.press(keycode)
         self.printOperation(None, Operation.PRESS, keycode)
-            
+
     def onKeyPressed(self, event):
         if DEBUG_KEY:
             print >> sys.stderr, "onKeyPressed(", repr(event), ")"
-            print >> sys.stderr, "    event", type(event.char), len(event.char), repr(event.char), event.keysym, event.keycode, event.type
+            print >> sys.stderr, "    event", type(event.char), len(event.char), repr(
+                event.char), event.keysym, event.keycode, event.type
             print >> sys.stderr, "    events disabled:", self.areEventsDisabled
         if self.areEventsDisabled:
             if DEBUG_KEY:
@@ -733,20 +748,20 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.update_idletasks()
             return
 
-
         char = event.char
         keysym = event.keysym
 
-        if len(char) == 0 and not (keysym in Culebron.KEYSYM_TO_KEYCODE_MAP or keysym in Culebron.KEYSYM_CULEBRON_COMMANDS):
+        if len(char) == 0 and not (
+                keysym in Culebron.KEYSYM_TO_KEYCODE_MAP or keysym in Culebron.KEYSYM_CULEBRON_COMMANDS):
             if DEBUG_KEY:
                 print >> sys.stderr, "returning because len(char) == 0"
             return
-        
+
         ###
         ### internal commands: no output to generated script
         ###
         try:
-            handler = getattr(self, 'onCtrl%s' % self.UPPERCASE_CHARS[ord(char)-1])
+            handler = getattr(self, 'onCtrl%s' % self.UPPERCASE_CHARS[ord(char) - 1])
         except:
             handler = None
         if handler:
@@ -771,7 +786,7 @@ This is usually installed by python package. Check your distribution details.
 
         ### empty char (modifier) ###
         # here does not process events  like Home where char is ''
-        #if char == '':
+        # if char == '':
         #    return
 
         ###
@@ -793,25 +808,26 @@ This is usually installed by python package. Check your distribution details.
         time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
-    
     def refresh(self):
-            self.showVignette()
-            self.device.wake()
-            display = copy.copy(self.device.display)
-            self.device.initDisplayProperties()
-            changed = False
-            for prop in display:
-                if display[prop] != self.device.display[prop]:
-                    changed = True
-                    break
-            if changed:
-                self.window.geometry('%dx%d' % (self.device.display['width']*self.scale, self.device.display['height']*self.scale+int(self.statusBar.winfo_height())))
-                self.deleteVignette()
-                self.canvas.destroy()
-                self.canvas = None
-                self.window.update_idletasks()
-            self.takeScreenshotAndShowItOnWindow()
-    
+        self.showVignette()
+        self.device.wake()
+        display = copy.copy(self.device.display)
+        self.device.initDisplayProperties()
+        changed = False
+        for prop in display:
+            if display[prop] != self.device.display[prop]:
+                changed = True
+                break
+        if changed:
+            self.window.geometry('%dx%d' % (self.device.display['width'] * self.scale,
+                                            self.device.display['height'] * self.scale + int(
+                                                self.statusBar.winfo_height())))
+            self.deleteVignette()
+            self.canvas.destroy()
+            self.canvas = None
+            self.window.update_idletasks()
+        self.takeScreenshotAndShowItOnWindow()
+
     def cancelOperation(self):
         '''
         Cancels the ongoing operation if any.
@@ -828,7 +844,7 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlA(self, event):
         if DEBUG:
-            print >> sys.stderr, "onCtrlA(", event ,")"
+            print >> sys.stderr, "onCtrlA(", event, ")"
         self.printStartActivityAtTop()
 
     def showDragDialog(self):
@@ -841,29 +857,30 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlF(self, event):
         self.saveSnapshot()
-        
+
     def saveSnapshot(self):
         '''
         Saves the current shanpshot to the specified file.
         Current snapshot is the image being displayed on the main window.
         '''
-        
+
         filename = self.snapshotDir + os.sep + '${serialno}-${focusedwindowname}-${timestamp}' + '.' + self.snapshotFormat.lower()
         # We have the snapshot already taken, no need to retake
         d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
         saveAsFilename = d.askSaveAsFilename()
         if saveAsFilename:
             _format = os.path.splitext(saveAsFilename)[1][1:].upper()
-            self.printOperation(None, Operation.SNAPSHOT, filename, _format, self.deviceArt, self.dropShadow, self.screenGlare)
-            #FIXME: we should add deviceArt, dropShadow and screenGlare to the saved image
-            #self.unscaledScreenshot.save(saveAsFilename, _format, self.deviceArt, self.dropShadow, self.screenGlare)
+            self.printOperation(None, Operation.SNAPSHOT, filename, _format, self.deviceArt, self.dropShadow,
+                                self.screenGlare)
+            # FIXME: we should add deviceArt, dropShadow and screenGlare to the saved image
+            # self.unscaledScreenshot.save(saveAsFilename, _format, self.deviceArt, self.dropShadow, self.screenGlare)
             self.unscaledScreenshot.save(saveAsFilename, _format)
 
     def saveViewSnapshot(self, view):
         '''
         Saves the View snapshot.
         '''
-        
+
         if not view:
             raise ValueError("view must be provided to take snapshot")
         filename = self.snapshotDir + os.sep + '${serialno}-' + view.variableNameFromId() + '-${timestamp}' + '.' + self.snapshotFormat.lower()
@@ -873,7 +890,7 @@ This is usually installed by python package. Check your distribution details.
             _format = os.path.splitext(saveAsFilename)[1][1:].upper()
             self.printOperation(view, Operation.VIEW_SNAPSHOT, filename, _format)
             view.writeImageToFile(saveAsFilename, _format)
-        
+
     def toggleTouchPointDip(self):
         '''
         Toggles the touch point operation using L{Unit.DIP}.
@@ -885,7 +902,6 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlI(self, event):
         self.toggleTouchPointDip()
-    
 
     def toggleLongTouchPoint(self):
         '''
@@ -909,8 +925,15 @@ This is usually installed by python package. Check your distribution details.
     def toggleTouchPoint(self):
         '''
         Toggles the touch point operation using the units specified in L{coordinatesUnit}.
+
+        When there are L{View}s (obtained from the back-end) we have to determine if the
+        intention when something is touched on the window if we want to touch the L{View}
+        or the point.
+
+        If there's no back-end, we don't allow L{self.isTouchingPoint} to be disabled so we will
+        never be attempting to touch L{View}s.
         '''
-        
+
         if not self.isTouchingPoint:
             msg = 'Touching point (units=%s)' % self.coordinatesUnit
             self.toast(msg, background=Color.GREEN)
@@ -919,8 +942,7 @@ This is usually installed by python package. Check your distribution details.
         else:
             self.toast(None)
             self.statusBar.clear()
-            self.isTouchingPoint = False
-
+            self.isTouchingPoint = self.vc is None
 
     def toggleTouchPointPx(self):
         self.coordinatesUnit = Unit.PX
@@ -928,25 +950,25 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlP(self, event):
         self.toggleTouchPointPx()
-        
+
     def onCtrlQ(self, event):
         if DEBUG:
             print >> sys.stderr, "onCtrlQ(%s)" % event
         self.quit()
-    
+
     def quit(self):
         self.window.destroy()
-        
 
     def showSleepDialog(self):
-        seconds = tkSimpleDialog.askfloat('Sleep Interval', 'Value in seconds:', initialvalue=1, minvalue=0, parent=self.window)
+        seconds = tkSimpleDialog.askfloat('Sleep Interval', 'Value in seconds:', initialvalue=1, minvalue=0,
+                                          parent=self.window)
         if seconds is not None:
             self.printOperation(None, Operation.SLEEP, seconds)
         self.canvas.focus_set()
 
     def onCtrlS(self, event):
         self.showSleepDialog()
-    
+
     def startGeneratingTestCondition(self):
         self.message('Generating test condition...', background=Color.GREEN)
         self.isGeneratingTestCondition = True
@@ -955,12 +977,14 @@ This is usually installed by python package. Check your distribution details.
         self.isGeneratingTestCondition = False
         self.hideMessageArea()
 
-
     def toggleGenerateTestCondition(self):
         '''
         Toggles generating test condition
         '''
-        
+
+        if self.vc is None:
+            self.toast('Test conditions can be generated when a back-end is defined')
+            return
         if self.isGeneratingTestCondition:
             self.finishGeneratingTestCondition()
         else:
@@ -968,19 +992,22 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlT(self, event):
         if DEBUG:
-            print >>sys.stderr, "onCtrlT()"
+            print >> sys.stderr, "onCtrlT()"
+        if self.vc is None:
+            self.toast('Test conditions can be generated when a back-end is defined')
+            return
         # FIXME: This is only valid if we are generating a test case
         self.toggleGenerateTestCondition()
-    
+
     def onCtrlU(self, event):
         if DEBUG:
-            print >>sys.stderr, "onCtrlU()"
-    
+            print >> sys.stderr, "onCtrlU()"
+
     def onCtrlV(self, event):
         if DEBUG:
-            print >>sys.stderr, "onCtrlV()"
+            print >> sys.stderr, "onCtrlV()"
         self.printOperation(None, Operation.TRAVERSE)
-        
+
     def toggleTargetZones(self):
         self.toggleTargets()
         self.canvas.update_idletasks()
@@ -990,14 +1017,14 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "onCtrlZ()"
         self.toggleTargetZones()
 
-
     def showControlPanel(self):
         from com.dtmilano.android.controlpanel import ControlPanel
+
         self.controlPanel = ControlPanel(self, self.printOperation)
 
     def onCtrlK(self, event):
         self.showControlPanel()
-    
+
     def drag(self, start, end, duration, steps, units=Unit.DIP):
         self.showVignette()
         # the operation on this device is always done in PX
@@ -1009,11 +1036,12 @@ This is usually installed by python package. Check your distribution details.
             y1 = round(end[1] / self.device.display['density'], 2)
             start = (x0, y0)
             end = (x1, y1)
-        self.printOperation(None, Operation.DRAG, start, end, duration, steps, units, self.device.display['orientation'])
+        self.printOperation(None, Operation.DRAG, start, end, duration, steps, units,
+                            self.device.display['orientation'])
         self.printOperation(None, Operation.SLEEP, 1)
         time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
-        
+
     def enableEvents(self):
         self.canvas.update_idletasks()
         self.canvas.bind("<Button-1>", self.onButton1Pressed)
@@ -1021,7 +1049,7 @@ This is usually installed by python package. Check your distribution details.
         self.canvas.bind("<Button-2>", self.onButton2Pressed)
         self.canvas.bind("<Button-3>", self.onButton3Pressed)
         self.canvas.bind("<BackSpace>", self.onKeyPressed)
-        #self.canvas.bind("<Control-Key-S>", self.onCtrlS)
+        # self.canvas.bind("<Control-Key-S>", self.onCtrlS)
         self.canvas.bind("<Key>", self.onKeyPressed)
         self.areEventsDisabled = False
 
@@ -1034,9 +1062,9 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.unbind("<Button-2>")
             self.canvas.unbind("<Button-3>")
             self.canvas.unbind("<BackSpace>")
-            #self.canvas.unbind("<Control-Key-S>")
+            # self.canvas.unbind("<Control-Key-S>")
             self.canvas.unbind("<Key>")
-    
+
     def toggleTargets(self):
         if DEBUG:
             print >> sys.stderr, "toggletargets: aretargetsmarked=", self.areTargetsMarked
@@ -1056,7 +1084,7 @@ This is usually installed by python package. Check your distribution details.
         for (x1, y1, x2, y2) in self.targets:
             if DEBUG:
                 print "adding rectangle:", x1, y1, x2, y2
-            self.markTarget(x1, y1, x2, y2, colors[c%len(colors)])
+            self.markTarget(x1, y1, x2, y2, colors[c % len(colors)])
             c += 1
         self.areTargetsMarked = True
 
@@ -1066,7 +1094,9 @@ This is usually installed by python package. Check your distribution details.
         '''
 
         self.areTargetsMarked = True
-        return self.targetIds.append(self.canvas.create_rectangle(x1*self.scale, y1*self.scale, x2*self.scale, y2*self.scale, fill=color, stipple="gray25"))
+        return self.targetIds.append(
+            self.canvas.create_rectangle(x1 * self.scale, y1 * self.scale, x2 * self.scale, y2 * self.scale, fill=color,
+                                         stipple="gray25"))
 
     def unmarkTargets(self):
         if not self.areTargetsMarked:
@@ -1085,12 +1115,14 @@ This is usually installed by python package. Check your distribution details.
 
     def drawTouchedPoint(self, x, y):
         size = 50
-        return self.canvas.create_oval((x-size)*self.scale, (y-size)*self.scale, (x+size)*self.scale, (y+size)*self.scale, fill=Color.MAGENTA)
-        
+        return self.canvas.create_oval((x - size) * self.scale, (y - size) * self.scale, (x + size) * self.scale,
+                                       (y + size) * self.scale, fill=Color.MAGENTA)
+
     def drawDragLine(self, x0, y0, x1, y1):
         width = 15
-        return self.canvas.create_line(x0*self.scale, y0*self.scale, x1*self.scale, y1*self.scale, width=width, fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
-    
+        return self.canvas.create_line(x0 * self.scale, y0 * self.scale, x1 * self.scale, y1 * self.scale, width=width,
+                                       fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
+
     def executeCommandAndRefresh(self, command):
         self.showVignette()
         if DEBUG:
@@ -1106,7 +1138,7 @@ This is usually installed by python package. Check your distribution details.
         self.vc.sleep(5)
         # FIXME: perhaps refresh() should be invoked here just in case size or orientation changed
         self.takeScreenshotAndShowItOnWindow()
-        
+
     def changeLanguage(self):
         code = tkSimpleDialog.askstring("Change language", "Enter the language code")
         self.vc.uiDevice.changeLanguage(code)
@@ -1126,7 +1158,6 @@ This is usually installed by python package. Check your distribution details.
             self.toast('Grabbing drag points...', background=Color.GREEN)
         else:
             self.hideMessageArea()
-
 
     @staticmethod
     def isClickableCheckableOrFocusable(v):
@@ -1166,21 +1197,37 @@ if TKINTER_AVAILABLE:
             self.viewMenu = Tkinter.Menu(self, tearoff=False)
             self.showViewTree = Tkinter.BooleanVar()
             self.showViewTree.set(False)
-            self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True, offvalue=False, variable=self.showViewTree, state=NORMAL, command=self.onshowViewTreeChanged)
+            state = NORMAL if culebron.vc else DISABLED
+            self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True,
+                                          offvalue=False, variable=self.showViewTree, state=state,
+                                          command=self.onshowViewTreeChanged)
             self.showViewDetails = Tkinter.BooleanVar()
-            self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True, offvalue=False, variable=self.showViewDetails, state=NORMAL, command=self.onShowViewDetailsChanged)
+            self.showViewDetails.set(False)
+            state = NORMAL if culebron.vc else DISABLED
+            self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True,
+                                          offvalue=False, variable=self.showViewDetails, state=state,
+                                          command=self.onShowViewDetailsChanged)
             self.add_cascade(label="View", underline=0, menu=self.viewMenu)
 
             self.uiDeviceMenu = Tkinter.Menu(self, tearoff=False)
-            self.uiDeviceMenu.add_command(label="Open Notification", underline=6, command=lambda: culebron.executeCommandAndRefresh(self.culebron.vc.uiDevice.openNotification))
-            self.uiDeviceMenu.add_command(label="Open Quick settings", underline=6, command=lambda: culebron.executeCommandAndRefresh(command=self.culebron.vc.uiDevice.openQuickSettings))
-            self.uiDeviceMenu.add_command(label="Change Language", underline=7, command=self.culebron.changeLanguage)
+            state = NORMAL if culebron.vc else DISABLED
+            self.uiDeviceMenu.add_command(label="Open Notification", underline=6, state=state,
+                                          command=lambda: culebron.executeCommandAndRefresh(
+                                              self.culebron.vc.uiDevice.openNotification))
+            state = NORMAL if culebron.vc else DISABLED
+            self.uiDeviceMenu.add_command(label="Open Quick settings", underline=6, state=state,
+                                          command=lambda: culebron.executeCommandAndRefresh(
+                                              command=self.culebron.vc.uiDevice.openQuickSettings))
+            state = NORMAL if culebron.vc else DISABLED
+            self.uiDeviceMenu.add_command(label="Change Language", underline=7, state=state,
+                                          command=self.culebron.changeLanguage)
             self.add_cascade(label="UiDevice", menu=self.uiDeviceMenu)
 
             self.helpMenu = Tkinter.Menu(self, tearoff=False)
-            self.helpMenu.add_command(label="Keyboard shortcuts", underline=0, accelerator='Command-K', command=self.culebron.showHelp)
+            self.helpMenu.add_command(label="Keyboard shortcuts", underline=0, accelerator='Command-K',
+                                      command=self.culebron.showHelp)
             self.add_cascade(label="Help", underline=0, menu=self.helpMenu)
-            
+
         def callback(self):
             pass
 
@@ -1189,13 +1236,13 @@ if TKINTER_AVAILABLE:
                 self.culebron.showViewTree()
             else:
                 self.culebron.hideViewTree()
-    
+
         def onShowViewDetailsChanged(self):
             if self.showViewDetails.get() == 1:
                 self.culebron.showViewDetails()
             else:
                 self.culebron.hideViewDetails()
-    
+
     class ViewTree(Tkinter.Frame):
         def __init__(self, parent):
             Tkinter.Frame.__init__(self, parent)
@@ -1204,8 +1251,8 @@ if TKINTER_AVAILABLE:
             self.viewTree.heading('#0', None, text='View', anchor=Tkinter.W)
             self.viewTree.heading(0, None, text='T', anchor=Tkinter.W)
             self.scrollbar = ttk.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.__xscroll)
-            self.viewTree.grid(row=1, rowspan=1, column=1, sticky=Tkinter.N+Tkinter.S)
-            self.scrollbar.grid(row=2, rowspan=1, column=1, sticky=Tkinter.E+Tkinter.W)
+            self.viewTree.grid(row=1, rowspan=1, column=1, sticky=Tkinter.N + Tkinter.S)
+            self.scrollbar.grid(row=2, rowspan=1, column=1, sticky=Tkinter.E + Tkinter.W)
             self.viewTree.configure(xscrollcommand=self.scrollbar.set)
 
         def __xscroll(self, *args):
@@ -1242,7 +1289,6 @@ if TKINTER_AVAILABLE:
                 print >> sys.stderr, 'ViewTree.tag_bind(', tagname, ',', sequence, ',', callback, ')'
             return self.viewTree.tag_bind(tagname, sequence, callback)
 
-
     class ViewDetails(Tkinter.Frame):
         VIEW_DETAILS = "View Details:\n"
 
@@ -1261,52 +1307,51 @@ if TKINTER_AVAILABLE:
         def __init__(self, parent):
             Tkinter.Frame.__init__(self, parent)
             self.label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
-            self.label.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E+Tkinter.W)
-    
+            self.label.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E + Tkinter.W)
+
         def set(self, fmt, *args):
             self.label.config(text=fmt % args)
             self.label.update_idletasks()
-    
+
         def clear(self):
             self.label.config(text="")
             self.label.update_idletasks()
 
-    
     class LabeledEntry():
         def __init__(self, parent, text, validate, validatecmd):
             self.f = Tkinter.Frame(parent)
             Tkinter.Label(self.f, text=text, anchor="w", padx=8).grid(row=1, column=1, sticky=Tkinter.E)
             self.entry = Tkinter.Entry(self.f, validate=validate, validatecommand=validatecmd)
             self.entry.grid(row=1, column=2, padx=5, sticky=Tkinter.E)
-    
+
         def grid(self, **kwargs):
             self.f.grid(kwargs)
-    
+
         def get(self):
             return self.entry.get()
-    
+
         def set(self, text):
             self.entry.delete(0, Tkinter.END)
             self.entry.insert(0, text)
-            
+
     class LabeledEntryWithButton(LabeledEntry):
         def __init__(self, parent, text, buttonText, command, validate, validatecmd):
             LabeledEntry.__init__(self, parent, text, validate, validatecmd)
             self.button = Tkinter.Button(self.f, text=buttonText, command=command)
             self.button.grid(row=1, column=3)
-    
+
     class DragDialog(Tkinter.Toplevel):
-        
+
         DEFAULT_DURATION = 1000
         DEFAULT_STEPS = 20
-        
+
         spX = None
         spY = None
         epX = None
         epY = None
         spId = None
         epId = None
-        
+
         def __init__(self, culebron):
             self.culebron = culebron
             self.parent = culebron.window
@@ -1314,7 +1359,7 @@ if TKINTER_AVAILABLE:
             self.transient(self.parent)
             self.culebron.setDragDialogShowed(True)
             self.title("Drag: selecting parameters")
-    
+
             # valid percent substitutions (from the Tk entry man page)
             # %d = Type of action (1=insert, 0=delete, -1 for others)
             # %i = index of char string to be inserted/deleted, or -1
@@ -1326,12 +1371,14 @@ if TKINTER_AVAILABLE:
             #      (key, focusin, focusout, forced)
             # %W = the tk name of the widget
             self.validate = (self.parent.register(self.onValidate), '%P')
-            self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp, validate="focusout", validatecmd=self.validate)
+            self.sp = LabeledEntryWithButton(self, "Start point", "Grab", command=self.onGrabSp, validate="focusout",
+                                             validatecmd=self.validate)
             self.sp.grid(row=1, column=1, columnspan=3, pady=5)
-    
-            self.ep = LabeledEntryWithButton(self, "End point", "Grab", command=self.onGrabEp, validate="focusout", validatecmd=self.validate)
+
+            self.ep = LabeledEntryWithButton(self, "End point", "Grab", command=self.onGrabEp, validate="focusout",
+                                             validatecmd=self.validate)
             self.ep.grid(row=2, column=1, columnspan=3, pady=5)
-    
+
             l = Tkinter.Label(self, text="Units")
             l.grid(row=3, column=1, sticky=Tkinter.E)
 
@@ -1344,39 +1391,40 @@ if TKINTER_AVAILABLE:
                 rb = Tkinter.Radiobutton(self, text=u, variable=self.units, value=u)
                 rb.grid(row=3, column=col, padx=20, sticky=Tkinter.E)
                 col += 1
-            
+
             self.d = LabeledEntry(self, "Duration", validate="focusout", validatecmd=self.validate)
             self.d.set(DragDialog.DEFAULT_DURATION)
             self.d.grid(row=4, column=1, columnspan=3, pady=5)
-    
+
             self.s = LabeledEntry(self, "Steps", validate="focusout", validatecmd=self.validate)
             self.s.set(DragDialog.DEFAULT_STEPS)
             self.s.grid(row=5, column=1, columnspan=2, pady=5)
-    
+
             self.buttonBox()
-    
+
         def buttonBox(self):
             # add standard button box. override if you don't want the
             # standard buttons
-    
+
             box = Tkinter.Frame(self)
-    
-            self.ok = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE, state=Tkinter.DISABLED)
+
+            self.ok = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE,
+                                     state=Tkinter.DISABLED)
             self.ok.grid(row=6, column=1, sticky=Tkinter.E, padx=5, pady=5)
             w = Tkinter.Button(box, text="Cancel", width=10, command=self.onCancel)
             w.grid(row=6, column=2, sticky=Tkinter.E, padx=5, pady=5)
-    
+
             self.bind("<Return>", self.onOk)
             self.bind("<Escape>", self.onCancel)
-    
+
             box.grid(row=6, column=1, columnspan=3)
-            
+
         def onValidate(self, value):
             if self.sp.get() and self.ep.get() and self.d.get() and self.s.get():
                 self.ok.configure(state=Tkinter.NORMAL)
             else:
                 self.ok.configure(state=Tkinter.DISABLED)
-            
+
         def onOk(self, event=None):
             if DEBUG:
                 print >> sys.stderr, "onOK()"
@@ -1386,7 +1434,7 @@ if TKINTER_AVAILABLE:
                 print >> sys.stderr, self.d.get(),
                 print >> sys.stderr, self.s.get(),
                 print >> sys.stderr, self.units.get()
-    
+
             sp = make_tuple(self.sp.get())
             ep = make_tuple(self.ep.get())
             d = int(self.d.get())
@@ -1396,30 +1444,30 @@ if TKINTER_AVAILABLE:
             self.culebron.canvas.focus_set()
             self.destroy()
             self.culebron.drag(sp, ep, d, s, self.units.get())
-    
+
         def onCancel(self, event=None):
             self.culebron.setGrab(False)
             self.cleanUp()
             # put focus back to the parent window's canvas
             self.culebron.canvas.focus_set()
             self.destroy()
-        
+
         def onGrabSp(self):
             '''
             Grab starting point
             '''
-            
+
             self.sp.entry.focus_get()
             self.onGrab(self.sp)
-    
+
         def onGrabEp(self):
             '''
             Grab ending point
             '''
-    
+
             self.ep.entry.focus_get()
             self.onGrab(self.ep)
-    
+
         def onGrab(self, entry):
             '''
             Generic grab method.
@@ -1427,11 +1475,11 @@ if TKINTER_AVAILABLE:
             @param entry: the entry being grabbed
             @type entry: Tkinter.Entry
             '''
-            
+
             self.culebron.setOnTouchListener(self.onTouchListener)
             self.__grabbing = entry
             self.culebron.setGrab(True)
-    
+
         def onTouchListener(self, point):
             '''
             Listens for touch events and draws the corresponding shapes on the Culebron canvas.
@@ -1442,7 +1490,7 @@ if TKINTER_AVAILABLE:
             @param point: the point touched
             @type point: tuple
             '''
-            
+
             x = point[0]
             y = point[1]
             value = "(%d,%d)" % (x, y)
@@ -1464,21 +1512,20 @@ if TKINTER_AVAILABLE:
                 self.epId = self.culebron.drawDragLine(self.spX, self.spY, self.epX, self.epY)
             self.__grabbing = None
             self.culebron.setOnTouchListener(None)
-    
+
         def __cleanUpSpId(self):
             if self.spId:
                 self.culebron.canvas.delete(self.spId)
                 self.spId = None
-    
+
         def __cleanUpEpId(self):
             if self.epId:
                 self.culebron.canvas.delete(self.epId)
                 self.epId = None
-    
+
         def cleanUp(self):
             self.__cleanUpSpId()
             self.__cleanUpEpId()
-    
 
     class ContextMenu(Tkinter.Menu):
         # FIXME: should get rid of the nested classes, otherwise it's not possible to create a parent class
@@ -1486,17 +1533,16 @@ if TKINTER_AVAILABLE:
         '''
         The context menu (popup).
         '''
-        
+
         PADDING = '  '
         ''' Padding used to separate menu entries from border '''
 
         class Separator():
             SEPARATOR = 'SEPARATOR'
 
-            
             def __init__(self):
                 self.description = self.SEPARATOR
-        
+
         class Command():
             def __init__(self, description, underline, shortcut, event, command):
                 self.description = description
@@ -1504,21 +1550,25 @@ if TKINTER_AVAILABLE:
                 self.shortcut = shortcut
                 self.event = event
                 self.command = command
-                
+
         class UiScrollableSubMenu(Tkinter.Menu):
             def __init__(self, menu, description, view, culebron):
                 # Tkninter.Menu is not extending object, so we can't do this:
-                #super(ContextMenu, self).__init__(culebron.window, tearoff=False)
+                # super(ContextMenu, self).__init__(culebron.window, tearoff=False)
                 Tkinter.Menu.__init__(self, menu, tearoff=False)
                 self.description = description
-                self.add_command(label='Fling backward', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingBackward))
-                self.add_command(label='Fling forward', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingForward))
-                self.add_command(label='Fling to beginning', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingToBeginning))
-                self.add_command(label='Fling to end', command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingToEnd))
-        
+                self.add_command(label='Fling backward',
+                                 command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingBackward))
+                self.add_command(label='Fling forward',
+                                 command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingForward))
+                self.add_command(label='Fling to beginning',
+                                 command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingToBeginning))
+                self.add_command(label='Fling to end',
+                                 command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingToEnd))
+
         def __init__(self, culebron, view):
             # Tkninter.Menu is not extending object, so we can't do this:
-            #super(ContextMenu, self).__init__(culebron.window, tearoff=False)
+            # super(ContextMenu, self).__init__(culebron.window, tearoff=False)
             Tkinter.Menu.__init__(self, culebron.window, tearoff=False)
             if DEBUG_CONTEXT_MENU:
                 print >> sys.stderr, "Creating ContextMenu for", view.__smallStr__() if view else "No View"
@@ -1527,7 +1577,8 @@ if TKINTER_AVAILABLE:
 
             if self.view:
                 _saveViewSnapshotForSelectedView = lambda: culebron.saveViewSnapshot(self.view)
-                items.append(ContextMenu.Command('Take view snapshot and save to file',  5, 'Ctrl+W', '<Control-W>', _saveViewSnapshotForSelectedView))
+                items.append(ContextMenu.Command('Take view snapshot and save to file', 5, 'Ctrl+W', '<Control-W>',
+                                                 _saveViewSnapshotForSelectedView))
                 if self.view.uiScrollable:
                     items.append(ContextMenu.UiScrollableSubMenu(self, 'UiScrollable', view, culebron))
                 else:
@@ -1542,20 +1593,28 @@ if TKINTER_AVAILABLE:
                             break
                         parent = parent.parent
                 items.append(ContextMenu.Separator())
-            
-            items.append(ContextMenu.Command('Drag dialog',                  0,      'Ctrl+D',   '<Control-D>',  culebron.showDragDialog))
-            items.append(ContextMenu.Command('Take snapshot and save to file',           26,  'Ctrl+F',   '<Control-F>',  culebron.saveSnapshot))
-            items.append(ContextMenu.Command('Control Panel',                0,      'Ctrl+K',   '<Control-K>',  culebron.showControlPanel))
-            items.append(ContextMenu.Command('Long touch point using PX',    0,      'Ctrl+L',   '<Control-L>',  culebron.toggleLongTouchPoint))
-            items.append(ContextMenu.Command('Touch using DIP',             13,      'Ctrl+I',   '<Control-I>',  culebron.toggleTouchPointDip))
-            items.append(ContextMenu.Command('Touch using PX',              12,      'Ctrl+P',   '<Control-P>',   culebron.toggleTouchPointPx))
-            items.append(ContextMenu.Command('Generates a Sleep() on output script',     12,  'Ctrl+S', '<Control-S>', culebron.showSleepDialog))
-            items.append(ContextMenu.Command('Toggle generating Test Condition',         18,  'Ctrl+T', '<Control-T>', culebron.toggleGenerateTestCondition))
-            items.append(ContextMenu.Command('Touch Zones',                  6,      'Ctrl+Z',   '<Control-Z>',  culebron.toggleTargetZones))
-            items.append(ContextMenu.Command('Generates a startActivity()', 17,      'Ctrl+A',  '<Control-A>', culebron.printStartActivityAtTop))
-            items.append(ContextMenu.Command('Refresh',                      0,      'F5',   '<F5>',  culebron.refresh))
+
+            items.append(ContextMenu.Command('Drag dialog', 0, 'Ctrl+D', '<Control-D>', culebron.showDragDialog))
+            items.append(ContextMenu.Command('Take snapshot and save to file', 26, 'Ctrl+F', '<Control-F>',
+                                             culebron.saveSnapshot))
+            items.append(ContextMenu.Command('Control Panel', 0, 'Ctrl+K', '<Control-K>', culebron.showControlPanel))
+            items.append(ContextMenu.Command('Long touch point using PX', 0, 'Ctrl+L', '<Control-L>',
+                                             culebron.toggleLongTouchPoint))
+            items.append(
+                ContextMenu.Command('Touch using DIP', 13, 'Ctrl+I', '<Control-I>', culebron.toggleTouchPointDip))
+            items.append(
+                ContextMenu.Command('Touch using PX', 12, 'Ctrl+P', '<Control-P>', culebron.toggleTouchPointPx))
+            items.append(ContextMenu.Command('Generates a Sleep() on output script', 12, 'Ctrl+S', '<Control-S>',
+                                             culebron.showSleepDialog))
+            if culebron.vc is not None:
+                items.append(ContextMenu.Command('Toggle generating Test Condition', 18, 'Ctrl+T', '<Control-T>',
+                                             culebron.toggleGenerateTestCondition))
+            items.append(ContextMenu.Command('Touch Zones', 6, 'Ctrl+Z', '<Control-Z>', culebron.toggleTargetZones))
+            items.append(ContextMenu.Command('Generates a startActivity()', 17, 'Ctrl+A', '<Control-A>',
+                                             culebron.printStartActivityAtTop))
+            items.append(ContextMenu.Command('Refresh', 0, 'F5', '<F5>', culebron.refresh))
             items.append(ContextMenu.Separator())
-            items.append(ContextMenu.Command('Quit',                         0,      'Ctrl+Q',   '<Control-Q>',  culebron.quit))
+            items.append(ContextMenu.Command('Quit', 0, 'Ctrl+Q', '<Control-Q>', culebron.quit))
 
             for item in items:
                 self.addItem(item)
@@ -1572,35 +1631,35 @@ if TKINTER_AVAILABLE:
 
         def addSeparator(self):
             self.add_separator()
-            
+
         def addCommand(self, item):
-            self.add_command(label=self.PADDING + item.description, underline=item.underline + len(self.PADDING), command=item.command, accelerator=item.shortcut)
-            #if item.event:
+            self.add_command(label=self.PADDING + item.description, underline=item.underline + len(self.PADDING),
+                             command=item.command, accelerator=item.shortcut)
+            # if item.event:
             #    # These bindings remain even after the menu has been dismissed, so it seems not a good idea
             #    #self.bind_all(item.event, item.command)
             #    pass
-            
+
         def addSubMenu(self, item):
             self.add_cascade(label=self.PADDING + item.description, menu=item)
-            
+
         def showPopupMenu(self, event):
             try:
                 self.tk_popup(event.x_root, event.y_root)
             finally:
                 # make sure to release the grab (Tk 8.0a1 only)
-                #self.grab_release()
+                # self.grab_release()
                 pass
 
-
     class HelpDialog(Tkinter.Toplevel):
-    
+
         def __init__(self, culebron):
             self.culebron = culebron
             self.parent = culebron.window
             Tkinter.Toplevel.__init__(self, self.parent)
-            #self.transient(self.parent)
+            # self.transient(self.parent)
             self.title("%s: help" % Culebron.APPLICATION_NAME)
-    
+
             self.text = ScrolledText.ScrolledText(self, width=60, height=40)
             self.text.insert(Tkinter.INSERT, '''
     Special keys
@@ -1629,23 +1688,23 @@ if TKINTER_AVAILABLE:
     Ctrl-Z: Touch zones
     ''')
             self.text.grid(row=1, column=1)
-    
+
             self.buttonBox()
-    
+
         def buttonBox(self):
             # add standard button box. override if you don't want the
             # standard buttons
-    
+
             box = Tkinter.Frame(self)
-    
+
             w = Tkinter.Button(box, text="Dismiss", width=10, command=self.onDismiss, default=Tkinter.ACTIVE)
             w.grid(row=1, column=1, padx=5, pady=5)
-    
+
             self.bind("<Return>", self.onDismiss)
             self.bind("<Escape>", self.onDismiss)
-    
+
             box.grid(row=1, column=1)
-    
+
         def onDismiss(self, event=None):
             # put focus back to the parent window's canvas
             self.culebron.canvas.focus_set()
@@ -1659,6 +1718,8 @@ if TKINTER_AVAILABLE:
             self.dirname = os.path.dirname(self.filename)
             self.ext = os.path.splitext(self.filename)[1]
             self.fileTypes = [('images', self.ext)]
-            
+
         def askSaveAsFilename(self):
-            return tkFileDialog.asksaveasfilename(parent=self.parent, filetypes=self.fileTypes, defaultextension=self.ext, initialdir=self.dirname, initialfile=self.basename)
+            return tkFileDialog.asksaveasfilename(parent=self.parent, filetypes=self.fileTypes,
+                                                  defaultextension=self.ext, initialdir=self.dirname,
+                                                  initialfile=self.basename)
