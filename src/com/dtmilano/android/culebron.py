@@ -20,7 +20,7 @@ limitations under the License.
 '''
 import time
 
-__version__ = '10.5.1'
+__version__ = '10.5.3'
 
 import sys
 import threading
@@ -579,7 +579,11 @@ This is usually installed by python package. Check your distribution details.
             text = tkSimpleDialog.askstring(title, "Enter text to type into this field", **kwargs)
             self.canvas.focus_set()
             if text:
-                v.type(text)
+                # This is deleting the existing text, which should be asked in the dialog, but I would have to implement
+                # the dialog myself
+                v.setText(text)
+                # This is not deleting the text, so appending if there's something
+                #v.type(text)
                 self.printOperation(v, Operation.TYPE, text)
             else:
                 self.hideVignette()
