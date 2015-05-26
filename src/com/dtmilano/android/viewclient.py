@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.5.1'
+__version__ = '10.5.2'
 
 import sys
 import warnings
@@ -3634,7 +3634,7 @@ You should force ViewServer back-end.''')
                         deviceart = 'nexus_7' # 2012
                     elif hardware == 'flo':
                         deviceart = 'nexus_7_2013'
-                    elif hardware == 'mt5861':
+                    elif hardware in ['mt5861', 'mt5890']:
                         deviceart = 'tv_1080p'
                     elif hardware == 'universal5410':
                         deviceart = 'samsung_s4'
