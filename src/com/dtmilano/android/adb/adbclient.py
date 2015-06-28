@@ -132,15 +132,16 @@ class WifiManager:
 
 class AdbClient:
 
-    def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True, ignoreversioncheck=False):
+    def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True, ignoreversioncheck=False, timeout=TIMEOUT):
         self.Log = AdbClient.__Log(self)
         
         self.serialno = serialno
         self.hostname = hostname
         self.port = port
+        self.timeout = timeout
 
         self.reconnect = reconnect
-        self.__connect()
+        self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
 
         self.checkVersion(ignoreversioncheck)
 
@@ -179,15 +180,17 @@ class AdbClient:
     def setReconnect(self, val):
         self.reconnect = val
 
-    def __connect(self):
+    @staticmethod
+    def connect(hostname, port, timeout=TIMEOUT):
         if DEBUG:
-            print >> sys.stderr, "__connect()"
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.settimeout(TIMEOUT)
+            print >> sys.stderr, "AdbClient.connect(%s, %s, %s)" % (hostname, port, timeout)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(timeout)
         try:
-            self.socket.connect((self.hostname, self.port))
+            s.connect((hostname, port))
         except socket.error, ex:
-            raise RuntimeError("ERROR: Connecting to %s:%d: %s.\nIs adb running on your computer?" % (self.socket, self.port, ex))
+            raise RuntimeError("ERROR: Connecting to %s:%d: %s.\nIs adb running on your computer?" % (s, port, ex))
+        return s
 
     def close(self):
         if DEBUG:
@@ -216,7 +219,7 @@ class AdbClient:
         if reconnect:
             if DEBUG:
                 print >> sys.stderr, "    __send: reconnecting"
-            self.__connect()
+            self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
             self.__setTransport()
 
     def __receive(self, nob=None):
@@ -280,7 +283,7 @@ class AdbClient:
         if not (version in VALID_ADB_VERSIONS) and not ignoreversioncheck:
             raise RuntimeError("ERROR: Incorrect ADB server version %s (expecting one of %s)" % (version, VALID_ADB_VERSIONS))
         if reconnect:
-            self.__connect()
+            self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
 
     def __setTransport(self):
         if DEBUG:
@@ -333,7 +336,7 @@ class AdbClient:
         devices = []
         for line in self.__receive().splitlines():
             devices.append(Device.factory(line))
-        self.__connect()
+        self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
         return devices
 
     def shell(self, cmd=None):
@@ -356,7 +359,7 @@ class AdbClient:
                 if DEBUG:
                     print >> sys.stderr, "Reconnecting..."
                 self.close()
-                self.__connect()
+                self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                 self.__setTransport()
             return out
         else:
@@ -633,7 +636,7 @@ class AdbClient:
             print >> sys.stderr, "    takeSnapshot: reading %d bytes" % (size)
         received = self.__receive(size)
         if reconnect:
-            self.__connect()
+            self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
             self.__setTransport()
         if DEBUG:
             print >> sys.stderr, "    takeSnapshot: Image.frombuffer(%s, %s, %s, %s, %s, %s, %s)" % (mode, (width, height), 'data', 'raw', argMode, 0, 1)
