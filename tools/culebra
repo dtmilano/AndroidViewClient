@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.5.1'
+__version__ = '10.6.0'
 
 import re
 import sys
@@ -778,7 +778,7 @@ def logAction(action):
 def runCulebron():
     Culebron.checkSupportedSdkVersion(device.getSdkVersion())
     Culebron.checkDependencies()
-    culebron = Culebron(vc, device, serialno, printOperation, options[CulebraOptions.SCALE])
+    culebron = Culebron(vc, device, serialno, printOperation, options[CulebraOptions.SCALE], options[CulebraOptions.CONCERTINA])
     if options[CulebraOptions.DEVICE_ART]:
         culebron.deviceArt = options[CulebraOptions.DEVICE_ART]
         culebron.dropShadow = options[CulebraOptions.DROP_SHADOW]
@@ -813,7 +813,9 @@ kwargs1 = {CulebraOptions.VERBOSE: False, 'ignoresecuredevice': False, 'ignoreve
 serialno = None
 kwargs2 = {ViewClientOptions.FORCE_VIEW_SERVER_USE: False, ViewClientOptions.START_VIEW_SERVER: True,
            ViewClientOptions.AUTO_DUMP: False, ViewClientOptions.IGNORE_UIAUTOMATOR_KILLED: True,
-           ViewClientOptions.COMPRESSED_DUMP: True}
+           ViewClientOptions.COMPRESSED_DUMP: True,
+           ViewClientOptions.USE_UIAUTOMATOR_HELPER: False,
+           }
 options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH_TEXT: True,
            CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION: True,
            CulebraOptions.USE_REGEXPS: False, CulebraOptions.VERBOSE_COMMENTS: False,
@@ -833,6 +835,7 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
            CulebraOptions.DROP_SHADOW: False,
            CulebraOptions.SCREEN_GLARE: False,
            CulebraOptions.NULL_BACK_END: False,
+           CulebraOptions.CONCERTINA: False,
            }
 transform = traverseAndPrint
 for o, a in optlist:
@@ -848,11 +851,11 @@ for o, a in optlist:
     elif o in ['E', CulebraOptions.IGNORE_VERSION_CHECK]:
         kwargs1['ignoreversioncheck'] = True
     elif o in ['F', CulebraOptions.FORCE_VIEW_SERVER_USE]:
-        kwargs2['forceviewserveruse'] = True
+        kwargs2[ViewClientOptions.FORCE_VIEW_SERVER_USE] = True
     elif o in ['S', CulebraOptions.DO_NOT_START_VIEW_SERVER]:
-        kwargs2['startviewserver'] = False
+        kwargs2[ViewClientOptions.START_VIEW_SERVER] = False
     elif o in ['k', CulebraOptions.DO_NOT_IGNORE_UIAUTOMATOR_KILLED]:
-        kwargs2['ignoreuiautomatorkilled'] = False
+        kwargs2[ViewClientOptions.IGNORE_UIAUTOMATOR_KILLED] = False
     elif o in ['w', CulebraOptions.WINDOW]:
          options[CulebraOptions.WINDOW] = a
     elif o in ['i', CulebraOptions.FIND_VIEWS_BY_ID]:
@@ -925,6 +928,10 @@ for o, a in optlist:
         options[CulebraOptions.SCREEN_GLARE] = True
     elif o in ['0', CulebraOptions.NULL_BACK_END]:
         options[CulebraOptions.NULL_BACK_END] = True
+    elif o in ['h', CulebraOptions.USE_UIAUTOMATOR_HELPER]:
+        kwargs2[ViewClientOptions.USE_UIAUTOMATOR_HELPER] = True
+    elif o in ['c', CulebraOptions.CONCERTINA]:
+        options[CulebraOptions.CONCERTINA] = True
 
 if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[CulebraOptions.VERBOSE_COMMENTS]:
@@ -1080,8 +1087,12 @@ vc.writeImageToFile('%s')
         runCulebron()
     elif not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
         printDump(getWindowOption())
-    
-    
+
+if kwargs2[ViewClientOptions.USE_UIAUTOMATOR_HELPER]:
+    try:
+        vc.uiAutomatorHelper.quit()
+    except:
+        pass
 
 if options[CulebraOptions.INTERACTIVE]:
     import socket

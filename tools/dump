@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '10.5.1'
+__version__ = '10.6.0'
 
 import sys
 import os
@@ -17,7 +17,7 @@ try:
 except:
     pass
 
-from com.dtmilano.android.viewclient import ViewClient, View
+from com.dtmilano.android.viewclient import ViewClient, View, ViewClientOptions
 
 HELP = 'help'
 VERBOSE = 'verbose'
@@ -41,6 +41,7 @@ DO_NOT_DUMP_VIEWS = 'do-not-dump-views'
 DEVICE_ART = 'device-art'
 DROP_SHADOW = 'drop-shadow'
 SCREEN_GLARE = 'glare'
+USE_UIAUTOMATOR_HELPER = 'use-uiautomator-helper'
 
 MAP = {
        'a':View.__str__, ALL:View.__str__,
@@ -55,13 +56,14 @@ MAP = {
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:aixbdgcf:W:DA:ZB'
+SHORT_OPTS = 'HVvIEFSkw:aixbdgcf:W:DA:ZBh'
 LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
               ALL, UNIQUE_ID, POSITION, BOUNDS, CONTENT_DESCRIPTION, TAG, CENTER,
               SAVE_SCREENSHOT + '=', SAVE_VIEW_SCREENSHOTS + '=',
               DO_NOT_DUMP_VIEWS,
               DEVICE_ART + '=', DROP_SHADOW, SCREEN_GLARE,
+              USE_UIAUTOMATOR_HELPER,
               ]
 LONG_OPTS_ARG = {WINDOW: 'WINDOW', SAVE_SCREENSHOT: 'FILE', SAVE_VIEW_SCREENSHOTS: 'DIR', DEVICE_ART: 'MODEL'}
 OPTS_HELP = {
@@ -86,6 +88,7 @@ OPTS_HELP = {
     'A': 'device art model to frame screenshot (auto: autodetected)',
     'Z': 'drop shadow for device art screenshot',
     'B': 'screen glare over screenshot',
+    'h': 'use UiAutomatorHelper Android app',
     }
 
 def shortAndLongOptions():
@@ -137,7 +140,11 @@ except getopt.GetoptError, e:
     usage()
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}
-kwargs2 = {'forceviewserveruse': False, 'startviewserver': True, 'autodump': False, 'ignoreuiautomatorkilled': True}
+kwargs2 = {ViewClientOptions.FORCE_VIEW_SERVER_USE: False, ViewClientOptions.START_VIEW_SERVER: True,
+           ViewClientOptions.AUTO_DUMP: False, ViewClientOptions.IGNORE_UIAUTOMATOR_KILLED: True,
+           ViewClientOptions.COMPRESSED_DUMP: True,
+           ViewClientOptions.USE_UIAUTOMATOR_HELPER: False,
+           }
 options = {WINDOW: -1, SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None, DO_NOT_DUMP_VIEWS: False,
            DEVICE_ART: None, DROP_SHADOW: False, SCREEN_GLARE: False}
 transform = ViewClient.TRAVERSE_CIT
@@ -154,11 +161,11 @@ for o, a in opts:
     elif o in ['E', IGNORE_VERSION_CHECK]:
         kwargs1['ignoreversioncheck'] = True
     elif o in ['F', FORCE_VIEW_SERVER_USE]:
-        kwargs2['forceviewserveruse'] = True
+        kwargs2[ViewClientOptions.FORCE_VIEW_SERVER_USE] = True
     elif o in ['S', DO_NOT_START_VIEW_SERVER]:
-        kwargs2['startviewserver'] = False
+        kwargs2[ViewClientOptions.START_VIEW_SERVER] = False
     elif o in ['k', DO_NOT_IGNORE_UIAUTOMATOR_KILLED]:
-        kwargs2['ignoreuiautomatorkilled'] = False
+        kwargs2[ViewClientOptions.IGNORE_UIAUTOMATOR_KILLED] = False
     elif o in ['w', WINDOW]:
         options[WINDOW] = a
     elif o in ['f', SAVE_SCREENSHOT]:
@@ -172,6 +179,8 @@ for o, a in opts:
         options[DROP_SHADOW] = True
     elif o in ['B', SCREEN_GLARE]:
         options[SCREEN_GLARE] = True
+    elif o in ['h', USE_UIAUTOMATOR_HELPER]:
+        kwargs2[ViewClientOptions.USE_UIAUTOMATOR_HELPER] = True
     elif o in ['D', DO_NOT_DUMP_VIEWS]:
         options[DO_NOT_DUMP_VIEWS] = True
         transform = MAP[o]
@@ -189,3 +198,8 @@ if not options[DO_NOT_DUMP_VIEWS] or options[SAVE_VIEW_SCREENSHOTS]:
     vc.dump(window=options[WINDOW])
     ViewClient.imageDirectory = options[SAVE_VIEW_SCREENSHOTS]
     vc.traverse(transform=transform)
+if kwargs2[ViewClientOptions.USE_UIAUTOMATOR_HELPER]:
+    try:
+        vc.uiAutomatorHelper.quit()
+    except:
+        pass

@@ -18,9 +18,10 @@ limitations under the License.
 @author: Diego Torres Milano
 
 '''
+import random
 import time
 
-__version__ = '10.5.3'
+__version__ = '10.6.0'
 
 import sys
 import threading
@@ -46,6 +47,7 @@ try:
     import ScrolledText
     import ttk
     from Tkconstants import DISABLED, NORMAL
+
     TKINTER_AVAILABLE = True
 except:
     TKINTER_AVAILABLE = False
@@ -60,6 +62,7 @@ DEBUG_KEY = DEBUG and False
 DEBUG_ISCCOF = DEBUG and False
 DEBUG_FIND_VIEW = DEBUG and False
 DEBUG_CONTEXT_MENU = DEBUG and False
+DEBUG_CONCERTINA = DEBUG and False
 
 
 class Color:
@@ -169,7 +172,7 @@ On OSX install
 This is usually installed by python package. Check your distribution details.
 ''')
 
-    def __init__(self, vc, device, serialno, printOperation, scale=1):
+    def __init__(self, vc, device, serialno, printOperation, scale=1, concertina=False):
         '''
         Culebron constructor.
         
@@ -183,6 +186,8 @@ This is usually installed by python package. Check your distribution details.
         @type printOperation: method
         @param scale: the scale of the device screen used to show it on the window
         @type scale: float
+        @:param concertina: bool
+        @:type concertina: enable concertina mode (see documentation)
         '''
 
         self.vc = vc
@@ -190,6 +195,7 @@ This is usually installed by python package. Check your distribution details.
         self.device = device
         self.serialno = serialno
         self.scale = scale
+        self.concertina = concertina
         self.window = Tkinter.Tk()
         icon = resource_filename(Requirement.parse("androidviewclient"),
                                  "share/pixmaps/culebra.png")
@@ -214,6 +220,7 @@ This is usually installed by python package. Check your distribution details.
         self.targetIds = []
         self.isTouchingPoint = self.vc is None
         self.coordinatesUnit = Unit.DIP
+        self.permanentlyDisableEvents = False
         if DEBUG:
             try:
                 self.printGridInfo()
@@ -579,12 +586,11 @@ This is usually installed by python package. Check your distribution details.
             text = tkSimpleDialog.askstring(title, "Enter text to type into this field", **kwargs)
             self.canvas.focus_set()
             if text:
-                # This is deleting the existing text, which should be asked in the dialog, but I would have to implement
-                # the dialog myself
-                v.setText(text)
-                # This is not deleting the text, so appending if there's something
-                #v.type(text)
-                self.printOperation(v, Operation.TYPE, text)
+                if self.vc.uiAutomatorHelper:
+                    oid = self.vc.uiAutomatorHelper.findObject(v.getId())
+                    self.vc.uiAutomatorHelper.setText(oid, text)
+                else:
+                    self.setText(v, text)
             else:
                 self.hideVignette()
                 return
@@ -606,14 +612,27 @@ This is usually installed by python package. Check your distribution details.
             if len(candidates) > 2:
                 warnings.warn("We are in trouble, we have more than one candidate to touch", stacklevel=0)
             candidate = candidates[0]
-            candidate.touch()
-            # we pass root=v as an argument so the corresponding findView*() searches in this
-            # subtree instead of the full tree
-            self.printOperation(candidate, Operation.TOUCH_VIEW, v if candidate != v else None)
+            self.touchView(candidate, v if candidate != v else None)
 
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)
         self.takeScreenshotAndShowItOnWindow()
+
+    def setText(self, v, text):
+        if DEBUG_CONCERTINA:
+            print >> sys.stderr, "setText(%s, '%s')" % (v.__tinyStr__(), text)
+        # This is deleting the existing text, which should be asked in the dialog, but I would have to implement
+        # the dialog myself
+        v.setText(text)
+        # This is not deleting the text, so appending if there's something
+        # v.type(text)
+        self.printOperation(v, Operation.TYPE, text)
+
+    def touchView(self, v, root=None):
+        v.touch()
+        # we pass root=v as an argument so the corresponding findView*() searches in this
+        # subtree instead of the full tree
+        self.printOperation(v, Operation.TOUCH_VIEW, root)
 
     def touchPoint(self, x, y):
         '''
@@ -644,7 +663,7 @@ This is usually installed by python package. Check your distribution details.
             time.sleep(5)
             self.isTouchingPoint = self.vc is None
             self.takeScreenshotAndShowItOnWindow()
-            self.hideVignette()
+            #self.hideVignette()
             self.statusBar.clear()
             return
 
@@ -676,7 +695,7 @@ This is usually installed by python package. Check your distribution details.
             time.sleep(5)
             self.isLongTouchingPoint = False
             self.takeScreenshotAndShowItOnWindow()
-            self.hideVignette()
+            #self.hideVignette()
             self.statusBar.clear()
             return
 
@@ -756,7 +775,7 @@ This is usually installed by python package. Check your distribution details.
         keysym = event.keysym
 
         if len(char) == 0 and not (
-                keysym in Culebron.KEYSYM_TO_KEYCODE_MAP or keysym in Culebron.KEYSYM_CULEBRON_COMMANDS):
+                        keysym in Culebron.KEYSYM_TO_KEYCODE_MAP or keysym in Culebron.KEYSYM_CULEBRON_COMMANDS):
             if DEBUG_KEY:
                 print >> sys.stderr, "returning because len(char) == 0"
             return
@@ -961,6 +980,10 @@ This is usually installed by python package. Check your distribution details.
         self.quit()
 
     def quit(self):
+        if self.vc.uiAutomatorHelper:
+            if DEBUG or True:
+                print >> sys.stderr, "Quitting UiAutomatorHelper..."
+            self.vc.uiAutomatorHelper.quit()
         self.window.destroy()
 
     def showSleepDialog(self):
@@ -1047,6 +1070,8 @@ This is usually installed by python package. Check your distribution details.
         self.takeScreenshotAndShowItOnWindow()
 
     def enableEvents(self):
+        if self.permanentlyDisableEvents:
+            return
         self.canvas.update_idletasks()
         self.canvas.bind("<Button-1>", self.onButton1Pressed)
         self.canvas.bind("<Control-Button-1>", self.onCtrlButton1Pressed)
@@ -1057,7 +1082,8 @@ This is usually installed by python package. Check your distribution details.
         self.canvas.bind("<Key>", self.onKeyPressed)
         self.areEventsDisabled = False
 
-    def disableEvents(self):
+    def disableEvents(self, permanently=False):
+        self.permanentlyDisableEvents = permanently
         if self.canvas is not None:
             self.canvas.update_idletasks()
             self.areEventsDisabled = True
@@ -1185,7 +1211,70 @@ This is usually installed by python package. Check your distribution details.
         self.window.title("%s v%s" % (Culebron.APPLICATION_NAME, __version__))
         self.window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
         self.window.lift()
+        if self.concertina:
+            self.concertinaLoop()
+        else:
+            self.window.mainloop()
+
+    def concertinaLoop(self):
+        self.disableEvents(permanently=True)
+        self.concertinaLoopCallback(dontinteract=True)
         self.window.mainloop()
+
+    def concertinaLoopCallback(self, dontinteract=False):
+        if not dontinteract:
+            if DEBUG_CONCERTINA:
+                print >> sys.stderr, "CONCERTINA: should select one if these targets:"
+                for v in self.targetViews:
+                    print >> sys.stderr, "    ", unicode(v.__tinyStr__())
+            l = len(self.targetViews)
+            if l > 0:
+                i = random.randrange(len(self.targetViews))
+                t = self.targetViews[i]
+                z = self.targets[i]
+                if DEBUG_CONCERTINA:
+                    print >> sys.stderr, "CONCERTINA: selected", unicode(t.__smallStr__())
+                    print >> sys.stderr, "CONCERTINA: selected", z
+                self.markTarget(*z)
+                self.window.update_idletasks()
+                time.sleep(1)
+                # FIXME: we need self.unmakeTarget(*z)
+                self.unmarkTargets()
+                clazz = t.getClass()
+                parent = t.getParent()
+                if parent:
+                    parentClass = parent.getClass()
+                else:
+                    parentClass = None
+                isScrollable = t.isScrollable()
+                if DEBUG_CONCERTINA:
+                    print >> sys.stderr, "CONCERTINA: is scrollable: ", isScrollable
+                if clazz == 'android.widget.EditText':
+                    text = 'Some random text'
+                    if DEBUG_CONCERTINA:
+                        print >> sys.stderr, "Entering text: ", text
+                    self.setText(t, text)
+                elif isScrollable or parentClass == 'android.widget.ScrollView':
+                    # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
+                    # capture the case of other ScrollViews
+                    print >> sys.stderr, ">>>>>>>>", t.getBounds()
+                    ((t, l), (b, r)) = t.getBounds()
+                    sp = (t+50, (r-l)/2)
+                    ep = (b-50, (r-l)/2)
+                    d = 1
+                    s = 20
+                    units = Unit.DIP
+                    if DEBUG_CONCERTINA:
+                        print >> sys.stderr, "CONCERTINA: dragging %s %s %s %s %s" % (sp, ep, d, s, units)
+                    self.drag(sp, ep, d, s, units)
+                else:
+                    self.touchView(t)
+                self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
+                time.sleep(5)
+                self.takeScreenshotAndShowItOnWindow()
+            else:
+                print >> sys.stderr, "CONCERTINA: No target views"
+        self.window.after(5000, self.concertinaLoopCallback)
 
 
 if TKINTER_AVAILABLE:
@@ -1612,7 +1701,7 @@ if TKINTER_AVAILABLE:
                                              culebron.showSleepDialog))
             if culebron.vc is not None:
                 items.append(ContextMenu.Command('Toggle generating Test Condition', 18, 'Ctrl+T', '<Control-T>',
-                                             culebron.toggleGenerateTestCondition))
+                                                 culebron.toggleGenerateTestCondition))
             items.append(ContextMenu.Command('Touch Zones', 6, 'Ctrl+Z', '<Control-Z>', culebron.toggleTargetZones))
             items.append(ContextMenu.Command('Generates a startActivity()', 17, 'Ctrl+A', '<Control-A>',
                                              culebron.printStartActivityAtTop))

@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.5.2'
+__version__ = '10.6.0'
 
 import sys
 import warnings
@@ -46,6 +46,7 @@ from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy,\
     obtainVwVh, obtainAdbPath
 from com.dtmilano.android.window import Window
 from com.dtmilano.android.adb import adbclient
+from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper
 
 DEBUG = False
 DEBUG_DEVICE = DEBUG and False
@@ -2202,7 +2203,8 @@ class UiAutomator2AndroidViewClient():
         parser.CharacterDataHandler = self.CharacterData
         # Parse the XML File
         try:
-            _ = parser.Parse(uiautomatorxml.encode(encoding='utf-8', errors='replace'), True)
+            encoded = uiautomatorxml.encode(encoding='utf-8', errors='replace')
+            _ = parser.Parse(encoded, True)
         except xml.parsers.expat.ExpatError, ex:  # @UndefinedVariable
             print >>sys.stderr, "ERROR: Offending XML:\n", repr(uiautomatorxml)
             raise RuntimeError(ex)
@@ -2268,6 +2270,7 @@ class ViewClientOptions:
     START_VIEW_SERVER = 'startviewserver'
     IGNORE_UIAUTOMATOR_KILLED = 'ignoreuiautomatorkilled'
     COMPRESSED_DUMP = 'compresseddump'
+    USE_UIAUTOMATOR_HELPER = 'useuiautomatorhelper'
     
 class ViewClient:
     '''
@@ -2286,7 +2289,7 @@ class ViewClient:
     imageDirectory = None
     ''' The directory used to store screenshot images '''
 
-    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True, ignoreuiautomatorkilled=False, compresseddump=True):
+    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True, ignoreuiautomatorkilled=False, compresseddump=True, useuiautomatorhelper=False):
         '''
         Constructor
 
@@ -2312,6 +2315,8 @@ class ViewClient:
         @param ignoreuiautomatorkilled: Ignores received B{Killed} message from C{uiautomator}
         @type compresseddump: boolean
         @param compresseddump: turns --compressed flag for uiautomator dump on/off
+        @:type useuiautomatorhelper: boolean
+        @:param useuiautomatorhelper: use UiAutomatorHelper Android app as backend
         '''
 
         if not device:
@@ -2430,6 +2435,15 @@ class ViewClient:
         self.windows = None
         ''' The list of windows as obtained by L{ViewClient.list()} '''
 
+
+        # FIXME: may not be true, one may want UiAutomator but without UiAutomatorHelper
+        if self.useUiAutomator:
+            if useuiautomatorhelper:
+                self.uiAutomatorHelper = UiAutomatorHelper(device)
+                ''' The UiAutomatorHelper '''
+            else:
+                self.uiAutomatorHelper = None
+
         self.uiDevice = UiDevice(self)
         ''' The L{UiDevice} '''
 
@@ -2443,6 +2457,10 @@ class ViewClient:
 
     def __del__(self):
         # should clean up some things
+        if self.uiAutomatorHelper:
+            if DEBUG or True:
+                print >> sys.stderr, "Stopping UiAutomatorHelper..."
+            self.uiAutomatorHelper.quit()
         pass
 
     @staticmethod
@@ -3053,9 +3071,12 @@ class ViewClient:
             time.sleep(sleep)
 
         if self.useUiAutomator:
-            # NOTICE:
-            # Using /dev/tty this works even on devices with no sdcard
-            received = unicode(self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.getSdkVersion() >= 18 and self.compressedDump else '')), encoding='utf-8', errors='replace')
+            if self.uiAutomatorHelper:
+                received = self.uiAutomatorHelper.dumpWindowHierarchy()
+            else:
+                # NOTICE:
+                # Using /dev/tty this works even on devices with no sdcard
+                received = unicode(self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.getSdkVersion() >= 18 and self.compressedDump else '')), encoding='utf-8', errors='replace')
             if not received:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             if DEBUG:
@@ -3982,8 +4003,10 @@ class CulebraOptions:
     DROP_SHADOW = 'drop-shadow'
     SCREEN_GLARE = 'glare'
     NULL_BACK_END = 'null-back-end'
+    USE_UIAUTOMATOR_HELPER = 'use-uiautomator-helper'
+    CONCERTINA = 'concertina'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB0'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB0hc'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -4002,7 +4025,8 @@ class CulebraOptions:
               MULTI_DEVICE,
               LOG_ACTIONS,
               DEVICE_ART + '=', DROP_SHADOW, SCREEN_GLARE,
-              NULL_BACK_END
+              NULL_BACK_END,
+              USE_UIAUTOMATOR_HELPER,
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
@@ -4047,6 +4071,8 @@ class CulebraOptions:
             'Z': 'drop shadow for device art screenshot',
             'B': 'screen glare over screenshot',
             '0': 'use a null back-end (no View tree obtained)',
+            'h': 'use UiAutomatorHelper',
+            'c': 'enable concertina mode (EXPERIMENTAL)'
             }
 
 class CulebraTestCase(unittest.TestCase):
