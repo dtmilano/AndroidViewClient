@@ -20,8 +20,9 @@ limitations under the License.
 '''
 import random
 import time
+from com.dtmilano.android.concertina import Concertina
 
-__version__ = '10.6.0'
+__version__ = '10.6.1'
 
 import sys
 import threading
@@ -1227,53 +1228,65 @@ This is usually installed by python package. Check your distribution details.
                 print >> sys.stderr, "CONCERTINA: should select one if these targets:"
                 for v in self.targetViews:
                     print >> sys.stderr, "    ", unicode(v.__tinyStr__())
-            l = len(self.targetViews)
-            if l > 0:
-                i = random.randrange(len(self.targetViews))
-                t = self.targetViews[i]
-                z = self.targets[i]
+            r = random.random()
+            if DEBUG_CONCERTINA:
+                print >> sys.stderr, "CONCERTINA: ramdom=%f" % r
+            if r > 0.85:
+                # Send key events
+                k = random.choice(['ENTER', 'BACK', 'HOME'])
                 if DEBUG_CONCERTINA:
-                    print >> sys.stderr, "CONCERTINA: selected", unicode(t.__smallStr__())
-                    print >> sys.stderr, "CONCERTINA: selected", z
-                self.markTarget(*z)
-                self.window.update_idletasks()
-                time.sleep(1)
-                # FIXME: we need self.unmakeTarget(*z)
-                self.unmarkTargets()
-                clazz = t.getClass()
-                parent = t.getParent()
-                if parent:
-                    parentClass = parent.getClass()
-                else:
-                    parentClass = None
-                isScrollable = t.isScrollable()
-                if DEBUG_CONCERTINA:
-                    print >> sys.stderr, "CONCERTINA: is scrollable: ", isScrollable
-                if clazz == 'android.widget.EditText':
-                    text = 'Some random text'
-                    if DEBUG_CONCERTINA:
-                        print >> sys.stderr, "Entering text: ", text
-                    self.setText(t, text)
-                elif isScrollable or parentClass == 'android.widget.ScrollView':
-                    # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
-                    # capture the case of other ScrollViews
-                    print >> sys.stderr, ">>>>>>>>", t.getBounds()
-                    ((t, l), (b, r)) = t.getBounds()
-                    sp = (t+50, (r-l)/2)
-                    ep = (b-50, (r-l)/2)
-                    d = 1
-                    s = 20
-                    units = Unit.DIP
-                    if DEBUG_CONCERTINA:
-                        print >> sys.stderr, "CONCERTINA: dragging %s %s %s %s %s" % (sp, ep, d, s, units)
-                    self.drag(sp, ep, d, s, units)
-                else:
-                    self.touchView(t)
-                self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
-                time.sleep(5)
-                self.takeScreenshotAndShowItOnWindow()
+                    print >> sys.stderr, "CONCERTINA: key=" + k
+                self.command(k)
             else:
-                print >> sys.stderr, "CONCERTINA: No target views"
+                # Act on views
+                l = len(self.targetViews)
+                if l > 0:
+                    i = random.randrange(len(self.targetViews))
+                    t = self.targetViews[i]
+                    z = self.targets[i]
+                    if DEBUG_CONCERTINA:
+                        print >> sys.stderr, "CONCERTINA: selected", unicode(t.__smallStr__())
+                        print >> sys.stderr, "CONCERTINA: selected", z
+                    self.markTarget(*z)
+                    self.window.update_idletasks()
+                    time.sleep(1)
+                    # FIXME: we need self.unmakeTarget(*z)
+                    self.unmarkTargets()
+                    clazz = t.getClass()
+                    parent = t.getParent()
+                    if parent:
+                        parentClass = parent.getClass()
+                    else:
+                        parentClass = None
+                    isScrollable = t.isScrollable()
+                    if DEBUG_CONCERTINA:
+                        print >> sys.stderr, "CONCERTINA: is scrollable: ", isScrollable
+                    if clazz == 'android.widget.EditText':
+                        text = Concertina.getRandomText()
+                        if DEBUG_CONCERTINA:
+                            print >> sys.stderr, "Entering text: ", text
+                        self.setText(t, text)
+                    elif isScrollable or parentClass == 'android.widget.ScrollView':
+                        # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
+                        # capture the case of other ScrollViews
+                        if DEBUG_CONCERTINA:
+                            print >> sys.stderr, "CONCERTINA: bounds=", t.getBounds()
+                        ((t, l), (b, r)) = t.getBounds()
+                        sp = (t+50, (r-l)/2)
+                        ep = (b-50, (r-l)/2)
+                        d = 1
+                        s = 20
+                        units = Unit.DIP
+                        if DEBUG_CONCERTINA:
+                            print >> sys.stderr, "CONCERTINA: dragging %s %s %s %s %s" % (sp, ep, d, s, units)
+                        self.drag(sp, ep, d, s, units)
+                    else:
+                        self.touchView(t)
+                    self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
+                    time.sleep(5)
+                    self.takeScreenshotAndShowItOnWindow()
+                else:
+                    print >> sys.stderr, "CONCERTINA: No target views"
         self.window.after(5000, self.concertinaLoopCallback)
 
 

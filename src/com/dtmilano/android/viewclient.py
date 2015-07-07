@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.6.0'
+__version__ = '10.6.1'
 
 import sys
 import warnings
@@ -1094,6 +1094,8 @@ class EditText(TextView):
     '''
 
     def type(self, text, alreadyTouched=False):
+        if not text:
+            return
         if not alreadyTouched:
             self.touch()
         time.sleep(0.5)
@@ -4027,6 +4029,7 @@ class CulebraOptions:
               DEVICE_ART + '=', DROP_SHADOW, SCREEN_GLARE,
               NULL_BACK_END,
               USE_UIAUTOMATOR_HELPER,
+              CONCERTINA
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',

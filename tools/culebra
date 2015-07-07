@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.6.0'
+__version__ = '10.6.1'
 
 import re
 import sys
@@ -103,7 +103,21 @@ def shortAndLongOptions():
 
     short_opts = CulebraOptions.SHORT_OPTS.replace(':', '')
     if len(short_opts) != len(CulebraOptions.LONG_OPTS):
-        raise Exception('There is a mismatch between short and long options')
+        s = ""
+        for i in range(max(len(short_opts), len(CulebraOptions.LONG_OPTS))):
+            l = ''
+            try:
+                l = short_opts[i]
+            except IndexError:
+                pass
+            L = ''
+            try:
+                L = CulebraOptions.LONG_OPTS[i]
+            except IndexError:
+                pass
+            s += "%3s - %s\n" % (l, L)
+        raise Exception('There is a mismatch between short and long options: short=%d, long=%d\n%s' %
+                        (len(short_opts), len(CulebraOptions.LONG_OPTS), s))
     t = tuple(short_opts) + tuple(CulebraOptions.LONG_OPTS)
     l2 = len(t) / 2
     sl = []
