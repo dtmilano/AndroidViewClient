@@ -17,7 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.6.0'
+__version__ = '10.6.2'
 
 import sys
 import warnings
@@ -897,6 +897,8 @@ class AdbClient:
         contentRE = re.compile('^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]\[%s,%s\]' %
                                (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'), _nd('vy1')))
         policyVisibilityRE = re.compile('mPolicyVisibility=%s ' % _ns('policyVisibility', greedy=True))
+
+        currentFocus = None
 
         for l in range(len(lines)):
             m = widRE.search(lines[l])
