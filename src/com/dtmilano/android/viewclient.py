@@ -63,6 +63,7 @@ DEBUG_DISTANCE = DEBUG and False
 DEBUG_MULTI = DEBUG and False
 DEBUG_VIEW = DEBUG and False
 DEBUG_VIEW_FACTORY = DEBUG and False
+DEBUG_CHANGE_LANGUAGE = DEBUG and False
 
 WARNINGS = False
 
@@ -1975,9 +1976,13 @@ class UiDevice():
             for _ in range(ATTEMPTS):
                 com_android_settings___id_dashboard = self.vc.findViewByIdOrRaise("com.android.settings:id/dashboard")
                 for k, v in LANGUAGE_SETTINGS.iteritems():
+                    if DEBUG_CHANGE_LANGUAGE:
+                        print >> sys.stderr, "searching for", v
                     view = self.vc.findViewWithText(v, root=com_android_settings___id_dashboard)
                     if view:
                         currentLanguage = k
+                        if DEBUG_CHANGE_LANGUAGE:
+                            print >> sys.stderr, "found current language:", k
                         break
                 if view:
                     break
@@ -2016,6 +2021,8 @@ class UiDevice():
 
         android___id_list = self.vc.findViewByIdOrRaise("android:id/list")
         android___id_list.uiScrollable.setViewClient(self.vc)
+        if DEBUG_CHANGE_LANGUAGE:
+            print >> sys.stderr, "scrolling to find", LANGUAGES[languageTo]
         view = android___id_list.uiScrollable.scrollTextIntoView(LANGUAGES[languageTo])
         if view is not None:
             view.touch()
@@ -2100,12 +2107,14 @@ class UiScrollable(UiCollection):
             # FIXME: now I need to figure out the best way of navigating to the ViewClient asossiated
             # with this UiScrollable.
             # It's using setViewClient() now.
-            if DEBUG:
+            if DEBUG or DEBUG_CHANGE_LANGUAGE:
+                print >> sys.stderr, u"Searching for text='%s'" % text
                 for v in self.vc.views:
                     try:
                         print >> sys.stderr, "    scrollTextIntoView: v=", v.getId(),
                         print >> sys.stderr, v.getText()
-                    except:
+                    except Exception, e:
+                        print >> sys.stderr, e
                         pass
             #v = self.vc.findViewWithText(text, root=self.view)
             v = self.vc.findViewWithText(text)
