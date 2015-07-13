@@ -20,6 +20,7 @@ limitations under the License.
 '''
 import random
 import time
+import re
 from com.dtmilano.android.concertina import Concertina
 
 __version__ = '10.6.1'
@@ -1195,6 +1196,12 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG_ISCCOF:
             print >> sys.stderr, "isClickableCheckableOrFocusable(", v.__tinyStr__(), ")"
         try:
+            if not v.isEnabled():
+                # if not enabled, then it cannot be a target
+                return False
+        except AttributeError:
+            pass
+        try:
             return v.isClickable()
         except AttributeError:
             pass
@@ -1218,6 +1225,7 @@ This is usually installed by python package. Check your distribution details.
             self.window.mainloop()
 
     def concertinaLoop(self):
+        random.seed()
         self.disableEvents(permanently=True)
         self.concertinaLoopCallback(dontinteract=True)
         self.window.mainloop()
@@ -1225,7 +1233,7 @@ This is usually installed by python package. Check your distribution details.
     def concertinaLoopCallback(self, dontinteract=False):
         if not dontinteract:
             if DEBUG_CONCERTINA:
-                print >> sys.stderr, "CONCERTINA: should select one if these targets:"
+                print >> sys.stderr, "CONCERTINA: should select one of these targets:"
                 for v in self.targetViews:
                     print >> sys.stderr, "    ", unicode(v.__tinyStr__())
             r = random.random()
@@ -1233,7 +1241,7 @@ This is usually installed by python package. Check your distribution details.
                 print >> sys.stderr, "CONCERTINA: ramdom=%f" % r
             if r > 0.85:
                 # Send key events
-                k = random.choice(['ENTER', 'BACK', 'HOME'])
+                k = random.choice(['ENTER', 'BACK', 'HOME', 'MENU'])
                 if DEBUG_CONCERTINA:
                     print >> sys.stderr, "CONCERTINA: key=" + k
                 self.command(k)
@@ -1261,19 +1269,34 @@ This is usually installed by python package. Check your distribution details.
                     isScrollable = t.isScrollable()
                     if DEBUG_CONCERTINA:
                         print >> sys.stderr, "CONCERTINA: is scrollable: ", isScrollable
+                        if parent:
+                            print >> sys.stderr, "CONCERTINA: is scrollable parent: ", parent.isScrollable()
                     if clazz == 'android.widget.EditText':
-                        text = Concertina.getRandomText()
+                        id = t.getId()
+                        txt = t.getText()
+                        if t.isPassword() or re.search('password', id, re.IGNORECASE) or re.search('password', txt, re.IGNORECASE):
+                            text = Concertina.getRandomPassword()
+                        elif re.search('email', id, re.IGNORECASE) or re.search('email', txt, re.IGNORECASE):
+                            text = Concertina.getRandomEmail()
+                        else:
+                            text = Concertina.getRandomText()
                         if DEBUG_CONCERTINA:
                             print >> sys.stderr, "Entering text: ", text
+                        if not text:
+                            raise RuntimeError('text is None')
                         self.setText(t, text)
-                    elif isScrollable or parentClass == 'android.widget.ScrollView':
+                    elif isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView':
                         # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
                         # capture the case of other ScrollViews
                         if DEBUG_CONCERTINA:
                             print >> sys.stderr, "CONCERTINA: bounds=", t.getBounds()
                         ((t, l), (b, r)) = t.getBounds()
-                        sp = (t+50, (r-l)/2)
-                        ep = (b-50, (r-l)/2)
+                        if random.choice(['VERTICAL', 'HORIZONTAL']) == 'VERTICAL':
+                            sp = (l+(r-l)/2, t+50)
+                            ep = (l+(r-l)/2, b-50)
+                        else:
+                            sp = (l+50, t+(b-t)/2)
+                            ep = (r-50, t+(b-t)/2)
                         d = 1
                         s = 20
                         units = Unit.DIP
