@@ -21,6 +21,7 @@ limitations under the License.
 import random
 
 __author__ = 'diego'
+__version__ = '10.6.1'
 
 class Concertina:
     PHRASES = [
@@ -187,9 +188,34 @@ class Concertina:
 
     ]
 
+    EMAILS = [
+        "user@example.com",
+        "user@gmail.com",
+        "user@yahoo.com",
+        "user@outlook.com",
+        "user@mail.com",
+        "user@outlook.co.uk",
+    ]
+
+    PASSWORDS = [
+        "123456",
+        "password",
+        "12345678",
+        "qwerty",
+        "abc123",
+    ]
+
     def __init__(self):
         pass
 
     @staticmethod
     def getRandomText():
-        random.choice(Concertina.PHRASES)
+        return random.choice(Concertina.PHRASES)
+
+    @staticmethod
+    def getRandomEmail():
+        return random.choice(Concertina.EMAILS)
+
+    @staticmethod
+    def getRandomPassword():
+        return random.choice(Concertina.PASSWORDS)
