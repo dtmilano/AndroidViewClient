@@ -219,7 +219,7 @@ This is usually installed by python package. Check your distribution details.
         self.statusBar.grid(row=5, column=1, columnspan=2)
         self.statusBar.set("Always press F1 for help")
         self.window.update_idletasks()
-        self.targetIds = []
+        self.markedTargetIds = {}
         self.isTouchingPoint = self.vc is None
         self.coordinatesUnit = Unit.DIP
         self.permanentlyDisableEvents = False
@@ -665,7 +665,7 @@ This is usually installed by python package. Check your distribution details.
             time.sleep(5)
             self.isTouchingPoint = self.vc is None
             self.takeScreenshotAndShowItOnWindow()
-            #self.hideVignette()
+            # self.hideVignette()
             self.statusBar.clear()
             return
 
@@ -697,7 +697,7 @@ This is usually installed by python package. Check your distribution details.
             time.sleep(5)
             self.isLongTouchingPoint = False
             self.takeScreenshotAndShowItOnWindow()
-            #self.hideVignette()
+            # self.hideVignette()
             self.statusBar.clear()
             return
 
@@ -1111,7 +1111,7 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "    marktargets: targets=", self.targets
         colors = ["#ff00ff", "#ffff00", "#00ffff"]
 
-        self.targetIds = []
+        self.markedTargetIds = {}
         c = 0
         for (x1, y1, x2, y2) in self.targets:
             if DEBUG:
@@ -1125,17 +1125,22 @@ This is usually installed by python package. Check your distribution details.
         @return the id of the rectangle added
         '''
 
-        self.areTargetsMarked = True
-        return self.targetIds.append(
-            self.canvas.create_rectangle(x1 * self.scale, y1 * self.scale, x2 * self.scale, y2 * self.scale, fill=color,
-                                         stipple="gray25"))
+        #self.areTargetsMarked = True
+        _id = self.canvas.create_rectangle(x1 * self.scale, y1 * self.scale, x2 * self.scale, y2 * self.scale,
+                                           fill=color,
+                                           stipple="gray25")
+        self.markedTargetIds[_id] = (x1, y1, x2, y2)
+        return _id
+
+    def unmarkTarget(self, _id):
+        self.canvas.delete(_id)
 
     def unmarkTargets(self):
         if not self.areTargetsMarked:
             return
-        for t in self.targetIds:
-            self.canvas.delete(t)
-        self.targetIds = []
+        for (_id, _) in self.markedTargetIds:
+            self.unmarkTarget(_id)
+        self.markedTargetIds = {}
         self.areTargetsMarked = False
 
     def setDragDialogShowed(self, showed):
@@ -1146,11 +1151,15 @@ This is usually installed by python package. Check your distribution details.
             self.isGrabbingTouch = False
 
     def drawTouchedPoint(self, x, y):
+        if DEBUG_CONCERTINA:
+            print >> sys.stderr, "drawTouchedPoint(", x, ",", y, ")"
         size = 50
         return self.canvas.create_oval((x - size) * self.scale, (y - size) * self.scale, (x + size) * self.scale,
                                        (y + size) * self.scale, fill=Color.MAGENTA)
 
     def drawDragLine(self, x0, y0, x1, y1):
+        if DEBUG_CONCERTINA:
+            print >> sys.stderr, "drawDragLine(", x0, ",", y0, ",", x1, ",", y1, ")"
         width = 15
         return self.canvas.create_line(x0 * self.scale, y0 * self.scale, x1 * self.scale, y1 * self.scale, width=width,
                                        fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
@@ -1244,37 +1253,46 @@ This is usually installed by python package. Check your distribution details.
                 k = random.choice(['ENTER', 'BACK', 'HOME', 'MENU'])
                 if DEBUG_CONCERTINA:
                     print >> sys.stderr, "CONCERTINA: key=" + k
+                # DEBUG ONLY!
+                # print >> sys.stderr, "Not sending key event"
                 self.command(k)
             else:
                 # Act on views
-                l = len(self.targetViews)
-                if l > 0:
+                _len = len(self.targetViews)
+                if _len > 0:
                     i = random.randrange(len(self.targetViews))
-                    t = self.targetViews[i]
+                    target = self.targetViews[i]
                     z = self.targets[i]
                     if DEBUG_CONCERTINA:
-                        print >> sys.stderr, "CONCERTINA: selected", unicode(t.__smallStr__())
+                        print >> sys.stderr, "CONCERTINA: selected", unicode(target.__smallStr__())
                         print >> sys.stderr, "CONCERTINA: selected", z
-                    self.markTarget(*z)
+                    _id = self.markTarget(*z)
                     self.window.update_idletasks()
                     time.sleep(1)
-                    # FIXME: we need self.unmakeTarget(*z)
-                    self.unmarkTargets()
-                    clazz = t.getClass()
-                    parent = t.getParent()
+                    self.unmarkTarget(_id)
+                    self.window.update_idletasks()
+                    clazz = target.getClass()
+                    parent = target.getParent()
                     if parent:
                         parentClass = parent.getClass()
                     else:
                         parentClass = None
-                    isScrollable = t.isScrollable()
+                    isScrollable = target.isScrollable()
                     if DEBUG_CONCERTINA:
                         print >> sys.stderr, "CONCERTINA: is scrollable: ", isScrollable
                         if parent:
                             print >> sys.stderr, "CONCERTINA: is scrollable parent: ", parent.isScrollable()
+                        cond = (isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView')
+                        # DEBUG ONLY!
+                        # print >> sys.stderr, "CONCERTINA: check:", cond
+                        # if not cond:
+                        #     self.window.after(500, self.concertinaLoopCallback)
+                        #     return
                     if clazz == 'android.widget.EditText':
-                        id = t.getId()
-                        txt = t.getText()
-                        if t.isPassword() or re.search('password', id, re.IGNORECASE) or re.search('password', txt, re.IGNORECASE):
+                        id = target.getId()
+                        txt = target.getText()
+                        if target.isPassword() or re.search('password', id, re.IGNORECASE) or re.search('password', txt,
+                                                                                                        re.IGNORECASE):
                             text = Concertina.getRandomPassword()
                         elif re.search('email', id, re.IGNORECASE) or re.search('email', txt, re.IGNORECASE):
                             text = Concertina.getRandomEmail()
@@ -1284,27 +1302,57 @@ This is usually installed by python package. Check your distribution details.
                             print >> sys.stderr, "Entering text: ", text
                         if not text:
                             raise RuntimeError('text is None')
-                        self.setText(t, text)
-                    elif isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView':
+                        self.setText(target, text)
+                    elif target.getContentDescription() in ['Voice Search', 'Tap to speak']:
+                        Concertina.sayRandomText()
+                        time.sleep(5)
+                    elif random.choice(['SCROLL', 'TOUCH']) == 'SCROLL' and (isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
                         # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
                         # capture the case of other ScrollViews
-                        if DEBUG_CONCERTINA:
-                            print >> sys.stderr, "CONCERTINA: bounds=", t.getBounds()
-                        ((t, l), (b, r)) = t.getBounds()
-                        if random.choice(['VERTICAL', 'HORIZONTAL']) == 'VERTICAL':
-                            sp = (l+(r-l)/2, t+50)
-                            ep = (l+(r-l)/2, b-50)
+                        if isScrollable:
+                            ((l, t), (r, b)) = target.getBounds()
                         else:
-                            sp = (l+50, t+(b-t)/2)
-                            ep = (r-50, t+(b-t)/2)
-                        d = 1
+                            if DEBUG_CONCERTINA:
+                                print >> sys.stderr, "CONCERTINA: using parent bounds because it's scrollable"
+                            ((l, t), (r, b)) = parent.getBounds()
+                        if DEBUG_CONCERTINA:
+                            print >> sys.stderr, "CONCERTINA: bounds=", ((l, t), (r, b))
+                        if random.choice(['VERTICAL', 'HORIZONTAL']) == 'VERTICAL':
+                            if DEBUG_CONCERTINA:
+                                print >> sys.stderr, 'VERTICAL'
+                            sp = (l + (r - l) / 2, t + 50)
+                            ep = (l + (r - l) / 2, b - 50)
+                        else:
+                            if DEBUG_CONCERTINA:
+                                print >> sys.stderr, 'HORIZONTAL'
+                            sp = (l + 50, t + (b - t) / 2)
+                            ep = (r - 50, t + (b - t) / 2)
+                        if random.choice(['FORWARD', 'REVERSE']) == 'REVERSE':
+                            if DEBUG_CONCERTINA:
+                                print >> sys.stderr, 'REVERSE'
+                            temp = sp
+                            sp = ep
+                            ep = temp
+                        else:
+                            if DEBUG_CONCERTINA:
+                                print >> sys.stderr, 'FORWARD'
+                        d = 500
                         s = 20
-                        units = Unit.DIP
+                        _id = self.canvas.create_rectangle(l * self.scale, t * self.scale, r * self.scale,
+                                                           b * self.scale,
+                                                           fill="#00ffff", stipple="gray12")
+                        self.window.update_idletasks()
+                        units = Unit.PX
+                        self.drawTouchedPoint(sp[0], sp[1])
+                        self.window.update_idletasks()
+                        self.drawDragLine(sp[0], sp[1], ep[0], ep[1])
+                        self.window.update_idletasks()
+                        time.sleep(5)
                         if DEBUG_CONCERTINA:
                             print >> sys.stderr, "CONCERTINA: dragging %s %s %s %s %s" % (sp, ep, d, s, units)
                         self.drag(sp, ep, d, s, units)
                     else:
-                        self.touchView(t)
+                        self.touchView(target)
                     self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
                     time.sleep(5)
                     self.takeScreenshotAndShowItOnWindow()
@@ -1372,6 +1420,7 @@ if TKINTER_AVAILABLE:
             else:
                 self.culebron.hideViewDetails()
 
+
     class ViewTree(Tkinter.Frame):
         def __init__(self, parent):
             Tkinter.Frame.__init__(self, parent)
@@ -1418,6 +1467,7 @@ if TKINTER_AVAILABLE:
                 print >> sys.stderr, 'ViewTree.tag_bind(', tagname, ',', sequence, ',', callback, ')'
             return self.viewTree.tag_bind(tagname, sequence, callback)
 
+
     class ViewDetails(Tkinter.Frame):
         VIEW_DETAILS = "View Details:\n"
 
@@ -1430,6 +1480,7 @@ if TKINTER_AVAILABLE:
 
         def set(self, view):
             self.label.configure(text=self.VIEW_DETAILS + view.__str__())
+
 
     class StatusBar(Tkinter.Frame):
 
@@ -1445,6 +1496,7 @@ if TKINTER_AVAILABLE:
         def clear(self):
             self.label.config(text="")
             self.label.update_idletasks()
+
 
     class LabeledEntry():
         def __init__(self, parent, text, validate, validatecmd):
@@ -1463,11 +1515,13 @@ if TKINTER_AVAILABLE:
             self.entry.delete(0, Tkinter.END)
             self.entry.insert(0, text)
 
+
     class LabeledEntryWithButton(LabeledEntry):
         def __init__(self, parent, text, buttonText, command, validate, validatecmd):
             LabeledEntry.__init__(self, parent, text, validate, validatecmd)
             self.button = Tkinter.Button(self.f, text=buttonText, command=command)
             self.button.grid(row=1, column=3)
+
 
     class DragDialog(Tkinter.Toplevel):
 
@@ -1656,6 +1710,7 @@ if TKINTER_AVAILABLE:
             self.__cleanUpSpId()
             self.__cleanUpEpId()
 
+
     class ContextMenu(Tkinter.Menu):
         # FIXME: should get rid of the nested classes, otherwise it's not possible to create a parent class
         # SubMenu for UiScrollableSubMenu
@@ -1780,6 +1835,7 @@ if TKINTER_AVAILABLE:
                 # self.grab_release()
                 pass
 
+
     class HelpDialog(Tkinter.Toplevel):
 
         def __init__(self, culebron):
@@ -1838,6 +1894,7 @@ if TKINTER_AVAILABLE:
             # put focus back to the parent window's canvas
             self.culebron.canvas.focus_set()
             self.destroy()
+
 
     class FileDialog():
         def __init__(self, culebron, filename):

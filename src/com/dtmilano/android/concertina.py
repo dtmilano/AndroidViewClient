@@ -19,11 +19,22 @@ limitations under the License.
 
 '''
 import random
+import subprocess
+import platform
+import sys
+import time
 
 __author__ = 'diego'
 __version__ = '10.6.1'
 
+DEBUG = True
+
 class Concertina:
+    osName = platform.system()
+    ''' The OS name. We sometimes need specific behavior. '''
+    isLinux = (osName == 'Linux')
+    isDarwin = (osName == 'Darwin')
+
     PHRASES = [
         "Chicken Wings grow on trees",
         "Carrot sticks help the mind think",
@@ -211,6 +222,22 @@ class Concertina:
     @staticmethod
     def getRandomText():
         return random.choice(Concertina.PHRASES)
+
+    @staticmethod
+    def sayRandomText():
+        text = Concertina.getRandomText()
+        if Concertina.isLinux:
+            if DEBUG:
+                print >> sys.stderr, 'Saying "%s" using festival' % text
+            pipe = subprocess.Popen(['/usr/bin/festival'])
+            pipe.communicate('(SayText "%s")' % text)
+            pipe.terminate()
+        elif Concertina.isDarwin:
+            if DEBUG:
+                print >> sys.stderr, 'Saying "%s"' % text
+            #subprocess.check_call(['/usr/bin/say', 'OK Google'])
+            #time.sleep(2)
+            subprocess.check_call(['/usr/bin/say', text])
 
     @staticmethod
     def getRandomEmail():
