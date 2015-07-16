@@ -2577,7 +2577,9 @@ class ViewClient:
             print >> sys.stderr, 'Connecting to a device with serialno=%s with a timeout of %d secs...' % \
                 (serialno, timeout)
         ViewClient.setAlarm(timeout+5)
-        device = adbclient.AdbClient(serialno, ignoreversioncheck=ignoreversioncheck)
+        # NOTE: timeout is used for 2 different timeouts, the one to set the alarm to timeout the connection with
+        # adb and the timeout used by adb (once connected) for the sockets
+        device = adbclient.AdbClient(serialno, ignoreversioncheck=ignoreversioncheck, timeout=timeout)
         ViewClient.setAlarm(0)
         if verbose:
             print >> sys.stderr, 'Connected to device with serialno=%s' % serialno
