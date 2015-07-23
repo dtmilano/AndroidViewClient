@@ -21,16 +21,19 @@ __version__ = '10.6.2'
 
 import sys
 import warnings
-import string
-import datetime
+
 if sys.executable:
     if 'monkeyrunner' in sys.executable:
         warnings.warn(
-    '''
+            '''
 
-    You should use a 'python' interpreter, not 'monkeyrunner' for this module
+            You should use a 'python' interpreter, not 'monkeyrunner' for this module
 
-    ''', RuntimeWarning)
+            ''', RuntimeWarning)
+import string
+import datetime
+import struct
+import cStringIO as StringIO
 import socket
 import time
 import re
@@ -40,15 +43,19 @@ import types
 import platform
 
 from com.dtmilano.android.window import Window
-from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy,\
-    obtainVwVh
+from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy, \
+    obtainVwVh, profileStart, profileEnd
 from com.dtmilano.android.adb.androidkeymap import KEY_MAP
 
 DEBUG = False
+DEBUG_SHELL = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_LOG = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
 DEBUG_COORDS = DEBUG and False
+
+PIL_AVAILABLE = False
+PROFILE = False
 
 try:
     HOSTNAME = os.environ['ANDROID_ADB_SERVER_HOST']
@@ -94,32 +101,33 @@ class Device:
     def __str__(self):
         return "<<<" + self.serialno + ", " + self.status + ", %s>>>" % self.qualifiers
 
+
 class WifiManager:
     '''
     Simulates Android WifiManager.
     
     @see: http://developer.android.com/reference/android/net/wifi/WifiManager.html
     '''
-    
+
     WIFI_STATE_DISABLING = 0
     WIFI_STATE_DISABLED = 1
     WIFI_STATE_ENABLING = 2
     WIFI_STATE_ENABLED = 3
     WIFI_STATE_UNKNOWN = 4
-    
+
     WIFI_IS_ENABLED_RE = re.compile('Wi-Fi is enabled')
     WIFI_IS_DISABLED_RE = re.compile('Wi-Fi is disabled')
-    
+
     def __init__(self, device):
         self.device = device
-        
+
     def getWifiState(self):
         '''
         Gets the Wi-Fi enabled state.
         
         @return: One of WIFI_STATE_DISABLED, WIFI_STATE_DISABLING, WIFI_STATE_ENABLED, WIFI_STATE_ENABLING, WIFI_STATE_UNKNOWN
         '''
-        
+
         result = self.device.shell('dumpsys wifi')
         if result:
             state = result.splitlines()[0]
@@ -130,11 +138,12 @@ class WifiManager:
         print >> sys.stderr, "UNKNOWN WIFI STATE:", state
         return self.WIFI_STATE_UNKNOWN
 
-class AdbClient:
 
-    def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True, ignoreversioncheck=False, timeout=TIMEOUT):
+class AdbClient:
+    def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True,
+                 ignoreversioncheck=False, timeout=TIMEOUT):
         self.Log = AdbClient.__Log(self)
-        
+
         self.serialno = serialno
         self.hostname = hostname
         self.port = port
@@ -159,7 +168,6 @@ class AdbClient:
             self.__setTransport()
             self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
             self.initDisplayProperties()
-
 
     @staticmethod
     def setAlarm(timeout):
@@ -234,8 +242,11 @@ class AdbClient:
         nr = 0
         while nr < nob:
             chunk = self.socket.recv(min((nob - nr), 4096))
+            l = len(chunk)
+            if DEBUG:
+                print >> sys.stderr, "l=", l, "nr=", nr
             recv.extend(chunk)
-            nr += len(chunk)
+            nr += l
         if DEBUG:
             print >> sys.stderr, "    __receive: returning len=", len(recv)
         return str(recv)
@@ -252,7 +263,8 @@ class AdbClient:
             if recv != OKAY:
                 error = self.socket.recv(1024)
                 if error.startswith('0049'):
-                    raise RuntimeError("ERROR: This computer is unauthorized. Please check the confirmation dialog on your device.")
+                    raise RuntimeError(
+                        "ERROR: This computer is unauthorized. Please check the confirmation dialog on your device.")
                 else:
                     raise RuntimeError("ERROR: %s %s" % (repr(recv), error))
         finally:
@@ -275,13 +287,14 @@ class AdbClient:
             print >> sys.stderr, "checkVersion(reconnect=%s)   ignoreversioncheck=%s" % (reconnect, ignoreversioncheck)
         self.__send('host:version', reconnect=False)
         # HACK: MSG_WAITALL not available on windows
-        #version = self.socket.recv(8, socket.MSG_WAITALL)
+        # version = self.socket.recv(8, socket.MSG_WAITALL)
         version = self.__readExactly(self.socket, 8)
 
         VALID_ADB_VERSIONS = ["00040020", "0004001f"]
 
         if not (version in VALID_ADB_VERSIONS) and not ignoreversioncheck:
-            raise RuntimeError("ERROR: Incorrect ADB server version %s (expecting one of %s)" % (version, VALID_ADB_VERSIONS))
+            raise RuntimeError(
+                "ERROR: Incorrect ADB server version %s (expecting one of %s)" % (version, VALID_ADB_VERSIONS))
         if reconnect:
             self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
 
@@ -312,16 +325,16 @@ class AdbClient:
     def __checkTransport(self):
         if not self.isTransportSet:
             raise RuntimeError("ERROR: Transport is not set")
-    
+
     def __readExactly(self, sock, size):
         if DEBUG:
             print >> sys.stderr, "__readExactly(socket=%s, size=%d)" % (socket, size)
         _buffer = ''
         while len(_buffer) < size:
-            data = sock.recv(size-len(_buffer))
+            data = sock.recv(size - len(_buffer))
             if not data:
                 break
-            _buffer+=data
+            _buffer += data
         return _buffer
 
     def getDevices(self):
@@ -340,7 +353,7 @@ class AdbClient:
         return devices
 
     def shell(self, cmd=None):
-        if DEBUG:
+        if DEBUG_SHELL:
             print >> sys.stderr, "shell(cmd=%s)" % cmd
         self.__checkTransport()
         if cmd:
@@ -397,14 +410,15 @@ class AdbClient:
         '''
 
         self.__checkTransport()
-        logicalDisplayRE = re.compile('.*DisplayViewport{valid=true, .*orientation=(?P<orientation>\d+), .*deviceWidth=(?P<width>\d+), deviceHeight=(?P<height>\d+).*')
+        logicalDisplayRE = re.compile(
+            '.*DisplayViewport{valid=true, .*orientation=(?P<orientation>\d+), .*deviceWidth=(?P<width>\d+), deviceHeight=(?P<height>\d+).*')
         for line in self.shell('dumpsys display').splitlines():
             m = logicalDisplayRE.search(line, 0)
             if m:
                 self.__displayInfo = {}
-                for prop in [ 'width', 'height', 'orientation' ]:
+                for prop in ['width', 'height', 'orientation']:
                     self.__displayInfo[prop] = int(m.group(prop))
-                for prop in [ 'density' ]:
+                for prop in ['density']:
                     d = self.__getDisplayDensity(None, strip=True, invokeGetPhysicalDisplayIfNotFound=True)
                     if d:
                         self.__displayInfo[prop] = d
@@ -422,20 +436,21 @@ class AdbClient:
         m = phyDispRE.search(self.shell('wm size; wm density'))
         if m:
             displayInfo = {}
-            for prop in [ 'width', 'height' ]:
+            for prop in ['width', 'height']:
                 displayInfo[prop] = int(m.group(prop))
-            for prop in [ 'density' ]:
+            for prop in ['density']:
                 displayInfo[prop] = float(m.group(prop))
             return displayInfo
 
-        phyDispRE = re.compile('.*PhysicalDisplayInfo{(?P<width>\d+) x (?P<height>\d+), .*, density (?P<density>[\d.]+).*')
+        phyDispRE = re.compile(
+            '.*PhysicalDisplayInfo{(?P<width>\d+) x (?P<height>\d+), .*, density (?P<density>[\d.]+).*')
         for line in self.shell('dumpsys display').splitlines():
             m = phyDispRE.search(line, 0)
             if m:
                 displayInfo = {}
-                for prop in [ 'width', 'height' ]:
+                for prop in ['width', 'height']:
                     displayInfo[prop] = int(m.group(prop))
-                for prop in [ 'density' ]:
+                for prop in ['density']:
                     # In mPhysicalDisplayInfo density is already a factor, no need to calculate
                     displayInfo[prop] = float(m.group(prop))
                 return displayInfo
@@ -450,9 +465,9 @@ class AdbClient:
                 m = dispWHRE.search(line, 0)
             if m:
                 displayInfo = {}
-                for prop in [ 'width', 'height' ]:
+                for prop in ['width', 'height']:
                     displayInfo[prop] = int(m.group(prop))
-                for prop in [ 'density' ]:
+                for prop in ['density']:
                     d = self.__getDisplayDensity(None, strip=True, invokeGetPhysicalDisplayIfNotFound=False)
                     if d:
                         displayInfo[prop] = d
@@ -460,7 +475,6 @@ class AdbClient:
                         # No available density information
                         displayInfo[prop] = -1.0
                 return displayInfo
-
 
     def __getProp(self, key, strip=True):
         if DEBUG:
@@ -499,15 +513,15 @@ class AdbClient:
         return -1
 
     def __getDisplayDensity(self, key, strip=True, invokeGetPhysicalDisplayIfNotFound=True):
-        if self.__displayInfo and 'density' in self.__displayInfo: # and self.__displayInfo['density'] != -1: # FIXME: need more testing
+        if self.__displayInfo and 'density' in self.__displayInfo:  # and self.__displayInfo['density'] != -1: # FIXME: need more testing
             return self.__displayInfo['density']
         BASE_DPI = 160.0
         d = self.getProperty('ro.sf.lcd_density', strip)
         if d:
-            return float(d)/BASE_DPI
+            return float(d) / BASE_DPI
         d = self.getProperty('qemu.sf.lcd_density', strip)
         if d:
-            return float(d)/BASE_DPI
+            return float(d) / BASE_DPI
         if invokeGetPhysicalDisplayIfNotFound:
             return self.getPhysicalDisplayInfo()['density']
         return -1.0
@@ -522,12 +536,12 @@ class AdbClient:
         self.__checkTransport()
         import collections
         MAP_PROPS = collections.OrderedDict([
-                          (re.compile('display.width'), self.__getDisplayWidth),
-                          (re.compile('display.height'), self.__getDisplayHeight),
-                          (re.compile('display.density'), self.__getDisplayDensity),
-                          (re.compile('display.orientation'), self.__getDisplayOrientation),
-                          (re.compile('.*'), self.__getProp),
-                          ])
+            (re.compile('display.width'), self.__getDisplayWidth),
+            (re.compile('display.height'), self.__getDisplayHeight),
+            (re.compile('display.density'), self.__getDisplayDensity),
+            (re.compile('display.orientation'), self.__getDisplayOrientation),
+            (re.compile('.*'), self.__getProp),
+        ])
         '''Maps properties key values (as regexps) to instance methods to obtain its values.'''
 
         for kre in MAP_PROPS.keys():
@@ -602,45 +616,67 @@ class AdbClient:
         Takes a snapshot of the device and return it as a PIL Image.
         '''
 
-        self.__checkTransport()
-        try:
-            from PIL import Image
-        except:
-            raise Exception("You have to install PIL to use takeSnapshot()")
-        self.__send('framebuffer:', checkok=True, reconnect=False)
-        import struct
-        # case 1: // version
-        #           return 12; // bpp, size, width, height, 4*(length, offset)
-        received = self.__receive(1 * 4 + 12 * 4)
-        (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen) = struct.unpack('<' + 'L' * 13, received)
-        if DEBUG:
-            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)
-        offsets = {roffset:'R', goffset:'G', boffset:'B'}
-        if bpp == 32:
-            if alen != 0:
-                offsets[aoffset] = 'A'
+        if PROFILE:
+            profileStart()
+
+        global PIL_AVAILABLE
+        if not PIL_AVAILABLE:
+            try:
+                global Image
+                from PIL import Image
+                PIL_AVAILABLE = True
+            except:
+                raise Exception("You have to install PIL to use takeSnapshot()")
+
+        USE_ADB_FRAMEBUFFER_METHOD = False
+        if USE_ADB_FRAMEBUFFER_METHOD:
+            self.__checkTransport()
+
+            self.__send('framebuffer:', checkok=True, reconnect=False)
+            # case 1: // version
+            #           return 12; // bpp, size, width, height, 4*(length, offset)
+            received = self.__receive(1 * 4 + 12 * 4)
+            (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset,
+             alen) = struct.unpack(
+                '<' + 'L' * 13, received)
+            if DEBUG:
+                print >> sys.stderr, "    takeSnapshot:", (
+                    version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)
+            offsets = {roffset: 'R', goffset: 'G', boffset: 'B'}
+            if bpp == 32:
+                if alen != 0:
+                    offsets[aoffset] = 'A'
+                else:
+                    warnings.warn('''framebuffer is specified as 32bpp but alpha length is 0''')
+            argMode = ''.join([offsets[o] for o in sorted(offsets)])
+            if DEBUG:
+                print >> sys.stderr, "    takeSnapshot:", (
+                    version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen,
+                    argMode)
+            if argMode == 'BGRA':
+                argMode = 'RGBA'
+            if bpp == 16:
+                mode = 'RGB'
+                argMode += ';16'
             else:
-                warnings.warn('''framebuffer is specified as 32bpp but alpha length is 0''')
-        argMode = ''.join([offsets[o] for o in sorted(offsets)])
-        if DEBUG:
-            print >> sys.stderr, "    takeSnapshot:", (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen, argMode)
-        if argMode == 'BGRA':
-            argMode = 'RGBA'
-        if bpp == 16:
-            mode = 'RGB'
-            argMode += ';16'
+                mode = argMode
+            self.__send('\0', checkok=False, reconnect=False)
+            if DEBUG:
+                print >> sys.stderr, "    takeSnapshot: reading %d bytes" % (size)
+            received = self.__receive(size)
+            if reconnect:
+                self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
+                self.__setTransport()
+            if DEBUG:
+                print >> sys.stderr, "    takeSnapshot: Image.frombuffer(%s, %s, %s, %s, %s, %s, %s)" % (
+                    mode, (width, height), 'data', 'raw', argMode, 0, 1)
+            image = Image.frombuffer(mode, (width, height), received, 'raw', argMode, 0, 1)
         else:
-            mode = argMode
-        self.__send('\0', checkok=False, reconnect=False)
-        if DEBUG:
-            print >> sys.stderr, "    takeSnapshot: reading %d bytes" % (size)
-        received = self.__receive(size)
-        if reconnect:
-            self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
-            self.__setTransport()
-        if DEBUG:
-            print >> sys.stderr, "    takeSnapshot: Image.frombuffer(%s, %s, %s, %s, %s, %s, %s)" % (mode, (width, height), 'data', 'raw', argMode, 0, 1)
-        image = Image.frombuffer(mode, (width, height), received, 'raw', argMode, 0, 1)
+            # ALTERNATIVE_METHOD: screencap
+            received = self.shell('/system/bin/screencap -p').replace("\r\n", "\n")
+            stream = StringIO.StringIO(received)
+            image = Image.open(stream)
+
         # Just in case let's get the real image size
         (w, h) = image.size
         if w == self.display['height'] and h == self.display['width']:
@@ -650,6 +686,9 @@ class AdbClient:
             else:
                 r = 90
             image = image.rotate(r)
+
+        if PROFILE:
+            profileEnd()
         return image
 
     def __transformPointByOrientation(self, (x, y), orientationOrig, orientationDest):
@@ -670,7 +709,8 @@ class AdbClient:
         self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
-        self.shell('input tap %d %d' % self.__transformPointByOrientation((x, y), orientation, self.display['orientation']))
+        self.shell(
+            'input tap %d %d' % self.__transformPointByOrientation((x, y), orientation, self.display['orientation']))
 
     def touchDip(self, x, y, orientation=-1, eventType=DOWN_AND_UP):
         if DEBUG_TOUCH:
@@ -691,7 +731,7 @@ class AdbClient:
 
         This workaround was suggested by U{HaMi<http://stackoverflow.com/users/2571957/hami>}
         '''
-        
+
         self.__checkTransport()
         self.drag((x, y), (x, y), duration, orientation)
 
@@ -739,7 +779,7 @@ class AdbClient:
         x1 = x1 * density
         y1 = y1 * density
         self.drag((x0, y0), (x1, y1), duration, steps, orientation)
-        
+
     def type(self, text):
         self.__checkTransport()
         self.shell(u'input text "%s"' % text)
@@ -798,7 +838,7 @@ class AdbClient:
         size_x1, size_y1 = image1.size
         size_x2, size_y2 = image2.size
         if (size_x1 != size_x2 or
-            size_y1 != size_y2):
+                    size_y1 != size_y2):
             return 0
 
         # Images are the same size
@@ -845,16 +885,16 @@ class AdbClient:
         self.display['height'] = self.getProperty('display.height')
         self.display['density'] = self.getProperty('display.density')
         self.display['orientation'] = self.getProperty('display.orientation')
-        
+
     def log(self, tag, message, priority='D', verbose=False):
         if DEBUG_LOG:
             print >> sys.stderr, "log(tag=%s, message=%s, priority=%s, verbose=%s)" % (tag, message, priority, verbose)
         self.__checkTransport()
         message = self.substituteDeviceTemplate(message)
         if verbose or priority == 'V':
-            print >> sys.stderr, tag+':', message
+            print >> sys.stderr, tag + ':', message
         self.shell('log -p %c -t "%s" %s' % (priority, tag, message))
-        
+
     class __Log():
         '''
         Log class to simulate C{android.util.Log}
@@ -862,16 +902,17 @@ class AdbClient:
 
         def __init__(self, adbClient):
             self.adbClient = adbClient
-            
+
         def __getattr__(self, attr):
             '''
             Returns the corresponding log method or @C{AttributeError}.
             '''
-            
+
             if attr in ['v', 'd', 'i', 'w', 'e']:
-                return lambda tag, message, verbose: self.adbClient.log(tag, message, priority=attr.upper(), verbose=verbose)
+                return lambda tag, message, verbose: self.adbClient.log(tag, message, priority=attr.upper(),
+                                                                        verbose=verbose)
             raise AttributeError(self.__class__.__name__ + ' has no attribute "%s"' % attr)
-    
+
     def getSystemService(self, name):
         if name == WIFI_SERVICE:
             return WifiManager(self)
@@ -883,17 +924,19 @@ class AdbClient:
         if DEBUG_WINDOWS: print >> sys.stderr, dww
         lines = dww.splitlines()
         widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s?.*}:' %
-                            (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
+                           (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
         currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % _nh('winId'))
         viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % _nh('visibility'))
         # This is for 4.0.4 API-15
         containingFrameRE = re.compile('^   *mContainingFrame=\[%s,%s\]\[%s,%s\] mParentFrame=\[%s,%s\]\[%s,%s\]' %
-                             (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'), _nd('ph')))
+                                       (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'),
+                                        _nd('ph')))
         contentFrameRE = re.compile('^   *mContentFrame=\[%s,%s\]\[%s,%s\] mVisibleFrame=\[%s,%s\]\[%s,%s\]' %
-                             (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'), _nd('vy1')))
+                                    (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'),
+                                     _nd('vy1')))
         # This is for 4.1 API-16
         framesRE = re.compile('^   *Frames: containing=\[%s,%s\]\[%s,%s\] parent=\[%s,%s\]\[%s,%s\]' %
-                               (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'), _nd('ph')))
+                              (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'), _nd('ph')))
         contentRE = re.compile('^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]\[%s,%s\]' %
                                (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'), _nd('vy1')))
         policyVisibilityRE = re.compile('mPolicyVisibility=%s ' % _ns('policyVisibility', greedy=True))
@@ -915,10 +958,10 @@ class AdbClient:
                 visibility = -1
                 policyVisibility = 0x0
 
-                for l2 in range(l+1, len(lines)):
+                for l2 in range(l + 1, len(lines)):
                     m = widRE.search(lines[l2])
                     if m:
-                        l += (l2-1)
+                        l += (l2 - 1)
                         break
                     m = viewVisibilityRE.search(lines[l2])
                     if m:
@@ -931,7 +974,7 @@ class AdbClient:
                         m = framesRE.search(lines[l2])
                         if m:
                             px, py = obtainPxPy(m)
-                            m = contentRE.search(lines[l2+1])
+                            m = contentRE.search(lines[l2 + 1])
                             if m:
                                 # FIXME: the information provided by 'dumpsys window windows' in 4.2.1 (API 16)
                                 # when there's a system dialog may not be correct and causes the View coordinates
@@ -943,7 +986,7 @@ class AdbClient:
                         m = containingFrameRE.search(lines[l2])
                         if m:
                             px, py = obtainPxPy(m)
-                            m = contentFrameRE.search(lines[l2+1])
+                            m = contentFrameRE.search(lines[l2 + 1])
                             if m:
                                 wvx, wvy = obtainVxVy(m)
                                 wvw, wvh = obtainVwVh(m)
@@ -951,14 +994,14 @@ class AdbClient:
                         m = containingFrameRE.search(lines[l2])
                         if m:
                             px, py = obtainPxPy(m)
-                            m = contentFrameRE.search(lines[l2+1])
+                            m = contentFrameRE.search(lines[l2 + 1])
                             if m:
                                 wvx, wvy = obtainVxVy(m)
                                 wvw, wvh = obtainVwVh(m)
                     else:
                         warnings.warn("Unsupported Android version %d" % self.build[VERSION_SDK_PROPERTY])
 
-                    #print >> sys.stderr, "Searching policyVisibility in", lines[l2]
+                    # print >> sys.stderr, "Searching policyVisibility in", lines[l2]
                     m = policyVisibilityRE.search(lines[l2])
                     if m:
                         policyVisibility = 0x0 if m.group('policyVisibility') == 'true' else 0x8
@@ -968,7 +1011,7 @@ class AdbClient:
                 m = currentFocusRE.search(lines[l])
                 if m:
                     currentFocus = m.group('winId')
-        
+
         if currentFocus in windows and windows[currentFocus].visibility == 0:
             if DEBUG_COORDS:
                 print >> sys.stderr, "getWindows: focus=", currentFocus
@@ -976,7 +1019,7 @@ class AdbClient:
             windows[currentFocus].focused = True
 
         return windows
-    
+
     def getFocusedWindow(self):
         '''
         Gets the focused window.
@@ -988,7 +1031,7 @@ class AdbClient:
             if window.focused:
                 return window
         return None
-    
+
     def getFocusedWindowName(self):
         '''
         Gets the focused window name.
@@ -1029,11 +1072,12 @@ class AdbClient:
         if osName.startswith('Windows'):  # ':' not supported in filenames
             timestamp.replace(':', '_')
         _map = {
-                'serialno': serialno,
-                'focusedwindowname': focusedWindowName,
-                'timestamp': timestamp
-             }
+            'serialno': serialno,
+            'focusedwindowname': focusedWindowName,
+            'timestamp': timestamp
+        }
         return string.Template(template).substitute(_map)
+
 
 if __name__ == '__main__':
     adbClient = AdbClient(os.environ['ANDROID_SERIAL'])

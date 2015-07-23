@@ -112,3 +112,20 @@ def obtainAdbPath():
             return exeFile
 
     raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
+
+def profileStart():
+    import cProfile
+    global profile
+    profile = cProfile.Profile()
+    profile.enable()
+
+def profileEnd():
+    profile.disable()
+    import StringIO, pstats
+    import sys
+    s = StringIO.StringIO()
+    ps = pstats.Stats(profile, stream=s).sort_stats('cumulative')
+    ps.print_stats()
+    print >> sys.stderr, '.' * 60
+    print >> sys.stderr, "STATS:\n", s.getvalue()
+    print >> sys.stderr, '.' * 60

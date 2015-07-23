@@ -21,6 +21,8 @@ limitations under the License.
 import random
 import time
 import re
+from com.dtmilano.android.common import profileStart
+from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
 __version__ = '10.6.1'
@@ -55,6 +57,9 @@ except:
     TKINTER_AVAILABLE = False
 
 from ast import literal_eval as make_tuple
+
+CHECK_KEYBOARD_SHOWN = False
+PROFILE = False
 
 DEBUG = False
 DEBUG_MOVE = DEBUG and False
@@ -253,6 +258,10 @@ This is usually installed by python package. Check your distribution details.
          - hides the vignette (that could have been showed before)
         '''
 
+        if PROFILE:
+            print >> sys.stderr, "PROFILING: takeScreenshotAndShowItOnWindow()"
+            profileStart()
+
         if DEBUG:
             print >> sys.stderr, "takeScreenshotAndShowItOnWindow()"
         self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
@@ -295,6 +304,8 @@ This is usually installed by python package. Check your distribution details.
                 self.printGridInfo()
             except:
                 pass
+        if PROFILE:
+            profileEnd()
 
     def createMessageArea(self, width, height):
         self.__message = Tkinter.Label(self.window, text='', background=Color.GOLD, font=('Helvetica', 16),
@@ -483,14 +494,17 @@ This is usually installed by python package. Check your distribution details.
         ''' The list of target coordinates (x1, y1, x2, y2) '''
         self.targetViews = []
         ''' The list of target Views '''
-        if self.device.isKeyboardShown():
-            print >> sys.stderr, "#### keyboard is show but handling it is not implemented yet ####"
-            # FIXME: still no windows in uiautomator
-            window = -1
+        if CHECK_KEYBOARD_SHOWN:
+            if self.device.isKeyboardShown():
+                print >> sys.stderr, "#### keyboard is show but handling it is not implemented yet ####"
+                # FIXME: still no windows in uiautomator
+                window = -1
+            else:
+                window = -1
         else:
             window = -1
         if self.vc:
-            dump = self.vc.dump(window=window)
+            dump = self.vc.dump(window=window, sleep=0.1)
             self.printOperation(None, Operation.DUMP, window, dump)
         else:
             dump = []
@@ -621,7 +635,7 @@ This is usually installed by python package. Check your distribution details.
         self.takeScreenshotAndShowItOnWindow()
 
     def setText(self, v, text):
-        if DEBUG_CONCERTINA:
+        if DEBUG:
             print >> sys.stderr, "setText(%s, '%s')" % (v.__tinyStr__(), text)
         # This is deleting the existing text, which should be asked in the dialog, but I would have to implement
         # the dialog myself
@@ -830,7 +844,8 @@ This is usually installed by python package. Check your distribution details.
             pass
         else:
             self.command(char.decode('ascii', errors='replace'))
-        time.sleep(1)
+        # commented out (profile)
+        #time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
     def refresh(self):
@@ -1125,7 +1140,7 @@ This is usually installed by python package. Check your distribution details.
         @return the id of the rectangle added
         '''
 
-        #self.areTargetsMarked = True
+        # self.areTargetsMarked = True
         _id = self.canvas.create_rectangle(x1 * self.scale, y1 * self.scale, x2 * self.scale, y2 * self.scale,
                                            fill=color,
                                            stipple="gray25")
@@ -1151,14 +1166,14 @@ This is usually installed by python package. Check your distribution details.
             self.isGrabbingTouch = False
 
     def drawTouchedPoint(self, x, y):
-        if DEBUG_CONCERTINA:
+        if DEBUG:
             print >> sys.stderr, "drawTouchedPoint(", x, ",", y, ")"
         size = 50
         return self.canvas.create_oval((x - size) * self.scale, (y - size) * self.scale, (x + size) * self.scale,
                                        (y + size) * self.scale, fill=Color.MAGENTA)
 
     def drawDragLine(self, x0, y0, x1, y1):
-        if DEBUG_CONCERTINA:
+        if DEBUG:
             print >> sys.stderr, "drawDragLine(", x0, ",", y0, ",", x1, ",", y1, ")"
         width = 15
         return self.canvas.create_line(x0 * self.scale, y0 * self.scale, x1 * self.scale, y1 * self.scale, width=width,
@@ -1245,10 +1260,10 @@ This is usually installed by python package. Check your distribution details.
                 print >> sys.stderr, "CONCERTINA: should select one of these targets:"
                 for v in self.targetViews:
                     print >> sys.stderr, "    ", unicode(v.__tinyStr__())
-            r = random.random()
+            rand = random.random()
             if DEBUG_CONCERTINA:
-                print >> sys.stderr, "CONCERTINA: ramdom=%f" % r
-            if r > 0.85:
+                print >> sys.stderr, "CONCERTINA: random=%f" % rand
+            if rand > 0.85:
                 # Send key events
                 k = random.choice(['ENTER', 'BACK', 'HOME', 'MENU'])
                 if DEBUG_CONCERTINA:
@@ -1282,12 +1297,12 @@ This is usually installed by python package. Check your distribution details.
                         print >> sys.stderr, "CONCERTINA: is scrollable: ", isScrollable
                         if parent:
                             print >> sys.stderr, "CONCERTINA: is scrollable parent: ", parent.isScrollable()
-                        cond = (isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView')
-                        # DEBUG ONLY!
-                        # print >> sys.stderr, "CONCERTINA: check:", cond
-                        # if not cond:
-                        #     self.window.after(500, self.concertinaLoopCallback)
-                        #     return
+                            # cond = (isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView')
+                            # DEBUG ONLY!
+                            # print >> sys.stderr, "CONCERTINA: check:", cond
+                            # if not cond:
+                            #     self.window.after(500, self.concertinaLoopCallback)
+                            #     return
                     if clazz == 'android.widget.EditText':
                         id = target.getId()
                         txt = target.getText()
@@ -1306,7 +1321,8 @@ This is usually installed by python package. Check your distribution details.
                     elif target.getContentDescription() in ['Voice Search', 'Tap to speak']:
                         Concertina.sayRandomText()
                         time.sleep(5)
-                    elif random.choice(['SCROLL', 'TOUCH']) == 'SCROLL' and (isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
+                    elif random.choice(['SCROLL', 'TOUCH']) == 'SCROLL' and (
+                            isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
                         # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
                         # capture the case of other ScrollViews
                         if isScrollable:
@@ -1319,23 +1335,23 @@ This is usually installed by python package. Check your distribution details.
                             print >> sys.stderr, "CONCERTINA: bounds=", ((l, t), (r, b))
                         if random.choice(['VERTICAL', 'HORIZONTAL']) == 'VERTICAL':
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, 'VERTICAL'
+                                print >> sys.stderr, 'CONCERTINA: VERTICAL'
                             sp = (l + (r - l) / 2, t + 50)
                             ep = (l + (r - l) / 2, b - 50)
                         else:
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, 'HORIZONTAL'
+                                print >> sys.stderr, 'CONCERTINA: HORIZONTAL'
                             sp = (l + 50, t + (b - t) / 2)
                             ep = (r - 50, t + (b - t) / 2)
                         if random.choice(['FORWARD', 'REVERSE']) == 'REVERSE':
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, 'REVERSE'
+                                print >> sys.stderr, 'CONCERTINA: REVERSE'
                             temp = sp
                             sp = ep
                             ep = temp
                         else:
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, 'FORWARD'
+                                print >> sys.stderr, 'CONCERTINA: FORWARD'
                         d = 500
                         s = 20
                         _id = self.canvas.create_rectangle(l * self.scale, t * self.scale, r * self.scale,
