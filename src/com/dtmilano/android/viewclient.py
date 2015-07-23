@@ -246,7 +246,7 @@ class View:
         self.forceviewserveruse = forceviewserveruse
         ''' Force ViewServer use '''
         self.uiScrollable = None
-        ''' If this is a scrollable View this keeps the L{UiScrollable} object ''' 
+        ''' If this is a scrollable View this keeps the L{UiScrollable} object '''
         self.target = False
         ''' Is this a touch target zone '''
 
@@ -343,7 +343,7 @@ class View:
             self.widthProperty = WIDTH_PROPERTY
             self.heightProperty = HEIGHT_PROPERTY
             self.isFocusedProperty = IS_FOCUSED_PROPERTY
-            
+
         try:
             if self.isScrollable():
                 self.uiScrollable = UiScrollable(self)
@@ -405,7 +405,7 @@ class View:
         else:
             # Default behavior
             raise AttributeError, name
-            
+
 
         # if the method name starts with 'is' let's assume its return value is boolean
 #         if name[:2] == 'is':
@@ -495,9 +495,9 @@ class View:
         '''
         Gets the children of this L{View}.
         '''
-        
+
         return self.children
-    
+
     def getText(self):
         '''
         Gets the text attribute.
@@ -898,13 +898,13 @@ class View:
         '''
         Touches the center of this C{View}. The touch can be displaced from the center by
         using C{deltaX} and C{deltaY} values.
-        
+
         @param eventType: The event type
         @type eventType: L{adbclient.DOWN}, L{adbclient.UP} or L{adbclient.DOWN_AND_UP}
         @param deltaX: Displacement from center (X axis)
         @type deltaX: int
         @param deltaY: Displacement from center (Y axis)
-        @type deltaY: int 
+        @type deltaY: int
         '''
 
         (x, y) = self.getCenter()
@@ -1100,9 +1100,7 @@ class EditText(TextView):
         if not alreadyTouched:
             self.touch()
         time.sleep(0.5)
-        escaped = text.replace('%s', '\\%s')
-        encoded = escaped.replace(' ', '%s')
-        self.device.type(encoded)
+        self.device.type(text)
         time.sleep(0.5)
 
     def setText(self, text):
@@ -1131,16 +1129,16 @@ class UiDevice():
     Provides access to state information about the device. You can also use this class to simulate
     user actions on the device, such as pressing the d-pad or pressing the Home and Menu buttons.
     '''
-    
+
     def __init__(self, vc):
         self.vc = vc
         self.device = self.vc.device
-        
+
     def openNotification(self):
         '''
         Opens the notification shade.
         '''
-        
+
         # the tablet has a different Notification/Quick Settings bar depending on x
         w13 = self.device.display['width'] / 3
         s = (w13, 0)
@@ -1148,12 +1146,12 @@ class UiDevice():
         self.device.drag(s, e, 500, 20, -1)
         self.vc.sleep(1)
         self.vc.dump(-1)
-        
+
     def openQuickSettings(self):
         '''
         Opens the Quick Settings shade.
         '''
-        
+
         # the tablet has a different Notification/Quick Settings bar depending on x
         w23 = 2 * self.device.display['width'] / 3
         s = (w23, 0)
@@ -1181,7 +1179,7 @@ class UiDevice():
             u"Definições", u"Configuración", u"პარამეტრები", u"Postavke", u"Ayarlar", u"Impostazioni", u"Asetukset",
             u"Instellings", u"Seaded", u"ការ​កំណត់", u"सेटिङहरू", u"Tetapan"
             ]
-        
+
         self.openQuickSettings()
 
         # this works on API >= 20
@@ -1194,7 +1192,7 @@ class UiDevice():
                 found = True
                 view.touch()
                 break
-        
+
         if not found:
             # for previous APIs, let's find the text
             for s in STATUS_BAR_SETTINGS_SETTINGS_BUTTON:
@@ -1212,10 +1210,10 @@ class UiDevice():
 
         if not found:
             raise ViewNotFoundException("content-description", "'Settings' or text 'Settings'", "ROOT")
-            
+
         self.vc.sleep(1)
         self.vc.dump(window=-1)
-        
+
     def changeLanguage(self, languageTo):
         LANGUAGE_SETTINGS = {
             "en":    u"Language & input",
@@ -2032,19 +2030,19 @@ class UiDevice():
         self.vc.device.press('BACK')
         self.vc.sleep(1)
         self.vc.device.press('BACK')
-        
+
 class UiCollection():
     '''
     Used to enumerate a container's user interface (UI) elements for the purpose of counting, or
     targeting a sub elements by a child's text or description.
     '''
-    
+
     pass
 
 class UiScrollable(UiCollection):
     '''
     A L{UiCollection} that supports searching for items in scrollable layout elements.
-    
+
     This class can be used with horizontally or vertically scrollable controls.
     '''
 
@@ -2058,7 +2056,7 @@ class UiScrollable(UiCollection):
         self.duration = 500
         self.swipeDeadZonePercentage = 0.1
         self.maxSearchSwipes = 10
-        
+
     def flingBackward(self):
         if self.vertical:
             s = (self.x + self.w/2, self.y + self.h * self.swipeDeadZonePercentage)
@@ -2069,7 +2067,7 @@ class UiScrollable(UiCollection):
             print >> sys.stderr, "flingBackward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
             print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
         self.view.device.drag(s, e, self.duration, self.steps, self.view.device.display['orientation'])
-    
+
     def flingForward(self):
         if self.vertical:
             s = (self.x + self.w/2, (self.y + self.h ) - self.h * self.swipeDeadZonePercentage)
@@ -2080,21 +2078,21 @@ class UiScrollable(UiCollection):
             print >> sys.stderr, "flingForward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
             print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
         self.view.device.drag(s, e, self.duration, self.steps, self.view.device.display['orientation'])
-    
+
     def flingToBeginning(self, maxSwipes=10):
         if self.vertical:
             for _ in range(maxSwipes):
                 if DEBUG:
                     print >> sys.stderr, "flinging to beginning"
                 self.flingBackward()
-    
+
     def flingToEnd(self, maxSwipes=10):
         if self.vertical:
             for _ in range(maxSwipes):
                 if DEBUG:
                     print >> sys.stderr, "flinging to end"
                 self.flingForward()
-    
+
     def scrollTextIntoView(self, text):
         '''
         Performs a forward scroll action on the scrollable layout element until the text you provided is visible,
@@ -2129,16 +2127,16 @@ class UiScrollable(UiCollection):
 
     def setAsHorizontalList(self):
         self.vertical = False
-        
+
     def setAsVerticalList(self):
         self.vertical = True
 
     def setMaxSearchSwipes(self, maxSwipes):
         self.maxSearchSwipes = maxSwipes
-    
+
     def setViewClient(self, vc):
         self.vc = vc
-    
+
 
 class ListView(View):
     '''
@@ -2282,7 +2280,7 @@ class ViewClientOptions:
     IGNORE_UIAUTOMATOR_KILLED = 'ignoreuiautomatorkilled'
     COMPRESSED_DUMP = 'compresseddump'
     USE_UIAUTOMATOR_HELPER = 'useuiautomatorhelper'
-    
+
 class ViewClient:
     '''
     ViewClient is a I{ViewServer} client.
@@ -2539,7 +2537,7 @@ class ViewClient:
         or using the default regex C{.*}.
 
         If the connection is not successful the script exits.
-        
+
         History
         -------
         In MonkeyRunner times, this method was a way of overcoming one of its limitations.
@@ -3838,7 +3836,7 @@ On OSX install
                 print >>sys.stderr, "distance: trees have different length, using Levenshtein distance"
             return ViewClient.__levenshteinDistance(s1, s2)/t
 
-        
+
     @staticmethod
     def __hammingDistance(s1, s2):
         '''
@@ -4092,26 +4090,26 @@ class CulebraOptions:
 class CulebraTestCase(unittest.TestCase):
     '''
     The base class for all CulebraTests.
-    
+
     Class variables
     ---------------
     There are some class variables that can be used to change the behavior of the tests.
-    
-    B{serialno}: The serial number of the device. This can also be a list of devices for I{mutli-devices} 
+
+    B{serialno}: The serial number of the device. This can also be a list of devices for I{mutli-devices}
     tests or the keyword C{all} to run the tests on all available devices or C{default} to run the tests
     only on the default (first) device.
-    
+
     When a I{multi-device} test is running the available devices are available in a list named
     L{self.devices} which has the corresponding L{ConnectedDevices} entries.
-    
+
     Also, in the case of I{multi-devices} tests and to be backward compatible with I{single-device} tests
     the default device, the first one in the devices list, is assigned to L{self.device}, L{self.vc} and
     L{self.serialno} too.
-    
+
     B{verbose}: The verbosity of the tests. This can be changed from the test command line using the
     command line option C{-v} or C{--verbose}.
     '''
-    
+
     kwargs1 = None
     kwargs2 = None
     devices = None
@@ -4135,7 +4133,7 @@ class CulebraTestCase(unittest.TestCase):
     def __init__(self, methodName='runTest'):
         self.Log = CulebraTestCase.__Log(self)
         unittest.TestCase.__init__(self, methodName=methodName)
-        
+
     def setUp(self):
         __devices = None
         if self.serialno:
@@ -4217,9 +4215,9 @@ class CulebraTestCase(unittest.TestCase):
         '''
         Logs a message with the specified priority.
         '''
-        
+
         self.device.log('CULEBRA', message, priority, CulebraTestCase.verbose)
-    
+
     class __Log():
         '''
         Log class to simulate C{android.util.Log}
@@ -4227,16 +4225,16 @@ class CulebraTestCase(unittest.TestCase):
 
         def __init__(self, culebraTestCase):
             self.culebraTestCase = culebraTestCase
-            
+
         def __getattr__(self, attr):
             '''
             Returns the corresponding log method or @C{AttributeError}.
             '''
-            
+
             if attr in ['v', 'd', 'i', 'w', 'e']:
                 return lambda message: self.culebraTestCase.log(message, priority=attr.upper())
             raise AttributeError(self.__class__.__name__ + ' has no attribute "%s"' % attr)
-            
+
     @staticmethod
     def main():
         # If you want to specify tests classes and methods in the command line you will be forced
@@ -4275,5 +4273,3 @@ if __name__ == "__main__":
         vc = ViewClient(None)
     except:
         print "%s: Don't expect this to do anything" % __file__
-
-

@@ -105,7 +105,7 @@ class Device:
 class WifiManager:
     '''
     Simulates Android WifiManager.
-    
+
     @see: http://developer.android.com/reference/android/net/wifi/WifiManager.html
     '''
 
@@ -124,7 +124,7 @@ class WifiManager:
     def getWifiState(self):
         '''
         Gets the Wi-Fi enabled state.
-        
+
         @return: One of WIFI_STATE_DISABLED, WIFI_STATE_DISABLING, WIFI_STATE_ENABLED, WIFI_STATE_ENABLING, WIFI_STATE_UNKNOWN
         '''
 
@@ -725,7 +725,7 @@ class AdbClient:
     def longTouch(self, x, y, duration=2000, orientation=-1):
         '''
         Long touches at (x, y)
-        
+
         @param duration: duration in ms
         @param orientation: the orientation (-1: undefined)
 
@@ -782,7 +782,11 @@ class AdbClient:
 
     def type(self, text):
         self.__checkTransport()
-        self.shell(u'input text "%s"' % text)
+        escaped = text.replace('%s', '\\%s')
+        encoded = escaped.replace(' ', '%s')
+        #FIXME find out which characters can be dangerous,
+        # for exmaple not worst idea to escape " 
+        self.shell(u'input text "%s"' % encoded)
 
     def wake(self):
         self.__checkTransport()
@@ -1023,7 +1027,7 @@ class AdbClient:
     def getFocusedWindow(self):
         '''
         Gets the focused window.
-        
+
         @return: The focused L{Window}.
         '''
 
@@ -1035,9 +1039,9 @@ class AdbClient:
     def getFocusedWindowName(self):
         '''
         Gets the focused window name.
-        
+
         This is much like monkeyRunner's C{HierarchyView.getWindowName()}
-        
+
         @return: The focused window name
         '''
 
