@@ -25,7 +25,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '10.6.1'
+__version__ = '10.7.0'
 
 import sys
 import threading
@@ -69,7 +69,7 @@ DEBUG_KEY = DEBUG and False
 DEBUG_ISCCOF = DEBUG and False
 DEBUG_FIND_VIEW = DEBUG and False
 DEBUG_CONTEXT_MENU = DEBUG and False
-DEBUG_CONCERTINA = DEBUG and False
+DEBUG_CONCERTINA = DEBUG and False or True
 
 
 class Color:
@@ -262,7 +262,7 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "PROFILING: takeScreenshotAndShowItOnWindow()"
             profileStart()
 
-        if DEBUG:
+        if DEBUG or DEBUG_CONCERTINA:
             print >> sys.stderr, "takeScreenshotAndShowItOnWindow()"
         self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
         self.image = self.unscaledScreenshot
@@ -1370,7 +1370,11 @@ This is usually installed by python package. Check your distribution details.
                     else:
                         self.touchView(target)
                     self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
+                    if DEBUG_CONCERTINA:
+                        print >> sys.stderr, "CONCERTINA: waiting 5 secs"
                     time.sleep(5)
+                    if DEBUG_CONCERTINA:
+                        print >> sys.stderr, "CONCERTINA: taking screenshot"
                     self.takeScreenshotAndShowItOnWindow()
                 else:
                     print >> sys.stderr, "CONCERTINA: No target views"
