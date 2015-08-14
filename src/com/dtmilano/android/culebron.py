@@ -25,7 +25,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '10.7.0'
+__version__ = '10.7.1'
 
 import sys
 import threading
@@ -262,7 +262,7 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "PROFILING: takeScreenshotAndShowItOnWindow()"
             profileStart()
 
-        if DEBUG or DEBUG_CONCERTINA:
+        if DEBUG:
             print >> sys.stderr, "takeScreenshotAndShowItOnWindow()"
         self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
         self.image = self.unscaledScreenshot

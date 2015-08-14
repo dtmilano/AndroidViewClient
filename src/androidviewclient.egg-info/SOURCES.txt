@@ -8,6 +8,7 @@ src/com/__init__.py
 src/com/dtmilano/__init__.py
 src/com/dtmilano/android/__init__.py
 src/com/dtmilano/android/common.py
+src/com/dtmilano/android/concertina.py
 src/com/dtmilano/android/controlpanel.py
 src/com/dtmilano/android/culebron.py
 src/com/dtmilano/android/viewclient.py
@@ -15,6 +16,8 @@ src/com/dtmilano/android/window.py
 src/com/dtmilano/android/adb/__init__.py
 src/com/dtmilano/android/adb/adbclient.py
 src/com/dtmilano/android/adb/androidkeymap.py
+src/com/dtmilano/android/uiautomator/__init__.py
+src/com/dtmilano/android/uiautomator/uiautomatorhelper.py
 src/share/__init__.py
 src/share/pixmaps/__init__.py
 src/share/pixmaps/plugins/__init__.py
