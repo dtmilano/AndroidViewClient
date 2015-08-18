@@ -25,7 +25,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '10.7.1'
+__version__ = '10.7.2'
 
 import sys
 import threading
@@ -1153,7 +1153,7 @@ This is usually installed by python package. Check your distribution details.
     def unmarkTargets(self):
         if not self.areTargetsMarked:
             return
-        for (_id, _) in self.markedTargetIds:
+        for _id in self.markedTargetIds:
             self.unmarkTarget(_id)
         self.markedTargetIds = {}
         self.areTargetsMarked = False

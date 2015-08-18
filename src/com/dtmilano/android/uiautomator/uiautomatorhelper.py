@@ -16,6 +16,8 @@ __author__ = 'diego'
 
 DEBUG = True
 
+lock = threading.Lock()
+
 class RunTestsThread(threading.Thread):
     def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, adbClient=None, testClass=None, testRunner=None):
         threading.Thread.__init__(self, group=group, target=target, name=name, verbose=verbose)
@@ -24,11 +26,18 @@ class RunTestsThread(threading.Thread):
         self.testRunner = testRunner
 
     def run(self):
+        lock.acquire()
+        pkg = re.sub('\.test$', '', self.testClass)
+        if DEBUG:
+            print >> sys.stderr, "Cleaning up before start. Stopping '%s'" % pkg
+        self.adbClient.shell('am force-stop ' + pkg)
+        time.sleep(3)
         if DEBUG:
             print >> sys.stderr, "Starting test..."
+        lock.release()
         out = self.adbClient.shell('am instrument -w ' + self.testClass + '/' + self.testRunner + '; echo "ERROR: $?"')
         if DEBUG:
-            print >> sys.stderr, "Finished test."
+            print >> sys.stderr, "\nFinished test."
         errmsg = out.splitlines()[-1]
         m = re.match('ERROR: (\d+)', errmsg)
         if m:
@@ -64,9 +73,11 @@ class UiAutomatorHelper:
         self.__connectToServer(hostname, localport)
 
     def __connectToServer(self, hostname, port):
+        lock.acquire()
         self.conn = httplib.HTTPConnection(hostname, port)
         if not self.conn:
             raise RuntimeError("Cannot connect to %s:%d" % (hostname, port))
+        lock.release()
 
     def __whichAdb(self, adb):
         if adb:
@@ -91,6 +102,8 @@ class UiAutomatorHelper:
         # We need a new AdbClient instance with timeout=None (means, no timeout) for the long running test service
         newAdbClient = AdbClient(self.adbClient.serialno, self.adbClient.hostname, self.adbClient.port, timeout=None)
         self.thread = RunTestsThread(adbClient=newAdbClient, testClass=self.TEST_CLASS, testRunner=self.TEST_RUNNER)
+        if DEBUG:
+            print >> sys.stderr, "__runTests: starting thread"
         self.thread.start()
         if DEBUG:
             print >> sys.stderr, "__runTests: end"
@@ -98,24 +111,28 @@ class UiAutomatorHelper:
 
     def __httpCommand(self, url, method='GET'):
         if self.isDarwin:
-            #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            #!! The connection cannot be resued in OSX, it gives:
-            #!!     response = conn.getresponse()
-            #!! File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py", line 1045, in getresponse
-            #!!     response.begin()
-            #!!   File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py", line 409, in begin
-            #!!     version, status, reason = self._read_status()
-            #!!   File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py", line 373, in _read_status
-            #!!     raise BadStatusLine(line)
-            #!! httplib.BadStatusLine: ''
-            #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            # !! The connection cannot be resued in OSX, it gives:
+            # !!     response = conn.getresponse()
+            # !! File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py", line 1045, in getresponse
+            # !!     response.begin()
+            # !!   File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py", line 409, in begin
+            # !!     version, status, reason = self._read_status()
+            # !!   File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py", line 373, in _read_status
+            # !!     raise BadStatusLine(line)
+            # !! httplib.BadStatusLine: ''
+            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             self.__connectToServer(self.hostname, self.localPort)
             time.sleep(3)
         self.conn.request(method, url)
-        response = self.conn.getresponse()
-        if response.status == 200:
-            return response.read()
-        raise RuntimeError(response.status + " " + response.reason + " while " + method + " " + url)
+        try:
+            response = self.conn.getresponse()
+            if response.status == 200:
+                return response.read()
+            raise RuntimeError(response.status + " " + response.reason + " while " + method + " " + url)
+        except httplib.BadStatusLine, ex:
+            print >> sys.stderr, 'ERROR:', ex
+            return u''
 
     #
     # UiAutomatorHelper internal commands
