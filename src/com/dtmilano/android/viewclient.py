@@ -64,6 +64,7 @@ DEBUG_MULTI = DEBUG and False
 DEBUG_VIEW = DEBUG and False
 DEBUG_VIEW_FACTORY = DEBUG and False
 DEBUG_CHANGE_LANGUAGE = DEBUG and False
+DEBUG_UI_AUTOMATOR_HELPER = DEBUG and False
 
 WARNINGS = False
 
@@ -2472,7 +2473,6 @@ class ViewClient:
             if DEBUG or True:
                 print >> sys.stderr, "Stopping UiAutomatorHelper..."
             self.uiAutomatorHelper.quit()
-        pass
 
     @staticmethod
     def __obtainAdbPath():
@@ -3579,6 +3579,40 @@ You should force ViewServer back-end.''')
             _filter = lambda v: True
 
         return [v for v in self.views if (v.containsPoint((x,y)) and _filter(v))]
+
+    def touch(self, x, y):
+        if self.uiAutomatorHelper:
+            if DEBUG_UI_AUTOMATOR_HELPER:
+                print >> sys.stderr, "Touching (%d, %d) through UiAutomatorHelper" % (x, y)
+            self.uiAutomatorHelper.click(x, y)
+        else:
+            self.device.touch(x, y)
+
+    def longTouch(self, x, y):
+        if self.uiAutomatorHelper:
+            if DEBUG_UI_AUTOMATOR_HELPER:
+                print >> sys.stderr, "Long-touching (%d, %d) through UiAutomatorHelper" % (x, y)
+            self.uiAutomatorHelper.swipe((x, y), (x, y), 400)
+        else:
+            self.device.longTouch(x, y)
+
+
+    def setText(self, v, text):
+        if DEBUG:
+            print >> sys.stderr, "setText(%s, '%s')" % (v.__tinyStr__(), text)
+        if self.uiAutomatorHelper:
+            if DEBUG_UI_AUTOMATOR_HELPER:
+                print >> sys.stderr, "Setting text through UiAutomatorHelper"
+            oid = self.uiAutomatorHelper.findObject(v.getId())
+            if DEBUG_UI_AUTOMATOR_HELPER:
+                print >> sys.stderr, "oid=", oid, "text=", text
+            self.uiAutomatorHelper.setText(oid, text)
+        else:
+            # This is deleting the existing text, which should be asked in the dialog, but I would have to implement
+            # the dialog myself
+            v.setText(text)
+            # This is not deleting the text, so appending if there's something
+            # v.type(text)
 
     def getViewIds(self):
         '''

@@ -25,7 +25,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '10.7.2'
+__version__ = '10.7.3'
 
 import sys
 import threading
@@ -69,7 +69,8 @@ DEBUG_KEY = DEBUG and False
 DEBUG_ISCCOF = DEBUG and False
 DEBUG_FIND_VIEW = DEBUG and False
 DEBUG_CONTEXT_MENU = DEBUG and False
-DEBUG_CONCERTINA = DEBUG and False or True
+DEBUG_CONCERTINA = DEBUG and False
+DEBUG_UI_AUTOMATOR_HELPER = DEBUG and False
 
 
 class Color:
@@ -602,11 +603,7 @@ This is usually installed by python package. Check your distribution details.
             text = tkSimpleDialog.askstring(title, "Enter text to type into this field", **kwargs)
             self.canvas.focus_set()
             if text:
-                if self.vc.uiAutomatorHelper:
-                    oid = self.vc.uiAutomatorHelper.findObject(v.getId())
-                    self.vc.uiAutomatorHelper.setText(oid, text)
-                else:
-                    self.setText(v, text)
+                self.vc.setText(v, text)
             else:
                 self.hideVignette()
                 return
@@ -669,14 +666,15 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "Is touching point:", self.isTouchingPoint
         if self.isTouchingPoint:
             self.showVignette()
-            self.device.touch(x, y)
+            self.vc.touch(x, y)
             if self.coordinatesUnit == Unit.DIP:
                 x = round(x / self.device.display['density'], 2)
                 y = round(y / self.device.display['density'], 2)
             self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit,
                                 self.device.display['orientation'])
             self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
-            time.sleep(5)
+            # FIXME: can we reduce this sleep? (was 5)
+            time.sleep(1)
             self.isTouchingPoint = self.vc is None
             self.takeScreenshotAndShowItOnWindow()
             # self.hideVignette()
@@ -701,7 +699,7 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "Is long touching point:", self.isLongTouchingPoint
         if self.isLongTouchingPoint:
             self.showVignette()
-            self.device.longTouch(x, y)
+            self.vc.longTouch(x, y)
             if self.coordinatesUnit == Unit.DIP:
                 x = round(x / self.device.display['density'], 2)
                 y = round(y / self.device.display['density'], 2)

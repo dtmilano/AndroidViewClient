@@ -156,6 +156,12 @@ class UiAutomatorHelper:
     def takeScreenshot(self, scale=1.0, quality=90):
         return self.__httpCommand('/UiDevice/takeScreenshot?scale=%f&quality=%d' % (scale, quality))
 
+    def click(self, x, y):
+        return self.__httpCommand('/UiDevice/click?x=%d&y=%d' % (x, y))
+
+    def swipe(self, (x0, y0), (x1, y1), steps):
+        return self.__httpCommand('/UiDevice/swipe?x0=%d&y0=%d&x1=%d&y1=%d&steps=%d' % (x0, y0, x1, y1, steps))
+
     def dumpWindowHierarchy(self):
         return self.__httpCommand('/UiDevice/dumpWindowHierarchy').decode(encoding='UTF-8', errors='replace')
 
