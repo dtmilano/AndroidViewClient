@@ -16,8 +16,9 @@ limitations under the License.
 
 @author: Diego Torres Milano
 '''
+import threading
 
-__version__ = '10.7.2'
+__version__ = '10.7.4'
 
 import sys
 import warnings
@@ -170,12 +171,20 @@ class AdbClient:
             self.initDisplayProperties()
 
     @staticmethod
+    def alarmHandler(signum, frame):
+        if signum == signal.SIGALRM:
+            raise IOError("Socket timeout")
+        raise RuntimeError("Signal received: %d" % signum)
+
+    @staticmethod
     def setAlarm(timeout):
         osName = platform.system()
         if osName.startswith('Windows'):  # alarm is not implemented in Windows
             return
         if DEBUG:
             print >> sys.stderr, "setAlarm(%d)" % timeout
+        if threading.current_thread().getName() == 'MainThread':
+            signal.signal(signal.SIGALRM, AdbClient.alarmHandler)
         signal.alarm(timeout)
 
     def setSerialno(self, serialno):
