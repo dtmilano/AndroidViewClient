@@ -1,3 +1,25 @@
+# -*- coding: utf-8 -*-
+'''
+Copyright (C) 2012-2015  Diego Torres Milano
+Created on Feb 2, 2015
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+@author: Diego Torres Milano
+'''
+
+__version__ = '10.7.2'
+
 import httplib
 from httplib import HTTPConnection
 import os
@@ -14,11 +36,14 @@ from com.dtmilano.android.common import obtainAdbPath
 __author__ = 'diego'
 
 
-DEBUG = True
+DEBUG = False
 
 lock = threading.Lock()
 
 class RunTestsThread(threading.Thread):
+    """
+    Runs the instrumentation for the specified package in a new thread.
+    """
     def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, adbClient=None, testClass=None, testRunner=None):
         threading.Thread.__init__(self, group=group, target=target, name=name, verbose=verbose)
         self.adbClient = adbClient
@@ -26,6 +51,8 @@ class RunTestsThread(threading.Thread):
         self.testRunner = testRunner
 
     def run(self):
+        if DEBUG:
+            print >> sys.stderr, "RunTestsThread: Acquiring lock"
         lock.acquire()
         pkg = re.sub('\.test$', '', self.testClass)
         if DEBUG:
@@ -34,6 +61,7 @@ class RunTestsThread(threading.Thread):
         time.sleep(3)
         if DEBUG:
             print >> sys.stderr, "Starting test..."
+            print >> sys.stderr, "RunTestsThread: Releasing lock"
         lock.release()
         out = self.adbClient.shell('am instrument -w ' + self.testClass + '/' + self.testRunner + '; echo "ERROR: $?"')
         if DEBUG:
@@ -48,10 +76,10 @@ class RunTestsThread(threading.Thread):
             raise RuntimeError('Unknown message')
 
 class UiAutomatorHelper:
+    REUSE_CONNECTION = False
     PACKAGE = 'com.dtmilano.android.uiautomatorhelper'
     TEST_CLASS = PACKAGE + '.test'
     TEST_RUNNER = PACKAGE + '.UiAutomatorHelperTestRunner'
-
 
     def __init__(self, adbclient, adb=None, localport=9999, remoteport=9999, hostname='localhost'):
         self.adbClient = adbclient
@@ -70,13 +98,20 @@ class UiAutomatorHelper:
         if hostname in ['localhost', '127.0.0.1']:
             self.__redirectPort(localport, remoteport)
         self.__runTests()
-        self.__connectToServer(hostname, localport)
+        self.conn = None
+        if not self.REUSE_CONNECTION:
+            self.__connectToServer(hostname, localport)
 
     def __connectToServer(self, hostname, port):
+        if DEBUG:
+            print >> sys.stderr, "UiAutomatorHelper: Acquiring lock"
         lock.acquire()
         self.conn = httplib.HTTPConnection(hostname, port)
         if not self.conn:
             raise RuntimeError("Cannot connect to %s:%d" % (hostname, port))
+        #self.conn.connect();
+        if DEBUG:
+            print >> sys.stderr, "UiAutomatorHelper: Releasing lock"
         lock.release()
 
     def __whichAdb(self, adb):
@@ -110,7 +145,7 @@ class UiAutomatorHelper:
 
 
     def __httpCommand(self, url, method='GET'):
-        if self.isDarwin:
+        if self.isDarwin or not self.REUSE_CONNECTION:
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             # !! The connection cannot be resued in OSX, it gives:
             # !!     response = conn.getresponse()
@@ -122,8 +157,10 @@ class UiAutomatorHelper:
             # !!     raise BadStatusLine(line)
             # !! httplib.BadStatusLine: ''
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if self.conn:
+                self.conn.close()
             self.__connectToServer(self.hostname, self.localPort)
-            time.sleep(3)
+            time.sleep(0.9)
         self.conn.request(method, url)
         try:
             response = self.conn.getresponse()
@@ -131,8 +168,15 @@ class UiAutomatorHelper:
                 return response.read()
             raise RuntimeError(response.status + " " + response.reason + " while " + method + " " + url)
         except httplib.BadStatusLine, ex:
+            if DEBUG:
+                print >> sys.stderr, 'ERROR: BadStatusLine', ex
+            return u''
+        except Exception, ex:
             print >> sys.stderr, 'ERROR:', ex
             return u''
+        finally:
+            if self.isDarwin or not self.REUSE_CONNECTION:
+                self.conn.close()
 
     #
     # UiAutomatorHelper internal commands
@@ -163,7 +207,10 @@ class UiAutomatorHelper:
         return self.__httpCommand('/UiDevice/swipe?x0=%d&y0=%d&x1=%d&y1=%d&steps=%d' % (x0, y0, x1, y1, steps))
 
     def dumpWindowHierarchy(self):
-        return self.__httpCommand('/UiDevice/dumpWindowHierarchy').decode(encoding='UTF-8', errors='replace')
+        dump = self.__httpCommand('/UiDevice/dumpWindowHierarchy').decode(encoding='UTF-8', errors='replace')
+        if DEBUG:
+            print >> sys.stderr, "DUMP: ", dump
+        return dump
 
     #
     # UiObject

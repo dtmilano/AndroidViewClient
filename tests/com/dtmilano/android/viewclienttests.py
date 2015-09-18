@@ -474,12 +474,12 @@ class ViewClientTest(unittest.TestCase):
 
     def testTraverseShowClassIdAndText(self):
         device = MockDevice()
-        root = View({'text:mText':'0'}, device)
-        root.add(View({'text:mText':'1'}, device))
-        root.add(View({'text:mText':'2'}, device))
-        v3 = View({'text:mText':'3'}, device)
+        root = View({'text:mText':'0', 'class': 'android.widget.View', 'mID': 0}, device)
+        root.add(View({'text:mText':'1', 'class': 'android.widget.View', 'mID': 1}, device))
+        root.add(View({'text:mText':'2', 'class': 'android.widget.View', 'mID': 2}, device))
+        v3 = View({'text:mText':'3', 'class': 'android.widget.View', 'mID':3}, device)
         root.add(v3)
-        v35 = View({'text:mText':'5', 'getTag()':'v35'}, device)
+        v35 = View({'text:mText':'5', 'getTag()':'v35', 'class': 'android.widget.View', 'mID': 35}, device)
         v3.add(v35)
         vc = ViewClient(device, device.serialno, adb=TRUE, autodump=False)
         self.assertNotEquals(None, vc)
@@ -487,11 +487,11 @@ class ViewClientTest(unittest.TestCase):
         vc.traverse(root=root, transform=ViewClient.TRAVERSE_CIT, stream=treeStr)
         self.assertNotEquals(None, treeStr.getvalue())
         lines = treeStr.getvalue().splitlines()
-        self.assertEqual(5, len(lines))
-        self.assertEqual('None None 0', lines[0])
-        citRE = re.compile(' +None None \d+')
+        self.assertEqual(5, len(lines), "lines=%s" % lines)
+        self.assertEqual('android.widget.View 0 0', lines[0])
+        citRE = re.compile(' +android.widget.View \d+ \d+')
         for l in lines[1:]:
-            self.assertTrue(citRE.match(l))
+            self.assertTrue(citRE.match(l), 'l=%s' % l)
 
 
     def testTraverseShowClassIdTextAndCenter(self):
@@ -561,11 +561,12 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         coords = toggleButton.getCoords()
         self.assertNotEqual(None, textView3.getText())
         self.assertNotEqual("", textView3.getText().strip())
-        list = [ eval(v) for v in textView3.getText().strip().split() ]
-        tx = list[0][0]
-        ty = list[0][1]
-        tsx = list[1][0]
-        tsy = list[1][1]
+        lv = textView3.getText().strip().split()
+        _list = [ eval(str(v)) for v in lv ]
+        tx = _list[1][0]
+        ty = _list[1][1]
+        tsx = _list[1][0]
+        tsy = _list[1][1]
         self.assertEqual(tx, x)
         self.assertEqual(ty, y)
         self.assertEqual((tsx, tsy), xy)

@@ -2448,13 +2448,12 @@ class ViewClient:
         ''' The list of windows as obtained by L{ViewClient.list()} '''
 
 
+        self.uiAutomatorHelper = None
+        ''' The UiAutomatorHelper '''
         # FIXME: may not be true, one may want UiAutomator but without UiAutomatorHelper
-        if self.useUiAutomator:
-            if useuiautomatorhelper:
-                self.uiAutomatorHelper = UiAutomatorHelper(device)
-                ''' The UiAutomatorHelper '''
-            else:
-                self.uiAutomatorHelper = None
+        if self.useUiAutomator and useuiautomatorhelper:
+            self.uiAutomatorHelper = UiAutomatorHelper(device)
+
 
         self.uiDevice = UiDevice(self)
         ''' The L{UiDevice} '''
@@ -2638,7 +2637,7 @@ class ViewClient:
                 extraAction(view)
             _str = unicode(view.getClass())
             _str += ' '
-            _str += view.getId()
+            _str += '%s' % view.getId()
             _str += ' '
             _str += view.getText() if view.getText() else ''
             _str += eis
@@ -3089,7 +3088,9 @@ class ViewClient:
             else:
                 # NOTICE:
                 # Using /dev/tty this works even on devices with no sdcard
-                received = unicode(self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.getSdkVersion() >= 18 and self.compressedDump else '')), encoding='utf-8', errors='replace')
+                received = self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.getSdkVersion() >= 18 and self.compressedDump else ''))
+                if received:
+                    received = unicode(received, encoding='utf-8', errors='replace')
             if not received:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             if DEBUG:

@@ -712,7 +712,7 @@ class MockDevice(object):
         elif cmd == 'dumpsys window windows':
             return DUMPSYS_WINDOW_WINDOWS
 
-        m = re.match('uiautomator dump (\S+)', cmd)
+        m = re.match('uiautomator dump +(\S+)', cmd)
         if m:
             if self.version >= 16:
                 # it was simulating a dump to sdcard before
