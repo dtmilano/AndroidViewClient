@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.7.2'
+__version__ = '10.7.5'
 
 import httplib
 from httplib import HTTPConnection
