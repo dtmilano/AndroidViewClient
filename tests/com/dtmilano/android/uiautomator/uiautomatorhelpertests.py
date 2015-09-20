@@ -55,7 +55,8 @@ class UiAutomatorHelperTests(unittest.TestCase):
         x = random.randint(0, 1000)
         y = random.randint(0, 1000)
         response = self.uiAutomatorHelper.click(x, y)
-        print >> sys.stderr, "response=", response
+        if DEBUG:
+            print >> sys.stderr, "response=", response
 
     def testSwipe_random(self):
         x0 = random.randint(0, 1000)
@@ -64,7 +65,8 @@ class UiAutomatorHelperTests(unittest.TestCase):
         y1 = random.randint(0, 1000)
         steps = random.randint(10, 100)
         response = self.uiAutomatorHelper.swipe((x0, y0), (x1, y1), steps)
-        print >> sys.stderr, "response=", response
+        if DEBUG:
+            print >> sys.stderr, "response=", response
 
 
 

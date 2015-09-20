@@ -18,17 +18,15 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.7.2'
+__version__ = '10.8.0'
 
-import httplib
-from httplib import HTTPConnection
 import os
 import subprocess
 import sys
 import platform
 import threading
 import re
-import urllib
+import requests
 import time
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
@@ -49,15 +47,15 @@ class RunTestsThread(threading.Thread):
         self.adbClient = adbClient
         self.testClass = testClass
         self.testRunner = testRunner
+        self.pkg = re.sub('\.test$', '', self.testClass)
 
     def run(self):
         if DEBUG:
             print >> sys.stderr, "RunTestsThread: Acquiring lock"
         lock.acquire()
-        pkg = re.sub('\.test$', '', self.testClass)
         if DEBUG:
-            print >> sys.stderr, "Cleaning up before start. Stopping '%s'" % pkg
-        self.adbClient.shell('am force-stop ' + pkg)
+            print >> sys.stderr, "RunTestsThread: Lock acquired"
+        self.forceStop()
         time.sleep(3)
         if DEBUG:
             print >> sys.stderr, "Starting test..."
@@ -75,8 +73,13 @@ class RunTestsThread(threading.Thread):
         else:
             raise RuntimeError('Unknown message')
 
+    def forceStop(self):
+        if DEBUG:
+            print >> sys.stderr, "Cleaning up before start. Stopping '%s'" % self.pkg
+        self.adbClient.shell('am force-stop ' + self.pkg)
+
+
 class UiAutomatorHelper:
-    REUSE_CONNECTION = False
     PACKAGE = 'com.dtmilano.android.uiautomatorhelper'
     TEST_CLASS = PACKAGE + '.test'
     TEST_RUNNER = PACKAGE + '.UiAutomatorHelperTestRunner'
@@ -98,21 +101,43 @@ class UiAutomatorHelper:
         if hostname in ['localhost', '127.0.0.1']:
             self.__redirectPort(localport, remoteport)
         self.__runTests()
-        self.conn = None
-        if not self.REUSE_CONNECTION:
-            self.__connectToServer(hostname, localport)
+        self.baseUrl = 'http://%s:%d' % (hostname, localport)
+        try:
+            self.session = self.__connectSession()
+        except RuntimeError, ex:
+            self.thread.forceStop()
+            raise ex
 
-    def __connectToServer(self, hostname, port):
+
+    def __connectSession(self):
         if DEBUG:
             print >> sys.stderr, "UiAutomatorHelper: Acquiring lock"
         lock.acquire()
-        self.conn = httplib.HTTPConnection(hostname, port)
-        if not self.conn:
-            raise RuntimeError("Cannot connect to %s:%d" % (hostname, port))
-        #self.conn.connect();
         if DEBUG:
-            print >> sys.stderr, "UiAutomatorHelper: Releasing lock"
+            print >> sys.stderr, "UiAutomatorHelper: Lock acquired"
+            print >> sys.stderr, "UiAutomatorHelper: Connecting session"
+        session = requests.Session()
+        if not session:
+            raise RuntimeError("Cannot create session")
+        tries = 10
+        while tries > 0:
+            time.sleep(0.5)
+            if DEBUG:
+                print >> sys.stderr, "UiAutomatorHelper: Attempting to connect to", self.baseUrl, '(tries=%s)' % tries
+            try:
+                response = session.head(self.baseUrl)
+                if response.status_code == 200:
+                    break
+            except requests.exceptions.ConnectionError, ex:
+                tries -= 1
         lock.release()
+        if tries == 0:
+            raise RuntimeError("Cannot connect to " + self.baseUrl)
+        if DEBUG:
+            print >> sys.stderr, "UiAutomatorHelper: HEAD", response
+            print >> sys.stderr, "UiAutomatorHelper: Releasing lock"
+        #lock.release()
+        return session
 
     def __whichAdb(self, adb):
         if adb:
@@ -144,45 +169,27 @@ class UiAutomatorHelper:
             print >> sys.stderr, "__runTests: end"
 
 
-    def __httpCommand(self, url, method='GET'):
-        if self.isDarwin or not self.REUSE_CONNECTION:
-            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            # !! The connection cannot be resued in OSX, it gives:
-            # !!     response = conn.getresponse()
-            # !! File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py", line 1045, in getresponse
-            # !!     response.begin()
-            # !!   File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py", line 409, in begin
-            # !!     version, status, reason = self._read_status()
-            # !!   File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py", line 373, in _read_status
-            # !!     raise BadStatusLine(line)
-            # !! httplib.BadStatusLine: ''
-            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            if self.conn:
-                self.conn.close()
-            self.__connectToServer(self.hostname, self.localPort)
-            time.sleep(0.9)
-        self.conn.request(method, url)
-        try:
-            response = self.conn.getresponse()
-            if response.status == 200:
-                return response.read()
-            raise RuntimeError(response.status + " " + response.reason + " while " + method + " " + url)
-        except httplib.BadStatusLine, ex:
-            if DEBUG:
-                print >> sys.stderr, 'ERROR: BadStatusLine', ex
-            return u''
-        except Exception, ex:
-            print >> sys.stderr, 'ERROR:', ex
-            return u''
-        finally:
-            if self.isDarwin or not self.REUSE_CONNECTION:
-                self.conn.close()
+    def __httpCommand(self, url, params=None, method='GET'):
+        if method == 'GET':
+            if params:
+                response = self.session.get(self.baseUrl + url, params=params)
+            else:
+                response = self.session.get(self.baseUrl + url)
+        elif method == 'PUT':
+            response = self.session.put(self.baseUrl + url, params=params)
+        else:
+            raise RuntimeError("method not supported: " + method)
+        return response.content
 
     #
     # UiAutomatorHelper internal commands
     #
     def quit(self):
-        self.__httpCommand('/UiAutomatorHelper/quit')
+        try:
+            self.__httpCommand('/UiAutomatorHelper/quit')
+        except:
+            pass
+        self.session.close()
 
     #
     # UiDevice
@@ -190,7 +197,8 @@ class UiAutomatorHelper:
     def findObject(self, resourceId):
         if not resourceId:
             raise RuntimeError('findObject: resourceId must have a value')
-        response = self.__httpCommand('/UiDevice/findObject?resourceId=%s' % (resourceId))
+        params = {'resourceId': resourceId}
+        response = self.__httpCommand('/UiDevice/findObject', params)
         # <response><object oid="0x1234" className="android.widget.EditText"/></response>
         m = re.search('oid="0x([0-9a-f]+)"', response)
         if m:
@@ -198,13 +206,16 @@ class UiAutomatorHelper:
         raise RuntimeError("Invalid response: " + response)
 
     def takeScreenshot(self, scale=1.0, quality=90):
-        return self.__httpCommand('/UiDevice/takeScreenshot?scale=%f&quality=%d' % (scale, quality))
+        params = {'scale': scale, 'quality': quality}
+        return self.__httpCommand('/UiDevice/takeScreenshot', params)
 
     def click(self, x, y):
-        return self.__httpCommand('/UiDevice/click?x=%d&y=%d' % (x, y))
+        params = {'x': x, 'y': y}
+        return self.__httpCommand('/UiDevice/click', params)
 
     def swipe(self, (x0, y0), (x1, y1), steps):
-        return self.__httpCommand('/UiDevice/swipe?x0=%d&y0=%d&x1=%d&y1=%d&steps=%d' % (x0, y0, x1, y1, steps))
+        params = {'x0': x0, 'y0': y0, 'x1': x1, 'y1': y1, 'steps': steps}
+        return self.__httpCommand('/UiDevice/swipe', params)
 
     def dumpWindowHierarchy(self):
         dump = self.__httpCommand('/UiDevice/dumpWindowHierarchy').decode(encoding='UTF-8', errors='replace')
@@ -216,4 +227,5 @@ class UiAutomatorHelper:
     # UiObject
     #
     def setText(self, uiObject, text):
-        return self.__httpCommand('/UiObject/0x%x/setText?text=%s' % (uiObject, urllib.quote_plus(text)))
+        params = {'text': text}
+        return self.__httpCommand('/UiObject/0x%x/setText' % (uiObject), params)
