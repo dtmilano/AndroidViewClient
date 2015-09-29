@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 from PIL import Image
 import random
 import sys
