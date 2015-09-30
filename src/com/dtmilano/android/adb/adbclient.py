@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '10.7.5'
+__version__ = '10.8.0'
 
 import sys
 import warnings
@@ -48,7 +48,7 @@ from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy, \
     obtainVwVh, profileStart, profileEnd
 from com.dtmilano.android.adb.androidkeymap import KEY_MAP
 
-DEBUG = False
+DEBUG = True
 DEBUG_SHELL = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_LOG = DEBUG and False
@@ -89,6 +89,8 @@ class Device:
     def factory(_str):
         if DEBUG:
             print >> sys.stderr, "Device.factory(", _str, ")"
+            print >> sys.stderr, "   _str=", repr(_str)
+            print >> sys.stderr, "   _str=", _str.replace(' ', '_')
         values = _str.split(None, 2)
         if DEBUG:
             print >> sys.stderr, "values=", values
