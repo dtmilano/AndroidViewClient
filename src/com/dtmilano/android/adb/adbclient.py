@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '10.8.0'
+__version__ = '10.8.1'
 
 import sys
 import warnings
@@ -48,7 +48,7 @@ from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy, \
     obtainVwVh, profileStart, profileEnd
 from com.dtmilano.android.adb.androidkeymap import KEY_MAP
 
-DEBUG = True
+DEBUG = False
 DEBUG_SHELL = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_LOG = DEBUG and False
