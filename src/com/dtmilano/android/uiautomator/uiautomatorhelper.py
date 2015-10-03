@@ -26,7 +26,11 @@ import sys
 import platform
 import threading
 import re
-import requests
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except:
+    REQUESTS_AVAILABLE = False
 import time
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
@@ -85,6 +89,18 @@ class UiAutomatorHelper:
     TEST_RUNNER = PACKAGE + '.UiAutomatorHelperTestRunner'
 
     def __init__(self, adbclient, adb=None, localport=9999, remoteport=9999, hostname='localhost'):
+        if not REQUESTS_AVAILABLE:
+            raise Exception('''Python Requests is needed for UiAutomatorHelper to work.
+
+On Ubuntu install
+
+   $ sudo apt-get install python-requests
+
+On OSX install
+
+   $ easy_install requests
+''')
+
         self.adbClient = adbclient
         ''' The adb client (a.k.a. device) '''
         instrumentation = self.adbClient.shell('pm list instrumentation %s' % self.PACKAGE)
