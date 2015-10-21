@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '10.8.1'
+__version__ = '10.8.2'
 
 import sys
 import warnings
@@ -3086,9 +3086,15 @@ class ViewClient:
             if self.uiAutomatorHelper:
                 received = self.uiAutomatorHelper.dumpWindowHierarchy()
             else:
-                # NOTICE:
-                # Using /dev/tty this works even on devices with no sdcard
-                received = self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.getSdkVersion() >= 18 and self.compressedDump else ''))
+                api = self.getSdkVersion()
+                if api >= 23:
+                    # In API 23 the process' stdout,in and err are connected to the socket not to the pts as in
+                    # previous versions, so we can't redirect to /dev/tty
+                    received = self.device.shell('uiautomator dump %s /sdcard/window_dump.xml >/dev/null && cat /sdcard/window_dump.xml' % ('--compressed' if self.compressedDump else ''))
+                else:
+                    # NOTICE:
+                    # Using /dev/tty this works even on devices with no sdcard
+                    received = self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if api >= 18 and self.compressedDump else ''))
                 if received:
                     received = unicode(received, encoding='utf-8', errors='replace')
             if not received:

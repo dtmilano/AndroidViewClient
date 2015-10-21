@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '10.8.1'
+__version__ = '10.8.2'
 
 import sys
 import warnings
@@ -639,7 +639,7 @@ class AdbClient:
             except:
                 raise Exception("You have to install PIL to use takeSnapshot()")
 
-        USE_ADB_FRAMEBUFFER_METHOD = False
+        USE_ADB_FRAMEBUFFER_METHOD = (self.getSdkVersion() < 14 or self.getSdkVersion() >= 23)
         if USE_ADB_FRAMEBUFFER_METHOD:
             self.__checkTransport()
 
@@ -686,7 +686,12 @@ class AdbClient:
             # ALTERNATIVE_METHOD: screencap
             received = self.shell('/system/bin/screencap -p').replace("\r\n", "\n")
             stream = StringIO.StringIO(received)
-            image = Image.open(stream)
+            try:
+                image = Image.open(stream)
+            except IOError, ex:
+                print >> sys.stderr, ex
+                print repr(stream)
+                sys.exit(1)
 
         # Just in case let's get the real image size
         (w, h) = image.size
