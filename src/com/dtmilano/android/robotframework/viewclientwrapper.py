@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.0.1'
+__version__ = '11.0.2'
 __author__ = 'diego'
 
 import sys
@@ -26,6 +26,13 @@ from com.dtmilano.android.viewclient import ViewClient
 
 
 """A library to integrate *AndroidViewClient/culebra* tests with Robotframework.
+
+To import this wrapper you have to use::
+
+**Settings**
+...
+Library     com.dtmilano.android.robotframework.viewclientwrapper.ViewClientWrapper   serialno=<your-device>
+
 
 This documentation is created using reStructuredText__.
 
