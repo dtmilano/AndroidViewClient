@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.0.0'
+__version__ = '11.0.1'
 __author__ = 'diego'
 
 import sys
@@ -59,7 +59,7 @@ class ViewClientWrapper:
     @staticmethod
     def long_touch_view(view):
         """Long-touches the view."""
-       return view.longTouch()
+        return view.longTouch()
 
     @staticmethod
     def touch_view(view):
