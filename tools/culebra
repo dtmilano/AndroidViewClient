@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '10.8.2'
+__version__ = '10.9.2'
 
 import re
 import sys
@@ -955,6 +955,9 @@ if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_
 
 if kwargs2[ViewClientOptions.FORCE_VIEW_SERVER_USE] and options[CulebraOptions.NULL_BACK_END]:
     warnings.warn(ViewClientOptions.FORCE_VIEW_SERVER_USE + " and " + CulebraOptions.NULL_BACK_END + " cannot be specified at the same time.")
+
+if options[CulebraOptions.MULTI_DEVICE] and not options[CulebraOptions.UNIT_TEST_CLASS]:
+    error("--" + CulebraOptions.MULTI_DEVICE + " only supported for unit tests (please specify --" + CulebraOptions.UNIT_TEST_CLASS + ")", fatal=True)
 
 device, serialno = ViewClient.connectToDeviceOrExit(serialno=serialno, **kwargs1)
 if options[CulebraOptions.ORIENTATION_LOCKED] == 'PENDING':
