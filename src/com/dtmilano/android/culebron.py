@@ -25,7 +25,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '11.0.1'
+__version__ = '11.0.4'
 
 import sys
 import threading
@@ -111,6 +111,7 @@ class Operation:
     SLEEP = 'sleep'
     TRAVERSE = 'traverse'
     VIEW_SNAPSHOT = 'view_snapshot'
+    WAKE = 'wake'
 
     @staticmethod
     def fromCommandName(commandName):
@@ -845,6 +846,10 @@ This is usually installed by python package. Check your distribution details.
         # commented out (profile)
         #time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
+
+    def wake(self):
+        self.refresh()
+        self.printOperation(None, Operation.WAKE)
 
     def refresh(self):
         self.showVignette()
@@ -1815,6 +1820,7 @@ if TKINTER_AVAILABLE:
             items.append(ContextMenu.Command('Generates a startActivity()', 17, 'Ctrl+A', '<Control-A>',
                                              culebron.printStartActivityAtTop))
             items.append(ContextMenu.Command('Refresh', 0, 'F5', '<F5>', culebron.refresh))
+            items.append(ContextMenu.Command('Wake up', 0, None, None, culebron.wake))
             items.append(ContextMenu.Separator())
             items.append(ContextMenu.Command('Quit', 0, 'Ctrl+Q', '<Control-Q>', culebron.quit))
 

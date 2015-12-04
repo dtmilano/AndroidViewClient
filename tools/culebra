@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '11.0.1'
+__version__ = '11.0.4'
 
 import re
 import sys
@@ -427,7 +427,19 @@ def printSleep(secs):
         print '%s[_vc.sleep(%s) for _vc in %sallVcs()]' % (indent, secs if secs != Operation.DEFAULT else '_s', prefix)
     else:
         print '%s%svc.sleep(%s)' % (indent, prefix, secs if secs != Operation.DEFAULT else '_s')
-    
+
+def printWake():
+    '''
+    Prints a wake.
+
+    :return:
+    '''
+
+    if options[CulebraOptions.MULTI_DEVICE]:
+        print '%s[_vc.device.wake() for _vc in %sallVcs()]' % (indent, prefix)
+    else:
+        print '%s%svc.device.wake()' % (indent, prefix)
+
 def printPress(keycode):
     '''
     Prints a key press
@@ -692,6 +704,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.START_ACTIVITY:
         printStartActivity(component=args[0])
+        return
+    elif op == Operation.WAKE:
+        printWake()
         return
     
     if view is None:

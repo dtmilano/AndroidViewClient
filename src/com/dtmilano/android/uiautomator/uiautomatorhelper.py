@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.0.1'
+__version__ = '11.0.3'
 
 import os
 import subprocess
@@ -84,9 +84,9 @@ class RunTestsThread(threading.Thread):
 
 
 class UiAutomatorHelper:
-    PACKAGE = 'com.dtmilano.android.uiautomatorhelper'
+    PACKAGE = 'com.dtmilano.android.culebratester'
     TEST_CLASS = PACKAGE + '.test'
-    TEST_RUNNER = PACKAGE + '.UiAutomatorHelperTestRunner'
+    TEST_RUNNER = 'com.dtmilano.android.uiautomatorhelper.UiAutomatorHelperTestRunner'
 
     def __init__(self, adbclient, adb=None, localport=9999, remoteport=9999, hostname='localhost'):
         if not REQUESTS_AVAILABLE:
