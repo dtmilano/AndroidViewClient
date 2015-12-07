@@ -68,11 +68,13 @@ def obtainAdbPath():
 
     osName = platform.system()
     isWindows = False
-    if osName.startswith('Windows'):
-        adb = 'adb.exe'
-        isWindows = True
-    else:
-        adb = 'adb'
+    adb = 'adb'
+    
+    if (osName.startswith('Windows')) or (osName.startswith('Java')):
+        envOSName = os.getenv('os') #this should work as it has been set since xp.
+        if envOSName.startswith('Windows'):
+        	adb = 'adb.exe'
+        	isWindows = True
 
     ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
     HOME = os.environ['HOME'] if os.environ.has_key('HOME') else ''
