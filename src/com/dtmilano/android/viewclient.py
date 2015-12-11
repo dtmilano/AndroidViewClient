@@ -792,9 +792,9 @@ class View:
         dww = self.device.shell('dumpsys window windows')
         if DEBUG_WINDOWS or debug: print >> sys.stderr, dww
         lines = dww.splitlines()
-        widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s?.*}:' %
+        widRE = re.compile('^ *Window #%s Window\{%s (u\d+ )?%s?.*\}:' %
                             (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
-        currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % _nh('winId'))
+        currentFocusRE = re.compile('^  mCurrentFocus=Window\{%s .*' % _nh('winId'))
         viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % _nh('visibility'))
         # This is for 4.0.4 API-15
         containingFrameRE = re.compile('^   *mContainingFrame=\[%s,%s\]\[%s,%s\] mParentFrame=\[%s,%s\]\[%s,%s\]' %
