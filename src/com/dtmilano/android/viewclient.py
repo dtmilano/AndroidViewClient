@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.0.1'
+__version__ = '11.0.5'
 
 import sys
 import warnings
@@ -3801,6 +3801,9 @@ On OSX install
             else:
                 warnings.warn("ViewClient.writeImageToFile: Cannot add device art because STUDIO_DIR environment variable was not set")
         image.save(filename, _format)
+
+    def installPackage(self, apk):
+        return subprocess.check_call([self.adb, "install", "-r", apk], shell=False)
 
     @staticmethod
     def writeViewImageToFileInDir(view):
