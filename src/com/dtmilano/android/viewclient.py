@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.0.6'
+__version__ = '11.0.7'
 
 import sys
 import warnings
@@ -2451,8 +2451,13 @@ class ViewClient:
         self.uiAutomatorHelper = None
         ''' The UiAutomatorHelper '''
         # FIXME: may not be true, one may want UiAutomator but without UiAutomatorHelper
-        if self.useUiAutomator and useuiautomatorhelper:
-            self.uiAutomatorHelper = UiAutomatorHelper(device)
+        if self.useUiAutomator:
+            if useuiautomatorhelper:
+                self.uiAutomatorHelper = UiAutomatorHelper(device)
+            else:
+                # culebratester Intrumentation running prevents `uiautomator dump` from working correctly, then if we are not
+                # using UiAutomatorHelper let's kill it, just in case
+                subprocess.check_call([self.adb, '-s', self.serialno, 'shell', 'am', 'force-stop', 'com.dtmilano.android.culebratester'])
 
 
         self.uiDevice = UiDevice(self)

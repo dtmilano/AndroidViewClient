@@ -25,7 +25,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '11.0.6'
+__version__ = '11.0.7'
 
 import sys
 import threading
@@ -174,6 +174,12 @@ On Ubuntu install
 On OSX install
 
    $ brew install homebrew/python/pillow
+
+or, preferred since El Capitan
+
+   $ sudo easy_install pip
+   $ sudo pip install pillow
+
 ''')
         if not TKINTER_AVAILABLE:
             raise Exception('''Tkinter is needed for GUI mode
