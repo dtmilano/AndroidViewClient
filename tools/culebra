@@ -865,6 +865,7 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
            CulebraOptions.SCREEN_GLARE: False,
            CulebraOptions.NULL_BACK_END: False,
            CulebraOptions.CONCERTINA: False,
+           CulebraOptions.INSTALL_APK: None,
            }
 transform = traverseAndPrint
 for o, a in optlist:
@@ -961,6 +962,8 @@ for o, a in optlist:
         kwargs2[ViewClientOptions.USE_UIAUTOMATOR_HELPER] = True
     elif o in ['c', CulebraOptions.CONCERTINA]:
         options[CulebraOptions.CONCERTINA] = True
+    elif o in ['1', CulebraOptions.INSTALL_APK]:
+        options[CulebraOptions.INSTALL_APK] = a
 
 if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
     if not options[CulebraOptions.VERBOSE_COMMENTS]:
@@ -1032,12 +1035,19 @@ class CulebraTests(CulebraTestCase):
     def preconditions(self):
         if not super(CulebraTests, self).preconditions():
             return False
+''',
+    if options[CulebraOptions.INSTALL_APK]:
+        print '''\
+        if self.vc.installPackage(\"%s\") != 0:
+            return False
+''' % (options[CulebraOptions.INSTALL_APK]),
+        print '''\
         return True
 
     def %s(self):
         if not self.preconditions():
             self.fail('Preconditions failed')
-        ''' % (options[CulebraOptions.UNIT_TEST_METHOD] if options[CulebraOptions.UNIT_TEST_METHOD] else 'testSomething')
+''' % (options[CulebraOptions.UNIT_TEST_METHOD] if options[CulebraOptions.UNIT_TEST_METHOD] else 'testSomething')
 
     printShortcutVariables()
     

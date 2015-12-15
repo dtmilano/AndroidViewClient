@@ -4074,8 +4074,9 @@ class CulebraOptions:
     NULL_BACK_END = 'null-back-end'
     USE_UIAUTOMATOR_HELPER = 'use-uiautomator-helper'
     CONCERTINA = 'concertina'
+    INSTALL_APK = 'install-apk'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB0hc'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB0hc1:'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -4096,7 +4097,8 @@ class CulebraOptions:
               DEVICE_ART + '=', DROP_SHADOW, SCREEN_GLARE,
               NULL_BACK_END,
               USE_UIAUTOMATOR_HELPER,
-              CONCERTINA
+              CONCERTINA,
+              INSTALL_APK + '=',
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
@@ -4107,7 +4109,8 @@ class CulebraOptions:
               UNIT_TEST_METHOD: 'NAME',
               SCALE: 'FLOAT',
               SERIALNO: 'LIST',
-              DEVICE_ART: 'MODEL'}
+              DEVICE_ART: 'MODEL',
+              INSTALL_APK: 'FILENAME'}
     OPTS_HELP = {
             'H': 'prints this help',
             'V': 'verbose comments',
@@ -4142,7 +4145,8 @@ class CulebraOptions:
             'B': 'screen glare over screenshot',
             '0': 'use a null back-end (no View tree obtained)',
             'h': 'use UiAutomatorHelper',
-            'c': 'enable concertina mode (EXPERIMENTAL)'
+            'c': 'enable concertina mode (EXPERIMENTAL)',
+            '1': 'install APK as precondition',
             }
 
 class CulebraTestCase(unittest.TestCase):
