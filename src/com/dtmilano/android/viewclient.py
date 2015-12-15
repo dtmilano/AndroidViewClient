@@ -18,11 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-<<<<<<< Updated upstream
 __version__ = '11.0.5'
-=======
-__version__ = '11.0.5'
->>>>>>> Stashed changes
 
 import sys
 import warnings
