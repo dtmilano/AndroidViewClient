@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '11.0.7'
+__version__ = '11.0.8'
 
 import re
 import sys
@@ -1036,12 +1036,14 @@ class CulebraTests(CulebraTestCase):
         if not super(CulebraTests, self).preconditions():
             return False
 ''',
+
     if options[CulebraOptions.INSTALL_APK]:
         print '''\
         if self.vc.installPackage(\"%s\") != 0:
             return False
 ''' % (options[CulebraOptions.INSTALL_APK]),
-        print '''\
+
+    print '''\
         return True
 
     def %s(self):
@@ -1075,6 +1077,10 @@ class CulebraTests(CulebraTestCase):
         runCulebron()
     elif not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
         printDump(getWindowOption())
+    else:
+        print '''\
+        ## your test code here ##
+        '''
 
     print '''
 
