@@ -394,7 +394,7 @@ class AdbClient:
             sout = adbClient.socket.makefile("r")
             return sout
 
-    def __getRestrictedScreen(self):
+    def getRestrictedScreen(self):
         ''' Gets C{mRestrictedScreen} values from dumpsys. This is a method to obtain display dimensions '''
 
         rsRE = re.compile('\s*mRestrictedScreen=\((?P<x>\d+),(?P<y>\d+)\) (?P<w>\d+)x(?P<h>\d+)')
