@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.0.8'
+__version__ = '11.0.9'
 
 import sys
 import warnings
@@ -42,6 +42,7 @@ import pickle
 import platform
 import xml.parsers.expat
 import unittest
+import StringIO
 from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy,\
     obtainVwVh, obtainAdbPath
 from com.dtmilano.android.window import Window
@@ -3685,7 +3686,23 @@ You should force ViewServer back-end.''')
             filename = os.path.join(filename, self.serialno + '.' + _format.lower())
         if DEBUG:
             print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format (reconnect=%s)" % (filename, _format, self.device.reconnect)
-        image = self.device.takeSnapshot(reconnect=self.device.reconnect)
+        if self.uiAutomatorHelper:
+            if DEBUG_UI_AUTOMATOR_HELPER:
+                print >> sys.stderr, "Taking screenshot using UiAutomatorHelper"
+            received = self.uiAutomatorHelper.takeScreenshot()
+            stream = StringIO.StringIO(received)
+            try:
+                from PIL import Image
+                image = Image.open(stream)
+            except ImportError as ex:
+                self.pilNotInstalledWarning()
+                sys.exit(1)
+            except IOError, ex:
+                print >> sys.stderr, ex
+                print repr(stream)
+                sys.exit(1)
+        else:
+            image = self.device.takeSnapshot(reconnect=self.device.reconnect)
         if deviceart:
             if 'STUDIO_DIR' in os.environ:
                 PLUGIN_DIR = 'plugins/android/lib/device-art-resources'
@@ -3793,7 +3810,13 @@ You should force ViewServer back-end.''')
                         deviceBack.paste(screenGlareImage, (0, 0), screenGlareImage)
                     image = deviceBack
                 except ImportError as ex:
-                    warnings.warn('''PIL or Pillow is needed for image manipulation
+                    self.pilNotInstalledWarning()
+            else:
+                warnings.warn("ViewClient.writeImageToFile: Cannot add device art because STUDIO_DIR environment variable was not set")
+        image.save(filename, _format)
+
+    def pilNotInstalledWarning(self):
+        warnings.warn('''PIL or Pillow is needed for image manipulation
 
 On Ubuntu install
 
@@ -3803,9 +3826,6 @@ On OSX install
 
    $ brew install homebrew/python/pillow
 ''')
-            else:
-                warnings.warn("ViewClient.writeImageToFile: Cannot add device art because STUDIO_DIR environment variable was not set")
-        image.save(filename, _format)
 
     def installPackage(self, apk):
         return subprocess.check_call([self.adb, "install", "-r", apk], shell=False)
