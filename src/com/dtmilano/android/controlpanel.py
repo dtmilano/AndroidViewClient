@@ -19,7 +19,7 @@
     @author: Ahmed Kasem
     '''
 
-__version__ = '11.0.8'
+__version__ = '11.0.9'
 
 import sys, os
 import Tkinter, tkFileDialog, ttk

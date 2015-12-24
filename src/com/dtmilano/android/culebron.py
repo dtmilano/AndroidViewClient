@@ -18,6 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 
 '''
+import StringIO
 import random
 import time
 import re
@@ -25,7 +26,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '11.0.8'
+__version__ = '11.0.9'
 
 import sys
 import threading
@@ -236,6 +237,9 @@ This is usually installed by python package. Check your distribution details.
         self.isTouchingPoint = self.vc is None
         self.coordinatesUnit = Unit.DIP
         self.permanentlyDisableEvents = False
+        self.unscaledScreenshot = None
+        self.image = None
+        self.screenshot = None
         if DEBUG:
             try:
                 self.printGridInfo()
@@ -272,7 +276,12 @@ This is usually installed by python package. Check your distribution details.
 
         if DEBUG:
             print >> sys.stderr, "takeScreenshotAndShowItOnWindow()"
-        self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
+        if self.vc and self.vc.uiAutomatorHelper:
+            received = self.vc.uiAutomatorHelper.takeScreenshot()
+            stream = StringIO.StringIO(received)
+            self.unscaledScreenshot = Image.open(stream)
+        else:
+            self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
         self.image = self.unscaledScreenshot
         (width, height) = self.image.size
         if self.scale != 1:
