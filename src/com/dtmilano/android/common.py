@@ -73,6 +73,8 @@ def obtainAdbPath():
     Obtains the ADB path attempting know locations for different OSs
     '''
 
+    FORCE_FAIL = False
+    ''' Sometimes, you want it to fail to check the error messages '''
     osName = platform.system()
     isWindows = False
     adb = 'adb'
@@ -116,16 +118,16 @@ def obtainAdbPath():
 
     for exeFile in possibleChoices:
         checkedFiles.append(exeFile)
-        if os.access(exeFile, os.X_OK):
+        if not FORCE_FAIL and os.access(exeFile, os.X_OK):
             return exeFile
 
     for path in os.environ["PATH"].split(os.pathsep):
         exeFile = os.path.join(path, adb)
         checkedFiles.append(exeFile)
-        if exeFile is not None and os.access(exeFile, os.X_OK if not isWindows else os.F_OK):
+        if not FORCE_FAIL and exeFile is not None and os.access(exeFile, os.X_OK if not isWindows else os.F_OK):
             return exeFile
 
-    if not os.environ['ANDROID_HOME']:
+    if not os.environ.has_key('ANDROID_HOME'):
         helpMsg = 'Did you forget to set ANDROID_HOME in the environment?'
     else:
         helpMsg = ''
