@@ -2342,6 +2342,9 @@ class ViewClient:
         self.serialno = self.__mapSerialNo(serialno)
         ''' The serial number of the device '''
 
+        self.uiAutomatorHelper = None
+        ''' The UiAutomatorHelper '''
+
         if DEBUG_DEVICE: print >> sys.stderr, "ViewClient: using device with serialno", self.serialno
 
         if adb:
@@ -2449,8 +2452,6 @@ class ViewClient:
         ''' The list of windows as obtained by L{ViewClient.list()} '''
 
 
-        self.uiAutomatorHelper = None
-        ''' The UiAutomatorHelper '''
         # FIXME: may not be true, one may want UiAutomator but without UiAutomatorHelper
         if self.useUiAutomator:
             if useuiautomatorhelper:

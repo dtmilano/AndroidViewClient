@@ -20,17 +20,20 @@ limitations under the License.
 import platform
 import os
 
+
 def _nd(name):
     '''
     @return: Returns a named decimal regex
     '''
     return '(?P<%s>\d+)' % name
 
+
 def _nh(name):
     '''
     @return: Returns a named hex regex
     '''
     return '(?P<%s>[0-9a-f]+)' % name
+
 
 def _ns(name, greedy=False):
     '''
@@ -45,21 +48,25 @@ def _ns(name, greedy=False):
     '''
     return '(?P<%s>\S+%s)' % (name, '' if greedy else '?')
 
+
 def obtainPxPy(m):
     px = int(m.group('px'))
     py = int(m.group('py'))
     return (px, py)
+
 
 def obtainVxVy(m):
     wvx = int(m.group('vx'))
     wvy = int(m.group('vy'))
     return wvx, wvy
 
+
 def obtainVwVh(m):
     (wvx, wvy) = obtainVxVy(m)
     wvx1 = int(m.group('vx1'))
     wvy1 = int(m.group('vy1'))
-    return (wvx1-wvx, wvy1-wvy)
+    return (wvx1 - wvx, wvy1 - wvy)
+
 
 def obtainAdbPath():
     '''
@@ -69,57 +76,73 @@ def obtainAdbPath():
     osName = platform.system()
     isWindows = False
     adb = 'adb'
-    
+
     if (osName.startswith('Windows')) or (osName.startswith('Java')):
-        envOSName = os.getenv('os') #this should work as it has been set since xp.
+        envOSName = os.getenv('os')  # this should work as it has been set since xp.
         if envOSName.startswith('Windows'):
-        	adb = 'adb.exe'
-        	isWindows = True
+            adb = 'adb.exe'
+            isWindows = True
 
     ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
     HOME = os.environ['HOME'] if os.environ.has_key('HOME') else ''
 
-    possibleChoices = [ os.path.join(ANDROID_HOME, 'platform-tools', adb),
-                       os.path.join(HOME,  "android", 'platform-tools', adb),
-                       os.path.join(HOME,  "android-sdk", 'platform-tools', adb),
+    possibleChoices = [os.path.join(ANDROID_HOME, 'platform-tools', adb),
+                       os.path.join(HOME, "android", 'platform-tools', adb),
+                       os.path.join(HOME, "android-sdk", 'platform-tools', adb),
                        ]
 
     if osName.startswith('Windows'):
         possibleChoices.append(os.path.join("""C:\Program Files\Android\android-sdk\platform-tools""", adb))
         possibleChoices.append(os.path.join("""C:\Program Files (x86)\Android\android-sdk\platform-tools""", adb))
     elif osName.startswith('Linux'):
-        possibleChoices.append(os.path.join("opt", "android-sdk-linux",  'platform-tools', adb))
-        possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-linux",  'platform-tools', adb))
-        possibleChoices.append(os.path.join(HOME,  "android-sdk-linux",  'platform-tools', adb))
-        possibleChoices.append(os.path.join(HOME,  'Android', 'Sdk', 'platform-tools', adb))
+        possibleChoices.append(os.path.join("opt", "android-sdk-linux", 'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME, "opt", "android-sdk-linux", 'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME, "android-sdk-linux", 'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME, 'Android', 'Sdk', 'platform-tools', adb))
     elif osName.startswith('Mac'):
-        possibleChoices.append(os.path.join("opt", "android-sdk-mac_x86",  'platform-tools', adb))
-        possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-mac", 'platform-tools', adb))
-        possibleChoices.append(os.path.join(HOME,  "android-sdk-mac", 'platform-tools', adb))
-        possibleChoices.append(os.path.join(HOME,  "opt", "android-sdk-mac_x86",  'platform-tools', adb))
-        possibleChoices.append(os.path.join(HOME,  "android-sdk-mac_x86",  'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME, "Library", "Android", "sdk", 'platform-tools', adb))
+        possibleChoices.append(os.path.join("opt", "android-sdk-mac_x86", 'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME, "opt", "android-sdk-mac", 'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME, "android-sdk-mac", 'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME, "opt", "android-sdk-mac_x86", 'platform-tools', adb))
+        possibleChoices.append(os.path.join(HOME, "android-sdk-mac_x86", 'platform-tools', adb))
     else:
         # Unsupported OS
         pass
 
     possibleChoices.append(adb)
-    
+
+    checkedFiles = []
+
     for exeFile in possibleChoices:
+        checkedFiles.append(exeFile)
         if os.access(exeFile, os.X_OK):
             return exeFile
 
     for path in os.environ["PATH"].split(os.pathsep):
         exeFile = os.path.join(path, adb)
-        if exeFile != None and os.access(exeFile, os.X_OK if not isWindows else os.F_OK):
+        checkedFiles.append(exeFile)
+        if exeFile is not None and os.access(exeFile, os.X_OK if not isWindows else os.F_OK):
             return exeFile
 
-    raise Exception('adb="%s" is not executable. Did you forget to set ANDROID_HOME in the environment?' % adb)
+    if not os.environ['ANDROID_HOME']:
+        helpMsg = 'Did you forget to set ANDROID_HOME in the environment?'
+    else:
+        helpMsg = ''
+
+    raise Exception('''adb="%s" is not executable. %s
+
+These files we unsuccessfully checked to find a suitable '%s' executable:
+    %s
+    ''' % (adb, helpMsg, adb, "\n    ".join(checkedFiles)))
+
 
 def profileStart():
     import cProfile
     global profile
     profile = cProfile.Profile()
     profile.enable()
+
 
 def profileEnd():
     profile.disable()
