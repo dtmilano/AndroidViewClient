@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.0.9'
+__version__ = '11.0.10'
 
 import sys
 import warnings
@@ -3597,7 +3597,7 @@ You should force ViewServer back-end.''')
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print >> sys.stderr, "Touching (%d, %d) through UiAutomatorHelper" % (x, y)
-            self.uiAutomatorHelper.click(x, y)
+            self.uiAutomatorHelper.click(int(x), int(y))
         else:
             self.device.touch(x, y)
 
