@@ -26,7 +26,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '11.1.0'
+__version__ = '11.1.1'
 
 import sys
 import threading
@@ -114,13 +114,17 @@ class Operation:
     VIEW_SNAPSHOT = 'view_snapshot'
     WAKE = 'wake'
 
+    COMMAND_NAME_OPERATION_MAP = {'flingBackward': FLING_BACKWARD, 'flingForward': FLING_FORWARD,
+                                  'flingToBeginning': FLING_TO_BEGINNING, 'flingToEnd': FLING_TO_END,
+                                  'openNotification': OPEN_NOTIFICATION, 'openQuickSettings': OPEN_QUICK_SETTINGS,
+                                  }
     @staticmethod
     def fromCommandName(commandName):
-        MAP = {'flingBackward': Operation.FLING_BACKWARD, 'flingForward': Operation.FLING_FORWARD,
-               'flingToBeginning': Operation.FLING_TO_BEGINNING, 'flingToEnd': Operation.FLING_TO_END,
-               'openNotification': Operation.OPEN_NOTIFICATION, 'openQuickSettings': Operation.OPEN_QUICK_SETTINGS,
-               }
-        return MAP[commandName]
+        return Operation.COMMAND_NAME_OPERATION_MAP[commandName]
+
+    @staticmethod
+    def toCommandName(operation):
+        return next((cmd for cmd, op in Operation.COMMAND_NAME_OPERATION_MAP.items() if op == operation), None)
 
 
 class Culebron:
@@ -1206,6 +1210,9 @@ This is usually installed by python package. Check your distribution details.
             view = command.__self__.view
         except AttributeError:
             view = None
+        # FIXME: If we are not dumping the Views and assigning to variables (i.e -u was used on command line) then
+        # when we try to do an operation on the View via its variable name it's going to fail when the saved script
+        # is executed
         self.printOperation(view, Operation.fromCommandName(command.__name__))
         command()
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)

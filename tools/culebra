@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '11.1.0'
+__version__ = '11.1.1'
 
 import re
 import sys
@@ -280,6 +280,13 @@ You have to set PYTHONIOENCODING environment variable. For example:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print '%s%svc.findViewWithTextOrRaise("%s").type(u"%s")' % (indent, prefix, text, arg)
+        elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING, Operation.FLING_TO_END]:
+            if options[CulebraOptions.MULTI_DEVICE]:
+                warnings.warn('Multi-device not implemented yet for this case')
+            else:
+                commandName = Operation.toCommandName(op)
+                logAction(u'flinging view with text=%s %s' % (text, commandName))
+                print u'%s%svc.findViewWithTextOrRaise(%s).uiScrollable.%s()' % (indent, prefix, text, commandName)
         elif op == Operation.TEST:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
@@ -333,6 +340,13 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print '%s%sassertEquals(%svc.findViewWithContentDescriptionOrRaise(%s).getText(), u\'\'\'%s\'\'\')' % (indent, prefix, prefix, contentDescription, arg)
+        elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING, Operation.FLING_TO_END]:
+            if options[CulebraOptions.MULTI_DEVICE]:
+                warnings.warn('Multi-device not implemented yet for this case')
+            else:
+                commandName = Operation.toCommandName(op)
+                logAction(u'flinging view with content-description=%s %s' % (contentDescription, commandName))
+                print u'%s%svc.findViewWithContentDescriptionOrRaise(%s).uiScrollable.%s()' % (indent, prefix, contentDescription, commandName)
         else:
             error("Invalid operation in %s: %s" % (sys._getframe().f_code.co_name), op)
             
@@ -374,6 +388,13 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             print '%s%sassertEquals(%svc.findViewByIdOrRaise("%s").getText(), u\'\'\'%s\'\'\')' % (indent, prefix, prefix, _id, arg)
+    elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING, Operation.FLING_TO_END]:
+        if options[CulebraOptions.MULTI_DEVICE]:
+            warnings.warn('Multi-device not implemented yet for this case')
+        else:
+            commandName = Operation.toCommandName(op)
+            logAction(u'flinging view with id=%s %s' % (_id, commandName))
+            print u'%s%svc.findViewWithIdOrRaise(u"%s").uiScrollable.%s()' % (indent, prefix, _id, commandName)
     else:
         error("Invalid operation in %s: %s" % (sys._getframe().f_code.co_name, op))
 
@@ -681,18 +702,20 @@ def printOperation(view, op, *args):
     elif op == Operation.VIEW_SNAPSHOT:
         printSaveViewScreenshot(view, filename=args[0], _format=args[1])
         return
-    elif op == Operation.FLING_BACKWARD:
-        printFlingBackward(view)
-        return
-    elif op == Operation.FLING_FORWARD:
-        printFlingForward(view)
-        return
-    elif op == Operation.FLING_TO_BEGINNING:
-        printFlingToBeginning(view)
-        return
-    elif op == Operation.FLING_TO_END:
-        printFlingToEnd(view)
-        return
+# FIXME: I moved this to printFindViewWithContentDescription(..,op.,,) to solve the problem of variable not defined when
+# the script is invoked with -u
+#    elif op == Operation.FLING_BACKWARD:
+#        printFlingBackward(view)
+#        return
+#    elif op == Operation.FLING_FORWARD:
+#        printFlingForward(view)
+#        return
+#    elif op == Operation.FLING_TO_BEGINNING:
+#        printFlingToBeginning(view)
+#        return
+#    elif op == Operation.FLING_TO_END:
+#        printFlingToEnd(view)
+#        return
     elif op == Operation.OPEN_NOTIFICATION:
         printOpenNotification()
         return
