@@ -565,7 +565,7 @@ This is usually installed by python package. Check your distribution details.
         for v in vlist:
             text = v.getText()
             if text:
-                self.toast(u'Asserting view with text=%s' % text, timeout=2)
+                self.toast(u'Asserting view with text=%s' % text, timeout=5)
                 # FIXME: only getText() is invoked by the generated assert(), a parameter
                 # should be used to provide different alternatives to printOperation()
                 self.printOperation(v, Operation.TEST, text)

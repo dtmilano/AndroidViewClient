@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.1.0'
+__version__ = '11.2.0'
 
 import sys
 import warnings
@@ -148,7 +148,7 @@ class View:
     '''
 
     @staticmethod
-    def factory(arg1, arg2, version=-1, forceviewserveruse=False, windowId=None):
+    def factory(arg1, arg2, version=-1, forceviewserveruse=False, windowId=None, uiAutomatorHelper=None):
         '''
         View factory
 
@@ -203,7 +203,7 @@ class View:
 
         return cls(view.map, view.device, view.version, view.forceviewserveruse, view.windowId)
 
-    def __init__(self, _map, device, version=-1, forceviewserveruse=False, windowId=None):
+    def __init__(self, _map, device, version=-1, forceviewserveruse=False, windowId=None, uiAutomatorHelper=None):
         '''
         Constructor
 
@@ -218,6 +218,8 @@ class View:
         @type forceviewserveruse: boolean
         @param forceviewserveruse: Force the use of C{ViewServer} even if the conditions were given
                         to use C{UiAutomator}.
+        @type uiAutomatorHelper: UiAutomatorHelper
+        @:param uiAutomatorHelper: The UiAutomatorHelper if available
         '''
 
         if DEBUG_VIEW:
@@ -251,6 +253,8 @@ class View:
         ''' If this is a scrollable View this keeps the L{UiScrollable} object '''
         self.target = False
         ''' Is this a touch target zone '''
+        self.uiAutomatorHelper = uiAutomatorHelper
+        ''' The UiAutomatorHelper '''
 
         if version != -1:
             self.build[VERSION_SDK_PROPERTY] = version
@@ -1009,6 +1013,7 @@ class View:
         @param _format: Image format (default format is PNG)
         '''
 
+        filename = self.device.substituteDeviceTemplate(filename)
         if not os.path.isabs(filename):
             raise ValueError("writeImageToFile expects an absolute path (fielname='%s')" % filename)
         if os.path.isdir(filename):
@@ -1024,7 +1029,24 @@ class View:
         box = (l, t, r, b)
         if DEBUG:
             print >> sys.stderr, "writeImageToFile: cropping", box, "    reconnect=", self.device.reconnect
-        self.device.takeSnapshot(reconnect=self.device.reconnect).crop(box).save(filename, _format)
+        if self.uiAutomatorHelper:
+            if DEBUG_UI_AUTOMATOR_HELPER:
+                print >> sys.stderr, "Taking screenshot using UiAutomatorHelper"
+            received = self.uiAutomatorHelper.takeScreenshot()
+            stream = StringIO.StringIO(received)
+            try:
+                from PIL import Image
+                image = Image.open(stream)
+            except ImportError as ex:
+                self.pilNotInstalledWarning()
+                sys.exit(1)
+            except IOError, ex:
+                print >> sys.stderr, ex
+                print repr(stream)
+                sys.exit(1)
+        else:
+            image = self.device.takeSnapshot(reconnect=self.device.reconnect)
+        image.crop(box).save(filename, _format)
 
     def __smallStr__(self):
         __str = unicode("View[", 'utf-8', 'replace')
@@ -2154,9 +2176,10 @@ class UiAutomator2AndroidViewClient():
     UiAutomator XML to AndroidViewClient
     '''
 
-    def __init__(self, device, version):
+    def __init__(self, device, version, uiAutomatorHelper):
         self.device = device
         self.version = version
+        self.uiAutomatorHelper = uiAutomatorHelper
         self.root = None
         self.nodeStack = []
         self.parent = None
@@ -2177,7 +2200,7 @@ class UiAutomator2AndroidViewClient():
             if DEBUG_BOUNDS:
                 print >> sys.stderr, "bounds=", attributes['bounds']
             self.idCount += 1
-            child = View.factory(attributes, self.device, self.version)
+            child = View.factory(attributes, self.device, version=self.version, uiAutomatorHelper=self.uiAutomatorHelper)
             self.views.append(child)
             # Push element onto the stack and make it a child of parent
             if not self.nodeStack:
@@ -2961,7 +2984,7 @@ class ViewClient:
             if not self.root:
                 if v[0] == ' ':
                     raise Exception("Unexpected root element starting with ' '.")
-                self.root = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse, windowId)
+                self.root = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse, windowId, self.uiAutomatorHelper)
                 if DEBUG: self.root.raw = v
                 treeLevel = 0
                 newLevel = 0
@@ -2972,7 +2995,7 @@ class ViewClient:
                 newLevel = (len(v) - len(v.lstrip()))
                 if newLevel == 0:
                     raise Exception("newLevel==0 treeLevel=%d but tree can have only one root, v=%s" % (treeLevel, v))
-                child = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse, windowId)
+                child = View.factory(attrs, self.device, self.build[VERSION_SDK_PROPERTY], self.forceViewServerUse, windowId, self.uiAutomatorHelper)
                 if DEBUG: child.raw = v
                 if newLevel == treeLevel:
                     parent.add(child)
@@ -2997,7 +3020,7 @@ class ViewClient:
             self.viewsById[lastView.getUniqueId()] = lastView
 
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
-        parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY])
+        parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY], self.uiAutomatorHelper)
         try:
             start_xml_index = receivedXml.index("<")
         except ValueError:
@@ -3394,7 +3417,7 @@ You should force ViewServer back-end.''')
     def __findViewWithAttributeInTree(self, attr, val, root):
         if DEBUG:
             print >> sys.stderr, "    __findViewWithAttributeInTree: type(val)=", type(val)
-            if type(val) != types.UnicodeType:
+            if type(val) != types.UnicodeType and type(val) != re._pattern_type:
                 u = unicode(val, encoding='utf-8', errors='ignore')
             else:
                 u = val
@@ -3423,7 +3446,7 @@ You should force ViewServer back-end.''')
             print >> sys.stderr, u'''has  {0} == '''.format(attr),
             if type(val) == types.UnicodeType:
                 u = val
-            else:
+            elif type(val) != re._pattern_type:
                 u = unicode(val, encoding='utf-8', errors='replace')
             try:
                 print >> sys.stderr, u'''{0}'''.format(u)
@@ -3858,7 +3881,7 @@ On OSX install
             view.device = None
 
         ###########################################################################################
-        # FIXME: Unfortunatelly deepcopy does not work with MonkeyDevice objects, which is
+        # FIXME: Unfortunately deepcopy does not work with MonkeyDevice objects, which is
         # sadly the reason why we cannot pickle the tree and we need to remove the MonkeyDevice
         # references.
         # We wanted to copy the tree to preserve the original and make piclkleable the copy.
@@ -4197,6 +4220,8 @@ class CulebraTestCase(unittest.TestCase):
     kwargs2 = None
     devices = None
     ''' The list of connected devices '''
+    globalDevices = []
+    ''' The list of connected devices (class instance) '''
     defaultDevice = None
     ''' The default L{ConnectedDevice}. Set to the first one found for multi-device cases '''
     serialno = None
@@ -4212,6 +4237,12 @@ class CulebraTestCase(unittest.TestCase):
     def setUpClass(cls):
         cls.kwargs1 = {'ignoreversioncheck': False, 'verbose': False, 'ignoresecuredevice': False}
         cls.kwargs2 = {'startviewserver': True, 'forceviewserveruse': False, 'autodump': False, 'ignoreuiautomatorkilled': True}
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.kwargs2['useuiautomatorhelper']:
+            for d in cls.globalDevices:
+                d.vc.uiAutomatorHelper.quit()
 
     def __init__(self, methodName='runTest'):
         self.Log = CulebraTestCase.__Log(self)
@@ -4239,7 +4270,9 @@ class CulebraTestCase(unittest.TestCase):
                 if self.options[CulebraOptions.START_ACTIVITY]:
                     device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
                 vc = ViewClient(device, serialno, **self.kwargs2)
-                self.devices.append(ConnectedDevice(serialno=serialno, device=device, vc=vc))
+                connectedDevice = ConnectedDevice(serialno=serialno, device=device, vc=vc)
+                self.devices.append(connectedDevice)
+                CulebraTestCase.globalDevices.append(connectedDevice)
             # Select the first devices as default
             self.defaultDevice = self.devices[0]
             self.device = self.defaultDevice.device
@@ -4255,7 +4288,9 @@ class CulebraTestCase(unittest.TestCase):
                 self.device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
             self.vc = ViewClient(self.device, self.serialno, **self.kwargs2)
             # Set the default device, to be consistent with multi-devices case
-            self.devices.append(ConnectedDevice(serialno=self.serialno, device=self.device, vc=self.vc))
+            connectedDevice = ConnectedDevice(serialno=self.serialno, device=self.device, vc=self.vc)
+            self.devices.append(connectedDevice)
+            CulebraTestCase.globalDevices.append(connectedDevice)
 
     def tearDown(self):
         pass
