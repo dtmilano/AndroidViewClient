@@ -229,6 +229,10 @@ On OSX install
         params = {'x': x, 'y': y}
         return self.__httpCommand('/UiDevice/click', params)
 
+    def pressKeyCode(self, code=66, meta=-1):
+        params = {'code': code, 'metaState': meta}
+        return self.__httpCommand('/UiDevice/pressKeyCode', params)
+
     def swipe(self, (x0, y0), (x1, y1), steps):
         params = {'x0': x0, 'y0': y0, 'x1': x1, 'y1': y1, 'steps': steps}
         return self.__httpCommand('/UiDevice/swipe', params)

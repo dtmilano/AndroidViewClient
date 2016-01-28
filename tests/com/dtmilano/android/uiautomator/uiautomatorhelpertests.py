@@ -44,6 +44,12 @@ class UiAutomatorHelperTests(unittest.TestCase):
             dump = self.uiAutomatorHelper.dumpWindowHierarchy()
             self.assertIsNotNone(dump)
 
+    def testPressKeyCode(self):
+        response = self.uiAutomatorHelper.pressKeyCode(4)
+        '''4 is KEYCODE_BACK'''
+        if DEBUG:
+            print >> sys.stderr, "response=", response
+
     def testTakeScreenshot(self):
         buf = self.uiAutomatorHelper.takeScreenshot()
         self.assertIsNotNone(buf)

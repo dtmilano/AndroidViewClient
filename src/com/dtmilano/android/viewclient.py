@@ -3641,6 +3641,15 @@ You should force ViewServer back-end.''')
         else:
             warnings.warn("swipe only implemented using UiAutomatorHelper. Use AdbClient.drag() instead.")
 
+    def pressKeyCode(self, keycode, metaState=-1):
+        '''By default no meta state'''
+        if self.uiAutomatorHelper:
+            if DEBUG_UI_AUTOMATOR_HELPER:
+                print >> sys.stderr, "pressKeyCode(%d, %d)" %(keycode, metaState)
+            self.uiAutomatorHelper.pressKeyCode(keycode, metaState)
+        else:
+            warnings.warn("pressKeyCode only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
+
     def setText(self, v, text):
         if DEBUG:
             print >> sys.stderr, "setText(%s, '%s')" % (v.__tinyStr__(), text)
