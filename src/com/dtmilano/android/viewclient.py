@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.2.0'
+__version__ = '11.2.1'
 
 import sys
 import warnings
@@ -157,7 +157,7 @@ class View:
         '''
 
         if DEBUG_VIEW_FACTORY:
-            print >> sys.stderr, "View.factory(%s, %s, %s, %s)" % (arg1, arg2, version, forceviewserveruse)
+            print >> sys.stderr, "View.factory(%s, %s, %s, %s, %s, %s)" % (arg1, arg2, version, forceviewserveruse, windowId, uiAutomatorHelper)
         if type(arg1) == types.ClassType:
             cls = arg1
             attrs = None
@@ -176,24 +176,24 @@ class View:
             if DEBUG_VIEW_FACTORY:
                 print >> sys.stderr, "    View.factory: creating View with specific class: %s" % clazz
             if clazz == 'android.widget.TextView':
-                return TextView(attrs, device, version, forceviewserveruse, windowId)
+                return TextView(attrs, device, version, forceviewserveruse, windowId, uiAutomatorHelper)
             elif clazz == 'android.widget.EditText':
-                return EditText(attrs, device, version, forceviewserveruse, windowId)
+                return EditText(attrs, device, version, forceviewserveruse, windowId, uiAutomatorHelper)
             elif clazz == 'android.widget.ListView':
-                return ListView(attrs, device, version, forceviewserveruse, windowId)
+                return ListView(attrs, device, version, forceviewserveruse, windowId, uiAutomatorHelper)
             else:
-                return View(attrs, device, version, forceviewserveruse, windowId)
+                return View(attrs, device, version, forceviewserveruse, windowId, uiAutomatorHelper)
         elif cls:
             if view:
                 return cls.__copy(view)
             else:
-                return cls(attrs, device, version, forceviewserveruse, windowId)
+                return cls(attrs, device, version, forceviewserveruse, windowId, uiAutomatorHelper)
         elif view:
             return copy.copy(view)
         else:
             if DEBUG_VIEW_FACTORY:
                 print >> sys.stderr, "    View.factory: creating generic View"
-            return View(attrs, device, version, forceviewserveruse, windowId)
+            return View(attrs, device, version, forceviewserveruse, windowId, uiAutomatorHelper)
 
     @classmethod
     def __copy(cls, view):
@@ -201,7 +201,7 @@ class View:
         Copy constructor
         '''
 
-        return cls(view.map, view.device, view.version, view.forceviewserveruse, view.windowId)
+        return cls(view.map, view.device, view.version, view.forceviewserveruse, view.windowId, view.uiAutomatorHelper)
 
     def __init__(self, _map, device, version=-1, forceviewserveruse=False, windowId=None, uiAutomatorHelper=None):
         '''
