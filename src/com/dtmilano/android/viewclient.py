@@ -1038,6 +1038,7 @@ class View:
                 from PIL import Image
                 image = Image.open(stream)
             except ImportError as ex:
+                # FIXME: this method should be global
                 self.pilNotInstalledWarning()
                 sys.exit(1)
             except IOError, ex:
