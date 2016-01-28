@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.1.0'
+__version__ = '11.2.2'
 
 import os
 import subprocess
@@ -198,6 +198,12 @@ On OSX install
         return response.content
 
     #
+    # Device
+    #
+    def getDisplayRealSize(self):
+        return self.__httpCommand('/Device/getDisplayRealSize')
+
+    #
     # UiAutomatorHelper internal commands
     #
     def quit(self):
@@ -210,6 +216,16 @@ On OSX install
     #
     # UiDevice
     #
+    def click(self, x, y):
+        params = {'x': x, 'y': y}
+        return self.__httpCommand('/UiDevice/click', params)
+
+    def dumpWindowHierarchy(self):
+        dump = self.__httpCommand('/UiDevice/dumpWindowHierarchy').decode(encoding='UTF-8', errors='replace')
+        if DEBUG:
+            print >> sys.stderr, "DUMP: ", dump
+        return dump
+
     def findObject(self, resourceId):
         if not resourceId:
             raise RuntimeError('findObject: resourceId must have a value')
@@ -221,23 +237,29 @@ On OSX install
             return int("0x" + m.group(1), 16)
         raise RuntimeError("Invalid response: " + response)
 
+    def pressBack(self):
+        return self.__httpCommand('/UiDevice/pressBack')
+
+    def pressHome(self):
+        return self.__httpCommand('/UiDevice/pressHome')
+
+    def pressKeyCode(self, keyCode, metaState=0):
+        params = {'keyCode': keyCode, 'metaState': metaState}
+        return self.__httpCommand('/UiDevice/pressKeyCode', params)
+
+    def pressRecentApps(self):
+        return self.__httpCommand('/UiDevice/pressRecentApps')
+
+    def swipe(self, startX=-1, startY=-1, endX=-1, endY=-1, steps=10, segments=[], segmentSteps=5):
+        if startX != -1 and startY != -1:
+            params = {'startX': startX, 'startY': startY, 'endX': endX, 'endY': endY, 'steps': steps}
+        else:
+            params = {'segments': ','.join(str(p) for p in segments), "segmentSteps": segmentSteps}
+        return self.__httpCommand('/UiDevice/swipe', params)
+
     def takeScreenshot(self, scale=1.0, quality=90):
         params = {'scale': scale, 'quality': quality}
         return self.__httpCommand('/UiDevice/takeScreenshot', params)
-
-    def click(self, x, y):
-        params = {'x': x, 'y': y}
-        return self.__httpCommand('/UiDevice/click', params)
-
-    def swipe(self, (x0, y0), (x1, y1), steps):
-        params = {'x0': x0, 'y0': y0, 'x1': x1, 'y1': y1, 'steps': steps}
-        return self.__httpCommand('/UiDevice/swipe', params)
-
-    def dumpWindowHierarchy(self):
-        dump = self.__httpCommand('/UiDevice/dumpWindowHierarchy').decode(encoding='UTF-8', errors='replace')
-        if DEBUG:
-            print >> sys.stderr, "DUMP: ", dump
-        return dump
 
     #
     # UiObject

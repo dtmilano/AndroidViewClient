@@ -2318,9 +2318,21 @@ class ViewClient:
     If not running the ViewServer is started on the target device or emulator and then the port
     mapping is created.
 
+    LocalViewServer backend
+    =======================
+    ViewServer is started as an application services instead of as a system service.
+
     UiAutomator backend
     ===================
     No service is started.
+
+    null backend
+    ============
+    Allows only operations using PX or DIP as hierarchy is not dumped and thus Views not recognized.
+
+    UiAutomatorHelper backend
+    =========================
+    Requires B{Culebra Tester} installed on Android device.
     '''
 
     imageDirectory = None
@@ -3630,7 +3642,7 @@ You should force ViewServer back-end.''')
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print >> sys.stderr, "Long-touching (%d, %d) through UiAutomatorHelper" % (x, y)
-            self.uiAutomatorHelper.swipe((x, y), (x, y), 400)
+            self.uiAutomatorHelper.swipe(startX=x, startY=y, endX=x, endY=y, steps=400)
         else:
             self.device.longTouch(x, y)
 
@@ -3638,7 +3650,7 @@ You should force ViewServer back-end.''')
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print >> sys.stderr, "Swipe (%d, %d) (%d, %d) through UiAutomatorHelper" % (x0, y0, x1, y1)
-            self.uiAutomatorHelper.swipe((x0, y0), (x1, y1), steps)
+            self.uiAutomatorHelper.swipe(startX=x0, startY=y0, endX=x1, endY=y1, steps=steps)
         else:
             warnings.warn("swipe only implemented using UiAutomatorHelper. Use AdbClient.drag() instead.")
 

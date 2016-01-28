@@ -65,7 +65,7 @@ class UiAutomatorHelperTests(unittest.TestCase):
         x1 = random.randint(0, 1000)
         y1 = random.randint(0, 1000)
         steps = random.randint(10, 100)
-        response = self.uiAutomatorHelper.swipe((x0, y0), (x1, y1), steps)
+        response = self.uiAutomatorHelper.swipe(startX=x0, startY=y0, endX=x1, endY=y1, steps=steps)
         if DEBUG:
             print >> sys.stderr, "response=", response
 
