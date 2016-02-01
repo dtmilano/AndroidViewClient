@@ -527,6 +527,31 @@ class AdbClient:
 
         return (AdbClient.percentSame(image1, image2) >= percent)
 
+    def imageInScreen(screen, image):
+        # To make sure image smaller than screen.
+        size_x1, size_y1 = screen.size
+        size_x2, size_y2 = image.size
+        if (size_x1 <= size_x2 or
+            size_y1 <= size_y2):
+            return 0
+
+        # Load pixels.
+        screenPixels = screen.load()
+        imagePixels = image.load()
+    	
+    
+        # Loop over all pixels, if pixel image[0,0] same as pixel screen[x,y] do crop and compare
+        for x in range(size_x1-size_x2):
+        	  for y in range(size_y1-size_y2):
+                if imagePixels[0,0] == screenPixels[x,y]:
+            	      croppedScreen = screen.crop(x,y,size_x2,_size_y2)
+        	          size_x3, size_y3 = croppedScreen.size
+        	          croppedPixels = croppedScreen.load()
+        	          for x in range(size_x3):
+                        for y in range(size_y3):
+                            if (imagePixels[x, y] == croppedPixels[x, y]):
+                                return True
+
 
 if __name__ == '__main__':
     adbClient = AdbClient(os.environ['ANDROID_SERIAL'])
