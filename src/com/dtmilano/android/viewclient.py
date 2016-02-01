@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.2.1'
+__version__ = '11.3.1'
 
 import sys
 import warnings
@@ -3654,11 +3654,11 @@ You should force ViewServer back-end.''')
         else:
             warnings.warn("swipe only implemented using UiAutomatorHelper. Use AdbClient.drag() instead.")
 
-    def pressKeyCode(self, keycode, metaState=-1):
+    def pressKeyCode(self, keycode, metaState=0):
         '''By default no meta state'''
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "pressKeyCode(%d, %d)" %(keycode, metaState)
+                print >> sys.stderr, "pressKeyCode(%d, %d)" % (keycode, metaState)
             self.uiAutomatorHelper.pressKeyCode(keycode, metaState)
         else:
             warnings.warn("pressKeyCode only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
