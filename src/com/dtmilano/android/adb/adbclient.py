@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '11.1.0'
+__version__ = '11.3.0'
 
 import sys
 import warnings
@@ -885,6 +885,41 @@ class AdbClient:
         '''
 
         return (AdbClient.percentSame(image1, image2) >= percent)
+
+    @staticmethod
+    def imageInScreen(screen, image):
+        '''
+        Checks if image is on the screen
+
+        :param screen: the screen image
+        :param image: the partial image to look for
+        :return: True or False
+
+        @author: Perry Tsai <ripple0129@gmail.com>
+        '''
+
+        # To make sure image smaller than screen.
+        size_x1, size_y1 = screen.size
+        size_x2, size_y2 = image.size
+        if size_x1 <= size_x2 or size_y1 <= size_y2:
+            return 0
+
+        # Load pixels.
+        screenPixels = screen.load()
+        imagePixels = image.load()
+
+        # Loop over all pixels, if pixel image[0,0] same as pixel screen[x,y] do crop and compare
+        for x in range(size_x1 - size_x2):
+            for y in range(size_y1 - size_y2):
+                if imagePixels[0, 0] == screenPixels[x, y]:
+                    croppedScreen = screen.crop((x, y, x + size_x2, y + size_y2))
+                    size_x3, size_y3 = croppedScreen.size
+                    croppedPixels = croppedScreen.load()
+                    for x in range(size_x3):
+                        for y in range(size_y3):
+                            if imagePixels[x, y] == croppedPixels[x, y]:
+                                return True
+
 
     def isKeyboardShown(self):
         '''
