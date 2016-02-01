@@ -527,6 +527,7 @@ class AdbClient:
 
         return (AdbClient.percentSame(image1, image2) >= percent)
 
+    @staticmethod
     def imageInScreen(screen, image):
         # To make sure image smaller than screen.
         size_x1, size_y1 = screen.size
@@ -542,12 +543,12 @@ class AdbClient:
     
         # Loop over all pixels, if pixel image[0,0] same as pixel screen[x,y] do crop and compare
         for x in range(size_x1-size_x2):
-        	  for y in range(size_y1-size_y2):
+            for y in range(size_y1-size_y2):
                 if imagePixels[0,0] == screenPixels[x,y]:
-            	      croppedScreen = screen.crop(x,y,size_x2,_size_y2)
-        	          size_x3, size_y3 = croppedScreen.size
-        	          croppedPixels = croppedScreen.load()
-        	          for x in range(size_x3):
+                    croppedScreen = screen.crop((x,y,x+size_x2,y+size_y2))
+                    size_x3, size_y3 = croppedScreen.size
+                    croppedPixels = croppedScreen.load()
+                    for x in range(size_x3):
                         for y in range(size_y3):
                             if (imagePixels[x, y] == croppedPixels[x, y]):
                                 return True
