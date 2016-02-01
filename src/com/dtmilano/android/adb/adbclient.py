@@ -771,7 +771,7 @@ class AdbClient:
         version = self.getSdkVersion()
         if version <= 15:
             raise RuntimeError('drag: API <= 15 not supported (version=%d)' % version)
-        elif version <= 18:
+        elif version <= 17:
             self.shell('input swipe %d %d %d %d' % (x0, y0, x1, y1))
         else:
             self.shell('input touchscreen swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration))
