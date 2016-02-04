@@ -20,8 +20,11 @@ from com.dtmilano.android.common import obtainAdbPath
 
 VERBOSE = False
 
+TEST_TEMP_PACKAGE = False
 PKG = 'com.example.i2at.tc'
 ACTIVITY = 'TemperatureConverterActivity'
+CALCULATOR = 'calculator'
+CALC_ACTIVITY = 'Calculator'
 
 #ANDROIANDROID_SERIAL = 'emulator-5554'
 
@@ -168,30 +171,43 @@ class AdbClientTest(unittest.TestCase):
 
     def __checkPackageInstalled(self):
         packages = self.adbClient.shell('pm list packages').splitlines()
-        self.assertIn('package:' + PKG, packages, PKG + " is not installed")
+        self.assertTrue(packages, "Could not detect any packages installed")
+        if TEST_TEMP_PACKAGE:
+            self.assertIn('package:' + PKG, packages, PKG + " is not installed")
+            return [PKG, ACTIVITY]
+        else:
+            for line in packages:
+                if CALCULATOR in line:
+                    pkg = line[line.index(':')+1:]
+                    self.assertTrue(pkg, "No calculator package to use for testing")
+                    return [pkg, CALC_ACTIVITY]
+            return False
 
     def testStartActivity_component(self):
-        self.__checkPackageInstalled()
-        self.adbClient.startActivity(PKG + '/.' + ACTIVITY)
+        pkg = self.__checkPackageInstalled()
+        if pkg:
+            self.adbClient.startActivity(pkg[0] + '/.' + pkg[1])
 
     def testGetWindows(self):
         self.assertIsNotNone(self.adbClient.getWindows())
         
     def testGetFocusedWindow(self):
-        self.__checkPackageInstalled()
-        self.adbClient.startActivity(PKG + '/.' + ACTIVITY)
-        time.sleep(3)
-        w = self.adbClient.getFocusedWindow()
-        self.assertIsNotNone(w)
-        self.assertEqual(PKG + '/' + PKG + '.' + ACTIVITY, w.activity)
+        pkg = self.__checkPackageInstalled()
+        if pkg:
+            self.adbClient.startActivity(pkg[0] + '/.' + pkg[1])
+            time.sleep(3)
+            w = self.adbClient.getFocusedWindow()
+            self.assertIsNotNone(w)
+            self.assertEqual(pkg[0] + '/' + pkg[0] + '.' + pkg[1], w.activity)
         
     def testGetFocusedWindowName(self):
-        self.__checkPackageInstalled()
-        self.adbClient.startActivity(PKG + '/.' + ACTIVITY)
-        time.sleep(3)
-        n = self.adbClient.getFocusedWindowName()
-        self.assertIsNotNone(n)
-        self.assertEqual(PKG + '/' + PKG + '.' + ACTIVITY, n)
+        pkg = self.__checkPackageInstalled()
+        if pkg:
+            self.adbClient.startActivity(pkg[0] + '/.' + pkg[1])
+            time.sleep(3)
+            n = self.adbClient.getFocusedWindowName()
+            self.assertIsNotNone(n)
+            self.assertEqual(pkg[0] + '/' + pkg[0] + '.' + pkg[1], n)
         
     def testStartActivity_uri(self):
         self.adbClient.startActivity(uri='http://www.google.com')
