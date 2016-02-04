@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.3.1'
+__version__ = '11.4.0'
 
 import sys
 import warnings
@@ -3629,6 +3629,15 @@ You should force ViewServer back-end.''')
             _filter = lambda v: True
 
         return [v for v in self.views if (v.containsPoint((x,y)) and _filter(v))]
+
+    def findObject(self, **kwargs):
+        if self.uiAutomatorHelper:
+            if DEBUG_UI_AUTOMATOR_HELPER:
+                print >> sys.stderr, "Finding object with %s through UiAutomatorHelper" % (kwargs)
+            return self.uiAutomatorHelper.findObject(**kwargs)
+        else:
+            warnings.warn("findObject only implemented using UiAutomatorHelper. Use ViewClient.findView...() instead.")
+            return None
 
     def touch(self, x, y):
         if self.uiAutomatorHelper:

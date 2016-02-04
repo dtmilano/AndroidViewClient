@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.2.2'
+__version__ = '11.4.0'
 
 import os
 import subprocess
@@ -26,6 +26,7 @@ import sys
 import platform
 import threading
 import re
+import json
 try:
     import requests
     REQUESTS_AVAILABLE = True
@@ -216,8 +217,10 @@ On OSX install
     #
     # UiDevice
     #
-    def click(self, x, y):
-        params = {'x': x, 'y': y}
+    def click(self, **kwargs):
+        params = kwargs
+        if not ((params.has_key('x') and params.has_key('y')) or params.has_key('oid')):
+            raise RuntimeError('click: (x, y) or oid must have a value')
         return self.__httpCommand('/UiDevice/click', params)
 
     def dumpWindowHierarchy(self):
@@ -226,16 +229,16 @@ On OSX install
             print >> sys.stderr, "DUMP: ", dump
         return dump
 
-    def findObject(self, resourceId):
-        if not resourceId:
-            raise RuntimeError('findObject: resourceId must have a value')
-        params = {'resourceId': resourceId}
+    def findObject(self, **kwargs):
+        params = kwargs
+        if not (params.has_key('resourceId') or params.has_key('selector')):
+            raise RuntimeError('findObject: resourceId or selector must have a value')
         response = self.__httpCommand('/UiDevice/findObject', params)
-        # <response><object oid="0x1234" className="android.widget.EditText"/></response>
-        m = re.search('oid="0x([0-9a-f]+)"', response)
-        if m:
-            return int("0x" + m.group(1), 16)
-        raise RuntimeError("Invalid response: " + response)
+        # { "status": "OK", "oid": 1, "className": "android.view.View"}
+        r = json.loads(response)
+        if r[u'status'] == 'OK':
+            return UiObject(self, int(r[u'oid']))
+        raise RuntimeError("Error: " + response)
 
     def pressBack(self):
         return self.__httpCommand('/UiDevice/pressBack')
@@ -266,4 +269,16 @@ On OSX install
     #
     def setText(self, uiObject, text):
         params = {'text': text}
-        return self.__httpCommand('/UiObject/0x%x/setText' % (uiObject), params)
+        return self.__httpCommand('/UiObject/0x%x/setText' % (uiObject.oid), params)
+
+
+class UiObject:
+    def __init__(self, uiAutomatorHelper, oid):
+        self.uiAutomatorHelper = uiAutomatorHelper
+        self.oid = oid
+
+    def click(self):
+        self.uiAutomatorHelper.click(oid=self.oid)
+
+    def setText(self, text):
+        self.uiAutomatorHelper.setText(uiObject=self, text=text)
