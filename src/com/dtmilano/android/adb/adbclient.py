@@ -798,8 +798,11 @@ class AdbClient:
 
     def type(self, text):
         self.__checkTransport()
-        escaped = text.replace('%s', '\\%s')
-        encoded = escaped.replace(' ', '%s')
+        if type(text) is str:
+            escaped = text.replace('%s', '\\%s')
+            encoded = escaped.replace(' ', '%s')
+        else:
+            encoded = str(text);
         #FIXME find out which characters can be dangerous,
         # for exmaple not worst idea to escape " 
         self.shell(u'input text "%s"' % encoded)
