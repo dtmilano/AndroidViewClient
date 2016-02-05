@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.4.0'
+__version__ = '11.4.1'
 
 import sys
 import warnings
@@ -3655,11 +3655,11 @@ You should force ViewServer back-end.''')
         else:
             self.device.longTouch(x, y)
 
-    def swipe(self, (x0, y0), (x1, y1), steps=400):
+    def swipe(self, x0=-1, y0=-1, x1=-1, y1=-1, steps=400, segments=[], segmentSteps=5):
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "Swipe (%d, %d) (%d, %d) through UiAutomatorHelper" % (x0, y0, x1, y1)
-            self.uiAutomatorHelper.swipe(startX=x0, startY=y0, endX=x1, endY=y1, steps=steps)
+                print >> sys.stderr, "Swipe through UiAutomatorHelper", (x0, y0, x1, y1, steps, segments, segmentSteps)
+            self.uiAutomatorHelper.swipe(startX=x0, startY=y0, endX=x1, endY=y1, steps=steps, segments=segments, segmentSteps=segmentSteps)
         else:
             warnings.warn("swipe only implemented using UiAutomatorHelper. Use AdbClient.drag() instead.")
 

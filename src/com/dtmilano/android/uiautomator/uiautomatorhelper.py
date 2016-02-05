@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.4.0'
+__version__ = '11.4.1'
 
 import os
 import subprocess
@@ -256,8 +256,10 @@ On OSX install
     def swipe(self, startX=-1, startY=-1, endX=-1, endY=-1, steps=10, segments=[], segmentSteps=5):
         if startX != -1 and startY != -1:
             params = {'startX': startX, 'startY': startY, 'endX': endX, 'endY': endY, 'steps': steps}
-        else:
+        elif segments:
             params = {'segments': ','.join(str(p) for p in segments), "segmentSteps": segmentSteps}
+        else:
+            raise RuntimeError("Cannot determine method invocation from provided parameters. startX and startY or segments must be provided.")
         return self.__httpCommand('/UiDevice/swipe', params)
 
     def takeScreenshot(self, scale=1.0, quality=90):
