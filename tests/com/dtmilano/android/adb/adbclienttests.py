@@ -20,11 +20,11 @@ from com.dtmilano.android.common import obtainAdbPath
 
 VERBOSE = False
 
-TEST_TEMP_PACKAGE = False
-PKG = 'com.example.i2at.tc'
-ACTIVITY = 'TemperatureConverterActivity'
-CALCULATOR = 'calculator'
-CALC_ACTIVITY = 'Calculator'
+TEST_TEMPERATURE_CONVERTER_APP = False
+TEMPERATURE_CONVERTER_PKG = 'com.example.i2at.tc'
+TEMPERATURE_CONVERTER_ACTIVITY = 'TemperatureConverterActivity'
+CALCULATOR_KEYWORD = 'calculator'
+CALCULATOR_ACTIVITY = 'Calculator'
 
 #ANDROIANDROID_SERIAL = 'emulator-5554'
 
@@ -172,15 +172,15 @@ class AdbClientTest(unittest.TestCase):
     def __checkPackageInstalled(self):
         packages = self.adbClient.shell('pm list packages').splitlines()
         self.assertTrue(packages, "Could not detect any packages installed")
-        if TEST_TEMP_PACKAGE:
-            self.assertIn('package:' + PKG, packages, PKG + " is not installed")
-            return [PKG, ACTIVITY]
+        if TEST_TEMPERATURE_CONVERTER_APP:
+            self.assertIn('package:' + TEMPERATURE_CONVERTER_PKG, packages, TEMPERATURE_CONVERTER_PKG + " is not installed")
+            return (TEMPERATURE_CONVERTER_PKG, TEMPERATURE_CONVERTER_ACTIVITY)
         else:
             for line in packages:
-                if CALCULATOR in line:
+                if CALCULATOR_KEYWORD in line:
                     pkg = line[line.index(':')+1:]
                     self.assertTrue(pkg, "No calculator package to use for testing")
-                    return [pkg, CALC_ACTIVITY]
+                    return (pkg, CALCULATOR_ACTIVITY)
             return False
 
     def testStartActivity_component(self):
