@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.4.1'
+__version__ = '11.5.0'
 
 import sys
 import warnings
@@ -927,7 +927,11 @@ class View:
             time.sleep(50/1000.0)
             self.device.touch(x+10, y+10, eventType=adbclient.UP)
         else:
-            self.device.touch(x, y, eventType=eventType)
+            if self.uiAutomatorHelper:
+                # FIXME: this could be also clicking the View by OID if findObject() were used to find the Views
+                self.uiAutomatorHelper.click(x=x, y=y)
+            else:
+                self.device.touch(x, y, eventType=eventType)
 
     def longTouch(self, duration=2000):
         '''
@@ -937,8 +941,11 @@ class View:
         '''
 
         (x, y) = self.getCenter()
-        # FIXME: get orientation
-        self.device.longTouch(x, y, duration, orientation=-1)
+        if self.uiAutomatorHelper:
+            self.uiAutomatorHelper.swipe(startX=x, startY=y, endX=x, endY=y, steps=200)
+        else:
+            # FIXME: get orientation
+            self.device.longTouch(x, y, duration, orientation=-1)
 
     def allPossibleNamesWithColon(self, name):
         l = []
