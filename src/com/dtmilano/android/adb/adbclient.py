@@ -204,6 +204,11 @@ class AdbClient:
         if DEBUG:
             print >> sys.stderr, "AdbClient.connect(%s, %s, %s)" % (hostname, port, timeout)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # SO_LINGER: Idea proposed by kysersozelee (#173)
+        l_onoff = 1
+        l_linger = 0
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER,
+                     struct.pack('ii', l_onoff, l_linger))
         s.settimeout(timeout)
         try:
             s.connect((hostname, port))
