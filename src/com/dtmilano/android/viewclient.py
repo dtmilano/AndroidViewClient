@@ -929,8 +929,16 @@ class View:
             self.device.touch(x+10, y+10, eventType=adbclient.UP)
         else:
             if self.uiAutomatorHelper:
-                # FIXME: this could be also clicking the View by OID if findObject() were used to find the Views
-                self.uiAutomatorHelper.click(x=x, y=y)
+                try:
+                    oid = self.uiAutomatorHelper.findObject(self.getId())
+                    if DEBUG_UI_AUTOMATOR_HELPER:
+                        print >> sys.stderr, "oid=", oid
+                        print >> sys.stderr, "ignoring click delta to click View as UiObject"
+                    oid.click();
+                except RuntimeError as e:
+                    print >> sys.stderr, e.message
+                    print >> sys.stderr, "UiObject click failed, using co-ordinates"
+                    self.uiAutomatorHelper.click(x, y)
             else:
                 self.device.touch(x, y, eventType=eventType)
 
