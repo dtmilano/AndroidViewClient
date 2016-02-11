@@ -107,6 +107,9 @@ class Operation:
     OPEN_QUICK_SETTINGS = 'open_quick_settings'
     TYPE = 'type'
     PRESS = 'press'
+    PRESS_BACK = 'press_back'
+    PRESS_HOME = 'press_homne'
+    PRESS_RECENT_APPS = 'press_recent_apps'
     SNAPSHOT = 'snapshot'
     START_ACTIVITY = 'start_activity'
     SLEEP = 'sleep'
@@ -605,12 +608,25 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "getViewsContainingPointAndTouch(x=%s, y=%s)" % (x, y)
             print >> sys.stderr, "self.vc=", self.vc
         v = self.findViewContainingPointInTargets(x, y)
+
         if v is None:
             # FIXME: We can touch by DIP by default if no Views were found
             self.hideVignette()
             msg = "There are no touchable or clickable views here!"
             self.toast(msg)
             return
+        elif self.vc.uiAutomatorHelper:
+            # These operations are only available through uiAutomatorHelper
+            if v == self.vc.navBack:
+                self.pressBack()
+                return
+            elif v == self.vc.navHome:
+                self.pressHome()
+                return
+            elif v == self.vc.navRecentApps:
+                self.pressRecentApps()
+                return
+
         clazz = v.getClass()
         if clazz == 'android.widget.EditText':
             title = "EditText"
@@ -649,6 +665,25 @@ This is usually installed by python package. Check your distribution details.
 
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)
+        self.takeScreenshotAndShowItOnWindow()
+
+    def pressBack(self):
+        self.showVignette()
+        self.vc.pressBack()
+        self.printOperation(None, Operation.PRESS_BACK)
+        self.takeScreenshotAndShowItOnWindow()
+
+    def pressHome(self):
+        self.showVignette()
+        self.vc.pressHome()
+        self.printOperation(None, Operation.PRESS_HOME)
+        self.takeScreenshotAndShowItOnWindow()
+
+    def pressRecentApps(self):
+        self.showVignette()
+        self.vc.pressRecentApps()
+        self.printOperation(None, Operation.PRESS_RECENT_APPS)
+        self.vc.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
     def setText(self, v, text):

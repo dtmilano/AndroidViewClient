@@ -681,6 +681,15 @@ def printOperation(view, op, *args):
     elif op == Operation.PRESS:
         printPress(keycode=args[0])
         return
+    elif op == Operation.PRESS_BACK:
+        printPress('BACK')
+        return
+    elif op == Operation.PRESS_HOME:
+        printPress('HOME')
+        return
+    elif op == Operation.PRESS_RECENT_APPS:
+        printPress('RECENT_APPS')
+        return
     elif op == Operation.DUMP:
         printDump(window=args[0], dump=args[1])
         return

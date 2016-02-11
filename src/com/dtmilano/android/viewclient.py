@@ -66,6 +66,7 @@ DEBUG_VIEW = DEBUG and False
 DEBUG_VIEW_FACTORY = DEBUG and False
 DEBUG_CHANGE_LANGUAGE = DEBUG and False
 DEBUG_UI_AUTOMATOR_HELPER = DEBUG and False
+DEBUG_NAV_BUTTONS = DEBUG or True
 
 WARNINGS = False
 
@@ -2513,6 +2514,10 @@ class ViewClient:
         '''
         self.compressedDump = compresseddump
 
+        self.navBack = None
+        self.navHome = None
+        self.navRecentApps = None
+
         if autodump:
             self.dump()
 
@@ -3039,6 +3044,25 @@ class ViewClient:
             self.views.append(lastView)
             self.viewsById[lastView.getUniqueId()] = lastView
 
+    def __updateNavButtons(self):
+        """
+        Updates the navigation buttons that might be on the device screen.
+        """
+
+        navButtons = None
+        for v in self.views:
+            if v.getId() == 'com.android.systemui:id/nav_buttons':
+                navButtons = v
+                break
+        if navButtons:
+            self.navBack = self.findViewById('com.android.systemui:id/back', navButtons)
+            self.navHome = self.findViewById('com.android.systemui:id/home', navButtons)
+            self.navRecentApps = self.findViewById('com.android.systemui:id/recent_apps', navButtons)
+        else:
+            self.navBack = None
+            self.navHome = None
+            self.navRecentApps = None
+
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY], self.uiAutomatorHelper)
         try:
@@ -3050,6 +3074,14 @@ class ViewClient:
         self.viewsById = {}
         for v in self.views:
             self.viewsById[v.getUniqueId()] = v
+        self.__updateNavButtons()
+        if DEBUG_NAV_BUTTONS:
+            if not self.navBack:
+                print >> sys.stderr, "WARNING: nvaBack not found"
+            if not self.navHome:
+                print >> sys.stderr, "WARNING: nvaHome not found"
+            if not self.navRecentApps:
+                print >> sys.stderr, "WARNING: nvaRecentApps not found"
 
     def getRoot(self):
         '''
@@ -3669,6 +3701,24 @@ You should force ViewServer back-end.''')
             self.uiAutomatorHelper.swipe(startX=x0, startY=y0, endX=x1, endY=y1, steps=steps, segments=segments, segmentSteps=segmentSteps)
         else:
             warnings.warn("swipe only implemented using UiAutomatorHelper. Use AdbClient.drag() instead.")
+
+    def pressBack(self):
+        if self.uiAutomatorHelper:
+            self.uiAutomatorHelper.pressBack()
+        else:
+            warnings.warn("pressBak only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
+
+    def pressHome(self):
+        if self.uiAutomatorHelper:
+            self.uiAutomatorHelper.pressHome()
+        else:
+            warnings.warn("pressHome only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
+
+    def pressRecentApps(self):
+        if self.uiAutomatorHelper:
+            self.uiAutomatorHelper.pressRecentApps()
+        else:
+            warnings.warn("pressRecentApps only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
 
     def pressKeyCode(self, keycode, metaState=0):
         '''By default no meta state'''
