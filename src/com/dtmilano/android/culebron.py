@@ -101,6 +101,7 @@ class Operation:
     TEST = 'test'
     TEST_TEXT = 'test_text'
     TOUCH_VIEW = 'touch_view'
+    TOUCH_VIEW_UI_AUTOMATOR_HELPER = 'touch_view_ui_automator_helper'
     TOUCH_POINT = 'touch_point'
     LONG_TOUCH_POINT = 'long_touch_point'
     OPEN_NOTIFICATION = 'open_notification'
@@ -698,9 +699,12 @@ This is usually installed by python package. Check your distribution details.
 
     def touchView(self, v, root=None):
         v.touch()
-        # we pass root=v as an argument so the corresponding findView*() searches in this
-        # subtree instead of the full tree
-        self.printOperation(v, Operation.TOUCH_VIEW, root)
+        if v.uiAutomatorHelper:
+            self.printOperation(v, Operation.TOUCH_VIEW_UI_AUTOMATOR_HELPER, v.obtainSelectorForView())
+        else:
+            # we pass root=v as an argument so the corresponding findView*() searches in this
+            # subtree instead of the full tree
+            self.printOperation(v, Operation.TOUCH_VIEW, root)
 
     def touchPoint(self, x, y):
         '''
@@ -767,6 +771,15 @@ This is usually installed by python package. Check your distribution details.
             # self.hideVignette()
             self.statusBar.clear()
             return
+
+    def longTouchView(self, v, root=None):
+        v.longTouch()
+        if v.uiAutomatorHelper:
+            self.printOperation(v, Operation.LONG_TOUCH_VIEW_UI_AUTOMATOR_HELPER, v.obtainSelectorForView())
+        else:
+            # we pass root=v as an argument so the corresponding findView*() searches in this
+            # subtree instead of the full tree
+            self.printOperation(v, Operation.LONG_TOUCH_VIEW, root)
 
     def onButton1Pressed(self, event):
         if DEBUG:
@@ -1015,6 +1028,13 @@ This is usually installed by python package. Check your distribution details.
             self.toast(None)
             self.statusBar.clear()
             self.isLongTouchingPoint = False
+
+    def toggleLongTouchView(self):
+        '''
+        :return:
+        '''
+        print >> sys.stderr, "TODO: Implement toggleLongTouchView"
+        pass
 
     def onCtrlL(self, event):
         self.toggleLongTouchPoint()
@@ -1864,6 +1884,8 @@ if TKINTER_AVAILABLE:
             items.append(ContextMenu.Command('Control Panel', 0, 'Ctrl+K', '<Control-K>', culebron.showControlPanel))
             items.append(ContextMenu.Command('Long touch point using PX', 0, 'Ctrl+L', '<Control-L>',
                                              culebron.toggleLongTouchPoint))
+            items.append(ContextMenu.Command('Long touch View', 0, None, None,
+                                             culebron.toggleLongTouchView))
             items.append(
                 ContextMenu.Command('Touch using DIP', 13, 'Ctrl+I', '<Control-I>', culebron.toggleTouchPointDip))
             items.append(

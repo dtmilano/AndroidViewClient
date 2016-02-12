@@ -929,9 +929,10 @@ class View:
             self.device.touch(x+10, y+10, eventType=adbclient.UP)
         else:
             if self.uiAutomatorHelper:
-                if self.getId():
+                selector = self.obtainSelectorForView()
+                if selector:
                     try:
-                        oid = self.uiAutomatorHelper.findObject(selector='res@%s' % self.getId())
+                        oid = self.uiAutomatorHelper.findObject(selector=selector)
                         if DEBUG_UI_AUTOMATOR_HELPER:
                             print >> sys.stderr, "oid=", oid
                             print >> sys.stderr, "ignoring click delta to click View as UiObject"
@@ -942,12 +943,26 @@ class View:
                         self.uiAutomatorHelper.click(x=x, y=y)
                 else:
                     # FIXME:
-                    # The View has no ID so we cannot use it in a selector to findObject()
+                    # The View has no CD, TEXT or ID so we cannot use it in a selector to findObject()
                     # We should try content description, text, and perhaps other properties before surrendering.
                     # For now, tet's fall back to click(x, y)
                     self.uiAutomatorHelper.click(x=x, y=y)
             else:
                 self.device.touch(x, y, eventType=eventType)
+
+    def obtainSelectorForView(self):
+        selector = ''
+        if self.getContentDescription():
+            selector += 'desc@' + self.getContentDescription()
+        if self.getText():
+            if selector:
+                selector += ','
+            selector += 'text@' + self.getText()
+        if self.getId():
+            if selector:
+                selector += ','
+            selector += 'res@' + self.getId()
+        return selector
 
     def longTouch(self, duration=2000):
         '''
@@ -3697,19 +3712,29 @@ You should force ViewServer back-end.''')
             warnings.warn("findObject only implemented using UiAutomatorHelper. Use ViewClient.findView...() instead.")
             return None
 
-    def touch(self, x, y):
+    def touch(self, x=-1, y=-1, selector=None):
         if self.uiAutomatorHelper:
-            if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "Touching (%d, %d) through UiAutomatorHelper" % (x, y)
-            self.uiAutomatorHelper.click(int(x), int(y))
+            if selector:
+                if DEBUG_UI_AUTOMATOR_HELPER:
+                    print >> sys.stderr, "Touching View by selector=%s through UiAutomatorHelper" % (selector)
+                self.uiAutomatorHelper.findObject(selector=selector).click()
+            else:
+                if DEBUG_UI_AUTOMATOR_HELPER:
+                    print >> sys.stderr, "Touching (%d, %d) through UiAutomatorHelper" % (x, y)
+                self.uiAutomatorHelper.click(int(x), int(y))
         else:
             self.device.touch(x, y)
 
-    def longTouch(self, x, y):
+    def longTouch(self, x=-1, y=-1, selector=None):
         if self.uiAutomatorHelper:
-            if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "Long-touching (%d, %d) through UiAutomatorHelper" % (x, y)
-            self.uiAutomatorHelper.swipe(startX=x, startY=y, endX=x, endY=y, steps=400)
+            if selector:
+                if DEBUG_UI_AUTOMATOR_HELPER:
+                    print >> sys.stderr, "Long-touching View by selector=%s through UiAutomatorHelper" % (selector)
+                self.uiAutomatorHelper.findObject(selector=selector).longClick()
+            else:
+                if DEBUG_UI_AUTOMATOR_HELPER:
+                    print >> sys.stderr, "Long-touching (%d, %d) through UiAutomatorHelper" % (x, y)
+                self.uiAutomatorHelper.swipe(startX=int(x), startY=int(y), endX=int(x), endY=int(y), steps=400)
         else:
             self.device.longTouch(x, y)
 

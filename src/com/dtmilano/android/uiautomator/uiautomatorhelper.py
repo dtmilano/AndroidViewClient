@@ -240,6 +240,12 @@ On OSX install
             return UiObject(self, int(r[u'oid']))
         raise RuntimeError("Error: " + response)
 
+    def longClick(self, **kwargs):
+        params = kwargs
+        if not ((params.has_key('x') and params.has_key('y')) or params.has_key('oid')):
+            raise RuntimeError('longClick: (x, y) or oid must have a value')
+        return self.__httpCommand('/UiDevice/longClick', params)
+
     def pressBack(self):
         return self.__httpCommand('/UiDevice/pressBack')
 
@@ -281,6 +287,9 @@ class UiObject:
 
     def click(self):
         self.uiAutomatorHelper.click(oid=self.oid)
+
+    def longClick(self):
+        self.uiAutomatorHelper.longClick(oid=self.oid)
 
     def setText(self, text):
         self.uiAutomatorHelper.setText(uiObject=self, text=text)

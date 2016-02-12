@@ -656,6 +656,17 @@ def printStartActivity(component):
     printSleep(3)
 
 
+def printTouchViewUiAutomatorHelper(view, selector):
+    '''
+    Prints the corresponding touch
+    '''
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(u'touching View by selector=%s' % (selector))
+        print '%s%svc.touch(selector=\'%s\')' % (indent, prefix, selector)
+
+
 def printOperation(view, op, *args):
     if len(args) == 0:
         # We use tuple values in the rest of this method, so if an empty tuple was passed
@@ -698,6 +709,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.TOUCH_POINT:
         printTouch(x=args[0], y=args[1], unit=args[2], orientation=args[3])
+        return
+    elif op == Operation.TOUCH_VIEW_UI_AUTOMATOR_HELPER:
+        printTouchViewUiAutomatorHelper(view=view, selector=args[0])
         return
     elif op == Operation.LONG_TOUCH_POINT:
         printLongTouch(x=args[0], y=args[1], duration=args[2], unit=args[3], orientation=args[4])
