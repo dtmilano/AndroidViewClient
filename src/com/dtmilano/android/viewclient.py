@@ -929,16 +929,23 @@ class View:
             self.device.touch(x+10, y+10, eventType=adbclient.UP)
         else:
             if self.uiAutomatorHelper:
-                try:
-                    oid = self.uiAutomatorHelper.findObject(self.getId())
-                    if DEBUG_UI_AUTOMATOR_HELPER:
-                        print >> sys.stderr, "oid=", oid
-                        print >> sys.stderr, "ignoring click delta to click View as UiObject"
-                    oid.click();
-                except RuntimeError as e:
-                    print >> sys.stderr, e.message
-                    print >> sys.stderr, "UiObject click failed, using co-ordinates"
-                    self.uiAutomatorHelper.click(x, y)
+                if self.getId():
+                    try:
+                        oid = self.uiAutomatorHelper.findObject(selector='res@%s' % self.getId())
+                        if DEBUG_UI_AUTOMATOR_HELPER:
+                            print >> sys.stderr, "oid=", oid
+                            print >> sys.stderr, "ignoring click delta to click View as UiObject"
+                        oid.click();
+                    except RuntimeError as e:
+                        print >> sys.stderr, e.message
+                        print >> sys.stderr, "UiObject click failed, using co-ordinates"
+                        self.uiAutomatorHelper.click(x=x, y=y)
+                else:
+                    # FIXME:
+                    # The View has no ID so we cannot use it in a selector to findObject()
+                    # We should try content description, text, and perhaps other properties before surrendering.
+                    # For now, tet's fall back to click(x, y)
+                    self.uiAutomatorHelper.click(x=x, y=y)
             else:
                 self.device.touch(x, y, eventType=eventType)
 
@@ -3067,11 +3074,15 @@ class ViewClient:
             self.navHome = self.findViewById('com.android.systemui:id/home', navButtons)
             self.navRecentApps = self.findViewById('com.android.systemui:id/recent_apps', navButtons)
         else:
+            if self.uiAutomatorHelper:
+                print >> sys.stderr, "WARNING: nav buttons not found. Perhaps the device has hardware buttons."
             self.navBack = None
             self.navHome = None
             self.navRecentApps = None
 
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
+        if DEBUG:
+            print >> sys.stderr, "__parseTreeFromUiAutomatorDump(", receivedXml[:40], "...)"
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY], self.uiAutomatorHelper)
         try:
             start_xml_index = receivedXml.index("<")
@@ -3742,11 +3753,16 @@ You should force ViewServer back-end.''')
             print >> sys.stderr, "setText(%s, '%s')" % (v.__tinyStr__(), text)
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "Setting text through UiAutomatorHelper"
-            oid = self.uiAutomatorHelper.findObject(v.getId())
-            if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "oid=", oid, "text=", text
-            self.uiAutomatorHelper.setText(oid, text)
+                print >> sys.stderr, "Setting text through UiAutomatorHelper for View with ID=%s" % v.getId()
+            if v.getId():
+                oid = self.uiAutomatorHelper.findObject(selector='res@%s' % v.getId())
+                if DEBUG_UI_AUTOMATOR_HELPER:
+                    print >> sys.stderr, "oid=", oid, "text=", text
+                self.uiAutomatorHelper.setText(oid, text)
+            else:
+                # The View has no ID so we cannot use the ID to create a selector to find it using findObject()
+                # Let's fall back to this method.
+                v.setText(text)
         else:
             # This is deleting the existing text, which should be asked in the dialog, but I would have to implement
             # the dialog myself

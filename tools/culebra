@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '11.4.0'
+__version__ = '11.5.0'
 
 import re
 import sys
@@ -1094,7 +1094,8 @@ class CulebraTests(CulebraTestCase):
         print '''\
         self.views = dict()'''
 
-    vc.dump(window=options[CulebraOptions.WINDOW])
+    if not options[CulebraOptions.GUI]:
+        vc.dump(window=options[CulebraOptions.WINDOW])
     indent = ' ' * 8
     prefix = 'self.'
     
