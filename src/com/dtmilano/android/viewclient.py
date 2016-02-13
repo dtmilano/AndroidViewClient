@@ -3721,7 +3721,7 @@ You should force ViewServer back-end.''')
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print >> sys.stderr, "Touching (%d, %d) through UiAutomatorHelper" % (x, y)
-                self.uiAutomatorHelper.click(int(x), int(y))
+                self.uiAutomatorHelper.click(x=int(x), y=int(y))
         else:
             self.device.touch(x, y)
 
