@@ -620,58 +620,61 @@ This is usually installed by python package. Check your distribution details.
         v = self.findViewContainingPointInTargets(x, y)
 
         if v is None:
-            # FIXME: We can touch by DIP by default if no Views were found
             self.hideVignette()
-            msg = "There are no touchable or clickable views here!"
+            msg = "There are no explicitly touchable or clickable views here!  Touching with [x,y]"
             self.toast(msg)
-            return
-        elif self.vc.uiAutomatorHelper:
-            # These operations are only available through uiAutomatorHelper
-            if v == self.vc.navBack:
-                self.pressBack()
-                return
-            elif v == self.vc.navHome:
-                self.pressHome()
-                return
-            elif v == self.vc.navRecentApps:
-                self.pressRecentApps()
-                return
-
-        clazz = v.getClass()
-        if clazz == 'android.widget.EditText':
-            title = "EditText"
-            kwargs = {}
-            if DEBUG:
-                print >> sys.stderr, v
-            if v.isPassword():
-                title = "Password"
-                kwargs = {'show': '*'}
-            text = tkSimpleDialog.askstring(title, "Enter text to type into this field", **kwargs)
-            self.canvas.focus_set()
-            if text:
-                self.vc.setText(v, text)
-            else:
-                self.hideVignette()
-                return
+            # A partial hack which temporarily toggles touch point
+            self.toggleTouchPoint()
+            self.touchPoint(x, y)
+            self.toggleTouchPoint()
         else:
-            candidates = [v]
+            if self.vc.uiAutomatorHelper:
+                # These operations are only available through uiAutomatorHelper
+                if v == self.vc.navBack:
+                    self.pressBack()
+                    return
+                elif v == self.vc.navHome:
+                    self.pressHome()
+                    return
+                elif v == self.vc.navRecentApps:
+                    self.pressRecentApps()
+                    return
 
-            def findBestCandidate(view):
-                isccf = Culebron.isClickableCheckableOrFocusable(view)
-                cd = view.getContentDescription()
-                text = view.getText()
-                if (cd or text) and not isccf:
-                    # because isccf==False this view was not added to the list of targets
-                    # (i.e. Settings)
-                    candidates.insert(0, view)
-                return None
+            clazz = v.getClass()
+            if clazz == 'android.widget.EditText':
+                title = "EditText"
+                kwargs = {}
+                if DEBUG:
+                    print >> sys.stderr, v
+                if v.isPassword():
+                    title = "Password"
+                    kwargs = {'show': '*'}
+                text = tkSimpleDialog.askstring(title, "Enter text to type into this field", **kwargs)
+                self.canvas.focus_set()
+                if text:
+                    self.vc.setText(v, text)
+                else:
+                    self.hideVignette()
+                    return
+            else:
+                candidates = [v]
 
-            if not (v.getText() or v.getContentDescription()) and v.getChildren():
-                self.vc.traverse(root=v, transform=findBestCandidate, stream=None)
-            if len(candidates) > 2:
-                warnings.warn("We are in trouble, we have more than one candidate to touch", stacklevel=0)
-            candidate = candidates[0]
-            self.touchView(candidate, v if candidate != v else None)
+                def findBestCandidate(view):
+                    isccf = Culebron.isClickableCheckableOrFocusable(view)
+                    cd = view.getContentDescription()
+                    text = view.getText()
+                    if (cd or text) and not isccf:
+                        # because isccf==False this view was not added to the list of targets
+                        # (i.e. Settings)
+                        candidates.insert(0, view)
+                    return None
+
+                if not (v.getText() or v.getContentDescription()) and v.getChildren():
+                    self.vc.traverse(root=v, transform=findBestCandidate, stream=None)
+                if len(candidates) > 2:
+                    warnings.warn("We are in trouble, we have more than one candidate to touch", stacklevel=0)
+                candidate = candidates[0]
+                self.touchView(candidate, v if candidate != v else None)
 
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)
