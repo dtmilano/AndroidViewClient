@@ -221,7 +221,10 @@ On OSX install
         params = kwargs
         if not ((params.has_key('x') and params.has_key('y')) or params.has_key('oid')):
             raise RuntimeError('click: (x, y) or oid must have a value')
-        return self.__httpCommand('/UiDevice/click', params)
+        if params.has_key('oid'):
+            return self.__httpCommand('/UiObject2/%d/click' % params['oid'])
+        else:
+            return self.__httpCommand('/UiDevice/click', params)
 
     def dumpWindowHierarchy(self):
         dump = self.__httpCommand('/UiDevice/dumpWindowHierarchy').decode(encoding='UTF-8', errors='replace')
@@ -237,6 +240,8 @@ On OSX install
         # { "status": "OK", "oid": 1, "className": "android.view.View"}
         r = json.loads(response)
         if r[u'status'] == 'OK':
+            if DEBUG:
+                print >> sys.stderr, "UiAutomatorHelper: findObject: returning", int(r[u'oid'])
             return UiObject(self, int(r[u'oid']))
         raise RuntimeError("Error: " + response)
 
@@ -244,7 +249,10 @@ On OSX install
         params = kwargs
         if not ((params.has_key('x') and params.has_key('y')) or params.has_key('oid')):
             raise RuntimeError('longClick: (x, y) or oid must have a value')
-        return self.__httpCommand('/UiDevice/longClick', params)
+        if params.has_key('oid'):
+            return self.__httpCommand('/UiObject2/%d/longClick' % params['oid'])
+        else:
+            return self.__httpCommand('/UiDevice/longClick', params)
 
     def pressBack(self):
         return self.__httpCommand('/UiDevice/pressBack')

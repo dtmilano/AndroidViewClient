@@ -3729,11 +3729,11 @@ You should force ViewServer back-end.''')
         if self.uiAutomatorHelper:
             if selector:
                 if DEBUG_UI_AUTOMATOR_HELPER:
-                    print >> sys.stderr, "Long-touching View by selector=%s through UiAutomatorHelper" % (selector)
+                    print >> sys.stderr, "ViewClient: Long-touching View by selector=%s through UiAutomatorHelper" % (selector)
                 self.uiAutomatorHelper.findObject(selector=selector).longClick()
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
-                    print >> sys.stderr, "Long-touching (%d, %d) through UiAutomatorHelper" % (x, y)
+                    print >> sys.stderr, "ViewClient: Long-touching (%d, %d) through UiAutomatorHelper" % (x, y)
                 self.uiAutomatorHelper.swipe(startX=int(x), startY=int(y), endX=int(x), endY=int(y), steps=400)
         else:
             self.device.longTouch(x, y)

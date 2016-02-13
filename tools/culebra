@@ -667,6 +667,67 @@ def printTouchViewUiAutomatorHelper(view, selector):
         print '%s%svc.touch(selector=\'%s\')' % (indent, prefix, selector)
 
 
+def printLongTouchViewUiAutomatorHelper(view, selector):
+    '''
+    Prints the corresponding long touch
+    '''
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(u'long-touching View by selector=%s' % (selector))
+        print '%s%svc.longTouch(selector=\'%s\')' % (indent, prefix, selector)
+
+
+def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, unit, orientation):
+    '''
+    Prints a swipe
+    '''
+
+    if unit == Unit.PX:
+        if options[CulebraOptions.MULTI_DEVICE]:
+            warnings.warn('Multi-device not implemented yet for this case')
+        else:
+            print '%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (indent, prefix, startX, startY, endX, endY, steps)
+    elif unit == Unit.DIP:
+        if options[CulebraOptions.MULTI_DEVICE]:
+            warnings.warn('Multi-device not implemented yet for this case')
+        else:
+            print '%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (indent, prefix, startX, startY, endX, endY, steps)
+    else:
+        raise RuntimeError('Invalid unit: %s' % unit)
+
+
+def printPressBackUiAutomatorHelper():
+    '''
+    Prints the corresponding press
+    '''
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(u'pressing BACK')
+        print '%s%svc.pressBack()' % (indent, prefix)
+
+def printPressHomeUiAutomatorHelper():
+    '''
+    Prints the corresponding press
+    '''
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(u'pressing HOME')
+        print '%s%svc.pressHome()' % (indent, prefix)
+
+def printPressRecentAppsUiAutomatorHelper():
+    '''
+    Prints the corresponding press
+    '''
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(u'pressing RECENT APPS')
+        print '%s%svc.pressRecentApps()' % (indent, prefix)
+
+
 def printOperation(view, op, *args):
     if len(args) == 0:
         # We use tuple values in the rest of this method, so if an empty tuple was passed
@@ -695,11 +756,20 @@ def printOperation(view, op, *args):
     elif op == Operation.PRESS_BACK:
         printPress('BACK')
         return
+    elif op == Operation.PRESS_BACK_UI_AUTOMATOR_HELPER:
+        printPressBackUiAutomatorHelper()
+        return
     elif op == Operation.PRESS_HOME:
         printPress('HOME')
         return
+    elif op == Operation.PRESS_HOME_UI_AUTOMATOR_HELPER:
+        printPressHomeUiAutomatorHelper()
+        return
     elif op == Operation.PRESS_RECENT_APPS:
         printPress('RECENT_APPS')
+        return
+    elif op == Operation.PRESS_RECENT_APPS_UI_AUTOMATOR_HELPER:
+        printPressRecentAppsUiAutomatorHelper()
         return
     elif op == Operation.DUMP:
         printDump(window=args[0], dump=args[1])
@@ -716,11 +786,17 @@ def printOperation(view, op, *args):
     elif op == Operation.LONG_TOUCH_POINT:
         printLongTouch(x=args[0], y=args[1], duration=args[2], unit=args[3], orientation=args[4])
         return
+    elif op == Operation.LONG_TOUCH_VIEW_UI_AUTOMATOR_HELPER:
+        printLongTouchViewUiAutomatorHelper(view=view, selector=args[0])
+        return
     elif op == Operation.TRAVERSE:
         printTraverse()
         return
     elif op == Operation.SNAPSHOT:
         printTakeSnapshot(filename=args[0], _format=args[1], deviceart=args[2], dropshadow=args[3], screenglare=args[4])
+        return
+    elif op == Operation.SWIPE_UI_AUTOMATOR_HELPER:
+        printSwipeUiAutomatorHelper(startX=args[0], startY=args[1], endX=args[2], endY=args[3], steps=args[4], unit=args[5], orientation=args[6])
         return
     elif op == Operation.VIEW_SNAPSHOT:
         printSaveViewScreenshot(view, filename=args[0], _format=args[1])

@@ -104,16 +104,21 @@ class Operation:
     TOUCH_VIEW_UI_AUTOMATOR_HELPER = 'touch_view_ui_automator_helper'
     TOUCH_POINT = 'touch_point'
     LONG_TOUCH_POINT = 'long_touch_point'
+    LONG_TOUCH_VIEW_UI_AUTOMATOR_HELPER = 'long_touch_view_ui_automator_helper'
     OPEN_NOTIFICATION = 'open_notification'
     OPEN_QUICK_SETTINGS = 'open_quick_settings'
     TYPE = 'type'
     PRESS = 'press'
     PRESS_BACK = 'press_back'
-    PRESS_HOME = 'press_homne'
+    PRESS_BACK_UI_AUTOMATOR_HELPER = 'press_back_ui_automator_helper'
+    PRESS_HOME = 'press_home'
+    PRESS_HOME_UI_AUTOMATOR_HELPER = 'press_home_ui_automator_helper'
     PRESS_RECENT_APPS = 'press_recent_apps'
+    PRESS_RECENT_APPS_UI_AUTOMATOR_HELPER = 'press_recent_apps_ui_automator_helper'
     SNAPSHOT = 'snapshot'
     START_ACTIVITY = 'start_activity'
     SLEEP = 'sleep'
+    SWIPE_UI_AUTOMATOR_HELPER = 'swipe_ui_automator_helper'
     TRAVERSE = 'traverse'
     VIEW_SNAPSHOT = 'view_snapshot'
     WAKE = 'wake'
@@ -122,6 +127,7 @@ class Operation:
                                   'flingToBeginning': FLING_TO_BEGINNING, 'flingToEnd': FLING_TO_END,
                                   'openNotification': OPEN_NOTIFICATION, 'openQuickSettings': OPEN_QUICK_SETTINGS,
                                   }
+
     @staticmethod
     def fromCommandName(commandName):
         return Operation.COMMAND_NAME_OPERATION_MAP[commandName]
@@ -159,6 +165,7 @@ class Culebron:
     isGeneratingTestCondition = False
     isTouchingPoint = False
     isLongTouchingPoint = False
+    isLongTouchingView = False
     onTouchListener = None
     snapshotDir = '/tmp'
     snapshotFormat = 'PNG'
@@ -244,6 +251,8 @@ This is usually installed by python package. Check your distribution details.
         self.markedTargetIds = {}
         self.isTouchingPoint = self.vc is None
         self.coordinatesUnit = Unit.DIP
+        self.isLongTouchingPoint = False
+        self.isLongTouchingView = False
         self.permanentlyDisableEvents = False
         self.unscaledScreenshot = None
         self.image = None
@@ -671,19 +680,28 @@ This is usually installed by python package. Check your distribution details.
     def pressBack(self):
         self.showVignette()
         self.vc.pressBack()
-        self.printOperation(None, Operation.PRESS_BACK)
+        if self.vc.uiAutomatorHelper:
+            self.printOperation(None, Operation.PRESS_BACK_UI_AUTOMATOR_HELPER)
+        else:
+            self.printOperation(None, Operation.PRESS_BACK)
         self.takeScreenshotAndShowItOnWindow()
 
     def pressHome(self):
         self.showVignette()
         self.vc.pressHome()
-        self.printOperation(None, Operation.PRESS_HOME)
+        if self.vc.uiAutomatorHelper:
+            self.printOperation(None, Operation.PRESS_HOME_UI_AUTOMATOR_HELPER)
+        else:
+            self.printOperation(None, Operation.PRESS_HOME)
         self.takeScreenshotAndShowItOnWindow()
 
     def pressRecentApps(self):
         self.showVignette()
         self.vc.pressRecentApps()
-        self.printOperation(None, Operation.PRESS_RECENT_APPS)
+        if self.vc.uiAutomatorHelper:
+            self.printOperation(None, Operation.PRESS_RECENT_APPS_UI_AUTOMATOR_HELPER)
+        else:
+            self.printOperation(None, Operation.PRESS_RECENT_APPS)
         self.vc.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
@@ -780,6 +798,7 @@ This is usually installed by python package. Check your distribution details.
             # we pass root=v as an argument so the corresponding findView*() searches in this
             # subtree instead of the full tree
             self.printOperation(v, Operation.LONG_TOUCH_VIEW, root)
+        self.isLongTouchingView = False
 
     def onButton1Pressed(self, event):
         if DEBUG:
@@ -799,6 +818,8 @@ This is usually installed by python package. Check your distribution details.
             self.touchPoint(scaledX, scaledY)
         elif self.isLongTouchingPoint:
             self.longTouchPoint(scaledX, scaledY)
+        elif self.isLongTouchingView:
+            self.getViewContainingPointAndLongTouch(scaledX, scaledY)
         elif self.isGeneratingTestCondition:
             self.getViewContainingPointAndGenerateTestCondition(scaledX, scaledY)
         else:
@@ -911,7 +932,7 @@ This is usually installed by python package. Check your distribution details.
         else:
             self.command(char.decode('ascii', errors='replace'))
         # commented out (profile)
-        #time.sleep(1)
+        # time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
     def wake(self):
@@ -1031,10 +1052,18 @@ This is usually installed by python package. Check your distribution details.
 
     def toggleLongTouchView(self):
         '''
+        Toggles the long touch View operation.
         :return:
         '''
-        print >> sys.stderr, "TODO: Implement toggleLongTouchView"
-        pass
+        if not self.isLongTouchingView:
+            msg = 'Long touching View'
+            self.toast(msg, background=Color.GREEN)
+            self.statusBar.set(msg)
+            self.isLongTouchingView = True
+        else:
+            self.toast(None)
+            self.statusBar.clear()
+            self.isLongTouchingView = False
 
     def onCtrlL(self, event):
         self.toggleLongTouchPoint()
@@ -1148,8 +1177,6 @@ This is usually installed by python package. Check your distribution details.
 
     def drag(self, start, end, duration, steps, units=Unit.DIP):
         self.showVignette()
-        # the operation on this device is always done in PX
-        self.device.drag(start, end, duration, steps)
         if units == Unit.DIP:
             x0 = round(start[0] / self.device.display['density'], 2)
             y0 = round(start[1] / self.device.display['density'], 2)
@@ -1157,11 +1184,18 @@ This is usually installed by python package. Check your distribution details.
             y1 = round(end[1] / self.device.display['density'], 2)
             start = (x0, y0)
             end = (x1, y1)
-        self.printOperation(None, Operation.DRAG, start, end, duration, steps, units,
+        # the operation on this current device is always done in PX
+        self.device.drag(start, end, duration, steps)
+        if self.vc.uiAutomatorHelper:
+            self.printOperation(None, Operation.SWIPE_UI_AUTOMATOR_HELPER, x0, y0, x1, y1, steps, units,
+                            self.device.display['orientation'])
+        else:
+            self.printOperation(None, Operation.DRAG, start, end, duration, steps, units,
                             self.device.display['orientation'])
         self.printOperation(None, Operation.SLEEP, 1)
         time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
+
 
     def enableEvents(self):
         if self.permanentlyDisableEvents:
@@ -1176,6 +1210,7 @@ This is usually installed by python package. Check your distribution details.
         self.canvas.bind("<Key>", self.onKeyPressed)
         self.areEventsDisabled = False
 
+
     def disableEvents(self, permanently=False):
         self.permanentlyDisableEvents = permanently
         if self.canvas is not None:
@@ -1189,6 +1224,7 @@ This is usually installed by python package. Check your distribution details.
             # self.canvas.unbind("<Control-Key-S>")
             self.canvas.unbind("<Key>")
 
+
     def toggleTargets(self):
         if DEBUG:
             print >> sys.stderr, "toggletargets: aretargetsmarked=", self.areTargetsMarked
@@ -1196,6 +1232,7 @@ This is usually installed by python package. Check your distribution details.
             self.markTargets()
         else:
             self.unmarkTargets()
+
 
     def markTargets(self):
         if DEBUG:
@@ -1212,6 +1249,7 @@ This is usually installed by python package. Check your distribution details.
             c += 1
         self.areTargetsMarked = True
 
+
     def markTarget(self, x1, y1, x2, y2, color='#ff00ff'):
         '''
         @return the id of the rectangle added
@@ -1224,8 +1262,10 @@ This is usually installed by python package. Check your distribution details.
         self.markedTargetIds[_id] = (x1, y1, x2, y2)
         return _id
 
+
     def unmarkTarget(self, _id):
         self.canvas.delete(_id)
+
 
     def unmarkTargets(self):
         if not self.areTargetsMarked:
@@ -1235,12 +1275,14 @@ This is usually installed by python package. Check your distribution details.
         self.markedTargetIds = {}
         self.areTargetsMarked = False
 
+
     def setDragDialogShowed(self, showed):
         self.isDragDialogShowed = showed
         if showed:
             pass
         else:
             self.isGrabbingTouch = False
+
 
     def drawTouchedPoint(self, x, y):
         if DEBUG:
@@ -1249,12 +1291,14 @@ This is usually installed by python package. Check your distribution details.
         return self.canvas.create_oval((x - size) * self.scale, (y - size) * self.scale, (x + size) * self.scale,
                                        (y + size) * self.scale, fill=Color.MAGENTA)
 
+
     def drawDragLine(self, x0, y0, x1, y1):
         if DEBUG:
             print >> sys.stderr, "drawDragLine(", x0, ",", y0, ",", x1, ",", y1, ")"
         width = 15
         return self.canvas.create_line(x0 * self.scale, y0 * self.scale, x1 * self.scale, y1 * self.scale, width=width,
                                        fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
+
 
     def executeCommandAndRefresh(self, command):
         self.showVignette()
@@ -1275,14 +1319,17 @@ This is usually installed by python package. Check your distribution details.
         # FIXME: perhaps refresh() should be invoked here just in case size or orientation changed
         self.takeScreenshotAndShowItOnWindow()
 
+
     def changeLanguage(self):
         code = tkSimpleDialog.askstring("Change language", "Enter the language code")
         self.vc.uiDevice.changeLanguage(code)
         self.printOperation(None, Operation.CHANGE_LANGUAGE, code)
         self.refresh()
 
+
     def setOnTouchListener(self, listener):
         self.onTouchListener = listener
+
 
     def setGrab(self, state):
         if DEBUG:
@@ -1294,6 +1341,7 @@ This is usually installed by python package. Check your distribution details.
             self.toast('Grabbing drag points...', background=Color.GREEN)
         else:
             self.hideMessageArea()
+
 
     @staticmethod
     def isClickableCheckableOrFocusable(v):
@@ -1319,6 +1367,7 @@ This is usually installed by python package. Check your distribution details.
             pass
         return False
 
+
     def mainloop(self):
         self.window.title("%s v%s" % (Culebron.APPLICATION_NAME, __version__))
         self.window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
@@ -1328,11 +1377,13 @@ This is usually installed by python package. Check your distribution details.
         else:
             self.window.mainloop()
 
+
     def concertinaLoop(self):
         random.seed()
         self.disableEvents(permanently=True)
         self.concertinaLoopCallback(dontinteract=True)
         self.window.mainloop()
+
 
     def concertinaLoopCallback(self, dontinteract=False):
         if not dontinteract:
@@ -1402,7 +1453,7 @@ This is usually installed by python package. Check your distribution details.
                         Concertina.sayRandomText()
                         time.sleep(5)
                     elif random.choice(['SCROLL', 'TOUCH']) == 'SCROLL' and (
-                            isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
+                                    isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
                         # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
                         # capture the case of other ScrollViews
                         if isScrollable:
@@ -1459,6 +1510,54 @@ This is usually installed by python package. Check your distribution details.
                 else:
                     print >> sys.stderr, "CONCERTINA: No target views"
         self.window.after(5000, self.concertinaLoopCallback)
+
+
+    def getViewContainingPointAndLongTouch(self, x, y):
+        # FIXME: this method is almost exactly as getViewContainingPointAndTouch()
+        if DEBUG:
+            print >> sys.stderr, 'getViewContainingPointAndLongTouch(%d, %d)' % (x, y)
+        if self.areEventsDisabled:
+            if DEBUG:
+                print >> sys.stderr, "Ignoring event"
+            self.canvas.update_idletasks()
+            return
+
+        self.showVignette()
+        if DEBUG_POINT:
+            print >> sys.stderr, "getViewsContainingPointAndLongTouch(x=%s, y=%s)" % (x, y)
+            print >> sys.stderr, "self.vc=", self.vc
+        v = self.findViewContainingPointInTargets(x, y)
+
+        if v is None:
+            # FIXME: We can touch by DIP by default if no Views were found
+            self.hideVignette()
+            msg = "There are no touchable or clickable views here!"
+            self.toast(msg)
+            return
+
+        clazz = v.getClass()
+        candidates = [v]
+
+        def findBestCandidate(view):
+            isccf = Culebron.isClickableCheckableOrFocusable(view)
+            cd = view.getContentDescription()
+            text = view.getText()
+            if (cd or text) and not isccf:
+                # because isccf==False this view was not added to the list of targets
+                # (i.e. Settings)
+                candidates.insert(0, view)
+            return None
+
+        if not (v.getText() or v.getContentDescription()) and v.getChildren():
+            self.vc.traverse(root=v, transform=findBestCandidate, stream=None)
+        if len(candidates) > 2:
+            warnings.warn("We are in trouble, we have more than one candidate to touch", stacklevel=0)
+        candidate = candidates[0]
+        self.longTouchView(candidate, v if candidate != v else None)
+
+        self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
+        self.vc.sleep(5)
+        self.takeScreenshotAndShowItOnWindow()
 
 
 if TKINTER_AVAILABLE:
