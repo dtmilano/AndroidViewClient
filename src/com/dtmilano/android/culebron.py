@@ -104,6 +104,7 @@ class Operation:
     TOUCH_VIEW_UI_AUTOMATOR_HELPER = 'touch_view_ui_automator_helper'
     TOUCH_POINT = 'touch_point'
     LONG_TOUCH_POINT = 'long_touch_point'
+    LONG_TOUCH_VIEW = 'long_touch_view'
     LONG_TOUCH_VIEW_UI_AUTOMATOR_HELPER = 'long_touch_view_ui_automator_helper'
     OPEN_NOTIFICATION = 'open_notification'
     OPEN_QUICK_SETTINGS = 'open_quick_settings'
