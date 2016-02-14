@@ -267,6 +267,14 @@ You have to set PYTHONIOENCODING environment variable. For example:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print u'%s%s = %svc.findViewWithTextOrRaise(%s)' % (indent, var, prefix, text)
+        elif op == Operation.LONG_TOUCH_VIEW:
+            root = ', root=%svc.findViewByIdOrRaise(\'%s\')' % (prefix, arg.getUniqueId()) if arg else ''
+            if options[CulebraOptions.MULTI_DEVICE]:
+                logAction(u'long touch view with text=%s on ${serialno}' % text)
+                print u'%s[_vc.findViewWithTextOrRaise(%s%s).longTouch() for _vc in %sallVcs()]' % (indent, text, root, prefix)
+            else:
+                logAction(u'long touch view with text=%s' % text)
+                print u'%s%svc.findViewWithTextOrRaise(%s%s).longTouch()' % (indent, prefix, text, root)
         elif op == Operation.TOUCH_VIEW:
             root = ', root=%svc.findViewByIdOrRaise(\'%s\')' % (prefix, arg.getUniqueId()) if arg else ''
             if options[CulebraOptions.MULTI_DEVICE]:
@@ -322,6 +330,14 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (indent, var, prefix, contentDescription)
+        elif op == Operation.LONG_TOUCH_VIEW:
+            if options[CulebraOptions.MULTI_DEVICE]:
+                logAction(u'long touch view with content-description=%s on ${serialno}' % contentDescription)
+                # print u'%s[_vc.findViewWithTextOrRaise(%s).touch() for _vc in %sallVcs()]' % (indent, text, root)
+                print u'%s[_vc.findViewWithContentDescriptionOrRaise(%s).longTouch() for _vc in %sallVcs()]' % (indent, contentDescription, prefix)
+            else:
+                logAction(u'long touch view with content-description=%s' % contentDescription)
+                print u'%s%svc.findViewWithContentDescriptionOrRaise(%s).longTouch()' % (indent, prefix, contentDescription)
         elif op == Operation.TOUCH_VIEW:
             if options[CulebraOptions.MULTI_DEVICE]:
                 logAction(u'touching view with content-description=%s on ${serialno}' % contentDescription)
@@ -370,6 +386,13 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
         else:
             logAction('finding view with id=%s' % _id)
             print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
+    elif op == Operation.LONG_TOUCH_VIEW:
+        if options[CulebraOptions.MULTI_DEVICE]:
+            logAction(u'long touch view with id=%s on ${serialno}' % _id)
+            print '%s[_vc.findViewByIdOrRaise("%s").longTouch() for _vc in %sallVcs()]' % (indent, _id, prefix)
+        else:
+            logAction(u'long touch view with id=%s' % _id)
+            print '%s%svc.findViewByIdOrRaise("%s").longTouch()' % (indent, prefix, _id)
     elif op == Operation.TOUCH_VIEW:
         if options[CulebraOptions.MULTI_DEVICE]:
             logAction(u'touching view with id=%s on ${serialno}' % _id)
