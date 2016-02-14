@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.4.1'
+__version__ = '11.5.0'
 
 import os
 import subprocess
@@ -238,6 +238,8 @@ On OSX install
             raise RuntimeError('findObject: resourceId or selector must have a value')
         response = self.__httpCommand('/UiDevice/findObject', params)
         # { "status": "OK", "oid": 1, "className": "android.view.View"}
+        if DEBUG:
+            print >> sys.stderr, "UiAutomatorHelper: findObject: response=", response
         r = json.loads(response)
         if r[u'status'] == 'OK':
             if DEBUG:

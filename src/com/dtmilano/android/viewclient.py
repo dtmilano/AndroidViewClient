@@ -950,18 +950,22 @@ class View:
             else:
                 self.device.touch(x, y, eventType=eventType)
 
+    def escapeSelectorChars(self, selector):
+        _s = selector.replace('@', '\\@')
+        return _s
+
     def obtainSelectorForView(self):
         selector = ''
         if self.getContentDescription():
-            selector += 'desc@' + self.getContentDescription()
+            selector += 'desc@' + self.escapeSelectorChars(self.getContentDescription())
         if self.getText():
             if selector:
                 selector += ','
-            selector += 'text@' + self.getText()
+            selector += 'text@' + self.escapeSelectorChars(self.getText())
         if self.getId():
             if selector:
                 selector += ','
-            selector += 'res@' + self.getId()
+            selector += 'res@' + self.escapeSelectorChars(self.getId())
         return selector
 
     def longTouch(self, duration=2000):
