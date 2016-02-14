@@ -951,8 +951,7 @@ class View:
                 self.device.touch(x, y, eventType=eventType)
 
     def escapeSelectorChars(self, selector):
-        _s = selector.replace('@', '\\@')
-        return _s
+        return selector.replace('@', '\\@').replace(',', '\\,')
 
     def obtainSelectorForView(self):
         selector = ''
