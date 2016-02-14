@@ -3706,6 +3706,16 @@ You should force ViewServer back-end.''')
 
         return [v for v in self.views if (v.containsPoint((x,y)) and _filter(v))]
 
+    @staticmethod
+    def waitUntil(viewHasLoaded):
+        timeout = time.time() + 2
+        while True:
+            if time.time() > timeout:
+                break
+            if viewHasLoaded():
+                return
+        raise Exception('Loading new view timed out.')
+
     def findObject(self, **kwargs):
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
@@ -3718,9 +3728,10 @@ You should force ViewServer back-end.''')
     def touch(self, x=-1, y=-1, selector=None):
         if self.uiAutomatorHelper:
             if selector:
-                if DEBUG_UI_AUTOMATOR_HELPER:
-                    print >> sys.stderr, "Touching View by selector=%s through UiAutomatorHelper" % (selector)
-                self.uiAutomatorHelper.findObject(selector=selector).click()
+                with WaitUntilViewsLoad(self.uiAutomatorHelper):
+                    if DEBUG_UI_AUTOMATOR_HELPER:
+                        print >> sys.stderr, "Touching View by selector=%s through UiAutomatorHelper" % (selector)
+                    self.uiAutomatorHelper.findObject(selector=selector).click()
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print >> sys.stderr, "Touching (%d, %d) through UiAutomatorHelper" % (x, y)
@@ -4206,6 +4217,26 @@ On OSX install
             exec code
         else:
             return code
+
+class WaitUntilViewsLoad:
+    '''
+    wait until uiAutomatorHelper findObject and click
+    '''
+    def __init__(self, uiAutomatorHelper, type=None):
+        self.uiAutomatorHelper = uiAutomatorHelper
+        self.currentDump = None
+        self.prevDump = None
+        self.type = type
+
+    def __enter__(self):
+        self.prevDump = self.uiAutomatorHelper.dumpWindowHierarchy()
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        ViewClient.waitUntil(self.viewHasLoaded)
+
+    def viewHasLoaded(self):
+        self.currentDump = self.uiAutomatorHelper.dumpWindowHierarchy()
+        return self.currentDump != self.prevDump
 
 class ConnectedDevice:
     def __init__(self, device, vc, serialno):
