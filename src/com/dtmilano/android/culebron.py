@@ -26,7 +26,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '11.4.0'
+__version__ = '11.5.0'
 
 import sys
 import threading
@@ -1181,6 +1181,9 @@ This is usually installed by python package. Check your distribution details.
 
     def drag(self, start, end, duration, steps, units=Unit.DIP):
         self.showVignette()
+        # the operation on this current device is always done in PX
+        # so let's do it before any conversion takes place
+        self.device.drag(start, end, duration, steps)
         if units == Unit.DIP:
             x0 = round(start[0] / self.device.display['density'], 2)
             y0 = round(start[1] / self.device.display['density'], 2)
@@ -1188,8 +1191,6 @@ This is usually installed by python package. Check your distribution details.
             y1 = round(end[1] / self.device.display['density'], 2)
             start = (x0, y0)
             end = (x1, y1)
-        # the operation on this current device is always done in PX
-        self.device.drag(start, end, duration, steps)
         if self.vc.uiAutomatorHelper:
             self.printOperation(None, Operation.SWIPE_UI_AUTOMATOR_HELPER, x0, y0, x1, y1, steps, units,
                             self.device.display['orientation'])

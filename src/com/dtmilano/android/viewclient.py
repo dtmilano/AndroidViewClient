@@ -3209,7 +3209,11 @@ class ViewClient:
                 if api >= 23:
                     # In API 23 the process' stdout,in and err are connected to the socket not to the pts as in
                     # previous versions, so we can't redirect to /dev/tty
-                    received = self.device.shell('uiautomator dump %s /sdcard/window_dump.xml >/dev/null && cat /sdcard/window_dump.xml' % ('--compressed' if self.compressedDump else ''))
+                    # Also, if we want to write to /sdcard/something it fails event though /sdcard is a symlink
+                    pathname = '/storage/self'
+                    filename = 'window_dump.xml'
+                    cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
+                    received = self.device.shell(cmd)
                 else:
                     # NOTICE:
                     # Using /dev/tty this works even on devices with no sdcard
