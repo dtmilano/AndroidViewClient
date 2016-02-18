@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.5.0'
+__version__ = '11.5.1'
 
 import os
 import subprocess
