@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.5.0'
+__version__ = '11.5.1'
 
 import sys
 import warnings
@@ -3210,7 +3210,10 @@ class ViewClient:
                     # In API 23 the process' stdout,in and err are connected to the socket not to the pts as in
                     # previous versions, so we can't redirect to /dev/tty
                     # Also, if we want to write to /sdcard/something it fails event though /sdcard is a symlink
-                    pathname = '/storage/self'
+                    if self.serialno.startswith('emulator'):
+                        pathname = '/storage/self'
+                    else:
+                        pathname = '/sdcard'
                     filename = 'window_dump.xml'
                     cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
                     received = self.device.shell(cmd)
