@@ -2556,7 +2556,7 @@ class ViewClient:
 
     def __del__(self):
         # should clean up some things
-        if self.uiAutomatorHelper:
+        if hasattr(self, 'uiAutomatorHelper') and self.uiAutomatorHelper:
             if DEBUG or True:
                 print >> sys.stderr, "Stopping UiAutomatorHelper..."
             self.uiAutomatorHelper.quit()

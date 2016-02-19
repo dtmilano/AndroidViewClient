@@ -61,7 +61,7 @@ class UiAutomatorHelperTests(unittest.TestCase):
     def testClick_random(self):
         x = random.randint(0, 1000)
         y = random.randint(0, 1000)
-        response = self.uiAutomatorHelper.click(x, y)
+        response = self.uiAutomatorHelper.click(x=x, y=y)
         if DEBUG:
             print >> sys.stderr, "response=", response
 
