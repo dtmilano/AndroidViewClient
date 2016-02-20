@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2013-2015  Diego Torres Milano
+Copyright (C) 2013-2016  Diego Torres Milano
 Created on Mar 28, 2013
 
 Culebra helps you create AndroidViewClient scripts generating a working template that can be
@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '11.5.1'
+__version__ = '11.5.2'
 
 import re
 import sys
@@ -266,6 +266,7 @@ You have to set PYTHONIOENCODING environment variable. For example:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
+                logAction(u'finding view with text=%s' % text)
                 print u'%s%s = %svc.findViewWithTextOrRaise(%s)' % (indent, var, prefix, text)
         elif op == Operation.LONG_TOUCH_VIEW:
             root = ', root=%svc.findViewByIdOrRaise(\'%s\')' % (prefix, arg.getUniqueId()) if arg else ''
@@ -329,6 +330,7 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
+                logAction(u'finding view with content-description=%s' % contentDescription)
                 print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (indent, var, prefix, contentDescription)
         elif op == Operation.LONG_TOUCH_VIEW:
             if options[CulebraOptions.MULTI_DEVICE]:
@@ -668,7 +670,9 @@ def traverseAndPrint(view):
 
 def printStartActivity(component):
     '''
-    Prints the corresponding startActivity()
+    Prints the corresponding startActivity().
+
+    :param component: the component
     '''
 
     if options[CulebraOptions.MULTI_DEVICE]:
@@ -866,6 +870,9 @@ def printOperation(view, op, *args):
         printFindViewById(view, op, args[0])
         
 def str2bool(v):
+    if len(v) < 1 or len(v) > 5:
+        # len('false')=5
+        warnings.warn("str2bool: strange value for conversion '%s' will be considered 'false'" % v)
     return v.lower() in ("yes", "true", "t", "1", "on")
 
 def value2dictionaryKey(v):
@@ -897,7 +904,7 @@ def printScriptHeader():
     print '''%s
 # -*- coding: utf-8 -*-
 \'\'\'
-Copyright (C) 2013-2014  Diego Torres Milano
+Copyright (C) 2013-2016  Diego Torres Milano
 Created on %s by Culebra v%s
                       __    __    __    __
                      /  \  /  \  /  \  /  \ 
