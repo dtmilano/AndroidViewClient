@@ -3232,7 +3232,7 @@ class ViewClient:
                 print >>sys.stderr
                 print >>sys.stderr, repr(received)
                 print >>sys.stderr
-            onlyKilledRE = re.compile('[\n\S]*Killed[\n\r\S]*', re.MULTILINE)
+            onlyKilledRE = re.compile('Killed$')
             if onlyKilledRE.search(received):
                 MONKEY = 'com.android.commands.monkey'
                 extraInfo = ''
