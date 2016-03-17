@@ -1,7 +1,10 @@
 AndroidViewClient
 =================
 <a href="#"><img src="https://github.com/dtmilano/AndroidViewClient/wiki/images/culebra-logo-transparent-204x209-rb-border.png" align="left" hspace="0" vspace="6"></a>
-**AndroidViewClient** is a test framework for Android applications that:
+**AndroidViewClient** was originally conceived as an extension to [monkeyrunner](http://developer.android.com/tools/help/monkeyrunner_concepts.html) but lately evolved
+as a pure python tool that automates or simplifies test script creation.
+
+It is a test framework for Android applications that:
 <ul>
     <li>Automates driving Android applications</li>
     <li><b>Generates</b> re-usable scripts</li>
