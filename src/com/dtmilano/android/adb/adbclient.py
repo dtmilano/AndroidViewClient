@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '11.5.1'
+__version__ = '11.5.2'
 
 import sys
 import warnings
@@ -306,7 +306,7 @@ class AdbClient:
         # version = self.socket.recv(8, socket.MSG_WAITALL)
         version = self.__readExactly(self.socket, 8)
 
-        VALID_ADB_VERSIONS = ["00040020", "0004001f"]
+        VALID_ADB_VERSIONS = ["00040023", "00040020", "0004001f"]
 
         if not (version in VALID_ADB_VERSIONS) and not ignoreversioncheck:
             raise RuntimeError(
