@@ -234,8 +234,8 @@ On OSX install
 
     def findObject(self, **kwargs):
         params = kwargs
-        if not (params.has_key('resourceId') or params.has_key('selector')):
-            raise RuntimeError('findObject: resourceId or selector must have a value')
+        if not (params.has_key('resourceId') or params.has_key('bySelector')):
+            raise RuntimeError('findObject: resourceId or bySelector must have a value')
         response = self.__httpCommand('/UiDevice/findObject', params)
         # { "status": "OK", "oid": 1, "className": "android.view.View"}
         if DEBUG:

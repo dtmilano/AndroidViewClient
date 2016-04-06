@@ -26,7 +26,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '11.5.1'
+__version__ = '11.5.3'
 
 import sys
 import threading
@@ -38,6 +38,7 @@ import platform
 from pkg_resources import Requirement, resource_filename
 
 try:
+    import PIL
     from PIL import Image, ImageTk
 
     PIL_AVAILABLE = True
@@ -173,6 +174,10 @@ class Culebron:
     deviceArt = None
     dropShadow = False
     screenGlare = False
+    osName = platform.system()
+    ''' The OS name. We sometimes need specific behavior. '''
+    isDarwin = (osName == 'Darwin')
+    ''' Is it Mac OSX? '''
 
     @staticmethod
     def checkSupportedSdkVersion(sdkVersion):
@@ -225,6 +230,7 @@ This is usually installed by python package. Check your distribution details.
         self.vc = vc
         self.printOperation = printOperation
         self.device = device
+        self.sdkVersion = device.getSdkVersion()
         self.serialno = serialno
         self.scale = scale
         self.concertina = concertina
@@ -303,8 +309,16 @@ This is usually installed by python package. Check your distribution details.
         self.image = self.unscaledScreenshot
         (width, height) = self.image.size
         if self.scale != 1:
-            self.image = self.image.resize((int(width * self.scale), int(height * self.scale)), Image.ANTIALIAS)
+            scaledWidth = int(width * self.scale)
+            scaledHeight = int(height * self.scale)
+            self.image = self.image.resize((scaledWidth, scaledHeight), PIL.Image.ANTIALIAS)
             (width, height) = self.image.size
+            if self.isDarwin and 14 < self.sdkVersion < 23:
+                stream = StringIO.StringIO()
+                self.image.save(stream, 'GIF')
+                import base64
+                gif = base64.b64encode(stream.getvalue())
+                stream.close()
         if self.canvas is None:
             if DEBUG:
                 print >> sys.stderr, "Creating canvas", width, 'x', height
@@ -314,7 +328,15 @@ This is usually installed by python package. Check your distribution details.
             self.enableEvents()
             self.createMessageArea(width, height)
             self.createVignette(width, height)
-        self.screenshot = ImageTk.PhotoImage(self.image)
+        if self.isDarwin and self.scale != 1 and 14 < self.sdkVersion < 23:
+            # Extremely weird Tkinter bug, I guess
+            # If the image was rotated and then resized if ImageTk.PhotoImage(self.image)
+            # is used as usual then the result is a completely transparent image and only
+            # the "Please wait..." is seen.
+            # Converting it to GIF seems to solve the problem
+            self.screenshot = Tkinter.PhotoImage(data=gif)
+        else:
+            self.screenshot = ImageTk.PhotoImage(self.image)
         if self.imageId is not None:
             self.canvas.delete(self.imageId)
         self.imageId = self.canvas.create_image(0, 0, anchor=Tkinter.NW, image=self.screenshot)

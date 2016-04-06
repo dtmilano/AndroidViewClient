@@ -932,7 +932,7 @@ class View:
                 selector = self.obtainSelectorForView()
                 if selector:
                     try:
-                        oid = self.uiAutomatorHelper.findObject(selector=selector)
+                        oid = self.uiAutomatorHelper.findObject(bySelector=selector)
                         if DEBUG_UI_AUTOMATOR_HELPER:
                             print >> sys.stderr, "oid=", oid
                             print >> sys.stderr, "ignoring click delta to click View as UiObject"

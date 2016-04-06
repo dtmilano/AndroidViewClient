@@ -54,6 +54,7 @@ DEBUG_TOUCH = DEBUG and False
 DEBUG_LOG = DEBUG and False
 DEBUG_WINDOWS = DEBUG and False
 DEBUG_COORDS = DEBUG and False
+DEBUG_IMAGE_ROTATION = DEBUG and False
 
 PIL_AVAILABLE = False
 PROFILE = False
@@ -706,7 +707,7 @@ class AdbClient:
                 r = (0, 90, 180, -90)[self.display['orientation']]
             else:
                 r = 90
-            image = image.rotate(r)
+            image = image.rotate(r, expand=1).resize((h, w))
 
         if PROFILE:
             profileEnd()
