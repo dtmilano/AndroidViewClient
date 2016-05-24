@@ -235,10 +235,14 @@ This is usually installed by python package. Check your distribution details.
         self.scale = scale
         self.concertina = concertina
         self.window = Tkinter.Tk()
-        icon = resource_filename(Requirement.parse("androidviewclient"),
+        try:
+            f = resource_filename(Requirement.parse("androidviewclient"),
                                  "share/pixmaps/culebra.png")
-        self.window.tk.call('wm', 'iconphoto', self.window._w,
-                            ImageTk.PhotoImage(file=icon))
+            icon = ImageTk.PhotoImage(file=f)
+        except:
+            icon = None
+        if icon:
+            self.window.tk.call('wm', 'iconphoto', self.window._w, icon)
         self.mainMenu = MainMenu(self)
         self.window.config(menu=self.mainMenu)
         self.mainFrame = Tkinter.Frame(self.window)
