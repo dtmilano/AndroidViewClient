@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.5.3'
+__version__ = '11.5.5'
 
 import sys
 import warnings
@@ -3264,6 +3264,8 @@ You should force ViewServer back-end.''')
             if received.startswith('ERROR: could not get idle state.'):
                 # See https://android.googlesource.com/platform/frameworks/testing/+/jb-mr2-release/uiautomator/cmds/uiautomator/src/com/android/commands/uiautomator/DumpCommand.java
                 raise RuntimeError('''The views are being refreshed too frequently to dump.''')
+            if received.find(u'Only ROTATION_0 supported') != -1:
+                raise RuntimeError('''UiAutomatorHelper backend with support for only ROTATION_0 found.''')
             self.setViewsFromUiAutomatorDump(received)
         else:
             if isinstance(window, str):
