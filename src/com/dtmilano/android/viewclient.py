@@ -3104,9 +3104,10 @@ class ViewClient:
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY], self.uiAutomatorHelper)
         try:
             start_xml_index = receivedXml.index("<")
+            end_xml_index = receivedXml.rindex(">")
         except ValueError:
             raise ValueError("received does not contain valid XML data")
-        self.root = parser.Parse(receivedXml[start_xml_index:])
+        self.root = parser.Parse(receivedXml[start_xml_index:end_xml_index+1])
         self.views = parser.views
         self.viewsById = {}
         for v in self.views:
@@ -3114,11 +3115,11 @@ class ViewClient:
         self.__updateNavButtons()
         if DEBUG_NAV_BUTTONS:
             if not self.navBack:
-                print >> sys.stderr, "WARNING: nvaBack not found"
+                print >> sys.stderr, "WARNING: navBack not found"
             if not self.navHome:
-                print >> sys.stderr, "WARNING: nvaHome not found"
+                print >> sys.stderr, "WARNING: navHome not found"
             if not self.navRecentApps:
-                print >> sys.stderr, "WARNING: nvaRecentApps not found"
+                print >> sys.stderr, "WARNING: navRecentApps not found"
 
     def getRoot(self):
         '''
