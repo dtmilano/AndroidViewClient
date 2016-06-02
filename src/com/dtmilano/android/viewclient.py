@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.5.5'
+__version__ = '11.5.6'
 
 import sys
 import warnings
