@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.5.6'
+__version__ = '11.5.7'
 
 import sys
 import warnings
@@ -3106,7 +3106,7 @@ class ViewClient:
             start_xml_index = receivedXml.index("<")
             end_xml_index = receivedXml.rindex(">")
         except ValueError:
-            raise ValueError("received does not contain valid XML data")
+            raise ValueError("received does not contain valid XML: " + receivedXml)
         self.root = parser.Parse(receivedXml[start_xml_index:end_xml_index+1])
         self.views = parser.views
         self.viewsById = {}
