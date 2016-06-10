@@ -26,7 +26,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '11.5.7'
+__version__ = '11.5.8'
 
 import sys
 import threading
@@ -117,6 +117,7 @@ class Operation:
     PRESS_HOME_UI_AUTOMATOR_HELPER = 'press_home_ui_automator_helper'
     PRESS_RECENT_APPS = 'press_recent_apps'
     PRESS_RECENT_APPS_UI_AUTOMATOR_HELPER = 'press_recent_apps_ui_automator_helper'
+    SET_TEXT = 'set_text'
     SNAPSHOT = 'snapshot'
     START_ACTIVITY = 'start_activity'
     SLEEP = 'sleep'
@@ -680,6 +681,7 @@ This is usually installed by python package. Check your distribution details.
                 self.canvas.focus_set()
                 if text:
                     self.vc.setText(v, text)
+                    self.printOperation(v, Operation.SET_TEXT, text)
                 else:
                     self.hideVignette()
                     return

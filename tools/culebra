@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '11.5.7'
+__version__ = '11.5.8'
 
 import re
 import sys
@@ -289,6 +289,11 @@ You have to set PYTHONIOENCODING environment variable. For example:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print '%s%svc.findViewWithTextOrRaise("%s").type(u"%s")' % (indent, prefix, text, arg)
+        elif op == Operation.SET_TEXT:
+            if options[CulebraOptions.MULTI_DEVICE]:
+                warnings.warn('Multi-device not implemented yet for this case')
+            else:
+                print '%s%svc.findViewWithTextOrRaise(%s).setText(u"%s")' % (indent, prefix, text, arg)
         elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING, Operation.FLING_TO_END]:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
@@ -353,6 +358,11 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print '%s%svc.findViewWithContentDescriptionOrRaise(%s).type(u"%s")' % (indent, prefix, contentDescription, arg)
+        elif op == Operation.SET_TEXT:
+            if options[CulebraOptions.MULTI_DEVICE]:
+                warnings.warn('Multi-device not implemented yet for this case')
+            else:
+                print '%s%svc.findViewWithContentDescriptionOrRaise(%s).setText(u"%s")' % (indent, prefix, contentDescription, arg)
         elif op == Operation.TEST:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
@@ -408,6 +418,12 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
         else:
             logAction('typing "%s" on view with id=%s' % (arg, _id))
             print '%s%svc.findViewByIdOrRaise("%s").type(u"%s")' % (indent, prefix, _id, arg)
+    elif op == Operation.SET_TEXT:
+        if options[CulebraOptions.MULTI_DEVICE]:
+            warnings.warn('Multi-device not implemented yet for this case')
+        else:
+            logAction('setting text "%s" on view with id=%s' % (arg, _id))
+            print '%s%svc.findViewByIdOrRaise("%s").setText(u"%s")' % (indent, prefix, _id, arg)
     elif op == Operation.TEST:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
