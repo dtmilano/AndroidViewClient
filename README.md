@@ -16,6 +16,8 @@ It is a test framework for Android applications that:
     <li>Is written in python</li>
 </ul></ul>
 
+**NOTE**: Pypi statistics are broken see [here](https://github.com/aclark4life/vanity/issues/22). This does not reflect the number of downloads.
+
 [![Downloads](https://img.shields.io/pypi/dm/androidviewclient.svg)](https://pypi.python.org/pypi/androidviewclient/)
 [![Latest Version](https://img.shields.io/pypi/v/androidviewclient.svg)](https://pypi.python.org/pypi/androidviewclient/)
 
