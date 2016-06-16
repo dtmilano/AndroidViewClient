@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.5.8'
+__version__ = '11.5.9'
 
 import sys
 import warnings
@@ -2728,7 +2728,8 @@ class ViewClient:
             _str += '%s' % view.getId()
             _str += ' '
             _str += view.getText() if view.getText() else ''
-            _str += eis
+            if eis:
+                _str += eis
             return _str
         except Exception, e:
             import traceback
