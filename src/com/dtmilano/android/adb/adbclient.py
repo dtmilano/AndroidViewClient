@@ -640,7 +640,7 @@ class AdbClient:
         if not PIL_AVAILABLE:
             try:
                 global Image
-                from PIL import Image
+                import Image
                 PIL_AVAILABLE = True
             except:
                 raise Exception("You have to install PIL to use takeSnapshot()")
