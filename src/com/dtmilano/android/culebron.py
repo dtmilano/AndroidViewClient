@@ -26,7 +26,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '11.5.9'
+__version__ = '11.5.11'
 
 import sys
 import threading
@@ -775,7 +775,8 @@ This is usually installed by python package. Check your distribution details.
             print >> sys.stderr, "Is touching point:", self.isTouchingPoint
         if self.isTouchingPoint:
             self.showVignette()
-            self.vc.touch(x, y)
+            if self.vc:
+                self.vc.touch(x, y)
             if self.coordinatesUnit == Unit.DIP:
                 x = round(x / self.device.display['density'], 2)
                 y = round(y / self.device.display['density'], 2)
@@ -898,7 +899,7 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG_KEY:
             print >> sys.stderr, "onKeyPressed(", repr(event), ")"
             print >> sys.stderr, "    event", type(event.char), len(event.char), repr(
-                event.char), event.keysym, event.keycode, event.type
+                event.char), "keysym=", event.keysym, "keycode=", event.keycode, event.type, "state=", event.state
             print >> sys.stderr, "    events disabled:", self.areEventsDisabled
         if self.areEventsDisabled:
             if DEBUG_KEY:
@@ -958,6 +959,10 @@ This is usually installed by python package. Check your distribution details.
             self.command(Culebron.KEYSYM_TO_KEYCODE_MAP[keysym])
         elif char == '\r':
             self.command('ENTER')
+        elif keysym == 'm' and event.state == 24:
+            if DEBUG_KEY:
+                print >> sys.stderr, "Sending MENU"
+            self.command('MENU')
         elif char == '':
             # do nothing
             pass
