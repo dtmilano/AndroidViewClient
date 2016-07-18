@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '11.5.9'
+__version__ = '11.5.10'
 
 import sys
 import warnings
@@ -691,13 +691,16 @@ class AdbClient:
         else:
             # ALTERNATIVE_METHOD: screencap
             received = self.shell('/system/bin/screencap -p').replace("\r\n", "\n")
+            if not received:
+                raise RuntimeError('"/system/bin/screencap -p" result was empty')
             stream = StringIO.StringIO(received)
             try:
                 image = Image.open(stream)
             except IOError, ex:
                 print >> sys.stderr, ex
-                print repr(stream)
-                sys.exit(1)
+                print >> sys.stderr, repr(stream)
+                print >> sys.stderr, repr(received)
+                raise RuntimeError('Cannot convert stream to image: ' + ex)
 
         # Just in case let's get the real image size
         (w, h) = image.size
