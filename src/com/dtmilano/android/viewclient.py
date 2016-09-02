@@ -2119,7 +2119,7 @@ class UiScrollable(UiCollection):
         self.bounds = view.getBounds()
         (self.x, self.y, self.w, self.h) = view.getPositionAndSize()
         self.steps = 10
-        self.duration = 500
+        self.duration = 800
         self.swipeDeadZonePercentage = 0.1
         self.maxSearchSwipes = 10
 
