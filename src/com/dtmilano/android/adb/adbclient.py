@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '11.5.11'
+__version__ = '11.5.12'
 
 import sys
 import warnings
