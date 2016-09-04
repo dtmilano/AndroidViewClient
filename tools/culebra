@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '11.5.11'
+__version__ = '11.5.12'
 
 import re
 import sys
@@ -657,7 +657,9 @@ def printTakeSnapshot(filename, _format, deviceart, dropshadow, screenglare):
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction(u'taking snapshot @ %s format=%s %s %s %s' % (filename, _format, deviceart, dropshadow, screenglare))
-        print '%s%svc.writeImageToFile(\'%s\', \'%s\', \'%s\', %s, %s)' % (indent, prefix, filename, _format, deviceart, dropshadow, screenglare)
+        if deviceart:
+            deviceart = '\'%s\'' % deviceart
+        print '%s%svc.writeImageToFile(\'%s\', \'%s\', %s, %s, %s)' % (indent, prefix, filename, _format, deviceart, dropshadow, screenglare)
         
     
 def traverseAndPrint(view):
@@ -967,11 +969,13 @@ def printLogAction(action, priority='D'):
         print u'%s[_d.Log.%s(TAG, "%s", _v) for _d in %sallDevices()]' % (indent, priority.lower(), action, prefix)
     else:
         print '%s%sdevice.Log.%s(TAG, "%s",  _v)' % (indent, prefix, priority.lower(), action)
-    
+
+
 def logAction(action):
     if options[CulebraOptions.LOG_ACTIONS]:
         printLogAction(action)
-    
+
+
 def runCulebron():
     Culebron.checkSupportedSdkVersion(device.getSdkVersion())
     Culebron.checkDependencies()
@@ -982,7 +986,8 @@ def runCulebron():
         culebron.screenGlare = options[CulebraOptions.SCREEN_GLARE]
     culebron.takeScreenshotAndShowItOnWindow()
     culebron.mainloop()
-    
+
+
 def printShortcutVariables():
     if options[CulebraOptions.UNIT_TEST_CLASS] or options[CulebraOptions.UNIT_TEST_METHOD]:
         print '''\
