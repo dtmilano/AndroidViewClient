@@ -2604,7 +2604,13 @@ class ViewClient:
             # If there's only one device connected get its serialno
             adb = ViewClient.__obtainAdbPath()
             if DEBUG_DEVICE: print >>sys.stderr, "    using adb=%s" % adb
-            s = subprocess.Popen([adb, 'get-serialno'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={}).communicate()[0][:-1]
+            # Remove ANDROID_SERIAL from the environment when using adb to
+            # obtain the serial number of the device, because if the serial
+            # number was specified as an environment variable that contains a
+            # regular expression, adb will always return 'unknown'.
+            env = os.environ.copy()
+            env.pop("ANDROID_SERIAL", None)
+            s = subprocess.Popen([adb, 'get-serialno'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env).communicate()[0][:-1]
             if s != 'unknown':
                 serialno = s
         if DEBUG_DEVICE: print >>sys.stderr, "    serialno=%s" % serialno
