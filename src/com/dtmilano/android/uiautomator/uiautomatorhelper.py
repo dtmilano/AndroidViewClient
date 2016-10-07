@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.5.12'
+__version__ = '11.5.13'
 
 import os
 import subprocess
@@ -105,8 +105,10 @@ On OSX install
         self.adbClient = adbclient
         ''' The adb client (a.k.a. device) '''
         instrumentation = self.adbClient.shell('pm list instrumentation %s' % self.PACKAGE)
-        if not re.match('instrumentation:%s/%s \(target=%s\)' % (self.TEST_CLASS, self.TEST_RUNNER, self.PACKAGE), instrumentation):
+        if not instrumentation:
             raise RuntimeError('The target device does not contain the instrumentation for %s' % self.PACKAGE)
+        if not re.match('instrumentation:%s/%s \(target=%s\)' % (self.TEST_CLASS, self.TEST_RUNNER, self.PACKAGE), instrumentation):
+            raise RuntimeError('The instrumentation found for %s does not match the expected %s/%s' % (self.PACKAGE, self.TEST_CLASS, self.TEST_RUNNER))
         self.adb = self.__whichAdb(adb)
         ''' The adb command '''
         self.osName = platform.system()
