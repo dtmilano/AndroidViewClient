@@ -255,14 +255,14 @@ class AdbClient:
             nob = int(self.socket.recv(4), 16)
         if DEBUG:
             print >> sys.stderr, "    __receive: receiving", nob, "bytes"
-        recv = bytearray()
+        recv = bytearray(nob)
+        view = memoryview[recv]
         nr = 0
         while nr < nob:
-            chunk = self.socket.recv(min((nob - nr), 4096))
-            l = len(chunk)
+            l = self.socket.recv_into(view, len(view))
             if DEBUG:
                 print >> sys.stderr, "l=", l, "nr=", nr
-            recv.extend(chunk)
+            view = view[l:]
             nr += l
         if DEBUG:
             print >> sys.stderr, "    __receive: returning len=", len(recv)
@@ -346,13 +346,14 @@ class AdbClient:
     def __readExactly(self, sock, size):
         if DEBUG:
             print >> sys.stderr, "__readExactly(socket=%s, size=%d)" % (socket, size)
-        _buffer = ''
-        while len(_buffer) < size:
-            data = sock.recv(size - len(_buffer))
-            if not data:
-                break
-            _buffer += data
-        return _buffer
+        _buffer = bytearray(size)
+        view = memoryview(_buffer)
+        nb = 0
+        while nb < size:
+            l = sock.recv_into(view, len(view))
+            view = view[l:]
+            nb += l
+        return str(_buffer)
 
     def getDevices(self):
         if DEBUG:
@@ -375,23 +376,23 @@ class AdbClient:
         self.__checkTransport()
         if cmd:
             self.__send('shell:%s' % cmd, checkok=True, reconnect=False)
-            out = ''
+            chunks = []
             while True:
-                _str = None
+                chunk = None
                 try:
-                    _str = self.socket.recv(4096)
+                    chunk = self.socket.recv(4096)
                 except Exception, ex:
                     print >> sys.stderr, "ERROR:", ex
-                if not _str:
+                if not chunk:
                     break
-                out += _str
+                chunks.append(chunk)
             if self.reconnect:
                 if DEBUG:
                     print >> sys.stderr, "Reconnecting..."
                 self.close()
                 self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                 self.__setTransport()
-            return out
+            return ''.join(chunks)
         else:
             self.__send('shell:')
             # sin = self.socket.makefile("rw")
