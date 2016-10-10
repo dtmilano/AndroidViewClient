@@ -256,7 +256,7 @@ class AdbClient:
         if DEBUG:
             print >> sys.stderr, "    __receive: receiving", nob, "bytes"
         recv = bytearray(nob)
-        view = memoryview[recv]
+        view = memoryview(recv)
         nr = 0
         while nr < nob:
             l = self.socket.recv_into(view, len(view))

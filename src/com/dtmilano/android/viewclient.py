@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '11.5.13'
+__version__ = '12.0.0'
 
 import sys
 import warnings
@@ -3732,12 +3732,25 @@ You should force ViewServer back-end.''')
             warnings.warn("findObject only implemented using UiAutomatorHelper. Use ViewClient.findView...() instead.")
             return None
 
+    def click(self, x=-1, y=-1, selector=None):
+        """
+        An alias for touch.
+
+        :param x:
+        :param y:
+        :param selector:
+        :return:
+        """
+
+        self.touch(x=x, y=y, selector=selector)
+
     def touch(self, x=-1, y=-1, selector=None):
         if self.uiAutomatorHelper:
             if selector:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print >> sys.stderr, "Touching View by selector=%s through UiAutomatorHelper" % (selector)
-                self.uiAutomatorHelper.findObject(selector=selector).click()
+                # FIXME: is `selector` a `bySlector`?
+                self.uiAutomatorHelper.findObject(bySelector=selector).click()
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print >> sys.stderr, "Touching (%d, %d) through UiAutomatorHelper" % (x, y)
