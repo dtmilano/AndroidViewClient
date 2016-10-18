@@ -69,12 +69,12 @@ LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK
               USE_UIAUTOMATOR_HELPER,
               DEBUG + '='
               ]
-LONG_OPTS_ARG = {WINDOW: 'WINDOW', SAVE_SCREENSHOT: 'FILE', SAVE_VIEW_SCREENSHOTS: 'DIR', DEVICE_ART: 'MODEL'}
+LONG_OPTS_ARG = {WINDOW: 'WINDOW', SAVE_SCREENSHOT: 'FILE', SAVE_VIEW_SCREENSHOTS: 'DIR', DEVICE_ART: 'MODEL', DEBUG: 'LIST'}
 OPTS_HELP = {
     'H': 'prints this help',
     'V': 'verbose comments',
     'I': 'ignore secure device',
-    'F': 'force view server use (even if UiAutomator present)',
+    'F': 'force view server use (even if UiAutomator present:w)',
     'S': 'don\'t start ViewServer',
     'k': 'don\'t ignore UiAutomator killed',
     'w': 'dump WINDOW content (default: -1, all windows)',
