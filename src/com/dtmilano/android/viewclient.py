@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.0.0'
+__version__ = '12.0.1'
 
 import sys
 import warnings
@@ -65,6 +65,7 @@ DEBUG_MULTI = DEBUG and False
 DEBUG_VIEW = DEBUG and False
 DEBUG_VIEW_FACTORY = DEBUG and False
 DEBUG_CHANGE_LANGUAGE = DEBUG and False
+DEBUG_UI_AUTOMATOR = DEBUG and False
 DEBUG_UI_AUTOMATOR_HELPER = DEBUG and False
 DEBUG_NAV_BUTTONS = DEBUG and False
 
@@ -2339,6 +2340,7 @@ class ViewClientOptions:
     ViewClient options helper class
     '''
 
+    DEBUG = 'debug'
     DEVIDE = 'device'
     SERIALNO = 'serialno'
     AUTO_DUMP = 'autodump'
@@ -2379,7 +2381,7 @@ class ViewClient:
     imageDirectory = None
     ''' The directory used to store screenshot images '''
 
-    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True, ignoreuiautomatorkilled=False, compresseddump=True, useuiautomatorhelper=False):
+    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT, remoteport=VIEW_SERVER_PORT, startviewserver=True, ignoreuiautomatorkilled=False, compresseddump=True, useuiautomatorhelper=False, debug={}):
         '''
         Constructor
 
@@ -2421,6 +2423,21 @@ class ViewClient:
 
         self.uiAutomatorHelper = None
         ''' The UiAutomatorHelper '''
+
+        if debug:
+            if 'DEVIDE' in debug:
+                global DEBUG_DEVICE
+                DEBUG_DEVICE = debug['DEVICE']
+            if 'RECEIVED' in debug:
+                global DEBUG_RECEIVED
+                DEBUG_RECEIVED = debug['RECEIVED']
+            if 'UI_AUTOMATOR' in debug:
+                global DEBUG_UI_AUTOMATOR
+                DEBUG_UI_AUTOMATOR = debug['UI_AUTOMATOR']
+            if 'UI_AUTOMATOR_HELPER' in debug:
+                global DEBUG_UI_AUTOMATOR_HELPER
+                DEBUG_UI_AUTOMATOR_HELPER = debug['UI_AUTOMATOR_HELPER']
+
 
         if DEBUG_DEVICE: print >> sys.stderr, "ViewClient: using device with serialno", self.serialno
 
@@ -3224,14 +3241,16 @@ class ViewClient:
                         pathname = '/sdcard'
                     filename = 'window_dump.xml'
                     cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
-                    received = self.device.shell(cmd)
                 else:
                     # NOTICE:
                     # Using /dev/tty this works even on devices with no sdcard
-                    received = self.device.shell('uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if api >= 18 and self.compressedDump else ''))
-                if received:
-                    received = unicode(received, encoding='utf-8', errors='replace')
-            if not received:
+                    cmd = 'uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if api >= 18 and self.compressedDump else '')
+            if DEBUG_UI_AUTOMATOR:
+                print >> sys.stderr, "executing '%s'" % cmd
+            received = self.device.shell(cmd)
+            if received:
+                received = unicode(received, encoding='utf-8', errors='replace')
+            else:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             if DEBUG:
                 self.received = received

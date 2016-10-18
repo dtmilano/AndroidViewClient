@@ -11,6 +11,8 @@ __version__ = '12.0.0'
 import sys
 import os
 import getopt
+import ast
+import re
 
 try:
     sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
@@ -22,6 +24,7 @@ from com.dtmilano.android.viewclient import ViewClient, View, ViewClientOptions
 HELP = 'help'
 VERBOSE = 'verbose'
 VERSION = 'version'
+DEBUG = 'debug'
 IGNORE_SECURE_DEVICE = 'ignore-secure-device'
 IGNORE_VERSION_CHECK = 'ignore-version-check'
 FORCE_VIEW_SERVER_USE = 'force-view-server-use'
@@ -56,7 +59,7 @@ MAP = {
        }
 
 USAGE = 'usage: %s [OPTION]... [serialno]'
-SHORT_OPTS = 'HVvIEFSkw:aixbdgcf:W:DA:ZBh'
+SHORT_OPTS = 'HVvIEFSkw:aixbdgcf:W:DA:ZBhX:'
 LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER, DO_NOT_IGNORE_UIAUTOMATOR_KILLED, WINDOW + '=',
               ALL, UNIQUE_ID, POSITION, BOUNDS, CONTENT_DESCRIPTION, TAG, CENTER,
@@ -64,6 +67,7 @@ LONG_OPTS =  [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK
               DO_NOT_DUMP_VIEWS,
               DEVICE_ART + '=', DROP_SHADOW, SCREEN_GLARE,
               USE_UIAUTOMATOR_HELPER,
+              DEBUG + '='
               ]
 LONG_OPTS_ARG = {WINDOW: 'WINDOW', SAVE_SCREENSHOT: 'FILE', SAVE_VIEW_SCREENSHOTS: 'DIR', DEVICE_ART: 'MODEL'}
 OPTS_HELP = {
@@ -89,6 +93,7 @@ OPTS_HELP = {
     'Z': 'drop shadow for device art screenshot',
     'B': 'screen glare over screenshot',
     'h': 'use UiAutomatorHelper Android app',
+    'X': 'debug options',
     }
 
 def shortAndLongOptions():
@@ -130,6 +135,11 @@ def version():
     print progname, __version__
     sys.exit(0)
 
+def debugArgsToDict(a):
+    s = a.replace('+', ' ')
+    s = re.sub(r'([A-Z][A-Z_]+)', r"'\1'", s)
+    return ast.literal_eval('{ ' + s + ' }')
+
 # __main__
 progname = os.path.basename(sys.argv[0])
 try:
@@ -144,6 +154,7 @@ kwargs2 = {ViewClientOptions.FORCE_VIEW_SERVER_USE: False, ViewClientOptions.STA
            ViewClientOptions.AUTO_DUMP: False, ViewClientOptions.IGNORE_UIAUTOMATOR_KILLED: True,
            ViewClientOptions.COMPRESSED_DUMP: True,
            ViewClientOptions.USE_UIAUTOMATOR_HELPER: False,
+           ViewClientOptions.DEBUG: {},
            }
 options = {WINDOW: -1, SAVE_SCREENSHOT: None, SAVE_VIEW_SCREENSHOTS: None, DO_NOT_DUMP_VIEWS: False,
            DEVICE_ART: None, DROP_SHADOW: False, SCREEN_GLARE: False}
@@ -184,6 +195,8 @@ for o, a in opts:
     elif o in ['D', DO_NOT_DUMP_VIEWS]:
         options[DO_NOT_DUMP_VIEWS] = True
         transform = MAP[o]
+    elif o in ['X', DEBUG]:
+        kwargs2[ViewClientOptions.DEBUG] = debugArgsToDict(a)
     else:
         transform = MAP[o]
 
