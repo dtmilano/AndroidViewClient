@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.0.2'
+__version__ = '12.0.3'
 
 import os
 import subprocess
@@ -246,7 +246,7 @@ On OSX install
         if r[u'status'] == 'OK':
             if DEBUG:
                 print >> sys.stderr, "UiAutomatorHelper: findObject: returning", int(r[u'oid'])
-            return UiObject(self, int(r[u'oid']))
+            return UiObject2(self, int(r[u'oid']))
         raise RuntimeError("Error: " + response)
 
     def longClick(self, **kwargs):
@@ -291,8 +291,22 @@ On OSX install
         params = {'text': text}
         return self.__httpCommand('/UiObject/0x%x/setText' % (uiObject.oid), params)
 
+    #
+    # UiObject2
+    #
+    def clickAndWait(self, uiObject2, eventCondition, timeout):
+        params = {'eventCondition': eventCondition, 'timeout': timeout}
+        return self.__httpCommand('/UiObject2/0x%x/clickAndWait' % (uiObject2.oid), params)
 
-class UiObject:
+
+    #
+    # UiScrollable
+    #
+    def uiScrollable(self, path, params):
+        return self.__httpCommand('/UiScrollable/' + path, params)
+
+
+class UiObject2:
     def __init__(self, uiAutomatorHelper, oid):
         self.uiAutomatorHelper = uiAutomatorHelper
         self.oid = oid
@@ -300,8 +314,22 @@ class UiObject:
     def click(self):
         self.uiAutomatorHelper.click(oid=self.oid)
 
+    def clickAndWait(self, eventCondition, timeout):
+        self.uiAutomatorHelper.clickAndWait(uiObject2=self, eventCondition=eventCondition, timeout=timeout)
+
+
     def longClick(self):
         self.uiAutomatorHelper.longClick(oid=self.oid)
 
     def setText(self, text):
         self.uiAutomatorHelper.setText(uiObject=self, text=text)
+
+
+class UiScrollable:
+    def __init__(self, uiAutomatorHelper, selector):
+        self.uiAutomatorHelper = uiAutomatorHelper
+        self.selector = selector
+
+    def createUiScrollable(self):
+        return self.uiAutomatorHelper.uiScrollable('new', {'uiSelector': self.selector})
+
