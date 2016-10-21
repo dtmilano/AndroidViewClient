@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.1.0'
+__version__ = '12.1.1'
 
 import os
 import subprocess
@@ -296,7 +296,7 @@ On OSX install
     #
     def clickAndWait(self, uiObject2, eventCondition, timeout):
         params = {'eventCondition': eventCondition, 'timeout': timeout}
-        return self.__httpCommand('/UiObject2/0x%x/clickAndWait' % (uiObject2.oid), params)
+        return self.__httpCommand('/UiObject2/%d/clickAndWait' % (uiObject2.oid), params)
 
 
     #
