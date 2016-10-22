@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.1.1'
+__version__ = '12.1.2'
 
 import os
 import subprocess
@@ -303,7 +303,24 @@ On OSX install
     # UiScrollable
     #
     def uiScrollable(self, path, params):
-        return self.__httpCommand('/UiScrollable/' + path, params)
+        response = self.__httpCommand('/UiScrollable/' + path, params)
+        if DEBUG:
+            print >> sys.stderr, "UiAutomatorHelper: uiScrollable: response=", response
+        r = json.loads(response)
+        if r[u'status'] == 'OK':
+            if DEBUG:
+                print >> sys.stderr, "UiAutomatorHelper: uiScrollable: returning", int(r[u'oid'])
+            return int(r[u'oid']), r
+        raise RuntimeError("Error: " + response)
+
+
+class UiObject:
+    def __init__(self, uiAutomatorHelper, oid):
+        self.uiAutomatorHelper = uiAutomatorHelper
+        self.oid = oid
+
+    def click(self):
+        self.uiAutomatorHelper.click(oid=self.oid)
 
 
 class UiObject2:
@@ -326,10 +343,18 @@ class UiObject2:
 
 
 class UiScrollable:
-    def __init__(self, uiAutomatorHelper, selector):
+    def __init__(self, uiAutomatorHelper, uiSelector):
         self.uiAutomatorHelper = uiAutomatorHelper
-        self.selector = selector
+        self.uiSelector = uiSelector
+        self.oid, self.response = self.__createUiScrollable()
 
-    def createUiScrollable(self):
-        return self.uiAutomatorHelper.uiScrollable('new', {'uiSelector': self.selector})
+    def __createUiScrollable(self):
+        return self.uiAutomatorHelper.uiScrollable('new', {'uiSelector': self.uiSelector})
 
+    def getChildByDescription(self, uiSelector, description, allowScrollSearch):
+        oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByDescription', {'uiSelector': uiSelector, 'contentDescription': description, 'allowScrollSearch': allowScrollSearch})
+        return UiObject(self.uiAutomatorHelper, oid)
+
+    def getChildByText(self, uiSelector, text, allowScrollSearch):
+        oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByDescription', {'uiSelector': uiSelector, 'text': text, 'allowScrollSearch': allowScrollSearch})
+        return UiObject(self.uiAutomatorHelper, oid)
