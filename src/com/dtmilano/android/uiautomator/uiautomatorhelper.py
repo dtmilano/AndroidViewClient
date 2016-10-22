@@ -315,11 +315,19 @@ On OSX install
         response = self.__httpCommand('/UiScrollable/' + path, params)
         if DEBUG:
             print >> sys.stderr, "UiAutomatorHelper: uiScrollable: response=", response
-        r = json.loads(response)
+        r = None
+        try:
+            r = json.loads(response)
+        except:
+            print >> sys.stderr, "===================================="
+            print >> sys.stderr, "Invalid JSON RESPONSE: ", response
         if r[u'status'] == 'OK':
             if DEBUG:
                 print >> sys.stderr, "UiAutomatorHelper: uiScrollable: returning", int(r[u'oid'])
             return int(r[u'oid']), r
+        if DEBUG:
+            print >> sys.stderr, "RESPONSE: ", response
+            print >> sus.stderr, "r=", r
         raise RuntimeError("Error: " + response)
 
 
