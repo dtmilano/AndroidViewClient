@@ -298,6 +298,15 @@ On OSX install
         params = {'eventCondition': eventCondition, 'timeout': timeout}
         return self.__httpCommand('/UiObject2/%d/clickAndWait' % (uiObject2.oid), params)
 
+    def getText(self, uiObject2):
+        response = self.__httpCommand('/UiObject2/%d/getText' % (uiObject2.oid), None)
+        r = json.loads(response)
+        if r[u'status'] == 'OK':
+            if DEBUG:
+                print >> sys.stderr, "UiAutomatorHelper: getText: returning", r[u'text']
+            return r[u'text']
+        raise RuntimeError("Error: " + response)
+
 
     #
     # UiScrollable
@@ -342,8 +351,11 @@ class UiObject2:
     def longClick(self):
         self.uiAutomatorHelper.longClick(oid=self.oid)
 
+    def getText(self):
+        return self.uiAutomatorHelper.getText(uiObject2=self)
+
     def setText(self, text):
-        self.uiAutomatorHelper.setText(uiObject=self, text=text)
+        self.uiAutomatorHelper.setText(uiObject2=self, text=text)
 
 
 class UiScrollable:
@@ -360,5 +372,5 @@ class UiScrollable:
         return UiObject(self.uiAutomatorHelper, oid)
 
     def getChildByText(self, uiSelector, text, allowScrollSearch):
-        oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByDescription', {'uiSelector': uiSelector, 'text': text, 'allowScrollSearch': allowScrollSearch})
+        oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByText', {'uiSelector': uiSelector, 'text': text, 'allowScrollSearch': allowScrollSearch})
         return UiObject(self.uiAutomatorHelper, oid)
