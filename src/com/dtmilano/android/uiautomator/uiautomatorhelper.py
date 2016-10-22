@@ -322,6 +322,10 @@ class UiObject:
     def click(self):
         self.uiAutomatorHelper.click(oid=self.oid)
 
+    def longClick(self):
+        self.uiAutomatorHelper.longClick(oid=self.oid)
+
+
 
 class UiObject2:
     def __init__(self, uiAutomatorHelper, oid):
