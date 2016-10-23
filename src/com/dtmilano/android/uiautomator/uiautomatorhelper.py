@@ -298,8 +298,14 @@ On OSX install
         params = {'eventCondition': eventCondition, 'timeout': timeout}
         return self.__httpCommand('/UiObject2/%d/clickAndWait' % (uiObject2.oid), params)
 
-    def getText(self, uiObject2):
-        response = self.__httpCommand('/UiObject2/%d/getText' % (uiObject2.oid), None)
+    def getText(self, uiObject=None, uiObject2=None):
+        if uiObject:
+            path = '/UiObject/%d/getText' % (uiObject.oid)
+        elif uiObject2:
+            path = '/UiObject2/%d/getText' % (uiObject2.oid)
+        else:
+            raise ValueError("No uiObject or uiObject2 specified")
+        response = self.__httpCommand(path, None)
         r = json.loads(response)
         if r[u'status'] == 'OK':
             if DEBUG:
@@ -342,6 +348,11 @@ class UiObject:
     def longClick(self):
         self.uiAutomatorHelper.longClick(oid=self.oid)
 
+    def getText(self):
+        return self.uiAutomatorHelper.getText(uiObject=self)
+
+    def setText(self, text):
+        self.uiAutomatorHelper.setText(uiObject=self, text=text)
 
 
 class UiObject2:
