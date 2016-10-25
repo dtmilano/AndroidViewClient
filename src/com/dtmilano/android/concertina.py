@@ -25,7 +25,7 @@ import sys
 import time
 
 __author__ = 'diego'
-__version__ = '12.1.1'
+__version__ = '12.1.2'
 
 DEBUG = True
 
