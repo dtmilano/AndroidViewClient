@@ -18,15 +18,16 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.1.2'
+__version__ = '12.2.0'
 
+import json
 import os
+import platform
+import re
 import subprocess
 import sys
-import platform
 import threading
-import re
-import json
+
 try:
     import requests
     REQUESTS_AVAILABLE = True
@@ -258,6 +259,9 @@ On OSX install
         else:
             return self.__httpCommand('/UiDevice/longClick', params)
 
+    def openNotification(self):
+        return self.__httpCommand('/UiDevice/openNotification')
+
     def pressBack(self):
         return self.__httpCommand('/UiDevice/pressBack')
 
@@ -283,6 +287,10 @@ On OSX install
     def takeScreenshot(self, scale=1.0, quality=90):
         params = {'scale': scale, 'quality': quality}
         return self.__httpCommand('/UiDevice/takeScreenshot', params)
+
+    def waitForIdle(self, timeout):
+        params = {'timeout': timeout}
+        return self.__httpCommand('/UiDevice/waitForIdle')
 
     #
     # UiObject
