@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.2.0'
+__version__ = '12.3.0'
 
 import json
 import os
@@ -325,7 +325,7 @@ On OSX install
     #
     # UiScrollable
     #
-    def uiScrollable(self, path, params):
+    def uiScrollable(self, path, params = None):
         response = self.__httpCommand('/UiScrollable/' + path, params)
         if DEBUG:
             print >> sys.stderr, "UiAutomatorHelper: uiScrollable: response=", response
@@ -336,9 +336,12 @@ On OSX install
             print >> sys.stderr, "===================================="
             print >> sys.stderr, "Invalid JSON RESPONSE: ", response
         if r[u'status'] == 'OK':
-            if DEBUG:
-                print >> sys.stderr, "UiAutomatorHelper: uiScrollable: returning", int(r[u'oid'])
-            return int(r[u'oid']), r
+            if u'oid' in r:
+                if DEBUG:
+                    print >> sys.stderr, "UiAutomatorHelper: uiScrollable: returning", int(r[u'oid'])
+                return int(r[u'oid']), r
+            else:
+                return r
         if DEBUG:
             print >> sys.stderr, "RESPONSE: ", response
             print >> sus.stderr, "r=", r
@@ -394,6 +397,18 @@ class UiScrollable:
     def __createUiScrollable(self):
         return self.uiAutomatorHelper.uiScrollable('new', {'uiSelector': self.uiSelector})
 
+    def flingBackward(self):
+        return self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/flingBackward')
+
+    def flingForward(self):
+        return self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/flingForward')
+
+    def flingToBeginning(self, maxSwipes=20):
+        return self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/flingToBeginning', {'maxSwipes': maxSwipes})
+
+    def flingToEnd(self, maxSwipes=20):
+        return self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/flingToEnd', {'maxSwipes': maxSwipes})
+
     def getChildByDescription(self, uiSelector, description, allowScrollSearch):
         oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByDescription', {'uiSelector': uiSelector, 'contentDescription': description, 'allowScrollSearch': allowScrollSearch})
         return UiObject(self.uiAutomatorHelper, oid)
@@ -401,3 +416,11 @@ class UiScrollable:
     def getChildByText(self, uiSelector, text, allowScrollSearch):
         oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByText', {'uiSelector': uiSelector, 'text': text, 'allowScrollSearch': allowScrollSearch})
         return UiObject(self.uiAutomatorHelper, oid)
+
+    def setAsHorizontalList(self):
+        self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/setAsHorizontalList')
+        return self
+
+    def setAsVerticalList(self):
+        self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/setAsVerticalList')
+        return self
