@@ -262,6 +262,9 @@ On OSX install
     def openNotification(self):
         return self.__httpCommand('/UiDevice/openNotification')
 
+    def openQuickSettings(self):
+        return self.__httpCommand('/UiDevice/openQuickSettings')
+
     def pressBack(self):
         return self.__httpCommand('/UiDevice/pressBack')
 
