@@ -18,14 +18,13 @@ limitations under the License.
 @author: Diego Torres Milano
 
 '''
+import platform
 import random
 import subprocess
-import platform
 import sys
-import time
 
 __author__ = 'diego'
-__version__ = '12.3.0'
+__version__ = '12.3.1'
 
 DEBUG = True
 

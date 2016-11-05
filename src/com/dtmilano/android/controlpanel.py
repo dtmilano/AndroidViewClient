@@ -19,12 +19,12 @@
     @author: Ahmed Kasem
     '''
 
-__version__ = '12.3.0'
+__version__ = '12.3.1'
 
-import sys, os
-import Tkinter, tkFileDialog, ttk
+import Tkinter
+import ttk
 
-from com.dtmilano.android.culebron import Operation, Unit, Color
+from com.dtmilano.android.culebron import Operation, Color
 
 class Key:
     GOOGLE_NOW='KEYCODE_ASSIST'

@@ -18,12 +18,12 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.3.0'
+__version__ = '12.3.1'
 __author__ = 'diego'
 
 import sys
-from com.dtmilano.android.viewclient import ViewClient
 
+from com.dtmilano.android.viewclient import ViewClient
 
 """A library to integrate *AndroidViewClient/culebra* tests with Robotframework.
 

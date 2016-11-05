@@ -20,16 +20,15 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '12.3.0'
+__version__ = '12.3.1'
 
+import calendar
+import codecs
+import getopt
+import os
 import re
 import sys
-import os
-import getopt
 import warnings
-import subprocess
-import codecs
-import calendar
 from datetime import date
 
 try:

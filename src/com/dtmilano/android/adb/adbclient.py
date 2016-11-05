@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '12.3.0'
+__version__ = '12.3.1'
 
 import sys
 import warnings
@@ -40,7 +40,6 @@ import time
 import re
 import signal
 import os
-import types
 import platform
 
 from com.dtmilano.android.window import Window

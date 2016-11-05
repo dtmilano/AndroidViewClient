@@ -20,13 +20,14 @@ limitations under the License.
 '''
 import StringIO
 import random
-import time
 import re
-from com.dtmilano.android.common import profileStart
+import time
+
 from com.dtmilano.android.common import profileEnd
+from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '12.3.0'
+__version__ = '12.3.1'
 
 import sys
 import threading

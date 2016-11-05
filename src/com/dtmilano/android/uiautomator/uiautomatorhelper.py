@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.3.0'
+__version__ = '12.4.0'
 
 import json
 import os
@@ -248,6 +248,12 @@ On OSX install
             if DEBUG:
                 print >> sys.stderr, "UiAutomatorHelper: findObject: returning", int(r[u'oid'])
             return UiObject2(self, int(r[u'oid']))
+        elif r[u'status'] == 'ERROR':
+            if DEBUG:
+                print >> sys.stderr, "UiAutomatorHelper: findObject: returning", int(r[u'oid'])
+            if r[u'statusCode'] == -1:
+                # Object not found
+                return None
         raise RuntimeError("Error: " + response)
 
     def longClick(self, **kwargs):
@@ -324,6 +330,14 @@ On OSX install
             return r[u'text']
         raise RuntimeError("Error: " + response)
 
+    def isChecked(self, uiObject=None):
+        # This path works for UiObject and UiObject2, so there's no need to handle both cases differently
+        path = '/UiObject/%d/isChecked' % (uiObject.oid)
+        response = self.__httpCommand(path, None)
+        r = json.loads(response)
+        if r[u'status'] == 'OK':
+            return r[u'checked']
+        raise RuntimeError("Error: " + response)
 
     #
     # UiScrollable
@@ -352,9 +366,16 @@ On OSX install
 
 
 class UiObject:
-    def __init__(self, uiAutomatorHelper, oid):
+    def __init__(self, uiAutomatorHelper, oid, response):
         self.uiAutomatorHelper = uiAutomatorHelper
         self.oid = oid
+        self.className = response['className']
+
+    def getOid(self):
+        return self.oid
+
+    def getClassName(self):
+        return self.className
 
     def click(self):
         self.uiAutomatorHelper.click(oid=self.oid)
@@ -380,6 +401,12 @@ class UiObject2:
     def clickAndWait(self, eventCondition, timeout):
         self.uiAutomatorHelper.clickAndWait(uiObject2=self, eventCondition=eventCondition, timeout=timeout)
 
+    def isChecked(self):
+        """
+
+        :rtype: bool
+        """
+        return self.uiAutomatorHelper.isChecked(uiObject=self)
 
     def longClick(self):
         self.uiAutomatorHelper.longClick(oid=self.oid)
@@ -414,11 +441,11 @@ class UiScrollable:
 
     def getChildByDescription(self, uiSelector, description, allowScrollSearch):
         oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByDescription', {'uiSelector': uiSelector, 'contentDescription': description, 'allowScrollSearch': allowScrollSearch})
-        return UiObject(self.uiAutomatorHelper, oid)
+        return UiObject(self.uiAutomatorHelper, oid, response)
 
     def getChildByText(self, uiSelector, text, allowScrollSearch):
         oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByText', {'uiSelector': uiSelector, 'text': text, 'allowScrollSearch': allowScrollSearch})
-        return UiObject(self.uiAutomatorHelper, oid)
+        return UiObject(self.uiAutomatorHelper, oid, response)
 
     def setAsHorizontalList(self):
         self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/setAsHorizontalList')
