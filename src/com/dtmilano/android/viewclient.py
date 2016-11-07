@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.4.0'
+__version__ = '12.4.1'
 
 import sys
 import warnings
@@ -3231,7 +3231,18 @@ class ViewClient:
                 received = self.uiAutomatorHelper.dumpWindowHierarchy()
             else:
                 api = self.getSdkVersion()
-                if api >= 23:
+                if api >= 24:
+                    # In API 23 the process' stdout,in and err are connected to the socket not to the pts as in
+                    # previous versions, so we can't redirect to /dev/tty
+                    # Also, if we want to write to /sdcard/something it fails event though /sdcard is a symlink
+                    # Also, 'primary' storage was added.
+                    if self.serialno.startswith('emulator'):
+                        pathname = '/storage/self/primary'
+                    else:
+                        pathname = '/sdcard'
+                    filename = 'window_dump.xml'
+                    cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
+                elif api == 23:
                     # In API 23 the process' stdout,in and err are connected to the socket not to the pts as in
                     # previous versions, so we can't redirect to /dev/tty
                     # Also, if we want to write to /sdcard/something it fails event though /sdcard is a symlink
