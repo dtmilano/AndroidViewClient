@@ -772,6 +772,19 @@ def printPressRecentAppsUiAutomatorHelper():
         print '%s%svc.pressRecentApps()' % (indent, prefix)
 
 
+def printLongPress(keycode, duration, dev, scancode, repeat):
+    '''
+    Prints a key long press
+    '''
+
+    if options[CulebraOptions.MULTI_DEVICE]:
+        logAction(u'long pressing key=%s on ${serialno}' % keycode)
+        print '%s[_d.longPress(\'%s\', duration=%f, dev=\'%s\', scancode=%d, repeat=%d) for _d in %sallDevices()]' % (indent, keycode, duration, dev, scancode, repeat, prefix)
+    else:
+        logAction(u'long pressing key=%s' % keycode)
+        print '%s%sdevice.longPress(\'%s\', duration=%f, dev=\'%s\', scancode=%d, repeat=%d)' % (indent, prefix, keycode, duration, dev, scancode, repeat)
+
+
 def printOperation(view, op, *args):
     if len(args) == 0:
         # We use tuple values in the rest of this method, so if an empty tuple was passed
@@ -814,6 +827,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.PRESS_RECENT_APPS_UI_AUTOMATOR_HELPER:
         printPressRecentAppsUiAutomatorHelper()
+        return
+    elif op == Operation.LONG_PRESS:
+        printLongPress(keycode=args[0], duration=args[1], dev=args[2], scancode=args[3], repeat=args[4])
         return
     elif op == Operation.DUMP:
         printDump(window=args[0], dump=args[1])

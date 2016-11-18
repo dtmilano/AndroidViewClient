@@ -27,7 +27,7 @@ from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '12.4.2'
+__version__ = '12.4.3'
 
 import sys
 import threading
@@ -108,6 +108,7 @@ class Operation:
     LONG_TOUCH_POINT = 'long_touch_point'
     LONG_TOUCH_VIEW = 'long_touch_view'
     LONG_TOUCH_VIEW_UI_AUTOMATOR_HELPER = 'long_touch_view_ui_automator_helper'
+    LONG_PRESS = 'long_press'
     OPEN_NOTIFICATION = 'open_notification'
     OPEN_QUICK_SETTINGS = 'open_quick_settings'
     TYPE = 'type'
@@ -958,9 +959,17 @@ This is usually installed by python package. Check your distribution details.
         if keysym in Culebron.KEYSYM_TO_KEYCODE_MAP:
             if DEBUG_KEY:
                 print >> sys.stderr, "Pressing", Culebron.KEYSYM_TO_KEYCODE_MAP[keysym]
-            self.command(Culebron.KEYSYM_TO_KEYCODE_MAP[keysym])
+            # ALT-F12 is handled as a special case
+            if keysym == 'F12' and event.state == 24:
+                if DEBUG_KEY:
+                    print >> sys.stderr, "Special ALT-F12 case"
+                self.device.longPress('TV_HOME', duration=0.1, dev='/dev/input/event1', scancode=49067, repeat=50)
+                self.printOperation(None, Operation.LONG_PRESS, 'TV_HOME', 0.1, '/dev/input/event1', 49067, 50)
+            else:
+                self.command(Culebron.KEYSYM_TO_KEYCODE_MAP[keysym])
         elif char == '\r':
             self.command('ENTER')
+        # ALT-M
         elif keysym == 'm' and event.state == 24:
             if DEBUG_KEY:
                 print >> sys.stderr, "Sending MENU"
