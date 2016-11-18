@@ -583,7 +583,7 @@ class AdbClient:
             print >> sys.stderr, "press(%s)" % cmd
         self.shell(cmd)
 
-    def longPress(self, name, duration=0.5, dev='/dev/input/event0'):
+    def longPress(self, name, duration=0.5, dev='/dev/input/event0', scancode=0, repeat=1):
         self.__checkTransport()
         # WORKAROUND:
         # Using 'input keyevent --longpress POWER' does not work correctly in
@@ -599,6 +599,9 @@ class AdbClient:
         if name in KEY_MAP:
             self.shell('sendevent %s 1 %d 1' % (dev, KEY_MAP[name]))
             self.shell('sendevent %s 0 0 0' % dev)
+            for _ in range(repeat):
+                self.shell('sendevent %s 4 4 %d' % (dev, scancode))
+                self.shell('sendevent %s 0 0 0' % dev)
             time.sleep(duration)
             self.shell('sendevent %s 1 %d 0' % (dev, KEY_MAP[name]))
             self.shell('sendevent %s 0 0 0' % dev)
