@@ -27,7 +27,7 @@ from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '12.4.0'
+__version__ = '12.4.1'
 
 import sys
 import threading
@@ -153,6 +153,7 @@ class Culebron:
         'Right': 'DPAD_RIGHT',
         'Up': 'DPAD_UP',
         'Down': 'DPAD_DOWN',
+        'F12': 'F12',
     }
 
     KEYSYM_CULEBRON_COMMANDS = {
