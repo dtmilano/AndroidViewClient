@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '12.4.2'
+__version__ = '12.4.4'
 
 import calendar
 import codecs
@@ -66,7 +66,7 @@ class Descriptor:
 
 def fillAutoRegexpsRes():
     are = {}
-    are['clock'] = re.compile('[012]?\d:[0-5]\d')
+    are['clock'] = re.compile(u'[012]?\d\\\\:[0-5]\d')
     d = "("
     for i in range(7):
         d += calendar.day_abbr[i]
