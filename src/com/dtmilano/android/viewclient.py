@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.4.4'
+__version__ = '12.4.5'
 
 import sys
 import warnings
@@ -3256,12 +3256,11 @@ class ViewClient:
                     # NOTICE:
                     # Using /dev/tty this works even on devices with no sdcard
                     cmd = 'uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if api >= 18 and self.compressedDump else '')
-            if DEBUG_UI_AUTOMATOR:
-                print >> sys.stderr, "executing '%s'" % cmd
-            received = self.device.shell(cmd)
-            if received:
+                if DEBUG_UI_AUTOMATOR:
+                    print >> sys.stderr, "executing '%s'" % cmd
+                received = self.device.shell(cmd)
                 received = unicode(received, encoding='utf-8', errors='replace')
-            else:
+            if not received:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             if DEBUG:
                 self.received = received
