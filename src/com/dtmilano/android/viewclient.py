@@ -2731,7 +2731,7 @@ class ViewClient:
         @param view: the View
         @type extraInfo: method
         @param extraInfo: the View method to add extra info
-        @type noExtraInfo: bool
+        @type noExtraInfo: str
         @param noExtraInfo: Don't add extra info
         @type extraAction: method
         @param extraAction: An extra action to be invoked for every view
