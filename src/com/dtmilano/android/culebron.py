@@ -27,7 +27,7 @@ from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '12.4.4'
+__version__ = '12.5.0'
 
 import sys
 import threading
