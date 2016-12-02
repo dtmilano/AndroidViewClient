@@ -184,7 +184,7 @@ class AdbClient:
 
         self.isTransportSet = False
         if settransport and serialno != None:
-            self.__setTransport(timeout)
+            self.__setTransport(timeout=timeout)
             self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
             self.initDisplayProperties()
 
@@ -291,7 +291,7 @@ class AdbClient:
         if not sock:
             sock = self.socket
         self.checkConnected(sock=sock)
-        timerId = self.setTimer(TIMEOUT)
+        timerId = self.setTimer(timeout=self.timeout)
         recv = sock.recv(4)
         if DEBUG:
             print >> sys.stderr, "    __checkOk: recv=", repr(recv)

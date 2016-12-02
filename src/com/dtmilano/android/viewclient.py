@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.5.1'
+__version__ = '12.5.2'
 
 import sys
 import warnings
@@ -2711,6 +2711,9 @@ class ViewClient:
                 print >> sys.stderr, "    secure=%s debuggable=%s version=%d ignoresecuredevice=%s" % \
                     (secure, debuggable, version, ignoresecuredevice)
             sys.exit(2)
+        if device.serialno:
+            # If we know the serialno because it was set by AdbClient, use it
+            serialno = device.serialno
         if re.search("[.*()+]", serialno) and not re.search("(\d{1,3}\.){3}\d{1,3}", serialno):
             # if a regex was used we have to determine the serialno used
             serialno = ViewClient.__obtainDeviceSerialNumber(device)
