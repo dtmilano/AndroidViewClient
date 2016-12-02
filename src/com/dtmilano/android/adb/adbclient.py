@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '12.4.4'
+__version__ = '12.5.0'
 
 import sys
 import warnings
@@ -38,7 +38,6 @@ import cStringIO as StringIO
 import socket
 import time
 import re
-import signal
 import os
 import platform
 
@@ -142,7 +141,22 @@ class WifiManager:
         return self.WIFI_STATE_UNKNOWN
 
 
+class Timer():
+    def __init__(self, timeout, handler, args):
+        self.timer = threading.Timer(timeout, handler, args)
+
+    def start(self):
+        self.timer.start()
+
+    def cancel(self):
+        self.timer.cancel()
+
+    class TimeoutException(Exception):
+        pass
+
+
 class AdbClient:
+
     def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True,
                  ignoreversioncheck=False, timeout=TIMEOUT):
         self.Log = AdbClient.__Log(self)
@@ -151,6 +165,8 @@ class AdbClient:
         self.hostname = hostname
         self.port = port
         self.timeout = timeout
+        self.timerId = -1
+        self.timers = {}
 
         self.reconnect = reconnect
         self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
@@ -168,26 +184,26 @@ class AdbClient:
 
         self.isTransportSet = False
         if settransport and serialno != None:
-            self.__setTransport()
+            self.__setTransport(timeout)
             self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
             self.initDisplayProperties()
 
-    @staticmethod
-    def alarmHandler(signum, frame):
-        if signum == signal.SIGALRM:
-            raise IOError("Socket timeout")
-        raise RuntimeError("Signal received: %d" % signum)
+    def timeoutHandler(self, timerId):
+        print >> sys.stderr, "TIMEOUT HANDLER", timerId
+        self.timers[timerId] = "EXPIRED"
+        raise Timer.TimeoutException("Timer %d has expired" % timerId)
 
-    @staticmethod
-    def setAlarm(timeout):
-        osName = platform.system()
-        if osName.startswith('Windows'):  # alarm is not implemented in Windows
-            return
-        if DEBUG:
-            print >> sys.stderr, "setAlarm(%d)" % timeout
-        if threading.current_thread().getName() == 'MainThread':
-            signal.signal(signal.SIGALRM, AdbClient.alarmHandler)
-        signal.alarm(timeout)
+    def setTimer(self, timeout):
+        self.timerId += 1
+        timer = Timer(timeout, self.timeoutHandler, [self.timerId])
+        timer.start()
+        self.timers[self.timerId] = timer
+        return self.timerId
+
+    def cancelTimer(self, timerId):
+        if self.timers[timerId] != "EXPIRED":
+            self.timers[timerId].cancel()
+        del self.timers[timerId]
 
     def setSerialno(self, serialno):
         if self.isTransportSet:
@@ -246,19 +262,21 @@ class AdbClient:
             self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
             self.__setTransport()
 
-    def __receive(self, nob=None):
+    def __receive(self, nob=None, sock=None):
         if DEBUG:
-            print >> sys.stderr, "__receive()"
-        self.checkConnected()
+            print >> sys.stderr, "__receive(nob=%s)" % (nob)
+        if not sock:
+            sock = self.socket
+        self.checkConnected(sock)
         if nob is None:
-            nob = int(self.socket.recv(4), 16)
+            nob = int(sock.recv(4), 16)
         if DEBUG:
             print >> sys.stderr, "    __receive: receiving", nob, "bytes"
         recv = bytearray(nob)
         view = memoryview(recv)
         nr = 0
         while nr < nob:
-            l = self.socket.recv_into(view, len(view))
+            l = sock.recv_into(view, len(view))
             if DEBUG:
                 print >> sys.stderr, "l=", l, "nr=", nr
             view = view[l:]
@@ -267,32 +285,36 @@ class AdbClient:
             print >> sys.stderr, "    __receive: returning len=", len(recv)
         return str(recv)
 
-    def __checkOk(self):
+    def __checkOk(self, sock=None):
         if DEBUG:
             print >> sys.stderr, "__checkOk()"
-        self.checkConnected()
-        self.setAlarm(TIMEOUT)
-        recv = self.socket.recv(4)
+        if not sock:
+            sock = self.socket
+        self.checkConnected(sock=sock)
+        timerId = self.setTimer(TIMEOUT)
+        recv = sock.recv(4)
         if DEBUG:
             print >> sys.stderr, "    __checkOk: recv=", repr(recv)
         try:
             if recv != OKAY:
-                error = self.socket.recv(1024)
+                error = sock.recv(1024)
                 if error.startswith('0049'):
                     raise RuntimeError(
                         "ERROR: This computer is unauthorized. Please check the confirmation dialog on your device.")
                 else:
                     raise RuntimeError("ERROR: %s %s" % (repr(recv), error))
         finally:
-            self.setAlarm(0)
+            self.cancelTimer(timerId)
         if DEBUG:
             print >> sys.stderr, "    __checkOk: returning True"
         return True
 
-    def checkConnected(self):
+    def checkConnected(self, sock=None):
         if DEBUG:
             print >> sys.stderr, "checkConnected()"
-        if not self.socket:
+        if not sock:
+            sock = self.socket
+        if not sock:
             raise RuntimeError("ERROR: Not connected")
         if DEBUG:
             print >> sys.stderr, "    checkConnected: returning True"
@@ -314,7 +336,7 @@ class AdbClient:
         if reconnect:
             self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
 
-    def __setTransport(self):
+    def __setTransport(self, timeout=60):
         if DEBUG:
             print >> sys.stderr, "__setTransport()"
         if not self.serialno:
@@ -323,6 +345,47 @@ class AdbClient:
         serialnoRE = re.compile(self.serialno)
         found = False
         devices = self.getDevices()
+        if len(devices) == 0 and timeout > 0:
+            print >> sys.stderr, "Empty device list, will wait %s secs for devices to appear" % self.timeout
+            # Sets the timeout to 5 to be able to loop while trying to receive new devices being added
+            _s = AdbClient.connect(self.hostname, self.port, timeout=5)
+            msg = 'host:track-devices'
+            b = bytearray(msg, 'utf-8')
+            try:
+                timerId = self.setTimer(timeout=timeout)
+                _s.send('%04X%s' % (len(b), b))
+                self.__checkOk(sock=_s)
+                # eat '0000'
+                _s.recv(4)
+                found = False
+                while not found:
+                    sys.stderr.write(".")
+                    sys.stderr.flush()
+                    try:
+                        for line in _s.recv(1024).splitlines():
+                            # skip first 4 bytes containing the response size
+                            device = Device.factory(line[4:])
+                            if device.status == 'device':
+                                devices.append(device)
+                                found = True
+                                break
+                        if found:
+                            break
+                    except socket.timeout as ex:
+                        # we continue trying until timer times out
+                        pass
+                    finally:
+                        time.sleep(3)
+                    if self.timers[timerId] == "EXPIRED":
+                        break
+                self.cancelTimer(timerId)
+            except Timer.TimeoutException as ex:
+                print >> sys.stderr, "EXCEPTION", ex
+                pass
+            finally:
+                _s.close()
+                sys.stderr.write("\n")
+                sys.stderr.flush()
         if len(devices) == 0:
             raise RuntimeError("ERROR: There are no connected devices")
         for device in devices:
@@ -344,7 +407,7 @@ class AdbClient:
 
     def __readExactly(self, sock, size):
         if DEBUG:
-            print >> sys.stderr, "__readExactly(socket=%s, size=%d)" % (socket, size)
+            print >> sys.stderr, "__readExactly(socket=%s, size=%d)" % (sock, size)
         _buffer = bytearray(size)
         view = memoryview(_buffer)
         nb = 0
@@ -428,7 +491,7 @@ class AdbClient:
 
         self.__checkTransport()
         logicalDisplayRE = re.compile(
-            '.*DisplayViewport{valid=true, .*orientation=(?P<orientation>\d+), .*deviceWidth=(?P<width>\d+), deviceHeight=(?P<height>\d+).*')
+            '.*DisplayViewport\{valid=true, .*orientation=(?P<orientation>\d+), .*deviceWidth=(?P<width>\d+), deviceHeight=(?P<height>\d+).*')
         for line in self.shell('dumpsys display').splitlines():
             m = logicalDisplayRE.search(line, 0)
             if m:
@@ -993,9 +1056,9 @@ class AdbClient:
         dww = self.shell('dumpsys window windows')
         if DEBUG_WINDOWS: print >> sys.stderr, dww
         lines = dww.splitlines()
-        widRE = re.compile('^ *Window #%s Window{%s (u\d+ )?%s?.*}:' %
+        widRE = re.compile('^ *Window #%s Window\{%s (u\d+ )?%s?.*\}:' %
                            (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
-        currentFocusRE = re.compile('^  mCurrentFocus=Window{%s .*' % _nh('winId'))
+        currentFocusRE = re.compile('^  mCurrentFocus=Window\{%s .*' % _nh('winId'))
         viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % _nh('visibility'))
         # This is for 4.0.4 API-15
         containingFrameRE = re.compile('^   *mContainingFrame=\[%s,%s\]\[%s,%s\] mParentFrame=\[%s,%s\]\[%s,%s\]' %
