@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.5.0'
+__version__ = '12.5.1'
 
 import sys
 import warnings
@@ -2491,7 +2491,7 @@ class ViewClient:
 
         self.ro = {}
         ''' The map containing the device's ro properties: secure, debuggable '''
-        for prop in ['secure', 'debuggable']:
+        for prop in ['secure', 'debuggable', 'product.board', 'product.brand']:
             try:
                 self.ro[prop] = device.shell('getprop ro.' + prop)[:-2]
             except:
@@ -3249,7 +3249,10 @@ class ViewClient:
                     if self.serialno.startswith('emulator'):
                         pathname = '/storage/self'
                     else:
-                        pathname = '/sdcard'
+                        if self.ro['product.board'] == 'msd938_STB':
+                            pathname = '/tmp'
+                        else:
+                            pathname = '/sdcard'
                     filename = 'window_dump.xml'
                     cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
                 else:
