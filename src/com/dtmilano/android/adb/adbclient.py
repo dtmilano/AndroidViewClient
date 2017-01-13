@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '12.5.2'
+__version__ = '12.5.3'
 
 import sys
 import warnings
@@ -659,6 +659,9 @@ class AdbClient:
         # specifying the device and API level.
         if name[0:4] == 'KEY_':
             name = name[4:]
+        # FIXME:
+        # Most of the keycodes are in KEY_MAP so it's very unlikely that the longpress event
+        # is sent via `input keyevent ...` (look next if)
         if name in KEY_MAP:
             self.shell('sendevent %s 1 %d 1' % (dev, KEY_MAP[name]))
             self.shell('sendevent %s 0 0 0' % dev)

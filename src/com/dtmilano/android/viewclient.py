@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.5.2'
+__version__ = '12.5.3'
 
 import sys
 import warnings
@@ -3251,13 +3251,14 @@ class ViewClient:
                     # Also, if we want to write to /sdcard/something it fails event though /sdcard is a symlink
                     if self.serialno.startswith('emulator'):
                         pathname = '/storage/self'
+                        filename = 'window_dump.xml'
+                        cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
+                    elif self.ro['product.board'] == 'msd938_STB':
+                            cmd = 'uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.compressedDump else '')
                     else:
-                        if self.ro['product.board'] == 'msd938_STB':
-                            pathname = '/tmp'
-                        else:
-                            pathname = '/sdcard'
-                    filename = 'window_dump.xml'
-                    cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
+                        pathname = '/sdcard'
+                        filename = 'window_dump.xml'
+                        cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
                 else:
                     # NOTICE:
                     # Using /dev/tty this works even on devices with no sdcard
