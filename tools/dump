@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 '''
-Copyright (C) 2012-2015  Diego Torres Milano
+Copyright (C) 2012-2017  Diego Torres Milano
 Created on Feb 3, 2012
 
 @author: diego
 '''
 
-__version__ = '12.5.3'
+__version__ = '12.5.4'
 
 import ast
 import getopt

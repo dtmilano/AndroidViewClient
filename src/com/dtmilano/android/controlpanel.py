@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-    Copyright (C) 2012-2014  Diego Torres Milano
+    Copyright (C) 2012-2017  Diego Torres Milano
     Created on oct 30, 2014
     
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@
     @author: Ahmed Kasem
     '''
 
-__version__ = '12.5.3'
+__version__ = '12.5.4'
 
 import Tkinter
 import ttk

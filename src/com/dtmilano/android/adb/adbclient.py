@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2012-2015  Diego Torres Milano
+Copyright (C) 2012-2017  Diego Torres Milano
 Created on Dec 1, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '12.5.3'
+__version__ = '12.5.4'
 
 import sys
 import warnings
@@ -156,6 +156,10 @@ class Timer():
 
 
 class AdbClient:
+
+    UP = UP
+    DOWN = DOWN
+    DOWN_AND_UP = DOWN_AND_UP
 
     def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True,
                  ignoreversioncheck=False, timeout=TIMEOUT):
