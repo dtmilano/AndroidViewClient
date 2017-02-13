@@ -516,7 +516,7 @@ class AdbClient:
         ''' Gets C{mPhysicalDisplayInfo} values from dumpsys. This is a method to obtain display dimensions and density'''
 
         self.__checkTransport()
-        phyDispRE = re.compile('Physical size: (?P<width>)x(?P<height>).*Physical density: (?P<density>)', re.MULTILINE)
+        phyDispRE = re.compile('Physical size: (?P<width>\d+)x(?P<height>\d+).*Physical density: (?P<density>\d+)', re.DOTALL)
         m = phyDispRE.search(self.shell('wm size; wm density'))
         if m:
             displayInfo = {}
