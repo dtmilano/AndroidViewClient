@@ -136,6 +136,13 @@ def version():
     sys.exit(0)
 
 def debugArgsToDict(a):
+    '''
+    Converts a string representation of debug arguments to a dictionary.
+    The string can be of the form
+
+       IDENTIFIER1=val1,IDENTIFIER2=val2
+
+    '''
     s = a.replace('+', ' ')
     s = re.sub(r'([A-Z][A-Z_]+)', r"'\1'", s)
     return ast.literal_eval('{ ' + s + ' }')

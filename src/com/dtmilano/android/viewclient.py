@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.5.4'
+__version__ = '12.5.5'
 
 import sys
 import warnings
@@ -3253,7 +3253,7 @@ class ViewClient:
                         pathname = '/storage/self'
                         filename = 'window_dump.xml'
                         cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
-                    elif self.ro['product.board'] == 'msd938_STB':
+                    elif self.ro['product.board'] in ['msd838', 'msd938_STB']:
                             cmd = 'uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.compressedDump else '')
                     else:
                         pathname = '/sdcard'
