@@ -18,7 +18,9 @@ limitations under the License.
 '''
 import threading
 
-__version__ = '12.5.5'
+from com.dtmilano.android.adb.dumpsys import Dumpsys
+
+__version__ = '12.6.0'
 
 import sys
 import warnings
@@ -1217,6 +1219,9 @@ class AdbClient:
             'timestamp': timestamp
         }
         return string.Template(template).substitute(_map)
+
+    def dumpsys(self, subcommand, args):
+        return Dumpsys(self, subcommand, args)
 
 
 if __name__ == '__main__':
