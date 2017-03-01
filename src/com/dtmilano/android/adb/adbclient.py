@@ -20,7 +20,7 @@ import threading
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '12.6.1'
+__version__ = '12.6.2'
 
 import sys
 import warnings
