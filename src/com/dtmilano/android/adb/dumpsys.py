@@ -18,12 +18,18 @@ limitations under the License.
 '''
 import re
 
-__version__ = '12.6.0'
+__version__ = '12.6.1'
 
 
 class Dumpsys:
     def __init__(self, adbclient, subcommand, args=None):
+        self.nativeHeap = -1
+        self.dalvikHeap = -1
         self.total = 0
+        self.views = -1
+        self.activities = -1
+        self.appContexts = -1
+        self.viewRootImpl = -1
         self.parse(subcommand, adbclient.shell('dumpsys ' + subcommand + ((' ' + args) if args else '')))
 
     def parse(self, subcommand, out):
@@ -33,6 +39,25 @@ class Dumpsys:
             pass
 
     def parseMeminfo(self, out):
+        m = re.search('Native Heap[ \t]*(\d+)', out, re.MULTILINE)
+        if m:
+            self.nativeHeap = m.group(1)
+        m = re.search('Dalvik Heap[ \t]*(\d+)', out, re.MULTILINE)
+        if m:
+            self.dalvikHeap = m.group(1)
+        m = re.search('Views:[ \t]*(\d+)', out, re.MULTILINE)
+        if m:
+            self.views = m.group(1)
+        m = re.search('Activities:[ \t]*(\d+)', out, re.MULTILINE)
+        if m:
+            self.activities = m.group(1)
+        m = re.search('AppContexts:[ \t]*(\d+)', out, re.MULTILINE)
+        if m:
+            self.appContexts = m.group(1)
+        m = re.search('ViewRootImpl:[ \t]*(\d+)', out, re.MULTILINE)
+        if m:
+            self.viewRootImpl = m.group(1)
+
         m = re.search('TOTAL[ \t]*(\d+)', out, re.MULTILINE)
         if m:
             self.total = m.group(1)

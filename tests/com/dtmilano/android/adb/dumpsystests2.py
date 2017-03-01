@@ -3,7 +3,7 @@ import unittest
 from com.dtmilano.android.adb import adbclient
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-SERIALNO = '192.168.2.158:5555'
+SERIALNO = '.*'
 
 class DumpsysTests(unittest.TestCase):
     @classmethod
@@ -13,6 +13,12 @@ class DumpsysTests(unittest.TestCase):
     def test_meminfo(self):
         dumpsys = Dumpsys(self.device, 'meminfo', 'com.android.systemui')
         self.assertGreater(dumpsys.total, 0)
+        self.assertGreater(dumpsys.nativeHeap, 0)
+        self.assertGreater(dumpsys.dalvikHeap, 0)
+        self.assertGreaterEqual(dumpsys.views, 0)
+        self.assertGreaterEqual(dumpsys.activities, 0)
+        self.assertGreaterEqual(dumpsys.appContexts, 0)
+        self.assertGreaterEqual(dumpsys.viewRootImpl, 0)
 
 
 if __name__ == '__main__':

@@ -16,6 +16,7 @@ src/com/dtmilano/android/window.py
 src/com/dtmilano/android/adb/__init__.py
 src/com/dtmilano/android/adb/adbclient.py
 src/com/dtmilano/android/adb/androidkeymap.py
+src/com/dtmilano/android/adb/dumpsys.py
 src/com/dtmilano/android/robotframework/__init__.py
 src/com/dtmilano/android/robotframework/viewclientwrapper.py
 src/com/dtmilano/android/uiautomator/__init__.py
