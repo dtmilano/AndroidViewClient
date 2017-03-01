@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import re
 
-__version__ = '12.6.1'
+__version__ = '12.6.2'
 
 
 class Dumpsys:
@@ -41,25 +41,25 @@ class Dumpsys:
     def parseMeminfo(self, out):
         m = re.search('Native Heap[ \t]*(\d+)', out, re.MULTILINE)
         if m:
-            self.nativeHeap = m.group(1)
+            self.nativeHeap = int(m.group(1))
         m = re.search('Dalvik Heap[ \t]*(\d+)', out, re.MULTILINE)
         if m:
-            self.dalvikHeap = m.group(1)
+            self.dalvikHeap = int(m.group(1))
         m = re.search('Views:[ \t]*(\d+)', out, re.MULTILINE)
         if m:
-            self.views = m.group(1)
+            self.views = int(m.group(1))
         m = re.search('Activities:[ \t]*(\d+)', out, re.MULTILINE)
         if m:
-            self.activities = m.group(1)
+            self.activities = int(m.group(1))
         m = re.search('AppContexts:[ \t]*(\d+)', out, re.MULTILINE)
         if m:
-            self.appContexts = m.group(1)
+            self.appContexts = int(m.group(1))
         m = re.search('ViewRootImpl:[ \t]*(\d+)', out, re.MULTILINE)
         if m:
-            self.viewRootImpl = m.group(1)
+            self.viewRootImpl = int(m.group(1))
 
         m = re.search('TOTAL[ \t]*(\d+)', out, re.MULTILINE)
         if m:
-            self.total = m.group(1)
+            self.total = int(m.group(1))
         else:
             raise RuntimeError('Cannot find TOTAL in "' + out + '"')
