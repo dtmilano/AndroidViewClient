@@ -130,7 +130,11 @@ GONE = 0x8
 RegexType = type(re.compile(''))
 IP_RE = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
 ID_RE = re.compile('id/([^/]*)(/(\d+))?')
-
+IP_DOMAIN_NAME_PORT_REGEX = r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' \
+                            r'localhost|' \
+                            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' \
+                            r'(?::\d+)?' \
+                            r'(?:/?|[/?]\S+)$'
 
 class ViewNotFoundException(Exception):
     '''
@@ -2590,7 +2594,8 @@ class ViewClient:
             if DEBUG_DEVICE: print >>sys.stderr, "ViewClient: adding default port to serialno", serialno, ADB_DEFAULT_PORT
             return serialno + ':%d' % ADB_DEFAULT_PORT
 
-        ipPortRE = re.compile('^\d+\.\d+.\d+.\d+:\d+$')
+        ipPortRE = re.compile(IP_DOMAIN_NAME_PORT_REGEX, re.IGNORECASE)
+
         if ipPortRE.match(serialno):
             # nothing to map
             return serialno
@@ -2714,7 +2719,10 @@ class ViewClient:
         if device.serialno:
             # If we know the serialno because it was set by AdbClient, use it
             serialno = device.serialno
-        if re.search("[.*()+]", serialno) and not re.search("(\d{1,3}\.){3}\d{1,3}", serialno):
+
+        ipPortRE = re.compile(IP_DOMAIN_NAME_PORT_REGEX, re.IGNORECASE)
+
+        if re.search("[.*()+]", serialno) and not ipPortRE.match(serialno):
             # if a regex was used we have to determine the serialno used
             serialno = ViewClient.__obtainDeviceSerialNumber(device)
         if verbose:
