@@ -16,11 +16,12 @@ limitations under the License.
 
 @author: Diego Torres Milano
 '''
+import subprocess
 import threading
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.0.1'
+__version__ = '13.0.2'
 
 import sys
 import warnings
@@ -1014,6 +1015,14 @@ class AdbClient:
                             if imagePixels[x, y] == croppedPixels[x, y]:
                                 return True
 
+
+    @staticmethod
+    def compare(image1, image2, imageResult):
+        COMPARE = '/usr/bin/compare'
+        if os.path.isfile(COMPARE) and os.access(COMPARE, os.X_OK):
+            subprocess.check_call([COMPARE, image1, image2, imageResult])
+        else:
+            raise RuntimeError("This method requires ImageMagick's compare to be installed.")
 
     def isKeyboardShown(self):
         '''
