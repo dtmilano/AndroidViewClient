@@ -207,7 +207,8 @@ class AdbClient:
         return self.timerId
 
     def cancelTimer(self, timerId):
-        print >> sys.stderr, "Canceling timer with ID=%s" % timerId
+        if DEBUG:
+            print >> sys.stderr, "Canceling timer with ID=%s" % timerId
         if timerId not in self.timers:
             print >> sys.stderr, "timers does not contain a timer with ID=%s" % timerId
             print >> sys.stderr, "available timers:"
