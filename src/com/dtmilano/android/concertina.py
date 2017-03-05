@@ -24,7 +24,7 @@ import subprocess
 import sys
 
 __author__ = 'diego'
-__version__ = '12.6.2'
+__version__ = '13.0.0'
 
 DEBUG = True
 

@@ -19,7 +19,7 @@
     @author: Ahmed Kasem
     '''
 
-__version__ = '12.6.2'
+__version__ = '13.0.0'
 
 import Tkinter
 import ttk
