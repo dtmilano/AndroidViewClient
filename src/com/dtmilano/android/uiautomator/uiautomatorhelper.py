@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '12.6.2'
+__version__ = '12.6.3'
 
 import json
 import os
@@ -361,7 +361,7 @@ On OSX install
                 return r
         if DEBUG:
             print >> sys.stderr, "RESPONSE: ", response
-            print >> sus.stderr, "r=", r
+            print >> sys.stderr, "r=", r
         raise RuntimeError("Error: " + response)
 
 
