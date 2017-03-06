@@ -21,7 +21,7 @@ import threading
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.0.2'
+__version__ = '13.0.3'
 
 import sys
 import warnings
@@ -1020,7 +1020,11 @@ class AdbClient:
     def compare(image1, image2, imageResult):
         COMPARE = '/usr/bin/compare'
         if os.path.isfile(COMPARE) and os.access(COMPARE, os.X_OK):
-            subprocess.check_call([COMPARE, image1, image2, imageResult])
+            result = subprocess.call([COMPARE, image1, image2, imageResult])
+            if result != 2:
+                return result == 0
+            else:
+                raise RuntimeError("ERROR running ImageMaigck's compare")
         else:
             raise RuntimeError("This method requires ImageMagick's compare to be installed.")
 
