@@ -18,10 +18,17 @@ limitations under the License.
 '''
 import re
 
-__version__ = '13.0.3'
+__version__ = '13.0.4'
 
 
 class Dumpsys:
+    MEMINFO = 'meminfo'
+
+    ACTIVITIES = 'activities'
+    TOTAL = 'total'
+    VIEW_ROOT_IMPL = 'viewRootImpl'
+    VIEWS = 'views'
+
     def __init__(self, adbclient, subcommand, args=None):
         self.nativeHeap = -1
         self.dalvikHeap = -1
@@ -32,9 +39,23 @@ class Dumpsys:
         self.viewRootImpl = -1
         self.parse(subcommand, adbclient.shell('dumpsys ' + subcommand + ((' ' + args) if args else '')))
 
+    @staticmethod
+    def listSubCommands(adbclient):
+        return Dumpsys(adbclient, '-l')
+
+    @staticmethod
+    def meminfo(adbclient, args=None):
+        return Dumpsys(adbclient, Dumpsys.MEMINFO, args)
+
+    def get(self, name):
+        return getattr(self, name)
+
     def parse(self, subcommand, out):
-        if subcommand == 'meminfo':
+        if subcommand == Dumpsys.MEMINFO:
             self.parseMeminfo(out)
+        elif '-l':
+            # list dumpsys subcommands
+            return out
         else:
             pass
 
