@@ -18,6 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 
 """
+import sys
 import types
 
 import matplotlib.pyplot as plt
@@ -28,6 +29,8 @@ from mpl_toolkits.axes_grid1 import host_subplot
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
 __version__ = '13.1.1'
+
+DEBUG = False
 
 NumberTypes = (types.IntType, types.LongType, types.FloatType)
 
@@ -46,9 +49,9 @@ class Plot:
         if isinstance(value, NumberTypes):
             self.va.append(value)
         elif isinstance(value, Dumpsys):
-            dumpsys = value
             if not self.ava:
                 self.__initAva()
+            dumpsys = value
             self.ava[Dumpsys.TOTAL].append(dumpsys.get(Dumpsys.TOTAL))
             self.ava[Dumpsys.ACTIVITIES].append(dumpsys.get(Dumpsys.ACTIVITIES))
             self.ava[Dumpsys.VIEWS].append(dumpsys.get(Dumpsys.VIEWS))
@@ -67,7 +70,9 @@ class Plot:
             axis = 1
             for k in self.ava.keys():
                 if k == Dumpsys.TOTAL:
-                    host.plot(self.na, self.ava[k], label=k)
+                    host.plot(self.na, self.ava[k], label=k, linewidth=2)
+                    if DEBUG:
+                        print >> sys.stderr, "plotting", k, ":", self.ava[k]
                     host.set_xlabel('N')
                     host.set_ylabel(k)
                     host.set_xlim(np.amin(self.na), np.amax(self.na))
@@ -81,7 +86,9 @@ class Plot:
                                                        axes=par,
                                                        offset=(offset, 0))
                     par.axis["right"].toggle(all=True)
-                    par.plot(self.na, self.ava[k], label=k)
+                    par.plot(self.na, self.ava[k], label=k, linewidth=2)
+                    if DEBUG:
+                        print >> sys.stderr, "plotting", k, ":", self.ava[k]
                     par.set_ylabel(k)
                     par.set_xlim(np.amin(self.na), np.amax(self.na))
                     par.set_ylim(np.amin(self.ava[k]), np.amax(self.ava[k]))
