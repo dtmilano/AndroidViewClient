@@ -11,6 +11,7 @@ src/com/dtmilano/android/common.py
 src/com/dtmilano/android/concertina.py
 src/com/dtmilano/android/controlpanel.py
 src/com/dtmilano/android/culebron.py
+src/com/dtmilano/android/plot.py
 src/com/dtmilano/android/viewclient.py
 src/com/dtmilano/android/window.py
 src/com/dtmilano/android/adb/__init__.py
