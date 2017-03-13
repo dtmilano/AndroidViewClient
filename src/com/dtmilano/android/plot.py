@@ -27,7 +27,7 @@ from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.1.0'
+__version__ = '13.1.1'
 
 NumberTypes = (types.IntType, types.LongType, types.FloatType)
 
