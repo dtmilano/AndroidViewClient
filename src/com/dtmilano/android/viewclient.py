@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '13.1.1'
+__version__ = '13.1.2'
 
 import sys
 import warnings
@@ -4471,6 +4471,30 @@ class CulebraTestCase(unittest.TestCase):
 
     def setUp(self):
         __devices = None
+
+        # Handle the special case for utrunner.py (Pycharm test runner)
+        progname = os.path.basename(sys.argv[0])
+        if progname == 'utrunner.py':
+            testname = sys.argv[1]
+            # a string containing the args
+            testargs = sys.argv[2]
+            # used by utrunner.py (usually `true`)
+            otherarg = sys.argv[3]
+            argslist = testargs.split()
+            i = 0
+            while i < len(argslist):
+                a = argslist[i]
+                if a in ['-v', '--verbose']:
+                    # make CulebraTestCase.verbose the same as unittest verbose
+                    CulebraTestCase.verbose = True
+                elif a in ['-s', '--serialno']:
+                    if len(argslist) > (i + 1):
+                        CulebraTestCase.serialno = argslist[i + 1]
+                        i += 1
+                    else:
+                        raise RuntimeError('serial number missing')
+                i += 1
+
         if self.serialno:
             # serialno can be 1 serialno, multiple serialnos, 'all' or 'default'
             if self.serialno.lower() == 'all':
