@@ -26,7 +26,8 @@ class PlotTests(unittest.TestCase):
             time.sleep(1)
         self.plot.plot()
 
-    def test_plot_dumpsys_meminfo_culebratester(self):
+    def test_plot_dumpsys_meminfo_sampleapplication(self):
+        self.device.shell("am force-stop com.dtmilano.android.sampleapplication")
         for n in range(10):
             self.device.startActivity("com.dtmilano.android.sampleapplication/.MainActivity")
             time.sleep(2)
@@ -38,7 +39,6 @@ class PlotTests(unittest.TestCase):
             self.device.press('HOME')
             time.sleep(0.5)
         self.plot.plot()
-
 
 
 if __name__ == '__main__':

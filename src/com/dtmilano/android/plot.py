@@ -28,9 +28,9 @@ from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.1.2'
+__version__ = '13.1.3'
 
-DEBUG = False
+DEBUG = True
 
 NumberTypes = (types.IntType, types.LongType, types.FloatType)
 
@@ -55,52 +55,94 @@ class Plot:
             self.ava[Dumpsys.TOTAL].append(dumpsys.get(Dumpsys.TOTAL))
             self.ava[Dumpsys.ACTIVITIES].append(dumpsys.get(Dumpsys.ACTIVITIES))
             self.ava[Dumpsys.VIEWS].append(dumpsys.get(Dumpsys.VIEWS))
-            self.ava[Dumpsys.VIEW_ROOT_IMPL].append(dumpsys.get(Dumpsys.VIEW_ROOT_IMPL))
+            # self.ava[Dumpsys.VIEW_ROOT_IMPL].append(dumpsys.get(Dumpsys.VIEW_ROOT_IMPL))
 
     def __initAva(self):
         self.ava[Dumpsys.TOTAL] = []
         self.ava[Dumpsys.ACTIVITIES] = []
         self.ava[Dumpsys.VIEWS] = []
-        self.ava[Dumpsys.VIEW_ROOT_IMPL] = []
+        # self.ava[Dumpsys.VIEW_ROOT_IMPL] = []
 
-    def plot(self):
+    def plot(self, filename=None):
         if self.ava:
+            if DEBUG:
+                print >> sys.stderr, "plot:"
+                for k in self.ava.keys():
+                    print >> sys.stderr, "   ", k, ":", self.ava[k]
+
             host = host_subplot(111, axes_class=AA.Axes)
             plt.subplots_adjust(right=0.75)
+            par = {}
+            for k in self.ava.keys():
+                if k != Dumpsys.TOTAL:
+                    par[k] = host.twinx()
+
             axis = 1
             for k in self.ava.keys():
-                if k == Dumpsys.TOTAL:
-                    host.plot(self.na, self.ava[k], label=k, linewidth=2)
-                    if DEBUG:
-                        print >> sys.stderr, "plotting", k, ":", self.ava[k]
-                    host.set_xlabel('N')
-                    host.set_ylabel(k)
-                    host.set_xlim(np.amin(self.na), np.amax(self.na))
-                    host.set_ylim(np.amin(self.ava[k]), np.amax(self.ava[k]))
-                else:
-                    par = host.twinx()
+                if k != Dumpsys.TOTAL and k != Dumpsys.ACTIVITIES:
                     offset = axis * 60
                     axis += 1
-                    new_fixed_axis = par.get_grid_helper().new_fixed_axis
-                    par.axis["right"] = new_fixed_axis(loc="right",
-                                                       axes=par,
-                                                       offset=(offset, 0))
-                    par.axis["right"].toggle(all=True)
-                    par.plot(self.na, self.ava[k], label=k, linewidth=2)
+                    new_fixed_axis = par[k].get_grid_helper().new_fixed_axis
+                    par[k].axis["right"] = new_fixed_axis(loc="right",
+                                                          axes=par[k],
+                                                          offset=(offset, 0))
+                    par[k].axis["right"].toggle(all=True)
+
+            if DEBUG:
+                print >> sys.stderr, "setting host x lim ", (np.amin(self.na), np.amax(self.na))
+            minx = np.amin(self.na)
+            maxx = np.amax(self.na)
+            divx = abs(maxx - minx) / (len(self.na) * 1.0)
+            host.set_xlim(minx - divx, maxx + divx)
+            miny = np.amin(self.ava[Dumpsys.TOTAL])
+            maxy = np.amax(self.ava[Dumpsys.TOTAL])
+            divy = abs(maxy - miny) / (len(self.ava[Dumpsys.TOTAL]) * 1.0)
+            if DEBUG:
+                print >> sys.stderr, "setting host y lim ", (miny - divy, maxy + divy)
+            host.set_ylim(miny - divy, maxy + divy)
+            host.set_xlabel('N')
+            host.set_ylabel(Dumpsys.TOTAL)
+
+            for k in self.ava.keys():
+                if k != Dumpsys.TOTAL:
+                    par[k].set_ylabel(k)
+
+            plots = {}
+            if DEBUG:
+                print >> sys.stderr, "    host plot", self.na, ":", self.ava[Dumpsys.TOTAL]
+            plots[Dumpsys.TOTAL], = host.plot(self.na, self.ava[Dumpsys.TOTAL], label=Dumpsys.TOTAL, linewidth=2)
+            for k in self.ava.keys():
+                if k != Dumpsys.TOTAL:
                     if DEBUG:
-                        print >> sys.stderr, "plotting", k, ":", self.ava[k]
-                    par.set_ylabel(k)
-                    par.set_xlim(np.amin(self.na), np.amax(self.na))
-                    par.set_ylim(np.amin(self.ava[k]), np.amax(self.ava[k]))
+                        print >> sys.stderr, "   ", k, " plot", self.na, ":", self.ava[k]
+                    plots[k], = par[k].plot(self.na, self.ava[k], label=k, linewidth=2)
+
+            for k in self.ava.keys():
+                if k != Dumpsys.TOTAL:
+                    miny = np.amin(self.ava[k])
+                    maxy = np.amax(self.ava[k])
+                    divy = abs(maxy - miny) / (len(self.ava[k]) * 1.0)
+                    if DEBUG:
+                        print >> sys.stderr, "setting", k, "y lim ", (miny - divy, maxy + divy)
+                    par[k].set_ylim(miny - divy, maxy + divy)
+
             host.legend()
+
+            host.axis["left"].label.set_color(plots[Dumpsys.TOTAL].get_color())
+            for k in self.ava.keys():
+                if k != Dumpsys.TOTAL:
+                    par[k].axis["right"].label.set_color(plots[k].get_color())
+
         elif self.va:
             plt.xlabel('N')
             plt.ylabel('V')
             plt.plot(self.na, self.va, label="A")
         else:
             raise RuntimeError("No values to plot")
-        plt.title('About as simple as it gets, folks')
-        plt.grid(True)
+        # plt.title('About as simple as it gets, folks')
+        # plt.grid(True)
         plt.draw()
-        # plt.savefig("plot.png")
-        plt.show()
+        if filename:
+            plt.savefig(filename)
+        else:
+            plt.show()
