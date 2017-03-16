@@ -26,12 +26,17 @@ class PlotTests(unittest.TestCase):
             time.sleep(1)
         self.plot.plot()
 
-    def test_plot_dumpsys_meminfo_sampleapplication(self):
-        self.device.shell("am force-stop com.dtmilano.android.sampleapplication")
-        for n in range(10):
-            self.device.startActivity("com.dtmilano.android.sampleapplication/.MainActivity")
+    def __plot_dumpsys_meminfo(self, pkg, activity, method=None):
+        self.device.shell("am force-stop %s" % pkg)
+        for n in range(20):
+            if n % 5 == 0:
+                self.device.shell(
+                    "run-as %s pgrep -L 10 %s" % (pkg, pkg))
+            self.device.startActivity("%s/%s" % (pkg, activity))
             time.sleep(2)
-            self.plot.append(Dumpsys(self.device, Dumpsys.MEMINFO, "com.dtmilano.android.sampleapplication"))
+            if method:
+                method()
+            self.plot.append(Dumpsys(self.device, Dumpsys.MEMINFO, pkg))
             self.device.press('BACK')
             time.sleep(0.5)
             self.device.press('BACK')
@@ -40,6 +45,14 @@ class PlotTests(unittest.TestCase):
             time.sleep(0.5)
         self.plot.plot()
 
+    def test_plot_dumpsys_meminfo_sampleapplication_mainactivity(self):
+        self.__plot_dumpsys_meminfo("com.dtmilano.android.sampleapplication", ".MainActivity")
+
+    def test_plot_dumpsys_meminfo_sampleapplication_leakingactivity(self):
+        def click_button():
+            # we have to press the button to start the AsyncTask
+            self.device.press("ENTER")
+        self.__plot_dumpsys_meminfo("com.dtmilano.android.sampleapplication", ".LeakingActivity", click_button)
 
 if __name__ == '__main__':
     unittest.main()

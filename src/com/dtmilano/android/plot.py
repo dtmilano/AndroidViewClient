@@ -20,6 +20,7 @@ limitations under the License.
 """
 import sys
 import types
+from math import ceil
 
 import matplotlib.pyplot as plt
 import mpl_toolkits.axisartist as AA
@@ -96,7 +97,7 @@ class Plot:
             host.set_xlim(minx - divx, maxx + divx)
             miny = np.amin(self.ava[Dumpsys.TOTAL])
             maxy = np.amax(self.ava[Dumpsys.TOTAL])
-            divy = abs(maxy - miny) / (len(self.ava[Dumpsys.TOTAL]) * 1.0)
+            divy = ceil(abs(maxy - miny) / (len(self.ava[Dumpsys.TOTAL]) * 1.0))
             if DEBUG:
                 print >> sys.stderr, "setting host y lim ", (miny - divy, maxy + divy)
             host.set_ylim(miny - divy, maxy + divy)
@@ -121,17 +122,17 @@ class Plot:
                 if k != Dumpsys.TOTAL:
                     miny = np.amin(self.ava[k])
                     maxy = np.amax(self.ava[k])
-                    divy = abs(maxy - miny) / (len(self.ava[k]) * 1.0)
+                    divy = ceil(abs(maxy - miny) / (len(self.ava[k]) * 1.0))
                     if DEBUG:
                         print >> sys.stderr, "setting", k, "y lim ", (miny - divy, maxy + divy)
                     par[k].set_ylim(miny - divy, maxy + divy)
 
             host.legend()
 
-            host.axis["left"].label.set_color(plots[Dumpsys.TOTAL].get_color())
-            for k in self.ava.keys():
-                if k != Dumpsys.TOTAL:
-                    par[k].axis["right"].label.set_color(plots[k].get_color())
+            # host.axis["left"].label.set_color(plots[Dumpsys.TOTAL].get_color())
+            # for k in self.ava.keys():
+            #     if k != Dumpsys.TOTAL:
+            #         par[k].axis["right"].label.set_color(plots[k].get_color())
 
         elif self.va:
             plt.xlabel('N')
@@ -139,8 +140,8 @@ class Plot:
             plt.plot(self.na, self.va, label="A")
         else:
             raise RuntimeError("No values to plot")
-        # plt.title('About as simple as it gets, folks')
-        # plt.grid(True)
+        plt.title('Dumpsys')
+        plt.grid(True)
         plt.draw()
         if filename:
             plt.savefig(filename)

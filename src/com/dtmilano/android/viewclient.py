@@ -4477,9 +4477,9 @@ class CulebraTestCase(unittest.TestCase):
         if progname == 'utrunner.py':
             testname = sys.argv[1]
             # a string containing the args
-            testargs = sys.argv[2]
-            # used by utrunner.py (usually `true`)
-            otherarg = sys.argv[3]
+            testargs = sys.argv[2] if len(sys.argv) >= 3 else ""
+            # used by utrunner.py (usually `true`) but depends on the number of args
+            otherarg = sys.argv[3] if len(sys.argv) >= 4 else None
             argslist = testargs.split()
             i = 0
             while i < len(argslist):
