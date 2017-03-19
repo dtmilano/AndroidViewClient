@@ -48,11 +48,25 @@ class PlotTests(unittest.TestCase):
     def test_plot_dumpsys_meminfo_sampleapplication_mainactivity(self):
         self.__plot_dumpsys_meminfo("com.dtmilano.android.sampleapplication", ".MainActivity")
 
+    def test_plot_dumpsys_gfxinfo_sampleapplication(self):
+        self.__plot_dumpsys_gfxinfo("com.dtmilano.android.sampleapplication")
+
+    def test_plot_dumpsys_gfxinfo_systemui(self):
+        self.__plot_dumpsys_gfxinfo("com.android.systemui")
+
+    def test_plot_dumpsys_gfxinfo_perftesting(self):
+        self.__plot_dumpsys_gfxinfo("com.google.android.perftesting")
+
     def test_plot_dumpsys_meminfo_sampleapplication_leakingactivity(self):
         def click_button():
             # we have to press the button to start the AsyncTask
             self.device.press("ENTER")
         self.__plot_dumpsys_meminfo("com.dtmilano.android.sampleapplication", ".LeakingActivity", click_button)
+
+    def __plot_dumpsys_gfxinfo(self, pkg):
+        self.plot.append(Dumpsys(self.device, Dumpsys.GFXINFO, pkg, Dumpsys.FRAMESTATS))
+        self.plot.plot(_type=Dumpsys.FRAMESTATS)
+
 
 if __name__ == '__main__':
     unittest.main()

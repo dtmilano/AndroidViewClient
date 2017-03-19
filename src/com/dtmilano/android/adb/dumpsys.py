@@ -22,6 +22,8 @@ __version__ = '13.1.3'
 
 
 class Dumpsys:
+    FRAMESTATS = 'framestats'
+    GFXINFO = 'gfxinfo'
     MEMINFO = 'meminfo'
 
     ACTIVITIES = 'activities'
@@ -29,7 +31,7 @@ class Dumpsys:
     VIEW_ROOT_IMPL = 'viewRootImpl'
     VIEWS = 'views'
 
-    def __init__(self, adbclient, subcommand, args=None):
+    def __init__(self, adbclient, subcommand, *args):
         self.nativeHeap = -1
         self.dalvikHeap = -1
         self.total = 0
@@ -37,7 +39,14 @@ class Dumpsys:
         self.activities = -1
         self.appContexts = -1
         self.viewRootImpl = -1
-        self.parse(subcommand, adbclient.shell('dumpsys ' + subcommand + ((' ' + args) if args else '')))
+        self.gfxProfileData = []
+        self.framestats = []
+        if args:
+            args_str = ' '.join(args)
+        else:
+            args_str = ''
+        cmd = 'dumpsys ' + subcommand + (' ' + args_str if args_str else '')
+        self.parse(adbclient.shell(cmd), subcommand, *args)
 
     @staticmethod
     def listSubCommands(adbclient):
@@ -50,9 +59,14 @@ class Dumpsys:
     def get(self, name):
         return getattr(self, name)
 
-    def parse(self, subcommand, out):
+    def parse(self, out, subcommand, *args):
         if subcommand == Dumpsys.MEMINFO:
             self.parseMeminfo(out)
+        elif subcommand == Dumpsys.GFXINFO:
+            if Dumpsys.FRAMESTATS in args:
+                self.parseGfxinfoFramestats(out)
+            else:
+                self.parseGfxinfo(out)
         elif '-l':
             # list dumpsys subcommands
             return out
@@ -84,3 +98,30 @@ class Dumpsys:
             self.total = int(m.group(1))
         else:
             raise RuntimeError('Cannot find TOTAL in "' + out + '"')
+
+    def parseGfxinfo(self, out):
+        pass
+
+    def parseGfxinfoFramestats(self, out):
+        pd = '---PROFILEDATA---'
+        m = re.search(r'%s.*?%s' % (pd, pd), out, re.DOTALL)
+        if m:
+            pdc = 0
+            for d in m.group(0).splitlines():
+                pda = d.split(',')
+                if pda[0] == pd:
+                    continue
+                if pda[0] == 'Flags':
+                    if pda[1] != 'IntendedVsync' and pda[13] != 'FrameCompleted':
+                        raise RuntimeError('Unsupported gfxinfo version')
+                    continue
+                if pda[0] == '0':
+                    # Only keep lines with Flags=0
+                    self.gfxProfileData.append(pda[:-1])
+                    self.framestats.append(int(pda[13]) - int(pda[1]))
+        else:
+            raise RuntimeError('No profile data found')
+
+    @staticmethod
+    def gfxinfo(adbclient, *args):
+        return Dumpsys(adbclient, Dumpsys.GFXINFO, *args)

@@ -17,7 +17,8 @@ class DumpsysTests(unittest.TestCase):
 
     def setUp(self):
         super(DumpsysTests, self).setUp()
-        self.dumpsys = Dumpsys.meminfo(self.device, SAMPLE_PROCESS_NAME)
+        self.dumpsysMeminfo = Dumpsys.meminfo(self.device, SAMPLE_PROCESS_NAME)
+        self.dumpsysGfxinfo = Dumpsys.gfxinfo(self.device, SAMPLE_PROCESS_NAME, Dumpsys.FRAMESTATS)
 
     def __check_meminfo_values(self, dumpsys):
         self.assertGreater(dumpsys.total, 0)
@@ -29,19 +30,25 @@ class DumpsysTests(unittest.TestCase):
         self.assertGreaterEqual(dumpsys.viewRootImpl, 0)
 
     def test_meminfo_1(self):
-        self.__check_meminfo_values(self.dumpsys)
+        self.__check_meminfo_values(self.dumpsysMeminfo)
 
     def test_meminfo_2(self):
-        self.__check_meminfo_values(self.dumpsys)
+        self.__check_meminfo_values(self.dumpsysMeminfo)
 
     def test_listSubCommands(self):
         self.assertIsNotNone(Dumpsys.listSubCommands(self.device))
 
     def test_get_total(self):
-        self.assertGreater(self.dumpsys.get(Dumpsys.TOTAL), 0)
+        self.assertGreater(self.dumpsysMeminfo.get(Dumpsys.TOTAL), 0)
 
     def test_get_activities(self):
-        self.assertGreaterEqual(self.dumpsys.get(Dumpsys.ACTIVITIES), 0)
+        self.assertGreaterEqual(self.dumpsysMeminfo.get(Dumpsys.ACTIVITIES), 0)
+
+    def test_gfxinfo_1(self):
+        self.assertGreater(len(self.dumpsysGfxinfo.gfxProfileData), 0)
+
+    def test_gfxinfo_2(self):
+        self.assertGreater(len(self.dumpsysGfxinfo.gfxProfileDataDiff), 0)
 
 
 if __name__ == '__main__':
