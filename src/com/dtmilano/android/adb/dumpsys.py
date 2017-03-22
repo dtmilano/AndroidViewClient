@@ -18,7 +18,7 @@ limitations under the License.
 '''
 import re
 
-__version__ = '13.1.4'
+__version__ = '13.1.5'
 
 
 class Dumpsys:

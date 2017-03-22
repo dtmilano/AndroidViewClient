@@ -21,7 +21,7 @@ import threading
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.1.4'
+__version__ = '13.1.5'
 
 import sys
 import warnings
