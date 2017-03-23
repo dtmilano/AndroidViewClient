@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '13.1.5'
+__version__ = '13.1.6'
 
 import sys
 import warnings
@@ -3983,7 +3983,7 @@ You should force ViewServer back-end.''')
                         deviceart = 'nexus_7' # 2012
                     elif hardware == 'flo':
                         deviceart = 'nexus_7_2013'
-                    elif hardware in ['mt5861', 'mt5890']:
+                    elif hardware in ['mt5861', 'mt5890', 'maserati']:
                         deviceart = 'tv_1080p'
                     elif hardware == 'universal5410':
                         deviceart = 'samsung_s4'
@@ -4461,7 +4461,7 @@ class CulebraTestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        if cls.kwargs2['useuiautomatorhelper']:
+        if 'useuiautomatorhelper' in cls.kwargs2 and cls.kwargs2['useuiautomatorhelper']:
             for d in cls.globalDevices:
                 d.vc.uiAutomatorHelper.quit()
 
@@ -4529,7 +4529,7 @@ class CulebraTestCase(unittest.TestCase):
                 # A list containing only one device was specified
                 self.serialno = __devices[0]
             self.device, self.serialno = ViewClient.connectToDeviceOrExit(serialno=self.serialno, **self.kwargs1)
-            if self.options[CulebraOptions.START_ACTIVITY]:
+            if CulebraOptions.START_ACTIVITY in self.options and self.options[CulebraOptions.START_ACTIVITY]:
                 self.device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
             self.vc = ViewClient(self.device, self.serialno, **self.kwargs2)
             # Set the default device, to be consistent with multi-devices case
@@ -4541,7 +4541,7 @@ class CulebraTestCase(unittest.TestCase):
         pass
 
     def preconditions(self):
-        if self.options[CulebraOptions.ORIENTATION_LOCKED] is not None:
+        if CulebraOptions.ORIENTATION_LOCKED in self.options and self.options[CulebraOptions.ORIENTATION_LOCKED] is not None:
             # If orientation locked was set to a valid orientation value then use it to compare
             # against current orientation (when the test is run)
             return (self.device.display['orientation'] == self.options[CulebraOptions.ORIENTATION_LOCKED])
