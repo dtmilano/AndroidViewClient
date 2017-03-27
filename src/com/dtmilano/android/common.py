@@ -17,8 +17,11 @@ limitations under the License.
 
 @author: Diego Torres Milano
 '''
-import platform
+
+__version__ = '13.1.7'
+
 import os
+import platform
 
 
 def _nd(name):
@@ -68,6 +71,26 @@ def obtainVwVh(m):
     return (wvx1 - wvx, wvy1 - wvy)
 
 
+def which(program):
+    import os
+
+    def is_exe(_fpath):
+        return os.path.isfile(_fpath) and os.access(_fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
 def obtainAdbPath():
     '''
     Obtains the ADB path attempting know locations for different OSs
@@ -84,6 +107,10 @@ def obtainAdbPath():
         if envOSName.startswith('Windows'):
             adb = 'adb.exe'
             isWindows = True
+
+    exeFile = which(adb)
+    if exeFile:
+        return exeFile
 
     ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
     HOME = os.environ['HOME'] if os.environ.has_key('HOME') else ''
