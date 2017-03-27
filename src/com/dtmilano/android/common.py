@@ -71,21 +71,21 @@ def obtainVwVh(m):
     return (wvx1 - wvx, wvy1 - wvy)
 
 
-def which(program):
+def which(program, isWindows=False):
     import os
 
-    def is_exe(_fpath):
-        return os.path.isfile(_fpath) and os.access(_fpath, os.X_OK)
+    def is_exe(_fpath, _isWindows):
+        return os.path.isfile(_fpath) and os.access(_fpath, os.X_OK if not _isWindows else os.F_OK)
 
     fpath, fname = os.path.split(program)
     if fpath:
-        if is_exe(program):
+        if is_exe(program, isWindows):
             return program
     else:
         for path in os.environ["PATH"].split(os.pathsep):
             path = path.strip('"')
             exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
+            if is_exe(exe_file, isWindows):
                 return exe_file
 
     return None
@@ -108,7 +108,7 @@ def obtainAdbPath():
             adb = 'adb.exe'
             isWindows = True
 
-    exeFile = which(adb)
+    exeFile = which(adb, isWindows)
     if exeFile:
         return exeFile
 
