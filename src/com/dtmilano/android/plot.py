@@ -29,7 +29,7 @@ from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.2.1'
+__version__ = '13.2.2'
 
 DEBUG = True
 
@@ -163,13 +163,13 @@ class Plot:
             for v in range(int(ceil(ymax)) + 1):
                 x.append(1 / 60.0 * 10 ** 9)
                 y.append(v)
-            plt.plot(x, y, linewidth=2, color='r')
+            plt.plot(x, y, linewidth=2, color='c')
             x = []
             y = []
             for v in range(int(ceil(ymax)) + 1):
                 x.append(1 / 30.0 * 10 ** 9)
                 y.append(v)
-            plt.plot(x, y, linewidth=2, color='c')
+            plt.plot(x, y, linewidth=2, color='r')
             plt.xlabel('ms')
             plt.ylabel('Frames')
 
