@@ -29,7 +29,7 @@ from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.1.9'
+__version__ = '13.1.11'
 
 DEBUG = True
 
@@ -73,6 +73,11 @@ class Plot:
         self.aava[Dumpsys.FRAMESTATS] = []
 
     def plot(self, _type=Dumpsys.MEMINFO, filename=None):
+        title = "Dumpsys"
+        if _type == Dumpsys.FRAMESTATS:
+            subtitle = "gfxinfo " + Dumpsys.FRAMESTATS
+        else:
+            subtitle = _type
         if _type == Dumpsys.MEMINFO:
             if self.ava:
                 if DEBUG:
@@ -161,7 +166,7 @@ class Plot:
             plt.xlabel('ms')
             plt.ylabel('Frames')
 
-        plt.title('Dumpsys ' + _type)
+        plt.title(title + ' ' + subtitle)
         plt.grid(True)
         plt.draw()
         if filename:

@@ -19,7 +19,7 @@ limitations under the License.
 import re
 from _warnings import warn
 
-__version__ = '13.1.10'
+__version__ = '13.1.11'
 
 
 class Dumpsys:
