@@ -4494,6 +4494,9 @@ class CulebraTestCase(unittest.TestCase):
                     else:
                         raise RuntimeError('serial number missing')
                 i += 1
+            # remove the test runner arguments, otherwise they will be found by connectToDeviceOrExit()
+            sys.argv.remove(testname)
+            sys.argv.remove(testargs)
 
         if self.serialno:
             # serialno can be 1 serialno, multiple serialnos, 'all' or 'default'

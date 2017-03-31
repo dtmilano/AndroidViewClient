@@ -17,8 +17,9 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 import re
+from _warnings import warn
 
-__version__ = '13.1.9'
+__version__ = '13.1.10'
 
 
 class Dumpsys:
@@ -45,8 +46,11 @@ class Dumpsys:
             args_str = ' '.join(args)
         else:
             args_str = ''
-        cmd = 'dumpsys ' + subcommand + (' ' + args_str if args_str else '')
-        self.parse(adbclient.shell(cmd), subcommand, *args)
+        if adbclient:
+            cmd = 'dumpsys ' + subcommand + (' ' + args_str if args_str else '')
+            self.parse(adbclient.shell(cmd), subcommand, *args)
+        else:
+            warn('No adbclient specified')
 
     @staticmethod
     def listSubCommands(adbclient):
@@ -104,21 +108,25 @@ class Dumpsys:
 
     def parseGfxinfoFramestats(self, out):
         pd = '---PROFILEDATA---'
-        m = re.search(r'%s.*?%s' % (pd, pd), out, re.DOTALL)
-        if m:
-            pdc = 0
-            for d in m.group(0).splitlines():
-                pda = d.split(',')
-                if pda[0] == pd:
+        l = re.findall(r'%s.*?%s' % (pd, pd), out, re.DOTALL)
+        if l:
+            s = ''
+            for e in l:
+                if not e:
                     continue
-                if pda[0] == 'Flags':
-                    if pda[1] != 'IntendedVsync' and pda[13] != 'FrameCompleted':
-                        raise RuntimeError('Unsupported gfxinfo version')
-                    continue
-                if pda[0] == '0':
-                    # Only keep lines with Flags=0
-                    self.gfxProfileData.append(pda[:-1])
-                    self.framestats.append(int(pda[13]) - int(pda[1]))
+                sl = e.splitlines()
+                for s in sl:
+                    if s == pd:
+                        continue
+                    pda = s.split(',')
+                    if pda[0] == 'Flags':
+                        if pda[1] != 'IntendedVsync' and pda[13] != 'FrameCompleted':
+                            raise RuntimeError('Unsupported gfxinfo version')
+                        continue
+                    if pda[0] == '0':
+                        # Only keep lines with Flags=0
+                        self.gfxProfileData.append(pda[:-1])
+                        self.framestats.append(int(pda[13]) - int(pda[1]))
         else:
             raise RuntimeError('No profile data found')
 
