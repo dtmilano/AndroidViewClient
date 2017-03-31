@@ -62,6 +62,7 @@ class Plot:
             self.ava[Dumpsys.VIEWS].append(dumpsys.get(Dumpsys.VIEWS))
             # self.ava[Dumpsys.VIEW_ROOT_IMPL].append(dumpsys.get(Dumpsys.VIEW_ROOT_IMPL))
             self.aava[Dumpsys.FRAMESTATS].append(dumpsys.get(Dumpsys.FRAMESTATS))
+        return self
 
     def __initAva(self):
         self.ava[Dumpsys.TOTAL] = []
@@ -163,6 +164,12 @@ class Plot:
                 x.append(1 / 60.0 * 10 ** 9)
                 y.append(v)
             plt.plot(x, y, linewidth=2, color='r')
+            x = []
+            y = []
+            for v in range(int(ceil(ymax)) + 1):
+                x.append(1 / 30.0 * 10 ** 9)
+                y.append(v)
+            plt.plot(x, y, linewidth=2, color='c')
             plt.xlabel('ms')
             plt.ylabel('Frames')
 

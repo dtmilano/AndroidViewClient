@@ -1,7 +1,15 @@
 from __future__ import absolute_import
 
+import os
 import time
 import unittest
+
+import sys
+
+try:
+    sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
+except:
+    pass
 
 from com.dtmilano.android.adb import adbclient
 from com.dtmilano.android.adb.dumpsys import Dumpsys
@@ -64,8 +72,7 @@ class PlotTests(unittest.TestCase):
         self.__plot_dumpsys_meminfo("com.dtmilano.android.sampleapplication", ".LeakingActivity", click_button)
 
     def __plot_dumpsys_gfxinfo(self, pkg):
-        self.plot.append(Dumpsys(self.device, Dumpsys.GFXINFO, pkg, Dumpsys.FRAMESTATS))
-        self.plot.plot(_type=Dumpsys.FRAMESTATS)
+        self.plot.append(Dumpsys(self.device, Dumpsys.GFXINFO, pkg, Dumpsys.FRAMESTATS)).plot(_type=Dumpsys.FRAMESTATS)
 
 
 if __name__ == '__main__':
