@@ -19,13 +19,14 @@ limitations under the License.
 import re
 from _warnings import warn
 
-__version__ = '13.2.2'
+__version__ = '13.3.0'
 
 
 class Dumpsys:
     FRAMESTATS = 'framestats'
     GFXINFO = 'gfxinfo'
     MEMINFO = 'meminfo'
+    RESET = 'reset'
 
     ACTIVITIES = 'activities'
     TOTAL = 'total'
@@ -67,7 +68,10 @@ class Dumpsys:
         if subcommand == Dumpsys.MEMINFO:
             self.parseMeminfo(out)
         elif subcommand == Dumpsys.GFXINFO:
-            if Dumpsys.FRAMESTATS in args:
+            if Dumpsys.RESET in args:
+                # Actually, reset does not need to parse anything
+                pass
+            elif Dumpsys.FRAMESTATS in args:
                 self.parseGfxinfoFramestats(out)
             else:
                 self.parseGfxinfo(out)
@@ -133,3 +137,7 @@ class Dumpsys:
     @staticmethod
     def gfxinfo(adbclient, *args):
         return Dumpsys(adbclient, Dumpsys.GFXINFO, *args)
+
+    @staticmethod
+    def resetGfxinfo(adbclient, pkg):
+        return Dumpsys(adbclient, Dumpsys.GFXINFO, pkg, Dumpsys.RESET)
