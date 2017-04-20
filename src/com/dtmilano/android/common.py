@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '13.2.2'
+__version__ = '13.3.0'
 
 import os
 import platform
