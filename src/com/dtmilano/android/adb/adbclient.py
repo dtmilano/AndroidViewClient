@@ -21,7 +21,7 @@ import threading
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.2.2'
+__version__ = '13.3.0'
 
 import sys
 import warnings
@@ -342,7 +342,7 @@ class AdbClient:
         # version = self.socket.recv(8, socket.MSG_WAITALL)
         version = self.__readExactly(self.socket, 8)
 
-        VALID_ADB_VERSIONS = ["00040024", "00040023", "00040020", "0004001f"]
+        VALID_ADB_VERSIONS = ["00040027", "00040024", "00040023", "00040020", "0004001f"]
 
         if not (version in VALID_ADB_VERSIONS) and not ignoreversioncheck:
             raise RuntimeError(
