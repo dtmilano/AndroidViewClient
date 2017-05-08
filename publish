@@ -4,4 +4,4 @@ eval $(grep version setup.py | sed 's/,$//')
 tag="v$version"
 git tag "$tag"
 git push --tags
-python setup.py bdist_egg bdist_wheel --universal register upload
+python setup.py bdist_egg register upload
