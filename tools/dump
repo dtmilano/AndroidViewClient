@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '13.3.0'
+__version__ = '13.3.1'
 
 import ast
 import getopt
