@@ -68,8 +68,16 @@
   <h1 class="heading">ViewServer backend</h1>
     <p>If not running the ViewServer is started on the target device or 
     emulator and then the port mapping is created.</p>
+  <h1 class="heading">LocalViewServer backend</h1>
+    <p>ViewServer is started as an application services instead of as a 
+    system service.</p>
   <h1 class="heading">UiAutomator backend</h1>
     <p>No service is started.</p>
+  <h1 class="heading">null backend</h1>
+    <p>Allows only operations using PX or DIP as hierarchy is not dumped 
+    and thus Views not recognized.</p>
+  <h1 class="heading">UiAutomatorHelper backend</h1>
+    <p>Requires <b>Culebra Tester</b> installed on Android device.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -103,7 +111,10 @@
         <span class="summary-sig-arg">localport</span>=<span class="summary-sig-default">4939</span>,
         <span class="summary-sig-arg">remoteport</span>=<span class="summary-sig-default">4939</span>,
         <span class="summary-sig-arg">startviewserver</span>=<span class="summary-sig-default">True</span>,
-        <span class="summary-sig-arg">ignoreuiautomatorkilled</span>=<span class="summary-sig-default">False</span>)</span><br />
+        <span class="summary-sig-arg">ignoreuiautomatorkilled</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">compresseddump</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">useuiautomatorhelper</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">debug</span>=<span class="summary-sig-default"><code class="variable-group">{</code><code class="variable-group">}</code></span>)</span><br />
       Constructor</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__init__">source&nbsp;code</a></span>
@@ -174,7 +185,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#setViews" class="summary-sig-name">setViews</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">received</span>)</span><br />
+        <span class="summary-sig-arg">received</span>,
+        <span class="summary-sig-arg">windowId</span>=<span class="summary-sig-default">None</span>)</span><br />
       Sets <a 
       href="com.dtmilano.android.viewclient.ViewClient-class.html#views" 
       class="link">self.views</a> to the received value splitting it into 
@@ -235,11 +247,29 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#__parseTree" class="summary-sig-name" onclick="show_private();">__parseTree</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">receivedLines</span>)</span><br />
+        <span class="summary-sig-arg">receivedLines</span>,
+        <span class="summary-sig-arg">windowId</span>=<span class="summary-sig-default">None</span>)</span><br />
       Parses the View tree contained in <code 
       class="link">receivedLines</code>.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__parseTree">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__updateNavButtons"></a><span class="summary-sig-name">__updateNavButtons</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Updates the navigation buttons that might be on the device screen.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__updateNavButtons">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -290,8 +320,8 @@
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#traverse" class="summary-sig-name">traverse</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">root</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">ROOT</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">indent</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">transform</span>=<span class="summary-sig-default">&lt;unbound method View.__str__&gt;</span>,
-        <span class="summary-sig-arg">stream</span>=<span class="summary-sig-default">sys.stdout</span>)</span><br />
+        <span class="summary-sig-arg">transform</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">stream</span>=<span class="summary-sig-default">&lt;epydoc.docintrospecter._DevNull object&gt;</span>)</span><br />
       Traverses the <code>View</code> tree and prints its nodes.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverse">source&nbsp;code</a></span>
@@ -424,6 +454,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="__findViewsWithAttributeInTree"></a><span class="summary-sig-name">__findViewsWithAttributeInTree</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">val</span>,
+        <span class="summary-sig-arg">root</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__findViewsWithAttributeInTree">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="__findViewWithAttributeInTree"></a><span class="summary-sig-name">__findViewWithAttributeInTree</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">attr</span>,
         <span class="summary-sig-arg">val</span>,
@@ -489,6 +538,26 @@
       Finds the View with the specified attribute and value</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewWithAttribute">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#findViewsWithAttribute" class="summary-sig-name">findViewsWithAttribute</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">val</span>,
+        <span class="summary-sig-arg">root</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">ROOT</code><code class="variable-quote">'</code></span>)</span><br />
+      Finds the Views with the specified attribute and value.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewsWithAttribute">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -619,10 +688,195 @@
         <tr>
           <td><span class="summary-sig"><a name="findViewsContainingPoint"></a><span class="summary-sig-name">findViewsContainingPoint</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">(x, y)</span>,
-        <span class="summary-sig-arg">filter</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">_filter</span>=<span class="summary-sig-default">None</span>)</span><br />
       Finds the list of Views that contain the point (x, y).</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewsContainingPoint">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="findObject"></a><span class="summary-sig-name">findObject</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findObject">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#click" class="summary-sig-name">click</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">y</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">selector</span>=<span class="summary-sig-default">None</span>)</span><br />
+      An alias for touch.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.click">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="touch"></a><span class="summary-sig-name">touch</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">y</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">selector</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.touch">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="longTouch"></a><span class="summary-sig-name">longTouch</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">y</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">selector</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.longTouch">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="swipe"></a><span class="summary-sig-name">swipe</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">startX</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">startY</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">endX</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">endY</span>=<span class="summary-sig-default">-1</span>,
+        <span class="summary-sig-arg">steps</span>=<span class="summary-sig-default">400</span>,
+        <span class="summary-sig-arg">segments</span>=<span class="summary-sig-default"><code class="variable-group">[</code><code class="variable-group">]</code></span>,
+        <span class="summary-sig-arg">segmentSteps</span>=<span class="summary-sig-default">5</span>,
+        <span class="summary-sig-arg">start</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">end</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.swipe">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="pressBack"></a><span class="summary-sig-name">pressBack</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.pressBack">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="pressHome"></a><span class="summary-sig-name">pressHome</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.pressHome">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="pressRecentApps"></a><span class="summary-sig-name">pressRecentApps</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.pressRecentApps">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="pressKeyCode"></a><span class="summary-sig-name">pressKeyCode</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">keycode</span>,
+        <span class="summary-sig-arg">metaState</span>=<span class="summary-sig-default">0</span>)</span><br />
+      By default no meta state</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.pressKeyCode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setText"></a><span class="summary-sig-name">setText</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">v</span>,
+        <span class="summary-sig-arg">text</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.setText">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -721,7 +975,10 @@
         <tr>
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#writeImageToFile" class="summary-sig-name">writeImageToFile</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">filename</span>,
-        <span class="summary-sig-arg">format</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">PNG</code><code class="variable-quote">'</code></span>)</span><br />
+        <span class="summary-sig-arg">_format</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">PNG</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">deviceart</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">dropshadow</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">screenglare</span>=<span class="summary-sig-default">True</span>)</span><br />
       Write the View image to the specified filename in the specified 
       format.</td>
           <td align="right" valign="top">
@@ -739,12 +996,45 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#distance" class="summary-sig-name">distance</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">tree</span>)</span><br />
-      Calculates the distance between this tree and the tree passed as 
-      argument.</td>
+          <td><span class="summary-sig"><a name="pilNotInstalledWarning"></a><span class="summary-sig-name">pilNotInstalledWarning</span>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.distance">source&nbsp;code</a></span>
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.pilNotInstalledWarning">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="installPackage"></a><span class="summary-sig-name">installPackage</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">apk</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.installPackage">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#distanceTo" class="summary-sig-name">distanceTo</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">tree</span>)</span><br />
+      Calculates the distance between the current state and the tree passed
+      as argument.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.distanceTo">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -814,8 +1104,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__obtainAdbPath"></a><span class="summary-sig-name">__obtainAdbPath</span>()</span><br />
-      Obtains the ADB path attempting know locations for different OSs</td>
+          <td><span class="summary-sig"><a name="__obtainAdbPath"></a><span class="summary-sig-name">__obtainAdbPath</span>()</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__obtainAdbPath">source&nbsp;code</a></span>
             
@@ -882,9 +1171,10 @@
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#connectToDeviceOrExit" class="summary-sig-name">connectToDeviceOrExit</a>(<span class="summary-sig-arg">timeout</span>=<span class="summary-sig-default">60</span>,
         <span class="summary-sig-arg">verbose</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">ignoresecuredevice</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">ignoreversioncheck</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">serialno</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Connects to a device which serial number is obtained from the script 
-      arguments if available or using the default regex <code>.*</code>.</td>
+      Connects to a device which serial number is obtained from the script arguments if available
+or using the default regex C{.*}.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.connectToDeviceOrExit">source&nbsp;code</a></span>
             
@@ -902,7 +1192,8 @@
         <tr>
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdAndText" class="summary-sig-name">traverseShowClassIdAndText</a>(<span class="summary-sig-arg">view</span>,
         <span class="summary-sig-arg">extraInfo</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">noextrainfo</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">noExtraInfo</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">extraAction</span>=<span class="summary-sig-default">None</span>)</span><br />
       Shows the View class, id and text if available.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdAndText">source&nbsp;code</a></span>
@@ -937,7 +1228,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndContentDescription" class="summary-sig-name">traverseShowClassIdTextAndContentDescription</a>(<span class="summary-sig-arg">view</span>)</span><br />
-      Shows the View class, id, text if available and unique id.</td>
+      Shows the View class, id, text if available and content description.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndContentDescription">source&nbsp;code</a></span>
             
@@ -953,8 +1244,43 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndTag" class="summary-sig-name">traverseShowClassIdTextAndTag</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      Shows the View class, id, text if available and tag.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndTag">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextContentDescriptionAndScreenshot" class="summary-sig-name">traverseShowClassIdTextContentDescriptionAndScreenshot</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      Shows the View class, id, text if available and unique id and takes 
+      the screenshot.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextContentDescriptionAndScreenshot">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndCenter" class="summary-sig-name">traverseShowClassIdTextAndCenter</a>(<span class="summary-sig-arg">view</span>)</span><br />
-      Shows the View class, id and text if available.</td>
+      Shows the View class, id and text if available and center.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndCenter">source&nbsp;code</a></span>
             
@@ -987,9 +1313,44 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndBounds" class="summary-sig-name">traverseShowClassIdTextAndBounds</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      Shows the View class, id and text if available.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndBounds">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseTakeScreenshot" class="summary-sig-name">traverseTakeScreenshot</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      Don't show any any, just takes the screenshot.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseTakeScreenshot">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CIT" class="summary-sig-name">TRAVERSE_CIT</a>(<span class="summary-sig-arg">view</span>,
         <span class="summary-sig-arg">extraInfo</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">noextrainfo</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">noExtraInfo</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">extraAction</span>=<span class="summary-sig-default">None</span>)</span><br />
       An alias for <a 
       href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdAndText"
       class="link">traverseShowClassIdAndText(view)</a></td>
@@ -1046,6 +1407,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITG" class="summary-sig-name">TRAVERSE_CITG</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      An alias for <a 
+      href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndTag"
+      class="link">traverseShowClassIdTextAndTag(view)</a></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndTag">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITC" class="summary-sig-name">TRAVERSE_CITC</a>(<span class="summary-sig-arg">view</span>)</span><br />
       An alias for <a 
       href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndCenter"
@@ -1084,6 +1464,64 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITB" class="summary-sig-name">TRAVERSE_CITB</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      An alias for <a 
+      href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndBounds"
+      class="link">traverseShowClassIdTextAndBounds(view)</a></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndBounds">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITCDS" class="summary-sig-name">TRAVERSE_CITCDS</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      An alias for <a 
+      href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextContentDescriptionAndScreenshot"
+      
+      class="link">traverseShowClassIdTextContentDescriptionAndScreenshot(view)</a></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextContentDescriptionAndScreenshot">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_S" class="summary-sig-name">TRAVERSE_S</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      An alias for <a 
+      href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseTakeScreenshot"
+      class="link">traverseTakeScreenshot(view)</a></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseTakeScreenshot">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#sleep" class="summary-sig-name">sleep</a>(<span class="summary-sig-arg">secs</span>=<span class="summary-sig-default">1.0</span>)</span><br />
       Sleeps for the specified number of seconds.</td>
           <td align="right" valign="top">
@@ -1104,9 +1542,27 @@
           <td><span class="summary-sig"><a name="__traverse"></a><span class="summary-sig-name">__traverse</span>(<span class="summary-sig-arg">root</span>,
         <span class="summary-sig-arg">indent</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">transform</span>=<span class="summary-sig-default">&lt;unbound method View.__str__&gt;</span>,
-        <span class="summary-sig-arg">stream</span>=<span class="summary-sig-default">sys.stdout</span>)</span></td>
+        <span class="summary-sig-arg">stream</span>=<span class="summary-sig-default">&lt;epydoc.docintrospecter._DevNull object&gt;</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__traverse">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#writeViewImageToFileInDir" class="summary-sig-name">writeViewImageToFileInDir</a>(<span class="summary-sig-arg">view</span>)</span><br />
+      Write the View image to the directory specified in 
+      <code>ViewClient.imageDirectory</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.writeViewImageToFileInDir">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1124,6 +1580,24 @@
       Makes the tree pickleable.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__pickleable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="com.dtmilano.android.viewclient.ViewClient-class.html#distance" class="summary-sig-name">distance</a>(<span class="summary-sig-arg">tree1</span>,
+        <span class="summary-sig-arg">tree2</span>)</span><br />
+      Calculates the distance between the two trees.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.distance">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1173,7 +1647,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="excerpt"></a><span class="summary-sig-name">excerpt</span>(<span class="summary-sig-arg">str</span>,
+          <td><span class="summary-sig"><a name="excerpt"></a><span class="summary-sig-name">excerpt</span>(<span class="summary-sig-arg">_str</span>,
         <span class="summary-sig-arg">execute</span>=<span class="summary-sig-default">False</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.excerpt">source&nbsp;code</a></span>
@@ -1182,6 +1656,32 @@
         </tr>
       </table>
       
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="imageDirectory"></a><span class="summary-name">imageDirectory</span> = <code title="None">None</code><br />
+      The directory used to store screenshot images
     </td>
   </tr>
 </table>
@@ -1207,7 +1707,7 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="device"></a><span class="summary-name">device</span><br />
-      The <code>MonkeyDevice</code> device instance
+      The <code>AdbClient</code> device instance
     </td>
   </tr>
 <tr>
@@ -1216,6 +1716,14 @@
     </td><td class="summary">
         <a name="serialno"></a><span class="summary-name">serialno</span><br />
       The serial number of the device
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="uiAutomatorHelper"></a><span class="summary-name">uiAutomatorHelper</span><br />
+      The UiAutomatorHelper
     </td>
   </tr>
 <tr>
@@ -1303,6 +1811,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="com.dtmilano.android.viewclient.ViewClient-class.html#uiDevice" class="summary-name">uiDevice</a><br />
+      The output of compressed dump is different than output of 
+      uncompressed one.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="com.dtmilano.android.viewclient.ViewClient-class.html#views" class="summary-name">views</a><br />
       The list of Views represented as <code>str</code> obtained after 
       splitting it into lines after being received from the server.
@@ -1343,7 +1860,10 @@
         <span class="sig-arg">localport</span>=<span class="sig-default">4939</span>,
         <span class="sig-arg">remoteport</span>=<span class="sig-default">4939</span>,
         <span class="sig-arg">startviewserver</span>=<span class="sig-default">True</span>,
-        <span class="sig-arg">ignoreuiautomatorkilled</span>=<span class="sig-default">False</span>)</span>
+        <span class="sig-arg">ignoreuiautomatorkilled</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">compresseddump</span>=<span class="sig-default">True</span>,
+        <span class="sig-arg">useuiautomatorhelper</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">debug</span>=<span class="sig-default"><code class="variable-group">{</code><code class="variable-group">}</code></span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -1355,7 +1875,7 @@
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>device</code></strong> (MonkeyDevice) - The device running the <code>View server</code> to which this 
+        <li><strong class="pname"><code>device</code></strong> (AdbClient) - The device running the <code>View server</code> to which this 
           client will connect</li>
         <li><strong class="pname"><code>serialno</code></strong> (str) - the serial number of the device or emulator to connect to</li>
         <li><strong class="pname"><code>adb</code></strong> (str) - the path of the <code>adb</code> executable or None and 
@@ -1370,6 +1890,9 @@
         <li><strong class="pname"><code>startviewserver</code></strong> (boolean) - Whether to start the <b>global</b> ViewServer</li>
         <li><strong class="pname"><code>ignoreuiautomatorkilled</code></strong> (boolean) - Ignores received <b>Killed</b> message from 
           <code>uiautomator</code></li>
+        <li><strong class="pname"><code>compresseddump</code></strong> (boolean) - turns --compressed flag for uiautomator dump on/off @:type 
+          useuiautomatorhelper: boolean @:param useuiautomatorhelper: use 
+          UiAutomatorHelper Android app as backend</li>
     </ul></dd>
   </dl>
 </td></tr></table>
@@ -1384,6 +1907,7 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">connectToDeviceOrExit</span>(<span class="sig-arg">timeout</span>=<span class="sig-default">60</span>,
         <span class="sig-arg">verbose</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">ignoresecuredevice</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">ignoreversioncheck</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">serialno</span>=<span class="sig-default">None</span>)</span>
     <br /><em class="fname">Static Method</em>
   </h3>
@@ -1392,23 +1916,35 @@
     </td>
   </tr></table>
   
-  <p>Connects to a device which serial number is obtained from the script 
-  arguments if available or using the default regex <code>.*</code>.</p>
-  <p>If the connection is not successful the script exits. <code 
-  class="link">MonkeyRunner.waitForConnection()</code> returns a <code 
-  class="link">MonkeyDevice</code> even if the connection failed. Then, to 
-  detect this situation, <code>device.wake()</code> is attempted and if it 
-  fails then it is assumed the previous connection failed.</p>
+  <pre class="literalblock">
+
+Connects to a device which serial number is obtained from the script arguments if available
+or using the default regex C{.*}.
+
+If the connection is not successful the script exits.
+
+History
+-------
+In MonkeyRunner times, this method was a way of overcoming one of its limitations.
+L{MonkeyRunner.waitForConnection()} returns a L{MonkeyDevice} even if the connection failed.
+Then, to detect this situation, C{device.wake()} is attempted and if it fails then it is
+assumed the previous connection failed.
+
+@type timeout: int
+@param timeout: timeout for the connection
+@type verbose: bool
+@param verbose: Verbose output
+@type ignoresecuredevice: bool
+@param ignoresecuredevice: Ignores the check for a secure device
+@type ignoreversioncheck: bool
+@param ignoreversioncheck: Ignores the check for a supported ADB version
+@type serialno: str
+@param serialno: The device or emulator serial number
+
+@return: the device and serialno used for the connection
+
+</pre>
   <dl class="fields">
-    <dt>Parameters:</dt>
-    <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>timeout</code></strong> (int) - timeout for the connection</li>
-        <li><strong class="pname"><code>verbose</code></strong> (bool) - Verbose output</li>
-        <li><strong class="pname"><code>ignoresecuredevice</code></strong> (bool) - Ignores the check for a secure device</li>
-        <li><strong class="pname"><code>serialno</code></strong> (str) - The device or emulator serial number</li>
-    </ul></dd>
-    <dt>Returns:</dt>
-        <dd>the device and serialno used for the connection</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -1421,7 +1957,8 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">traverseShowClassIdAndText</span>(<span class="sig-arg">view</span>,
         <span class="sig-arg">extraInfo</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">noextrainfo</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">noExtraInfo</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">extraAction</span>=<span class="sig-default">None</span>)</span>
     <br /><em class="fname">Static Method</em>
   </h3>
   </td><td align="right" valign="top"
@@ -1438,7 +1975,8 @@
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
         <li><strong class="pname"><code>extraInfo</code></strong> (method) - the View method to add extra info</li>
-        <li><strong class="pname"><code>noextrainfo</code></strong> (bool) - Don't add extra info</li>
+        <li><strong class="pname"><code>noExtraInfo</code></strong> (str) - Don't add extra info</li>
+        <li><strong class="pname"><code>extraAction</code></strong> (method) - An extra action to be invoked for every view</li>
     </ul></dd>
     <dt>Returns:</dt>
         <dd>the string containing class, id, and text if available</dd>
@@ -1490,8 +2028,67 @@
     </td>
   </tr></table>
   
-  <p>Shows the View class, id, text if available and unique id. This 
-  function can be used as a transform function to <a 
+  <p>Shows the View class, id, text if available and content description. 
+  This function can be used as a transform function to <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#traverse" 
+  class="link">ViewClient.traverse()</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available and the 
+          content description</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="traverseShowClassIdTextAndTag"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">traverseShowClassIdTextAndTag</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndTag">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Shows the View class, id, text if available and tag. This function can
+  be used as a transform function to <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#traverse" 
+  class="link">ViewClient.traverse()</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available and tag</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="traverseShowClassIdTextContentDescriptionAndScreenshot"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">traverseShowClassIdTextContentDescriptionAndScreenshot</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextContentDescriptionAndScreenshot">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Shows the View class, id, text if available and unique id and takes 
+  the screenshot. This function can be used as a transform function to <a 
   href="com.dtmilano.android.viewclient.ViewClient-class.html#traverse" 
   class="link">ViewClient.traverse()</a></p>
   <dl class="fields">
@@ -1520,8 +2117,8 @@
     </td>
   </tr></table>
   
-  <p>Shows the View class, id and text if available. This function can be 
-  used as a transform function to <a 
+  <p>Shows the View class, id and text if available and center. This 
+  function can be used as a transform function to <a 
   href="com.dtmilano.android.viewclient.ViewClient-class.html#traverse" 
   class="link">ViewClient.traverse()</a></p>
   <dl class="fields">
@@ -1563,6 +2160,65 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="traverseShowClassIdTextAndBounds"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">traverseShowClassIdTextAndBounds</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndBounds">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Shows the View class, id and text if available. This function can be 
+  used as a transform function to <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#traverse" 
+  class="link">ViewClient.traverse()</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available plus View 
+          bounds</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="traverseTakeScreenshot"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">traverseTakeScreenshot</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseTakeScreenshot">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Don't show any any, just takes the screenshot. This function can be 
+  used as a transform function to <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#traverse" 
+  class="link">ViewClient.traverse()</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>None</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="TRAVERSE_CIT"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1572,7 +2228,8 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">TRAVERSE_CIT</span>(<span class="sig-arg">view</span>,
         <span class="sig-arg">extraInfo</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">noextrainfo</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">noExtraInfo</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">extraAction</span>=<span class="sig-default">None</span>)</span>
     <br /><em class="fname">Static Method</em>
   </h3>
   </td><td align="right" valign="top"
@@ -1588,7 +2245,8 @@
     <dd><ul class="nomargin-top">
         <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
         <li><strong class="pname"><code>extraInfo</code></strong> (method) - the View method to add extra info</li>
-        <li><strong class="pname"><code>noextrainfo</code></strong> (bool) - Don't add extra info</li>
+        <li><strong class="pname"><code>noExtraInfo</code></strong> (str) - Don't add extra info</li>
+        <li><strong class="pname"><code>extraAction</code></strong> (method) - An extra action to be invoked for every view</li>
     </ul></dd>
     <dt>Returns:</dt>
         <dd>the string containing class, id, and text if available</dd>
@@ -1653,6 +2311,34 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="TRAVERSE_CITG"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">TRAVERSE_CITG</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndTag">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>An alias for <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndTag"
+  class="link">traverseShowClassIdTextAndTag(view)</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available and tag</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="TRAVERSE_CITC"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1706,6 +2392,93 @@
     </ul></dd>
     <dt>Returns:</dt>
         <dd>the string containing class, id, and text if available</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="TRAVERSE_CITB"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">TRAVERSE_CITB</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextAndBounds">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>An alias for <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextAndBounds"
+  class="link">traverseShowClassIdTextAndBounds(view)</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available plus View 
+          bounds</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="TRAVERSE_CITCDS"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">TRAVERSE_CITCDS</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseShowClassIdTextContentDescriptionAndScreenshot">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>An alias for <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseShowClassIdTextContentDescriptionAndScreenshot"
+  
+  class="link">traverseShowClassIdTextContentDescriptionAndScreenshot(view)</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the string containing class, id, and text if available and the 
+          content description</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="TRAVERSE_S"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">TRAVERSE_S</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverseTakeScreenshot">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>An alias for <a 
+  href="com.dtmilano.android.viewclient.ViewClient-class.html#traverseTakeScreenshot"
+  class="link">traverseTakeScreenshot(view)</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (<i>View</i>) - the View</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>None</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -1793,7 +2566,8 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">setViews</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">received</span>)</span>
+        <span class="sig-arg">received</span>,
+        <span class="sig-arg">windowId</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.setViews">source&nbsp;code</a></span>&nbsp;
@@ -1883,7 +2657,8 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__parseTree</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">receivedLines</span>)</span>
+        <span class="sig-arg">receivedLines</span>,
+        <span class="sig-arg">windowId</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.__parseTree">source&nbsp;code</a></span>&nbsp;
@@ -1938,8 +2713,8 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">traverse</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">root</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">ROOT</code><code class="variable-quote">'</code></span>,
         <span class="sig-arg">indent</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">transform</span>=<span class="sig-default">&lt;unbound method View.__str__&gt;</span>,
-        <span class="sig-arg">stream</span>=<span class="sig-default">sys.stdout</span>)</span>
+        <span class="sig-arg">transform</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">stream</span>=<span class="sig-default">&lt;epydoc.docintrospecter._DevNull object&gt;</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.traverse">source&nbsp;code</a></span>&nbsp;
@@ -2100,6 +2875,36 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="findViewsWithAttribute"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">findViewsWithAttribute</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">attr</span>,
+        <span class="sig-arg">val</span>,
+        <span class="sig-arg">root</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">ROOT</code><code class="variable-quote">'</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.findViewsWithAttribute">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Finds the Views with the specified attribute and value.
+This allows you to see all items that match your criteria in the view hierarchy
+
+Usage:
+  buttons = v.findViewsWithAttribute(&quot;class&quot;, &quot;android.widget.Button&quot;)
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="findViewWithAttributeOrRaise"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -2152,6 +2957,29 @@
     <dd><ul class="nomargin-top">
         <li><code><strong class='fraise'><a href="com.dtmilano.android.viewclient.ViewNotFoundException-class.html">ViewNotFoundException</a></strong></code> - raise the exception if View not found</li>
     </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="click"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">click</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">x</span>=<span class="sig-default">-1</span>,
+        <span class="sig-arg">y</span>=<span class="sig-default">-1</span>,
+        <span class="sig-arg">selector</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.click">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>An alias for touch.</p>
+  <p>:param x: :param y: :param selector: :return:</p>
+  <dl class="fields">
   </dl>
 </td></tr></table>
 </div>
@@ -2209,7 +3037,10 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">writeImageToFile</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">filename</span>,
-        <span class="sig-arg">format</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">PNG</code><code class="variable-quote">'</code></span>)</span>
+        <span class="sig-arg">_format</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">PNG</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">deviceart</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">dropshadow</span>=<span class="sig-default">True</span>,
+        <span class="sig-arg">screenglare</span>=<span class="sig-default">True</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.writeImageToFile">source&nbsp;code</a></span>&nbsp;
@@ -2224,8 +3055,60 @@
         <li><strong class="pname"><code>filename</code></strong> (str) - Absolute path and optional filename receiving the image. If this 
           points to a directory, then the filename is determined by the 
           serialno of the device and format extension.</li>
-        <li><strong class="pname"><code>format</code></strong> (str) - Image format (default format is PNG)</li>
+        <li><strong class="pname"><code>_format</code></strong> (str) - Image format (default format is PNG)</li>
     </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="writeViewImageToFileInDir"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">writeViewImageToFileInDir</span>(<span class="sig-arg">view</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.writeViewImageToFileInDir">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Write the View image to the directory specified in 
+  <code>ViewClient.imageDirectory</code>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>view</code></strong> (View) - The view</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="distanceTo"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">distanceTo</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">tree</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.distanceTo">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Calculates the distance between the current state and the tree passed 
+  as argument.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>tree</code></strong> (list of Views) - Tree of Views</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>the distance</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -2236,20 +3119,21 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">distance</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">tree</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">distance</span>(<span class="sig-arg">tree1</span>,
+        <span class="sig-arg">tree2</span>)</span>
+    <br /><em class="fname">Static Method</em>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="com.dtmilano.android.viewclient-pysrc.html#ViewClient.distance">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Calculates the distance between this tree and the tree passed as 
-  argument.</p>
+  <p>Calculates the distance between the two trees.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>tree</code></strong> (list of Views) - Tree of Views</li>
+        <li><strong class="pname"><code>tree1</code></strong> (list of Views) - Tree of Views</li>
+        <li><strong class="pname"><code>tree2</code></strong> (list of Views) - Tree of Views</li>
     </ul></dd>
     <dt>Returns:</dt>
         <dd>the distance</dd>
@@ -2385,6 +3269,19 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="uiDevice"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">uiDevice</h3>
+  <p>The output of compressed dump is different than output of uncompressed
+  one. If one requires uncompressed output, this option should be set to 
+  False</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="views"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -2431,7 +3328,8 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu May 22 01:36:01 2014
+    Generated by Epydoc 3.0.1
+    on Fri May 19 15:50:21 2017
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

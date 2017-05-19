@@ -66,7 +66,7 @@
 <h1 class="epydoc">Module adbclient</h1><p class="nomargin-top"><span class="codelink"><a href="com.dtmilano.android.adb.adbclient-pysrc.html">source&nbsp;code</a></span></p>
 <pre class="literalblock">
 
-Copyright (C) 2012-2013  Diego Torres Milano
+Copyright (C) 2012-2017  Diego Torres Milano
 Created on Dec 1, 2012
 
 Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -87,7 +87,7 @@ limitations under the License.
 
 <hr />
 <div class="fields">      <p><strong>Version:</strong>
-        5.7.0
+        13.3.1
       </p>
 </div><!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -111,6 +111,21 @@ limitations under the License.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="com.dtmilano.android.adb.adbclient.Device-class.html" class="summary-name">Device</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="com.dtmilano.android.adb.adbclient.WifiManager-class.html" class="summary-name">WifiManager</a><br />
+      Simulates Android WifiManager.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="com.dtmilano.android.adb.adbclient.Timer-class.html" class="summary-name">Timer</a>
     </td>
   </tr>
 <tr>
@@ -143,6 +158,62 @@ limitations under the License.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="DEBUG"></a><span class="summary-name">DEBUG</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DEBUG_SHELL"></a><span class="summary-name">DEBUG_SHELL</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DEBUG_TOUCH"></a><span class="summary-name">DEBUG_TOUCH</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DEBUG_LOG"></a><span class="summary-name">DEBUG_LOG</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DEBUG_WINDOWS"></a><span class="summary-name">DEBUG_WINDOWS</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DEBUG_COORDS"></a><span class="summary-name">DEBUG_COORDS</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DEBUG_IMAGE_ROTATION"></a><span class="summary-name">DEBUG_IMAGE_ROTATION</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PIL_AVAILABLE"></a><span class="summary-name">PIL_AVAILABLE</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PROFILE"></a><span class="summary-name">PROFILE</span> = <code title="False">False</code>
     </td>
   </tr>
 <tr>
@@ -205,6 +276,13 @@ limitations under the License.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="WIFI_SERVICE"></a><span class="summary-name">WIFI_SERVICE</span> = <code title="'wifi'"><code class="variable-quote">'</code><code class="variable-string">wifi</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="VERSION_SDK_PROPERTY"></a><span class="summary-name">VERSION_SDK_PROPERTY</span> = <code title="'ro.build.version.sdk'"><code class="variable-quote">'</code><code class="variable-string">ro.build.version.sdk</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
@@ -254,7 +332,8 @@ limitations under the License.
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu May 22 01:35:58 2014
+    Generated by Epydoc 3.0.1
+    on Fri May 19 15:50:21 2017
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
