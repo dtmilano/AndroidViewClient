@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '13.3.1'
+__version__ = '13.3.2'
 
 import sys
 import warnings
@@ -2345,7 +2345,7 @@ class ViewClientOptions:
     '''
 
     DEBUG = 'debug'
-    DEVIDE = 'device'
+    DEVICE = 'device'
     SERIALNO = 'serialno'
     AUTO_DUMP = 'autodump'
     FORCE_VIEW_SERVER_USE = 'forceviewserveruse'
@@ -2429,7 +2429,7 @@ class ViewClient:
         ''' The UiAutomatorHelper '''
 
         if debug:
-            if 'DEVIDE' in debug:
+            if 'DEVICE' in debug:
                 global DEBUG_DEVICE
                 DEBUG_DEVICE = debug['DEVICE']
             if 'RECEIVED' in debug:

@@ -845,7 +845,7 @@ class AdbClient:
 
     def drag(self, (x0, y0), (x1, y1), duration, steps=1, orientation=-1):
         '''
-        Sends drag event n PX (actually it's using C{input swipe} command.
+        Sends drag event in PX (actually it's using C{input swipe} command).
 
         @param (x0, y0): starting point in PX
         @param (x1, y1): ending point in PX
