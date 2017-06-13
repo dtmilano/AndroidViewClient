@@ -53,7 +53,7 @@
     </target>
 
     <target name="doc" >
-        <mkdir dir="doc" />
+        <mkdir dir="docs" />
         <exec executable="epydoc">
             <arg value="--config=viewclient.epydoc" />
         </exec>
@@ -63,7 +63,7 @@
     <target name="doc-jar" depends="doc">
 		<echo message="Creating ${avc.doc.jarname} ${avc.version} jar ..." />
 		<jar destfile="${avc.doc.jar}">
-            <fileset dir="doc/" />
+            <fileset dir="docs/" />
         </jar>
     </target>
 </project>
