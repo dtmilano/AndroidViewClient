@@ -80,7 +80,7 @@ include-log: no
 css: white
 
 # The documented project's URL.
-url: http://dtmilano.com/viewclient
+url: https://github.com/dtmilano/AndroidViewClient
 
 # HTML code for the project link in the navigation bar.  If left
 # unspecified, the project link will be generated based on the
