@@ -27,7 +27,7 @@ from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '13.3.2'
+__version__ = '13.3.4'
 
 import sys
 import threading
@@ -960,11 +960,12 @@ This is usually installed by python package. Check your distribution details.
             if DEBUG_KEY:
                 print >> sys.stderr, "Pressing", Culebron.KEYSYM_TO_KEYCODE_MAP[keysym]
             # ALT-F12 is handled as a special case
-            if keysym == 'F12' and event.state == 24:
+            if keysym == 'F12' and (event.state == 8 or event.state == 24):
                 if DEBUG_KEY:
                     print >> sys.stderr, "Special ALT-F12 case"
-                self.device.longPress('MOVE_HOME', duration=0.1, dev='/dev/input/event6', scancode=0x700e3, repeat=50)
-                self.printOperation(None, Operation.LONG_PRESS, 'MOVE_HOME', 0.1, '/dev/input/event6', 0x700e3, 50)
+                for d in ['/dev/input/event2', '/dev/input/event6']:
+                    self.device.longPress('MOVE_HOME', duration=0.1, dev=d, scancode=0x700e3, repeat=50)
+                    self.printOperation(None, Operation.LONG_PRESS, 'MOVE_HOME', 0.1, d, 0x700e3, 50)
             else:
                 self.command(Culebron.KEYSYM_TO_KEYCODE_MAP[keysym])
         elif char == '\r':
