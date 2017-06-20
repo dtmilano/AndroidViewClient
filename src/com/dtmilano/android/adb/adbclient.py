@@ -21,7 +21,7 @@ import threading
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.3.4'
+__version__ = '13.4.0'
 
 import sys
 import warnings
@@ -201,6 +201,12 @@ class AdbClient:
         raise Timer.TimeoutException("Timer %d has expired" % timerId)
 
     def setTimer(self, timeout):
+        """
+        Sets a timer.
+
+        :param timeout: timeout in seconds
+        :return: the timerId
+        """
         self.timerId += 1
         timer = Timer(timeout, self.timeoutHandler, [self.timerId])
         timer.start()
@@ -289,12 +295,22 @@ class AdbClient:
         recv = bytearray(nob)
         view = memoryview(recv)
         nr = 0
-        while nr < nob:
-            l = sock.recv_into(view, len(view))
-            if DEBUG:
-                print >> sys.stderr, "l=", l, "nr=", nr
-            view = view[l:]
-            nr += l
+        timerId = self.setTimer(timeout=self.timeout)
+        try:
+            while nr < nob:
+                l = sock.recv_into(view, len(view))
+                if DEBUG:
+                    print >> sys.stderr, "l=", l, "nr=", nr
+                    print >> sys.stderr, "timer=", self.timers[timerId]
+                view = view[l:]
+                nr += l
+                if self.timers[timerId] == 'EXPIRED':
+                    raise Timer.TimeoutException('%d EXPIRED' % timerId)
+        except Timer.TimeoutException, ex:
+                if self.timers[timerId] == 'EXPIRED':
+                    raise RuntimeError("Timeout receiving %d bytes (%d received)" % (nob, nr))
+        finally:
+            self.cancelTimer(timerId)
         if DEBUG:
             print >> sys.stderr, "    __receive: returning len=", len(recv)
         return str(recv)
@@ -728,7 +744,8 @@ class AdbClient:
             except:
                 raise Exception("You have to install PIL to use takeSnapshot()")
 
-        USE_ADB_FRAMEBUFFER_METHOD = (self.getSdkVersion() < 14 or self.getSdkVersion() >= 23)
+        sdk_version = self.getSdkVersion()
+        USE_ADB_FRAMEBUFFER_METHOD = (sdk_version < 14 or sdk_version >= 23)
         if USE_ADB_FRAMEBUFFER_METHOD:
             self.__checkTransport()
 
@@ -783,7 +800,7 @@ class AdbClient:
                 print >> sys.stderr, ex
                 print >> sys.stderr, repr(stream)
                 print >> sys.stderr, repr(received)
-                raise RuntimeError('Cannot convert stream to image: ' + ex)
+                raise RuntimeError('Cannot convert stream to image: ' + ex.message)
 
         # Just in case let's get the real image size
         (w, h) = image.size
