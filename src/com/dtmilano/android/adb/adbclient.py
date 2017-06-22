@@ -21,7 +21,7 @@ import threading
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.4.0'
+__version__ = '13.4.1'
 
 import sys
 import warnings
@@ -144,7 +144,7 @@ class WifiManager:
         return self.WIFI_STATE_UNKNOWN
 
 
-class Timer():
+class Timer:
     def __init__(self, timeout, handler, args):
         self.timer = threading.Timer(timeout, handler, args)
 
@@ -283,7 +283,7 @@ class AdbClient:
 
     def __receive(self, nob=None, sock=None):
         if DEBUG:
-            print >> sys.stderr, "__receive(nob=%s)" % (nob)
+            print >> sys.stderr, "__receive(nob=%s)" % nob
         if not sock:
             sock = self.socket
         self.checkConnected(sock)
@@ -779,7 +779,7 @@ class AdbClient:
                 mode = argMode
             self.__send('\0', checkok=False, reconnect=False)
             if DEBUG:
-                print >> sys.stderr, "    takeSnapshot: reading %d bytes" % (size)
+                print >> sys.stderr, "    takeSnapshot: reading %d bytes" % size
             received = self.__receive(size)
             if reconnect:
                 self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
@@ -826,7 +826,7 @@ class AdbClient:
                 _x = x
                 x = y
                 y = self.display['height'] - _x
-        return (x, y)
+        return x, y
 
     def touch(self, x, y, orientation=-1, eventType=DOWN_AND_UP):
         if DEBUG_TOUCH:
@@ -932,21 +932,21 @@ class AdbClient:
         lockScreenRE = re.compile('mShowingLockscreen=(true|false)')
         m = lockScreenRE.search(self.shell('dumpsys window policy'))
         if m:
-            return (m.group(1) == 'true')
+            return m.group(1) == 'true'
         raise RuntimeError("Couldn't determine screen lock state")
 
     def isScreenOn(self):
-        '''
+        """
         Checks if the screen is ON.
 
-        @return True if the device screen is ON
-        '''
+        @return: True if the device screen is ON
+        """
 
         self.__checkTransport()
         screenOnRE = re.compile('mScreenOnFully=(true|false)')
         m = screenOnRE.search(self.shell('dumpsys window policy'))
         if m:
-            return (m.group(1) == 'true')
+            return m.group(1) == 'true'
         raise RuntimeError("Couldn't determine screen ON state")
 
     def unlock(self):
@@ -983,7 +983,7 @@ class AdbClient:
         # Loop over all pixels, comparing pixel in image1 to image2
         for x in range(size_x1):
             for y in range(size_y1):
-                if (image1Pixels[x, y] == image2Pixels[x, y]):
+                if image1Pixels[x, y] == image2Pixels[x, y]:
                     numPixelsSame += 1
 
         return numPixelsSame / float(numPixelsTotal)
@@ -996,7 +996,7 @@ class AdbClient:
         @author: catshoes
         '''
 
-        return (AdbClient.percentSame(image1, image2) >= percent)
+        return AdbClient.percentSame(image1, image2) >= percent
 
     @staticmethod
     def imageInScreen(screen, image):
@@ -1073,7 +1073,7 @@ class AdbClient:
             print >> sys.stderr, tag + ':', message
         self.shell('log -p %c -t "%s" %s' % (priority, tag, message))
 
-    class __Log():
+    class __Log:
         '''
         Log class to simulate C{android.util.Log}
         '''
@@ -1230,7 +1230,7 @@ class AdbClient:
         activityRE = re.compile('\s*ACTIVITY ([A-Za-z0-9_.]+)/([A-Za-z0-9_.]+) \w+ pid=(\d+)')
         m = activityRE.search(lines[1])
         if m:
-            return (m.group(1), m.group(2), m.group(3))
+            return m.group(1), m.group(2), m.group(3)
         else:
             warnings.warn("NO MATCH:" + lines[1])
             return None
