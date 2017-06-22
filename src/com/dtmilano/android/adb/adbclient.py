@@ -159,7 +159,6 @@ class Timer():
 
 
 class AdbClient:
-
     UP = UP
     DOWN = DOWN
     DOWN_AND_UP = DOWN_AND_UP
@@ -307,8 +306,8 @@ class AdbClient:
                 if self.timers[timerId] == 'EXPIRED':
                     raise Timer.TimeoutException('%d EXPIRED' % timerId)
         except Timer.TimeoutException, ex:
-                if self.timers[timerId] == 'EXPIRED':
-                    raise RuntimeError("Timeout receiving %d bytes (%d received)" % (nob, nr))
+            if self.timers[timerId] == 'EXPIRED':
+                raise RuntimeError("Timeout receiving %d bytes (%d received)" % (nob, nr))
         finally:
             self.cancelTimer(timerId)
         if DEBUG:
@@ -542,7 +541,8 @@ class AdbClient:
         ''' Gets C{mPhysicalDisplayInfo} values from dumpsys. This is a method to obtain display dimensions and density'''
 
         self.__checkTransport()
-        phyDispRE = re.compile('Physical size: (?P<width>\d+)x(?P<height>\d+).*Physical density: (?P<density>\d+)', re.DOTALL)
+        phyDispRE = re.compile('Physical size: (?P<width>\d+)x(?P<height>\d+).*Physical density: (?P<density>\d+)',
+                               re.DOTALL)
         m = phyDispRE.search(self.shell('wm size; wm density'))
         if m:
             displayInfo = {}
@@ -912,7 +912,7 @@ class AdbClient:
             encoded = escaped.replace(' ', '%s')
         else:
             encoded = str(text);
-        #FIXME find out which characters can be dangerous,
+        # FIXME find out which characters can be dangerous,
         # for example not worst idea to escape "
         self.shell(u'input text "%s"' % encoded)
 
@@ -1031,7 +1031,6 @@ class AdbClient:
                         for y in range(size_y3):
                             if imagePixels[x, y] == croppedPixels[x, y]:
                                 return True
-
 
     @staticmethod
     def compare(image1, image2, imageResult):
