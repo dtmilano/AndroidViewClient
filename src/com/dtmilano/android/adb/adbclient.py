@@ -189,7 +189,7 @@ class AdbClient:
         ''' The map containing the device's physical display properties: width, height and density '''
 
         self.isTransportSet = False
-        if settransport and serialno != None:
+        if settransport and serialno is not None:
             self.__setTransport(timeout=timeout)
             self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
             self.initDisplayProperties()
