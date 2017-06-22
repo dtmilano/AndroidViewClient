@@ -19,6 +19,19 @@
     <option name="PUREUNITTEST" value="true" />
     <option name="PARAMS" value="" />
     <option name="USE_PARAM" value="false" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs />
+    <option name="SDK_HOME" value="" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/com/dtmilano/android/adb" />
+    <option name="IS_MODULE_SDK" value="true" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <option name="_new_pattern" value="&quot;&quot;" />
+    <option name="_new_additionalArguments" value="&quot;&quot;" />
+    <option name="_new_legacyInformationCopiedToNew" value="true" />
+    <option name="_new_target" value="&quot;tests.com.dtmilano.android.adb.dumpsystests2.DumpsysTests&quot;" />
+    <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     <method />
   </configuration>
 </component>
