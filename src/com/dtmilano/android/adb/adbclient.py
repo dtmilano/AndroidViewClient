@@ -62,7 +62,7 @@ PROFILE = False
 
 try:
     HOSTNAME = os.environ['ANDROID_ADB_SERVER_HOST']
-except:
+except KeyError:
     HOSTNAME = 'localhost'
 
 try:
@@ -861,15 +861,15 @@ class AdbClient:
         self.drag((x, y), (x, y), duration, orientation)
 
     def drag(self, (x0, y0), (x1, y1), duration, steps=1, orientation=-1):
-        '''
+        """
         Sends drag event in PX (actually it's using C{input swipe} command).
 
         @param (x0, y0): starting point in PX
         @param (x1, y1): ending point in PX
         @param duration: duration of the event in ms
-        @param steps: number of steps (currently ignored by @{input swipe})
+        @param steps: number of steps (currently ignored by C{input swipe})
         @param orientation: the orientation (-1: undefined)
-        '''
+        """
 
         self.__checkTransport()
         if orientation == -1:
@@ -886,14 +886,14 @@ class AdbClient:
             self.shell('input touchscreen swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration))
 
     def dragDip(self, (x0, y0), (x1, y1), duration, steps=1, orientation=-1):
-        '''
+        """
         Sends drag event in DIP (actually it's using C{input swipe} command.
 
         @param (x0, y0): starting point in DIP
         @param (x1, y1): ending point in DIP
         @param duration: duration of the event in ms
-        @param steps: number of steps (currently ignored by @{input swipe}
-        '''
+        @param steps: number of steps (currently ignored by C{input swipe})
+        """
 
         self.__checkTransport()
         if orientation == -1:
@@ -913,7 +913,7 @@ class AdbClient:
         else:
             encoded = str(text);
         #FIXME find out which characters can be dangerous,
-        # for exmaple not worst idea to escape " 
+        # for example not worst idea to escape "
         self.shell(u'input text "%s"' % encoded)
 
     def wake(self):
@@ -1000,15 +1000,15 @@ class AdbClient:
 
     @staticmethod
     def imageInScreen(screen, image):
-        '''
+        """
         Checks if image is on the screen
 
-        :param screen: the screen image
-        :param image: the partial image to look for
-        :return: True or False
+        @param screen: the screen image
+        @param image: the partial image to look for
+        @return: True or False
 
         @author: Perry Tsai <ripple0129@gmail.com>
-        '''
+        """
 
         # To make sure image smaller than screen.
         size_x1, size_y1 = screen.size
