@@ -1,8 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="dump -f ~/tmp/avc/sc1.png" type="PythonConfigurationType" factoryName="Python" folderName="dump">
+  <configuration default="false" name="dump -D -A auto -ZB -f /tmp/f1.png" type="PythonConfigurationType" factoryName="Python" folderName="dump">
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
+      <env name="STUDIO_DIR" value="/Applications/Android Studio.app" />
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
     <option name="SDK_HOME" value="" />
@@ -12,9 +13,11 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <module name="AndroidViewClient" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tools/dump" />
-    <option name="PARAMETERS" value="-f $USER_HOME$/tmp/avc/sc1.png" />
+    <option name="PARAMETERS" value="-D -A auto -ZB -f /tmp/f1.png" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
+    <RunnerSettings RunnerId="PythonRunner" />
+    <ConfigurationWrapper RunnerId="PythonRunner" />
     <method />
   </configuration>
 </component>

@@ -18,6 +18,7 @@ limitations under the License.
 '''
 import subprocess
 import threading
+import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
@@ -910,8 +911,12 @@ class AdbClient:
         if type(text) is str:
             escaped = text.replace('%s', '\\%s')
             encoded = escaped.replace(' ', '%s')
+        elif type(text) is unicode:
+            warnings.warn(u"WARNING: 'input text' utility does not support unicode: %s" % text)
+            normalized = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
+            encoded = normalized.replace(' ', '%s')
         else:
-            encoded = str(text);
+            encoded = str(text)
         # FIXME find out which characters can be dangerous,
         # for example not worst idea to escape "
         self.shell(u'input text "%s"' % encoded)
