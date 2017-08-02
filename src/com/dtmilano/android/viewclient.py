@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '13.4.0'
+__version__ = '13.4.1'
 
 import sys
 import warnings
@@ -4411,7 +4411,7 @@ class CulebraOptions:
             '0': 'use a null back-end (no View tree obtained)',
             'h': 'use UiAutomatorHelper',
             'c': 'enable concertina mode (EXPERIMENTAL)',
-            '1': 'install APK as precondition',
+            '1': 'install APK as precondition (use with -U)',
             }
 
 class CulebraTestCase(unittest.TestCase):
