@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '13.4.1'
+__version__ = '13.5.0'
 
 import sys
 import warnings
@@ -4054,6 +4054,8 @@ You should force ViewServer back-end.''')
                         screenGlareImage = Image.open(deviceArtModelDir + '/%s%sfore.png' % (orientationName, separator))
                         deviceBack.paste(screenGlareImage, (0, 0), screenGlareImage)
                     image = deviceBack
+                except IOError as ex:
+                    warnings.warn("ViewClient.writeImageToFile: Some new devices have webp art which is still not supported by ViewClient")
                 except ImportError as ex:
                     self.pilNotInstalledWarning()
             else:

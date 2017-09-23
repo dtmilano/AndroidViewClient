@@ -20,7 +20,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 ''' 
 
-__version__ = '13.4.1'
+__version__ = '13.5.0'
 
 import calendar
 import codecs
@@ -1243,8 +1243,8 @@ class CulebraTests(CulebraTestCase):
     
     if options[CulebraOptions.SAVE_SCREENSHOT]:
         print '''\
-        self.vc.writeImageToFile('%s')
-        ''' % options[CulebraOptions.SAVE_SCREENSHOT]
+        self.vc.writeImageToFile('%s', 'PNG', %s, %s, %s)
+        ''' % (options[CulebraOptions.SAVE_SCREENSHOT], options[CulebraOptions.DEVICE_ART], options[CulebraOptions.DROP_SHADOW], options[CulebraOptions.SCREEN_GLARE])
     
     if options[CulebraOptions.USE_DICTIONARY]:
         print '''\
@@ -1301,8 +1301,8 @@ vc = ViewClient(device, serialno, **kwargs2)
 
         if options[CulebraOptions.SAVE_SCREENSHOT]:
             print '''\
-vc.writeImageToFile('%s')
-''' % options[CulebraOptions.SAVE_SCREENSHOT]
+vc.writeImageToFile('%s', 'PNG', %s, %s, %s)
+''' % (options[CulebraOptions.SAVE_SCREENSHOT], options[CulebraOptions.DEVICE_ART], options[CulebraOptions.DROP_SHADOW], options[CulebraOptions.SCREEN_GLARE])
 
     if vc:
         vc.dump(window=options[CulebraOptions.WINDOW])

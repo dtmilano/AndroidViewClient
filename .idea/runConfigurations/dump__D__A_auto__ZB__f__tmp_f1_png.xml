@@ -3,8 +3,8 @@
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
-      <env name="STUDIO_DIR" value="/Applications/Android Studio.app" />
       <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="STUDIO_DIR" value="/Applications/Android Studio.app" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools" />
