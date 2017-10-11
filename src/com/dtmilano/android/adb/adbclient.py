@@ -22,7 +22,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.5.0'
+__version__ = '13.5.1'
 
 import sys
 import warnings
@@ -835,8 +835,13 @@ class AdbClient:
         self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
-        self.shell(
-            'input tap %d %d' % self.__transformPointByOrientation((x, y), orientation, self.display['orientation']))
+        version = self.getSdkVersion()
+        if version > 10:
+            self.shell(
+                'input tap %d %d' % self.__transformPointByOrientation((x, y), orientation, self.display['orientation']))
+        else:
+            raise RuntimeError('drag: API <= 10 not supported (version=%d)' % version)
+
 
     def touchDip(self, x, y, orientation=-1, eventType=DOWN_AND_UP):
         if DEBUG_TOUCH:
