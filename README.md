@@ -16,10 +16,16 @@ It is a test framework for Android applications that:
     <li>Is written in python</li>
 </ul></ul>
 
-:rage: **NOTE**: Pypi statistics are broken see [here](https://github.com/aclark4life/vanity/issues/22). This does not reflect the number of downloads.
-
-[![Downloads](https://img.shields.io/pypi/dm/androidviewclient.svg)](https://pypi.python.org/pypi/androidviewclient/)
 [![Latest Version](https://img.shields.io/pypi/v/androidviewclient.svg)](https://pypi.python.org/pypi/androidviewclient/)
+
+
+:rage: **NOTE**: Pypi statistics are broken see [here](https://github.com/aclark4life/vanity/issues/22). The new statistics can be obtained from [BigQuery](https://bigquery.cloud.google.com/queries/culebra-tester).
+
+As of October 2017 we have reached:
+
+<img src="https://github.com/dtmilano/AndroidViewClient/wiki/images/avc-300K-800x300.png" width="80%" align="center">
+
+Thaks to all who made it possible.
 
 Want to learn more? Detailed information can be found in the [AndroidViewClient/culebra wiki](https://github.com/dtmilano/AndroidViewClient/wiki)
 
