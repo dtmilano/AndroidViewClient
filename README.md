@@ -25,7 +25,7 @@ As of October 2017 we have reached:
 
 <img src="https://github.com/dtmilano/AndroidViewClient/wiki/images/avc-300K-800x300.png" width="80%" align="center">
 
-Thaks to all who made it possible.
+Thanks to all who made it possible.
 
 Want to learn more? Detailed information can be found in the [AndroidViewClient/culebra wiki](https://github.com/dtmilano/AndroidViewClient/wiki)
 
