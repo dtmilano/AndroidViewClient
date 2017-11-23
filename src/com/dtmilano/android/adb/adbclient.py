@@ -753,13 +753,20 @@ class AdbClient:
             self.__send('framebuffer:', checkok=True, reconnect=False)
             # case 1: // version
             #           return 12; // bpp, size, width, height, 4*(length, offset)
-            received = self.__receive(1 * 4 + 12 * 4)
-            (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset,
-             alen) = struct.unpack(
-                '<' + 'L' * 13, received)
+            # case 2: // version
+            #           return 13; // bpp, colorSpace, size, width, height, 4*(length, offset)
+            received = self.__receive(1 * 4 + 13 * 4)
+            (version, ) = struct.unpack('<L', received[:4])
+            if version == 2:
+                (version, bpp, colorspace, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset,
+                    alen) = struct.unpack('<' + 'L' * 14, received)
+            else:
+                (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset,
+                    alen) = struct.unpack('<' + 'L' * 13, received[:13*4])
             if DEBUG:
                 print >> sys.stderr, "    takeSnapshot:", (
                     version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)
+
             offsets = {roffset: 'R', goffset: 'G', boffset: 'B'}
             if bpp == 32:
                 if alen != 0:
