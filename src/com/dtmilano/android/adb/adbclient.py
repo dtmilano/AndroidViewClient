@@ -22,7 +22,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.5.1'
+__version__ = '13.5.2'
 
 import sys
 import warnings
@@ -755,17 +755,25 @@ class AdbClient:
             #           return 12; // bpp, size, width, height, 4*(length, offset)
             # case 2: // version
             #           return 13; // bpp, colorSpace, size, width, height, 4*(length, offset)
-            received = self.__receive(1 * 4 + 13 * 4)
-            (version, ) = struct.unpack('<L', received[:4])
+            # let's assume version==1 and change later if it's not
+            received = self.__receive(1 * 4 + 12 * 4)
+            (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen) = \
+                struct.unpack('<' + 'L' * 13, received)
             if version == 2:
+                # receive one more
+                received += self.__receive(4)
                 (version, bpp, colorspace, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset,
-                    alen) = struct.unpack('<' + 'L' * 14, received)
-            else:
-                (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset,
-                    alen) = struct.unpack('<' + 'L' * 13, received[:13*4])
+                 alen) = struct.unpack('<' + 'L' * 14, received)
             if DEBUG:
-                print >> sys.stderr, "    takeSnapshot:", (
-                    version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)
+                if version == 1:
+                    print >> sys.stderr, "    takeSnapshot:", (
+                        version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)
+                elif version == 2:
+                    print >> sys.stderr, "    takeSnapshot:", (
+                        version, bpp, colorspace, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset,
+                        alen)
+                else:
+                    print >> sys.stderr, "    takeSnapshot: unknown version", version
 
             offsets = {roffset: 'R', goffset: 'G', boffset: 'B'}
             if bpp == 32:
@@ -775,9 +783,16 @@ class AdbClient:
                     warnings.warn('''framebuffer is specified as 32bpp but alpha length is 0''')
             argMode = ''.join([offsets[o] for o in sorted(offsets)])
             if DEBUG:
-                print >> sys.stderr, "    takeSnapshot:", (
-                    version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen,
-                    argMode)
+                if version == 1:
+                    print >> sys.stderr, "    takeSnapshot:", (
+                        version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen,
+                        argMode)
+                elif version == 2:
+                    print >> sys.stderr, "    takeSnapshot:", (
+                        version, bpp, colorspace, size, width, height, roffset, rlen, boffset, blen, goffset, blen,
+                        aoffset, alen,
+                        argMode)
+
             if argMode == 'BGRA':
                 argMode = 'RGBA'
             if bpp == 16:
