@@ -14,6 +14,7 @@
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tools/culebra" />
     <option name="PARAMETERS" value="-pGUu --scale=0.5 --multi-device -o $USER_HOME$/tmp/culebra-multi-devices-no-unittest.py" />
     <option name="SHOW_COMMAND_LINE" value="false" />
+    <option name="EMULATE_TERMINAL" value="false" />
     <method />
   </configuration>
 </component>
