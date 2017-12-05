@@ -178,6 +178,8 @@ class AdbClient:
         self.reconnect = reconnect
         self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
 
+        self.lock = threading.Lock()
+
         self.checkVersion(ignoreversioncheck)
 
         self.build = {}
@@ -463,6 +465,8 @@ class AdbClient:
         return devices
 
     def shell(self, cmd=None):
+        self.lock.acquire()
+
         if DEBUG_SHELL:
             print >> sys.stderr, "shell(cmd=%s)" % cmd
         self.__checkTransport()
@@ -484,6 +488,8 @@ class AdbClient:
                 self.close()
                 self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                 self.__setTransport()
+
+            self.lock.release()
             return ''.join(chunks)
         else:
             self.__send('shell:')
@@ -491,6 +497,8 @@ class AdbClient:
             # sout = self.socket.makefile("r")
             # return (sin, sin)
             sout = adbClient.socket.makefile("r")
+
+            self.lock.release()
             return sout
 
     def getRestrictedScreen(self):
