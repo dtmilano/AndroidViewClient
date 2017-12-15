@@ -3,24 +3,24 @@
 from setuptools import setup, find_packages
 
 setup(name='androidviewclient',
-    version='13.6.0',
-    description='''AndroidViewClient is a 100% pure python library and tools
+      version='13.6.0',
+      description='''AndroidViewClient is a 100% pure python library and tools
         that simplifies test script creation providing higher level
         operations and the ability of obtaining the tree of Views present at
         any given moment on the device or emulator screen.
         ''',
-    license='Apache',
-    keywords='android uiautomator viewclient monkeyrunner test automation',
-    author='Diego Torres Milano',
-    author_email='dtmilano@gmail.com',
-    url='https://github.com/dtmilano/AndroidViewClient/',
-    packages=find_packages('src'),
-    package_dir={'':'src'},
-    package_data={'':['*.png']},
-    include_package_data=True,
-    scripts=['tools/culebra', 'tools/dump'],
-    classifiers=['Development Status :: 5 - Production/Stable',
+      license='Apache',
+      keywords='android uiautomator viewclient monkeyrunner test automation',
+      author='Diego Torres Milano',
+      author_email='dtmilano@gmail.com',
+      url='https://github.com/dtmilano/AndroidViewClient/',
+      packages=find_packages('src'),
+      package_dir={'':'src'},
+      package_data={'':['*.png']},
+      include_package_data=True,
+      scripts=['tools/culebra', 'tools/dump'],
+      classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Developers',
                  'License :: OSI Approved :: Apache Software License'],
-    install_requires=['setuptools', 'requests'],
-    )
+      install_requires=['setuptools', 'requests', 'numpy', 'matplotlib'],
+      )

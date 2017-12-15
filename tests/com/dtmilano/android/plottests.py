@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import sys
@@ -71,8 +72,9 @@ class PlotTests(unittest.TestCase):
         self.__plot_dumpsys_meminfo("com.dtmilano.android.sampleapplication", ".LeakingActivity", click_button)
 
     def __plot_dumpsys_gfxinfo(self, pkg):
-        self.plot.append(Dumpsys(self.device,
-                                 Dumpsys.GFXINFO, pkg, Dumpsys.FRAMESTATS)) \
+        print('plot dumpsys gfxinfo: {}'.format(pkg), file=sys.stderr)
+        dumpsys = Dumpsys(self.device, Dumpsys.GFXINFO, pkg, Dumpsys.FRAMESTATS)
+        self.plot.append(dumpsys) \
             .plot(_type=Dumpsys.FRAMESTATS)
 
 

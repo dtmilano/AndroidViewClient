@@ -18,18 +18,19 @@ limitations under the License.
 @author: Diego Torres Milano
 
 """
-import sys
-import types
-from math import ceil
+from __future__ import print_function
 
 import matplotlib.pyplot as plt
 import mpl_toolkits.axisartist as AA
 import numpy as np
+import sys
+import types
+from math import ceil
 from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.6.0'
+__version__ = '13.6.1'
 
 DEBUG = True
 
@@ -47,6 +48,8 @@ class Plot:
         ''' (another) Associative values array '''
 
     def append(self, value):
+        if DEBUG:
+            print('append({})'.format(value), file=sys.stderr)
         self.n += 1
         self.na.append(self.n)
         if isinstance(value, NumberTypes):
@@ -82,9 +85,9 @@ class Plot:
         if _type == Dumpsys.MEMINFO:
             if self.ava:
                 if DEBUG:
-                    print >> sys.stderr, "plot:"
+                    print("plot:", file=sys.stderr)
                     for k in self.ava.keys():
-                        print >> sys.stderr, "   ", k, ":", self.ava[k]
+                        print("   {}: {}".format(k, self.ava[k]), file=sys.stderr)
 
                 host = host_subplot(111, axes_class=AA.Axes)
                 plt.subplots_adjust(right=0.75)
@@ -105,7 +108,7 @@ class Plot:
                         par[k].axis["right"].toggle(all=True)
 
                 if DEBUG:
-                    print >> sys.stderr, "setting host x lim ", (np.amin(self.na), np.amax(self.na))
+                    print("setting host x lim {} {}".format(np.amin(self.na), np.amax(self.na)), file=sys.stderr)
                 minx = np.amin(self.na)
                 maxx = np.amax(self.na)
                 divx = abs(maxx - minx) / (len(self.na) * 1.0)
@@ -114,7 +117,7 @@ class Plot:
                 maxy = np.amax(self.ava[Dumpsys.TOTAL])
                 divy = ceil(abs(maxy - miny) / (len(self.ava[Dumpsys.TOTAL]) * 1.0))
                 if DEBUG:
-                    print >> sys.stderr, "setting host y lim ", (miny - divy, maxy + divy)
+                    print("setting host y lim {} {}".format(miny - divy, maxy + divy), file=sys.stderr)
                 host.set_ylim(miny - divy, maxy + divy)
                 host.set_xlabel('N')
                 host.set_ylabel(Dumpsys.TOTAL)
@@ -125,12 +128,12 @@ class Plot:
 
                 plots = {}
                 if DEBUG:
-                    print >> sys.stderr, "    host plot", self.na, ":", self.ava[Dumpsys.TOTAL]
+                    print("    host plot {} : {}".format(self.na, self.ava[Dumpsys.TOTAL]), file=sys.stderr)
                 plots[Dumpsys.TOTAL], = host.plot(self.na, self.ava[Dumpsys.TOTAL], label=Dumpsys.TOTAL, linewidth=2)
                 for k in self.ava.keys():
                     if k != Dumpsys.TOTAL:
                         if DEBUG:
-                            print >> sys.stderr, "   ", k, " plot", self.na, ":", self.ava[k]
+                            print("   {} plot {} : {}".format(k, self.na, self.ava[k]), file=sys.stderr)
                         plots[k], = par[k].plot(self.na, self.ava[k], label=k, linewidth=2)
 
                 for k in self.ava.keys():
@@ -139,7 +142,7 @@ class Plot:
                         maxy = np.amax(self.ava[k])
                         divy = ceil(abs(maxy - miny) / (len(self.ava[k]) * 1.0))
                         if DEBUG:
-                            print >> sys.stderr, "setting", k, "y lim ", (miny - divy, maxy + divy)
+                            print("setting {} y lim {}".format(k ,(miny - divy, maxy + divy)), file=sys.stderr)
                         par[k].set_ylim(miny - divy, maxy + divy)
 
                 host.legend()
@@ -156,18 +159,20 @@ class Plot:
             else:
                 raise RuntimeError("No values to plot")
         elif _type == Dumpsys.FRAMESTATS:
+            if DEBUG:
+                print("    plot: histogram {}".format(self.aava[Dumpsys.FRAMESTATS]), file=sys.stderr)
             n, bins, patches = plt.hist(self.aava[Dumpsys.FRAMESTATS])
             ymax = np.amax(n)
             x = []
             y = []
             for v in range(int(ceil(ymax)) + 1):
-                x.append(1 / 60.0 * 10 ** 9)
+                x.append(1 / 60.0 * 10 ** 3)
                 y.append(v)
             plt.plot(x, y, linewidth=2, color='c')
             x = []
             y = []
             for v in range(int(ceil(ymax)) + 1):
-                x.append(1 / 30.0 * 10 ** 9)
+                x.append(1 / 30.0 * 10 ** 3)
                 y.append(v)
             plt.plot(x, y, linewidth=2, color='r')
             plt.xlabel('ms')

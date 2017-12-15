@@ -16,10 +16,15 @@ limitations under the License.
 
 @author: Diego Torres Milano
 '''
+from __future__ import print_function
+
 import re
+import sys
 from _warnings import warn
 
 __version__ = '13.6.0'
+
+DEBUG = False
 
 
 class Dumpsys:
@@ -32,6 +37,10 @@ class Dumpsys:
     TOTAL = 'total'
     VIEW_ROOT_IMPL = 'viewRootImpl'
     VIEWS = 'views'
+
+    FLAGS = 0
+    INTENDED_VSYNC = 1
+    FRAME_COMPLETED = 13
 
     def __init__(self, adbclient, subcommand, *args):
         self.nativeHeap = -1
@@ -123,14 +132,25 @@ class Dumpsys:
                     if s == pd:
                         continue
                     pda = s.split(',')
-                    if pda[0] == 'Flags':
-                        if pda[1] != 'IntendedVsync' and pda[13] != 'FrameCompleted':
+                    if pda[Dumpsys.FLAGS] == 'Flags':
+                        if pda[Dumpsys.INTENDED_VSYNC] != 'IntendedVsync' and pda[
+                                Dumpsys.FRAME_COMPLETED] != 'FrameCompleted':
                             raise RuntimeError('Unsupported gfxinfo version')
                         continue
-                    if pda[0] == '0':
+                    if pda[Dumpsys.FLAGS] == '0':
                         # Only keep lines with Flags=0
+                        # If this is non-zero the row should be ignored, as the frame has been determined as being an
+                        # outlier from normal performance, where it is expected that layout & draw take longer than
+                        # 16ms.
+                        # See https://developer.android.com/training/testing/performance.html#timing-info for details
+                        # on format
+                        if DEBUG:
+                            print('pda={}'.format(pda), file=sys.stderr)
                         self.gfxProfileData.append(pda[:-1])
-                        self.framestats.append(int(pda[13]) - int(pda[1]))
+                        # All done! The total time spent working on this frame can be computed by doing
+                        # FRAME_COMPLETED - INTENDED_VSYNC.
+                        self.framestats.append(
+                            (int(pda[Dumpsys.FRAME_COMPLETED]) - int(pda[Dumpsys.INTENDED_VSYNC])) / 10 ** 6)
         else:
             raise RuntimeError('No profile data found')
 
