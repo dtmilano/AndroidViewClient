@@ -14,7 +14,6 @@
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tools/dump" />
     <option name="PARAMETERS" value="-a -X UI_AUTOMATOR:True,RECEIVED:True" />
     <option name="SHOW_COMMAND_LINE" value="false" />
-    <option name="EMULATE_TERMINAL" value="false" />
     <method />
   </configuration>
 </component>

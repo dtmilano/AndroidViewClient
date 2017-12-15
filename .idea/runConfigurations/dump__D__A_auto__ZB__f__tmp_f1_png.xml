@@ -15,7 +15,6 @@
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tools/dump" />
     <option name="PARAMETERS" value="-D -A auto -ZB -f /tmp/f1.png" />
     <option name="SHOW_COMMAND_LINE" value="false" />
-    <option name="EMULATE_TERMINAL" value="false" />
     <RunnerSettings RunnerId="PythonRunner" />
     <ConfigurationWrapper RunnerId="PythonRunner" />
     <method />
