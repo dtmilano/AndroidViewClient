@@ -4075,7 +4075,7 @@ On OSX install
 ''')
 
     def installPackage(self, apk):
-        return subprocess.check_call([self.adb, "install", "-r", apk], shell=False)
+        return subprocess.check_call([self.adb, "-s", self.serialno, "install", "-r", apk], shell=False)
 
     @staticmethod
     def writeViewImageToFileInDir(view):
