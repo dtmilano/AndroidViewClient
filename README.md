@@ -27,5 +27,6 @@ As of October 2017 we have reached:
 
 Thanks to all who made it possible.
 
-Want to learn more? Detailed information can be found in the [AndroidViewClient/culebra wiki](https://github.com/dtmilano/AndroidViewClient/wiki)
+# Want to learn more?
+Detailed information can be found in the [AndroidViewClient/culebra wiki](https://github.com/dtmilano/AndroidViewClient/wiki)
 
