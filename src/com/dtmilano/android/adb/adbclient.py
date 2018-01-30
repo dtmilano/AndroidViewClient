@@ -22,7 +22,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.6.2'
+__version__ = '13.6.3'
 
 import sys
 import warnings
@@ -970,7 +970,12 @@ class AdbClient:
 
         self.__checkTransport()
         lockScreenRE = re.compile('mShowingLockscreen=(true|false)')
-        m = lockScreenRE.search(self.shell('dumpsys window policy'))
+        dwp = self.shell('dumpsys window policy')
+        m = lockScreenRE.search(dwp)
+        if m:
+            return m.group(1) == 'true'
+        dreamingLockscreenRE = re.compile('mDreamingLockscreen=(true|false)')
+        m = dreamingLockscreenRE.search(dwp)
         if m:
             return m.group(1) == 'true'
         raise RuntimeError("Couldn't determine screen lock state")

@@ -1,2 +1,4 @@
 setuptools
 requests
+numpy
+matplotlib
