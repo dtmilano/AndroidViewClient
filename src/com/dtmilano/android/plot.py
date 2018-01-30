@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012-2017  Diego Torres Milano
+Copyright (C) 2012-2018  Diego Torres Milano
 Created on mar 11, 2017
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.6.2'
+__version__ = '13.6.3'
 
 DEBUG = True
 

@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2012-2017  Diego Torres Milano
+Copyright (C) 2012-2018  Diego Torres Milano
 Created on Dec 1, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ import re
 import sys
 from _warnings import warn
 
-__version__ = '13.6.2'
+__version__ = '13.6.3'
 
 DEBUG = False
 
