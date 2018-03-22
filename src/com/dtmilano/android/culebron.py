@@ -19,15 +19,18 @@ limitations under the License.
 
 '''
 import StringIO
+import json
 import random
 import re
 import time
+
+import numpy
 
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '13.6.3'
+__version__ = '14.0.0'
 
 import sys
 import threading
@@ -213,7 +216,7 @@ or, preferred since El Capitan
 This is usually installed by python package. Check your distribution details.
 ''')
 
-    def __init__(self, vc, device, serialno, printOperation, scale=1, concertina=False):
+    def __init__(self, vc, device, serialno, printOperation, scale=1, concertina=False, concertinaConfigFile=None):
         '''
         Culebron constructor.
         
@@ -227,8 +230,10 @@ This is usually installed by python package. Check your distribution details.
         @type printOperation: method
         @param scale: the scale of the device screen used to show it on the window
         @type scale: float
-        @:param concertina: bool
-        @:type concertina: enable concertina mode (see documentation)
+        @param concertina: enable concertina mode (see documentation)
+        @type concertina: bool
+        @param concertinaConfigFile: configuration file for concertina
+        @type concertinaConfigFile: str
         '''
 
         self.vc = vc
@@ -238,10 +243,12 @@ This is usually installed by python package. Check your distribution details.
         self.serialno = serialno
         self.scale = scale
         self.concertina = concertina
+        self.concertinaConfig = dict()
+        self.concertinaConfigFile = concertinaConfigFile
         self.window = Tkinter.Tk()
         try:
             f = resource_filename(Requirement.parse("androidviewclient"),
-                                 "share/pixmaps/culebra.png")
+                                  "share/pixmaps/culebra.png")
             icon = ImageTk.PhotoImage(file=f)
         except:
             icon = None
@@ -914,7 +921,7 @@ This is usually installed by python package. Check your distribution details.
         keysym = event.keysym
 
         if len(char) == 0 and not (
-                        keysym in Culebron.KEYSYM_TO_KEYCODE_MAP or keysym in Culebron.KEYSYM_CULEBRON_COMMANDS):
+                keysym in Culebron.KEYSYM_TO_KEYCODE_MAP or keysym in Culebron.KEYSYM_CULEBRON_COMMANDS):
             if DEBUG_KEY:
                 print >> sys.stderr, "returning because len(char) == 0"
             return
@@ -1238,14 +1245,13 @@ This is usually installed by python package. Check your distribution details.
             end = (x1, y1)
         if self.vc.uiAutomatorHelper:
             self.printOperation(None, Operation.SWIPE_UI_AUTOMATOR_HELPER, x0, y0, x1, y1, steps, units,
-                            self.device.display['orientation'])
+                                self.device.display['orientation'])
         else:
             self.printOperation(None, Operation.DRAG, start, end, duration, steps, units,
-                            self.device.display['orientation'])
+                                self.device.display['orientation'])
         self.printOperation(None, Operation.SLEEP, 1)
         time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
-
 
     def enableEvents(self):
         if self.permanentlyDisableEvents:
@@ -1260,7 +1266,6 @@ This is usually installed by python package. Check your distribution details.
         self.canvas.bind("<Key>", self.onKeyPressed)
         self.areEventsDisabled = False
 
-
     def disableEvents(self, permanently=False):
         self.permanentlyDisableEvents = permanently
         if self.canvas is not None:
@@ -1274,7 +1279,6 @@ This is usually installed by python package. Check your distribution details.
             # self.canvas.unbind("<Control-Key-S>")
             self.canvas.unbind("<Key>")
 
-
     def toggleTargets(self):
         if DEBUG:
             print >> sys.stderr, "toggletargets: aretargetsmarked=", self.areTargetsMarked
@@ -1282,7 +1286,6 @@ This is usually installed by python package. Check your distribution details.
             self.markTargets()
         else:
             self.unmarkTargets()
-
 
     def markTargets(self):
         if DEBUG:
@@ -1299,7 +1302,6 @@ This is usually installed by python package. Check your distribution details.
             c += 1
         self.areTargetsMarked = True
 
-
     def markTarget(self, x1, y1, x2, y2, color='#ff00ff'):
         '''
         @return the id of the rectangle added
@@ -1312,10 +1314,8 @@ This is usually installed by python package. Check your distribution details.
         self.markedTargetIds[_id] = (x1, y1, x2, y2)
         return _id
 
-
     def unmarkTarget(self, _id):
         self.canvas.delete(_id)
-
 
     def unmarkTargets(self):
         if not self.areTargetsMarked:
@@ -1325,14 +1325,12 @@ This is usually installed by python package. Check your distribution details.
         self.markedTargetIds = {}
         self.areTargetsMarked = False
 
-
     def setDragDialogShowed(self, showed):
         self.isDragDialogShowed = showed
         if showed:
             pass
         else:
             self.isGrabbingTouch = False
-
 
     def drawTouchedPoint(self, x, y):
         if DEBUG:
@@ -1341,14 +1339,12 @@ This is usually installed by python package. Check your distribution details.
         return self.canvas.create_oval((x - size) * self.scale, (y - size) * self.scale, (x + size) * self.scale,
                                        (y + size) * self.scale, fill=Color.MAGENTA)
 
-
     def drawDragLine(self, x0, y0, x1, y1):
         if DEBUG:
             print >> sys.stderr, "drawDragLine(", x0, ",", y0, ",", x1, ",", y1, ")"
         width = 15
         return self.canvas.create_line(x0 * self.scale, y0 * self.scale, x1 * self.scale, y1 * self.scale, width=width,
                                        fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
-
 
     def executeCommandAndRefresh(self, command):
         self.showVignette()
@@ -1369,17 +1365,14 @@ This is usually installed by python package. Check your distribution details.
         # FIXME: perhaps refresh() should be invoked here just in case size or orientation changed
         self.takeScreenshotAndShowItOnWindow()
 
-
     def changeLanguage(self):
         code = tkSimpleDialog.askstring("Change language", "Enter the language code")
         self.vc.uiDevice.changeLanguage(code)
         self.printOperation(None, Operation.CHANGE_LANGUAGE, code)
         self.refresh()
 
-
     def setOnTouchListener(self, listener):
         self.onTouchListener = listener
-
 
     def setGrab(self, state):
         if DEBUG:
@@ -1391,7 +1384,6 @@ This is usually installed by python package. Check your distribution details.
             self.toast('Grabbing drag points...', background=Color.GREEN)
         else:
             self.hideMessageArea()
-
 
     @staticmethod
     def isClickableCheckableOrFocusable(v):
@@ -1417,23 +1409,21 @@ This is usually installed by python package. Check your distribution details.
             pass
         return False
 
-
     def mainloop(self):
         self.window.title("%s v%s" % (Culebron.APPLICATION_NAME, __version__))
         self.window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
         self.window.lift()
         if self.concertina:
+            self.readConcertinaConfig(self.concertinaConfigFile)
             self.concertinaLoop()
         else:
             self.window.mainloop()
-
 
     def concertinaLoop(self):
         random.seed()
         self.disableEvents(permanently=True)
         self.concertinaLoopCallback(dontinteract=True)
         self.window.mainloop()
-
 
     def concertinaLoopCallback(self, dontinteract=False):
         if not dontinteract:
@@ -1444,11 +1434,13 @@ This is usually installed by python package. Check your distribution details.
             rand = random.random()
             if DEBUG_CONCERTINA:
                 print >> sys.stderr, "CONCERTINA: random=%f" % rand
-            if rand > 0.85:
+            probabilities = self.concertinaConfig['probabilities']
+            if rand > (1 - probabilities['systemKeys']):
                 # Send key events
-                k = random.choice(['ENTER', 'BACK', 'HOME', 'MENU'])
+                systemKeys = self.concertinaConfig['systemKeys']
+                k = numpy.random.choice(systemKeys['keys'], 1, p=systemKeys['probabilities'])[0]
                 if DEBUG_CONCERTINA:
-                    print >> sys.stderr, "CONCERTINA: key=" + k
+                    print >> sys.stderr, "CONCERTINA: system key=" + k
                 # DEBUG ONLY!
                 # print >> sys.stderr, "Not sending key event"
                 self.command(k)
@@ -1503,7 +1495,7 @@ This is usually installed by python package. Check your distribution details.
                         Concertina.sayRandomText()
                         time.sleep(5)
                     elif random.choice(['SCROLL', 'TOUCH']) == 'SCROLL' and (
-                                    isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
+                            isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
                         # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
                         # capture the case of other ScrollViews
                         if isScrollable:
@@ -1561,7 +1553,6 @@ This is usually installed by python package. Check your distribution details.
                     print >> sys.stderr, "CONCERTINA: No target views"
         self.window.after(5000, self.concertinaLoopCallback)
 
-
     def getViewContainingPointAndLongTouch(self, x, y):
         # FIXME: this method is almost exactly as getViewContainingPointAndTouch()
         if DEBUG:
@@ -1608,6 +1599,20 @@ This is usually installed by python package. Check your distribution details.
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)
         self.takeScreenshotAndShowItOnWindow()
+
+    def readConcertinaConfig(self, concertinaConfigFile):
+        if concertinaConfigFile:
+            self.concertinaConfig = json.load(open(concertinaConfigFile))
+        if 'probabilities' not in self.concertinaConfig:
+            self.concertinaConfig['probabilities'] = dict()
+            self.concertinaConfig['probabilities']['systemKeys'] = 0.14
+            self.concertinaConfig['probabilities']['other'] = 0.86
+        if 'systemKeys' not in self.concertinaConfig:
+            self.concertinaConfig['systemKeys'] = dict()
+            self.concertinaConfig['systemKeys']['keys'] = ['ENTER', 'BACK', 'HOME', 'MENU']
+            n = float(len(self.concertinaConfig['systemKeys']['keys']))
+            self.concertinaConfig['systemKeys']['probabilities'] = [1 / n for k in
+                                                                    self.concertinaConfig['systemKeys']['keys']]
 
 
 if TKINTER_AVAILABLE:
