@@ -20,17 +20,18 @@ limitations under the License.
 """
 from __future__ import print_function
 
-import matplotlib.pyplot as plt
-import mpl_toolkits.axisartist as AA
-import numpy as np
 import sys
 import types
 from math import ceil
+
+import matplotlib.pyplot as plt
+import mpl_toolkits.axisartist as AA
+import numpy as np
 from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '13.6.3'
+__version__ = '14.0.0'
 
 DEBUG = True
 
