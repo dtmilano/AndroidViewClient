@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.0.1'
+__version__ = '15.1.0'
 
 import sys
 import warnings
@@ -4609,7 +4609,7 @@ class CulebraTestCase(unittest.TestCase):
             raise AttributeError(self.__class__.__name__ + ' has no attribute "%s"' % attr)
 
     @staticmethod
-    def main():
+    def main(*args, **kwargs):
         # If you want to specify tests classes and methods in the command line you will be forced
         # to include -s or --serialno and the serial number of the device (could be a regexp)
         # as ViewClient would have no way of determine what it is.
@@ -4639,7 +4639,8 @@ class CulebraTestCase(unittest.TestCase):
             i += 1
         for a in argsToRemove:
             sys.argv.remove(a)
-        unittest.main()
+        unittest.main(*args, **kwargs)
+
 
 if __name__ == "__main__":
     try:
