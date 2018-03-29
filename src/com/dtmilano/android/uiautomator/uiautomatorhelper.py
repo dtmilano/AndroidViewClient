@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.0.1'
+__version__ = '15.1.0'
 
 import json
 import os
