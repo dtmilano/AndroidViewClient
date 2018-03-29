@@ -22,7 +22,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '15.0.0'
+__version__ = '15.0.1'
 
 import sys
 import warnings
@@ -676,12 +676,14 @@ class AdbClient:
         self.__checkTransport()
         return self.build[VERSION_SDK_PROPERTY]
 
-    def press(self, name, eventType=DOWN_AND_UP):
+    def press(self, name, eventType=DOWN_AND_UP, repeat=1):
         self.__checkTransport()
         if isinstance(name, unicode):
             name = name.decode('ascii', errors='replace')
         cmd = 'input keyevent %s' % name
-        if DEBUG:
+        for _ in range(1, repeat):
+            cmd += ' %s' % name
+        if DEBUG or True:
             print >> sys.stderr, "press(%s)" % cmd
         self.shell(cmd)
 

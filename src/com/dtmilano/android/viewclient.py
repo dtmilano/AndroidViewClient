@@ -1182,12 +1182,9 @@ class EditText(TextView):
         if self.text() == text:
             return
         self.touch()
-        guardrail = 0
         maxSize = len(self.text()) + 1
-        while maxSize > guardrail:
-            guardrail += 1
-            self.device.press('KEYCODE_DEL', adbclient.DOWN_AND_UP)
-            self.device.press('KEYCODE_FORWARD_DEL', adbclient.DOWN_AND_UP)
+        self.device.press('KEYCODE_DEL', adbclient.DOWN_AND_UP, repeat=maxSize)
+        self.device.press('KEYCODE_FORWARD_DEL', adbclient.DOWN_AND_UP, repeat=maxSize)
         self.type(text, alreadyTouched=True)
 
     def backspace(self):

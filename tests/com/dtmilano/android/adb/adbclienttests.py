@@ -3,12 +3,12 @@ Created on Aug 6, 2013
 
 @author: diego
 '''
+import os
+import re
+import subprocess
 import sys
 import time
-import re
 import unittest
-import os
-import subprocess
 
 try:
     sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
@@ -231,6 +231,9 @@ class AdbClientTest(unittest.TestCase):
             print "Pressing ENTER"
         self.adbClient.press('KEYCODE_ENTER')
         self.assertTrue(self.adbClient.checkConnected())
+
+    def testPressRepeat(self):
+        self.adbClient.press('DEL', repeat=4)
 
     #def testWake(self):
     #    self.adbClient.wake()
