@@ -19,7 +19,6 @@ limitations under the License.
 
 '''
 import StringIO
-import json
 import random
 import re
 import time
@@ -30,7 +29,7 @@ from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 
-__version__ = '14.0.0'
+__version__ = '15.0.0'
 
 import sys
 import threading
@@ -279,6 +278,7 @@ This is usually installed by python package. Check your distribution details.
         self.unscaledScreenshot = None
         self.image = None
         self.screenshot = None
+        self.noTargetViewsCount = 0
         if DEBUG:
             try:
                 self.printGridInfo()
@@ -1414,7 +1414,7 @@ This is usually installed by python package. Check your distribution details.
         self.window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
         self.window.lift()
         if self.concertina:
-            self.readConcertinaConfig(self.concertinaConfigFile)
+            self.concertinaConfig = Concertina.readConcertinaConfig(self.concertinaConfigFile)
             self.concertinaLoop()
         else:
             self.window.mainloop()
@@ -1426,11 +1426,12 @@ This is usually installed by python package. Check your distribution details.
         self.window.mainloop()
 
     def concertinaLoopCallback(self, dontinteract=False):
+        needToSleep = False
         if not dontinteract:
             if DEBUG_CONCERTINA:
                 print >> sys.stderr, "CONCERTINA: should select one of these targets:"
                 for v in self.targetViews:
-                    print >> sys.stderr, "    ", unicode(v.__tinyStr__())
+                    print >> sys.stderr, "    ", unicode(v.__tinyStr__()), v.getContentDescription()
             rand = random.random()
             if DEBUG_CONCERTINA:
                 print >> sys.stderr, "CONCERTINA: random=%f" % rand
@@ -1445,113 +1446,166 @@ This is usually installed by python package. Check your distribution details.
                 # print >> sys.stderr, "Not sending key event"
                 self.command(k)
             else:
+                # Right now we have p[systemKeys] + p[views] = 1
                 # Act on views
                 _len = len(self.targetViews)
                 if _len > 0:
-                    i = random.randrange(len(self.targetViews))
-                    target = self.targetViews[i]
-                    z = self.targets[i]
-                    if DEBUG_CONCERTINA:
-                        print >> sys.stderr, "CONCERTINA: selected", unicode(target.__smallStr__())
-                        print >> sys.stderr, "CONCERTINA: selected", z
-                    _id = self.markTarget(*z)
-                    self.window.update_idletasks()
-                    time.sleep(1)
-                    self.unmarkTarget(_id)
-                    self.window.update_idletasks()
-                    clazz = target.getClass()
-                    parent = target.getParent()
-                    if parent:
-                        parentClass = parent.getClass()
-                    else:
-                        parentClass = None
-                    isScrollable = target.isScrollable()
-                    if DEBUG_CONCERTINA:
-                        print >> sys.stderr, "CONCERTINA: is scrollable: ", isScrollable
+                    self.noTargetViewsCount = 0
+                    views = self.concertinaConfig['views']
+                    _cr = numpy.random.choice(views['classes'], 1, p=views['probabilities'])[0]
+                    _tvli = []
+                    for _i in range(len(self.targetViews)):
+                        if re.match(_cr, self.targetViews[_i].getClass()):
+                            _tvli.append(_i)
+                    # i = random.randrange(len(self.targetViews))
+                    if _tvli:
+                        i = random.choice(_tvli)
+                        target = self.targetViews[i]
+                        box = self.targets[i]
+                        if DEBUG_CONCERTINA:
+                            print >> sys.stderr, "CONCERTINA: selected", unicode(
+                                target.__smallStr__()), target.getContentDescription()
+                            print >> sys.stderr, "CONCERTINA: selected", box
+                            print >> sys.stderr, "CONCERTINA: filter class", _cr
+                            print >> sys.stderr, "CONCERTINA: filtered views"
+                            for _i in _tvli:
+                                print >> sys.stderr, "CONCERTINA:    view class", self.targetViews[_i].getClass(), \
+                                    self.targetViews[_i].getContentDescription()
+                            for _v in self.targetViews:
+                                print >> sys.stderr, "CONCERTINA: view class", _v.getClass()
+                        _id = self.markTarget(*box)
+                        self.window.update_idletasks()
+                        time.sleep(1)
+                        self.unmarkTarget(_id)
+                        self.window.update_idletasks()
+                        clazz = target.getClass()
+                        parent = target.getParent()
                         if parent:
-                            print >> sys.stderr, "CONCERTINA: is scrollable parent: ", parent.isScrollable()
-                            # cond = (isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView')
-                            # DEBUG ONLY!
-                            # print >> sys.stderr, "CONCERTINA: check:", cond
-                            # if not cond:
-                            #     self.window.after(500, self.concertinaLoopCallback)
-                            #     return
-                    if clazz == 'android.widget.EditText':
-                        id = target.getId()
-                        txt = target.getText()
-                        if target.isPassword() or re.search('password', id, re.IGNORECASE) or re.search('password', txt,
-                                                                                                        re.IGNORECASE):
-                            text = Concertina.getRandomPassword()
-                        elif re.search('email', id, re.IGNORECASE) or re.search('email', txt, re.IGNORECASE):
-                            text = Concertina.getRandomEmail()
+                            parentClass = parent.getClass()
                         else:
-                            text = Concertina.getRandomText()
+                            parentClass = None
+                        isScrollable = target.isScrollable()
                         if DEBUG_CONCERTINA:
-                            print >> sys.stderr, "Entering text: ", text
-                        if not text:
-                            raise RuntimeError('text is None')
-                        self.setText(target, text)
-                    elif target.getContentDescription() in ['Voice Search', 'Tap to speak']:
-                        Concertina.sayRandomText()
-                        time.sleep(5)
-                    elif random.choice(['SCROLL', 'TOUCH']) == 'SCROLL' and (
-                            isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
-                        # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
-                        # capture the case of other ScrollViews
-                        if isScrollable:
-                            ((l, t), (r, b)) = target.getBounds()
+                            print >> sys.stderr, "CONCERTINA: class", clazz
+                            print >> sys.stderr, "CONCERTINA: parent", parentClass
+                            print >> sys.stderr, "CONCERTINA: is scrollable: ", isScrollable
+                            if parent:
+                                print >> sys.stderr, "CONCERTINA: is scrollable parent: ", parent.isScrollable()
+                                # cond = (isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView')
+                                # DEBUG ONLY!
+                                # print >> sys.stderr, "CONCERTINA: check:", cond
+                                # if not cond:
+                                #     self.window.after(500, self.concertinaLoopCallback)
+                                #     return
+                        if probabilities['views'] > 0 and clazz == 'android.widget.EditText':
+                            id = target.getId()
+                            txt = target.getText()
+                            if target.isPassword() or re.search('password', id, re.IGNORECASE) or re.search('password',
+                                                                                                            txt,
+                                                                                                            re.IGNORECASE):
+                                text = Concertina.getRandomPassword()
+                            elif re.search('email', id, re.IGNORECASE) or re.search('email', txt, re.IGNORECASE):
+                                text = Concertina.getRandomEmail()
+                            else:
+                                text = Concertina.getRandomText()
+                            if DEBUG_CONCERTINA:
+                                print >> sys.stderr, "Entering text: ", text
+                            if not text:
+                                raise RuntimeError('text is None')
+                            self.setText(target, text)
+                            needToSleep = True
+                        elif target.getContentDescription() in ['Voice Search', 'Tap to speak']:
+                            # FIXME: we may have to tap on the view
+                            Concertina.sayRandomText()
+                            time.sleep(5)
+                            needToSleep = True
+                        elif target.getContentDescription() in ['Ask Alexa']:
+                            if DEBUG_CONCERTINA:
+                                print >> sys.stderr, "Alexa detected, speaking..."
+                            self.touchView(target)
+                            time.sleep(2)
+                            Concertina.sayRandomText('alexa')
+                            # alexa might be speaking, so let's wait a bit
+                            time.sleep(15)
+                            needToSleep = True
+                        elif probabilities['views'] > 0 and random.choice(['SCROLL', 'TOUCH']) == 'SCROLL' and (
+                                isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
+                            # NOTE: The order here is important because some EditText are inside ScrollView's and we want to
+                            # capture the case of other ScrollViews
+                            if isScrollable:
+                                ((l, t), (r, b)) = target.getBounds()
+                            else:
+                                if DEBUG_CONCERTINA:
+                                    print >> sys.stderr, "CONCERTINA: using parent bounds because it's scrollable"
+                                ((l, t), (r, b)) = parent.getBounds()
+                            if DEBUG_CONCERTINA:
+                                print >> sys.stderr, "CONCERTINA: bounds=", ((l, t), (r, b))
+                            if random.choice(['VERTICAL', 'HORIZONTAL']) == 'VERTICAL':
+                                if DEBUG_CONCERTINA:
+                                    print >> sys.stderr, 'CONCERTINA: VERTICAL'
+                                sp = (l + (r - l) / 2, t + 50)
+                                ep = (l + (r - l) / 2, b - 50)
+                            else:
+                                if DEBUG_CONCERTINA:
+                                    print >> sys.stderr, 'CONCERTINA: HORIZONTAL'
+                                sp = (l + 50, t + (b - t) / 2)
+                                ep = (r - 50, t + (b - t) / 2)
+                            if random.choice(['FORWARD', 'REVERSE']) == 'REVERSE':
+                                if DEBUG_CONCERTINA:
+                                    print >> sys.stderr, 'CONCERTINA: REVERSE'
+                                temp = sp
+                                sp = ep
+                                ep = temp
+                            else:
+                                if DEBUG_CONCERTINA:
+                                    print >> sys.stderr, 'CONCERTINA: FORWARD'
+                            d = 500
+                            s = 20
+                            _id = self.canvas.create_rectangle(l * self.scale, t * self.scale, r * self.scale,
+                                                               b * self.scale,
+                                                               fill="#00ffff", stipple="gray12")
+                            self.window.update_idletasks()
+                            units = Unit.PX
+                            self.drawTouchedPoint(sp[0], sp[1])
+                            self.window.update_idletasks()
+                            self.drawDragLine(sp[0], sp[1], ep[0], ep[1])
+                            self.window.update_idletasks()
+                            time.sleep(5)
+                            if DEBUG_CONCERTINA:
+                                print >> sys.stderr, "CONCERTINA: dragging %s %s %s %s %s" % (sp, ep, d, s, units)
+                            self.drag(sp, ep, d, s, units)
+                            needToSleep = True
                         else:
+                            if probabilities['views'] > 0:
+                                self.touchView(target)
+                                needToSleep = True
+                            else:
+                                needToSleep = False
+                                if DEBUG_CONCERTINA:
+                                    print >> sys.stderr, "CONCERTINA: touchOtherViews probability == 0"
+                        if needToSleep:
+                            self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, "CONCERTINA: using parent bounds because it's scrollable"
-                            ((l, t), (r, b)) = parent.getBounds()
-                        if DEBUG_CONCERTINA:
-                            print >> sys.stderr, "CONCERTINA: bounds=", ((l, t), (r, b))
-                        if random.choice(['VERTICAL', 'HORIZONTAL']) == 'VERTICAL':
+                                print >> sys.stderr, "CONCERTINA: waiting 5 secs"
+                            time.sleep(5)
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, 'CONCERTINA: VERTICAL'
-                            sp = (l + (r - l) / 2, t + 50)
-                            ep = (l + (r - l) / 2, b - 50)
-                        else:
-                            if DEBUG_CONCERTINA:
-                                print >> sys.stderr, 'CONCERTINA: HORIZONTAL'
-                            sp = (l + 50, t + (b - t) / 2)
-                            ep = (r - 50, t + (b - t) / 2)
-                        if random.choice(['FORWARD', 'REVERSE']) == 'REVERSE':
-                            if DEBUG_CONCERTINA:
-                                print >> sys.stderr, 'CONCERTINA: REVERSE'
-                            temp = sp
-                            sp = ep
-                            ep = temp
-                        else:
-                            if DEBUG_CONCERTINA:
-                                print >> sys.stderr, 'CONCERTINA: FORWARD'
-                        d = 500
-                        s = 20
-                        _id = self.canvas.create_rectangle(l * self.scale, t * self.scale, r * self.scale,
-                                                           b * self.scale,
-                                                           fill="#00ffff", stipple="gray12")
-                        self.window.update_idletasks()
-                        units = Unit.PX
-                        self.drawTouchedPoint(sp[0], sp[1])
-                        self.window.update_idletasks()
-                        self.drawDragLine(sp[0], sp[1], ep[0], ep[1])
-                        self.window.update_idletasks()
-                        time.sleep(5)
-                        if DEBUG_CONCERTINA:
-                            print >> sys.stderr, "CONCERTINA: dragging %s %s %s %s %s" % (sp, ep, d, s, units)
-                        self.drag(sp, ep, d, s, units)
+                                print >> sys.stderr, "CONCERTINA: updating window"
+                            self.takeScreenshotAndShowItOnWindow()
                     else:
-                        self.touchView(target)
-                    self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
-                    if DEBUG_CONCERTINA:
-                        print >> sys.stderr, "CONCERTINA: waiting 5 secs"
-                    time.sleep(5)
-                    if DEBUG_CONCERTINA:
-                        print >> sys.stderr, "CONCERTINA: taking screenshot"
-                    self.takeScreenshotAndShowItOnWindow()
+                        # _tvli
+                        if DEBUG_CONCERTINA:
+                            print >> sys.stderr, "CONCERTINA: Filter results in empty target list"
                 else:
-                    print >> sys.stderr, "CONCERTINA: No target views"
-        self.window.after(5000, self.concertinaLoopCallback)
+                    # Let's wait to see if some View appear
+                    needToSleep = True
+                    self.noTargetViewsCount += 1
+                    if DEBUG_CONCERTINA:
+                        print >> sys.stderr, "CONCERTINA: No target views", self.noTargetViewsCount
+                    if self.noTargetViewsCount >= self.concertinaConfig['limits']['maxNoTargetViewsIterations']:
+                        print >> sys.stderr, "CONCERTINA: Cannot detect target Views after {} iterations".format(
+                            self.noTargetViewsCount)
+                        sys.exit(1)
+        self.window.after(5000 if dontinteract or needToSleep else 0, self.concertinaLoopCallback)
 
     def getViewContainingPointAndLongTouch(self, x, y):
         # FIXME: this method is almost exactly as getViewContainingPointAndTouch()
@@ -1599,20 +1653,6 @@ This is usually installed by python package. Check your distribution details.
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)
         self.takeScreenshotAndShowItOnWindow()
-
-    def readConcertinaConfig(self, concertinaConfigFile):
-        if concertinaConfigFile:
-            self.concertinaConfig = json.load(open(concertinaConfigFile))
-        if 'probabilities' not in self.concertinaConfig:
-            self.concertinaConfig['probabilities'] = dict()
-            self.concertinaConfig['probabilities']['systemKeys'] = 0.14
-            self.concertinaConfig['probabilities']['other'] = 0.86
-        if 'systemKeys' not in self.concertinaConfig:
-            self.concertinaConfig['systemKeys'] = dict()
-            self.concertinaConfig['systemKeys']['keys'] = ['ENTER', 'BACK', 'HOME', 'MENU']
-            n = float(len(self.concertinaConfig['systemKeys']['keys']))
-            self.concertinaConfig['systemKeys']['probabilities'] = [1 / n for k in
-                                                                    self.concertinaConfig['systemKeys']['keys']]
 
 
 if TKINTER_AVAILABLE:

@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="culebra -Guc --concertina-config=2 --scale=0.5" type="PythonConfigurationType" factoryName="Python" folderName="concertina" singleton="true">
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs>
+      <env name="PYTHONUNBUFFERED" value="1" />
+    </envs>
+    <option name="SDK_HOME" value="" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools" />
+    <option name="IS_MODULE_SDK" value="true" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <module name="AndroidViewClient" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tools/culebra" />
+    <option name="PARAMETERS" value="-Guc --concertina-config=../tests/resources/concertina-config-2.json --scale=0.5" />
+    <option name="SHOW_COMMAND_LINE" value="false" />
+    <option name="EMULATE_TERMINAL" value="true" />
+    <option name="MODULE_MODE" value="false" />
+    <method />
+  </configuration>
+</component>

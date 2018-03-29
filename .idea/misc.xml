@@ -2,6 +2,6 @@
 <project version="4">
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 2.7 (AndroidViewClient)" project-jdk-type="Python SDK" />
   <component name="PythonCompatibilityInspectionAdvertiser">
-    <option name="version" value="1" />
+    <option name="version" value="3" />
   </component>
 </project>

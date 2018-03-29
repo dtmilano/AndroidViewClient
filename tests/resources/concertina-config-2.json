@@ -1,0 +1,27 @@
+{
+  "probabilities": {
+    "systemKeys": 0,
+    "views": 1
+  },
+  "systemKeys": {
+    "keys": [
+      "ENTER",
+      "BACK",
+      "HOME",
+      "MENU"
+    ],
+    "probabilities": [
+      0.5,
+      0.5,
+      0,
+      0
+    ]
+  },
+  "views": {
+    "probabilities": {
+      "editText": 0,
+      "scrollOtherViews": 0,
+      "touchOtherViews": 0
+    }
+  }
+}

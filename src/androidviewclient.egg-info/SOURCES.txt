@@ -1,3 +1,4 @@
+README.md
 setup.py
 src/androidviewclient.egg-info/PKG-INFO
 src/androidviewclient.egg-info/SOURCES.txt
