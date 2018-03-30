@@ -184,9 +184,9 @@ def notNull(val, default):
 
 
 def printVerboseComments(view):
-    '''
+    """
     Prints the verbose comments for view.
-    '''
+    """
 
     print '\n%s# class=%s' % (indent, view.getClass()),
     try:
@@ -226,7 +226,7 @@ def variableNameFromIdOrKey(view):
     var = view.variableNameFromId()
     if options[CulebraOptions.USE_DICTIONARY]:
         return '%sviews[\'%s\']' % (
-        prefix, notNull(dictionaryKeyFrom(options[CulebraOptions.DICTIONARY_KEYS_FROM], view), var))
+            prefix, notNull(dictionaryKeyFrom(options[CulebraOptions.DICTIONARY_KEYS_FROM], view), var))
     else:
         return var
 
@@ -293,7 +293,7 @@ You have to set PYTHONIOENCODING environment variable. For example:
             if options[CulebraOptions.MULTI_DEVICE]:
                 logAction(u'long touch view with text=%s on ${serialno}' % text)
                 print u'%s[_vc.findViewWithTextOrRaise(%s%s).longTouch() for _vc in %sallVcs()]' % (
-                indent, text, root, prefix)
+                    indent, text, root, prefix)
             else:
                 logAction(u'long touch view with text=%s' % text)
                 print u'%s%svc.findViewWithTextOrRaise(%s%s).longTouch()' % (indent, prefix, text, root)
@@ -302,7 +302,7 @@ You have to set PYTHONIOENCODING environment variable. For example:
             if options[CulebraOptions.MULTI_DEVICE]:
                 logAction(u'touching view with text=%s on ${serialno}' % text)
                 print u'%s[_vc.findViewWithTextOrRaise(%s%s).touch() for _vc in %sallVcs()]' % (
-                indent, text, root, prefix)
+                    indent, text, root, prefix)
             else:
                 logAction(u'touching view with text=%s' % text)
                 print u'%s%svc.findViewWithTextOrRaise(%s%s).touch()' % (indent, prefix, text, root)
@@ -361,23 +361,23 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
             else:
                 logAction(u'finding view with content-description=%s' % contentDescription)
                 print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (
-                indent, var, prefix, contentDescription)
+                    indent, var, prefix, contentDescription)
         elif op == Operation.LONG_TOUCH_VIEW:
             if options[CulebraOptions.MULTI_DEVICE]:
                 logAction(u'long touch view with content-description=%s on ${serialno}' % contentDescription)
                 # print u'%s[_vc.findViewWithTextOrRaise(%s).touch() for _vc in %sallVcs()]' % (indent, text, root)
                 print u'%s[_vc.findViewWithContentDescriptionOrRaise(%s).longTouch() for _vc in %sallVcs()]' % (
-                indent, contentDescription, prefix)
+                    indent, contentDescription, prefix)
             else:
                 logAction(u'long touch view with content-description=%s' % contentDescription)
                 print u'%s%svc.findViewWithContentDescriptionOrRaise(%s).longTouch()' % (
-                indent, prefix, contentDescription)
+                    indent, prefix, contentDescription)
         elif op == Operation.TOUCH_VIEW:
             if options[CulebraOptions.MULTI_DEVICE]:
                 logAction(u'touching view with content-description=%s on ${serialno}' % contentDescription)
                 # print u'%s[_vc.findViewWithTextOrRaise(%s).touch() for _vc in %sallVcs()]' % (indent, text, root)
                 print u'%s[_vc.findViewWithContentDescriptionOrRaise(%s).touch() for _vc in %sallVcs()]' % (
-                indent, contentDescription, prefix)
+                    indent, contentDescription, prefix)
             else:
                 logAction(u'touching view with content-description=%s' % contentDescription)
                 print u'%s%svc.findViewWithContentDescriptionOrRaise(%s).touch()' % (indent, prefix, contentDescription)
@@ -386,19 +386,19 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print '%s%svc.findViewWithContentDescriptionOrRaise(%s).type(u"%s")' % (
-                indent, prefix, contentDescription, arg)
+                    indent, prefix, contentDescription, arg)
         elif op == Operation.SET_TEXT:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print '%s%svc.findViewWithContentDescriptionOrRaise(%s).setText(u"%s")' % (
-                indent, prefix, contentDescription, arg)
+                    indent, prefix, contentDescription, arg)
         elif op == Operation.TEST:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print '%s%sassertEquals(%svc.findViewWithContentDescriptionOrRaise(%s).getText(), u\'\'\'%s\'\'\')' % (
-                indent, prefix, prefix, contentDescription, arg)
+                    indent, prefix, prefix, contentDescription, arg)
         elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING,
                     Operation.FLING_TO_END]:
             if options[CulebraOptions.MULTI_DEVICE]:
@@ -407,7 +407,7 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
                 commandName = Operation.toCommandName(op)
                 logAction(u'flinging view with content-description=%s %s' % (contentDescription, commandName))
                 print u'%s%svc.findViewWithContentDescriptionOrRaise(%s).uiScrollable.%s()' % (
-                indent, prefix, contentDescription, commandName)
+                    indent, prefix, contentDescription, commandName)
         else:
             error("Invalid operation in %s: %s" % (sys._getframe().f_code.co_name), op)
 
@@ -463,7 +463,7 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             print '%s%sassertEquals(%svc.findViewByIdOrRaise("%s").getText(), u\'\'\'%s\'\'\')' % (
-            indent, prefix, prefix, _id, arg)
+                indent, prefix, prefix, _id, arg)
     elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING,
                 Operation.FLING_TO_END]:
         if options[CulebraOptions.MULTI_DEVICE]:
@@ -721,7 +721,7 @@ def printTakeSnapshot(filename, _format, deviceart, dropshadow, screenglare):
         if deviceart:
             deviceart = '\'%s\'' % deviceart
         print '%s%svc.writeImageToFile(\'%s\', \'%s\', %s, %s, %s)' % (
-        indent, prefix, filename, _format, deviceart, dropshadow, screenglare)
+            indent, prefix, filename, _format, deviceart, dropshadow, screenglare)
 
 
 def traverseAndPrint(view):
@@ -796,13 +796,13 @@ def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, unit, orienta
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             print '%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (
-            indent, prefix, startX, startY, endX, endY, steps)
+                indent, prefix, startX, startY, endX, endY, steps)
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             print '%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (
-            indent, prefix, startX, startY, endX, endY, steps)
+                indent, prefix, startX, startY, endX, endY, steps)
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
 
@@ -848,11 +848,11 @@ def printLongPress(keycode, duration, dev, scancode, repeat):
     if options[CulebraOptions.MULTI_DEVICE]:
         logAction(u'long pressing key=%s on ${serialno}' % keycode)
         print '%s[_d.longPress(\'%s\', duration=%f, dev=\'%s\', scancode=%d, repeat=%d) for _d in %sallDevices()]' % (
-        indent, keycode, duration, dev, scancode, repeat, prefix)
+            indent, keycode, duration, dev, scancode, repeat, prefix)
     else:
         logAction(u'long pressing key=%s' % keycode)
         print '%s%sdevice.longPress(\'%s\', duration=%f, dev=\'%s\', scancode=%d, repeat=%d)' % (
-        indent, prefix, keycode, duration, dev, scancode, repeat)
+            indent, prefix, keycode, duration, dev, scancode, repeat)
 
 
 def printOperation(view, op, *args):
