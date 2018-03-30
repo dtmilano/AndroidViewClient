@@ -28,6 +28,7 @@ import numpy
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
+from com.dtmilano.android.viewclient import ViewClient
 
 __version__ = '15.1.0'
 
@@ -121,6 +122,7 @@ class Operation:
     PRESS_HOME_UI_AUTOMATOR_HELPER = 'press_home_ui_automator_helper'
     PRESS_RECENT_APPS = 'press_recent_apps'
     PRESS_RECENT_APPS_UI_AUTOMATOR_HELPER = 'press_recent_apps_ui_automator_helper'
+    SAY_TEXT = 'say_text'
     SET_TEXT = 'set_text'
     SNAPSHOT = 'snapshot'
     START_ACTIVITY = 'start_activity'
@@ -756,6 +758,12 @@ This is usually installed by python package. Check your distribution details.
         # This is not deleting the text, so appending if there's something
         # v.type(text)
         self.printOperation(v, Operation.TYPE, text)
+
+    def sayText(self, text):
+        if DEBUG:
+            print >> sys.stderr, "sayText('%s')" % text
+        ViewClient.sayText(text)
+        self.printOperation(None, Operation.SAY_TEXT, text)
 
     def touchView(self, v, root=None):
         v.touch()
@@ -1515,8 +1523,8 @@ This is usually installed by python package. Check your distribution details.
                             self.setText(target, text)
                             needToSleep = True
                         elif target.getContentDescription() in ['Voice Search', 'Tap to speak']:
-                            # FIXME: we may have to tap on the view
-                            Concertina.sayRandomText()
+                            self.touchView(target)
+                            self.sayText(Concertina.sayRandomText())
                             time.sleep(5)
                             needToSleep = True
                         elif target.getContentDescription() in ['Ask Alexa']:

@@ -19,6 +19,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 
 '''
+from com.dtmilano.android.concertina import Concertina
 
 __version__ = '15.1.0'
 
@@ -161,6 +162,12 @@ def autoRegexpsHelp():
     for r in CulebraOptions.AUTO_REGEXPS_RES:
         print >> sys.stderr, "\t%s: %s" % (r, CulebraOptions.AUTO_REGEXPS_RES[r].pattern)
     print >> sys.stderr
+    sys.exit(0)
+
+
+def concertinaConfigHelp():
+    print >> sys.stderr, "Default Concertina configuration:"
+    print >> sys.stderr, Concertina.getConcertinaConfigDefault()
     sys.exit(0)
 
 
@@ -535,6 +542,13 @@ def printWake():
         print '%s%svc.device.wake()' % (indent, prefix)
 
 
+def printSay(text):
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        print '%sViewClient.sayText("%s")' % (indent, text)
+
+
 def printPress(keycode):
     '''
     Prints a key press
@@ -863,6 +877,9 @@ def printOperation(view, op, *args):
     if op == Operation.SLEEP:
         printSleep(secs=args[0])
         return
+    elif op == Operation.SAY_TEXT:
+        printSay(text=args[0])
+        return
     elif op == Operation.PRESS:
         printPress(keycode=args[0])
         return
@@ -1000,7 +1017,7 @@ def getWindowOption():
 def printScriptHeader():
     print '''%s
 # -*- coding: utf-8 -*-
-\'\'\'
+"""
 Copyright (C) 2013-2018  Diego Torres Milano
 Created on %s by Culebra v%s
                       __    __    __    __
@@ -1012,7 +1029,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
                                            \_____/--<
 @author: Diego Torres Milano
 @author: Jennifer E. Swofford (ascii art snake)
-\'\'\'
+"""
 
 
 import re
@@ -1178,7 +1195,7 @@ for o, a in optlist:
                 options[CulebraOptions.AUTO_REGEXPS] = CulebraOptions.AUTO_REGEXPS_RES.keys()
                 break
             if r not in CulebraOptions.AUTO_REGEXPS_RES:
-                error("invalid auto regexp: %s\n" % (r))
+                error("invalid auto regexp: %s\n" % r)
                 usage()
         # CulebraOptions.AUTO_REGEPXS implies CulebraOptions.USE_REGEXPS
         options[CulebraOptions.USE_REGEXPS] = True
@@ -1223,6 +1240,8 @@ for o, a in optlist:
         options[CulebraOptions.CONCERTINA] = True
     elif o in ['J', CulebraOptions.CONCERTINA_CONFIG]:
         options[CulebraOptions.CONCERTINA_CONFIG] = a
+        if options[CulebraOptions.CONCERTINA_CONFIG] == 'help':
+            concertinaConfigHelp()
     elif o in ['1', CulebraOptions.INSTALL_APK]:
         options[CulebraOptions.INSTALL_APK] = a
 

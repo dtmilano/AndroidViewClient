@@ -2353,6 +2353,7 @@ class ViewClientOptions:
     COMPRESSED_DUMP = 'compresseddump'
     USE_UIAUTOMATOR_HELPER = 'useuiautomatorhelper'
 
+
 class ViewClient:
     '''
     ViewClient is a I{ViewServer} client.
@@ -2378,6 +2379,11 @@ class ViewClient:
     =========================
     Requires B{Culebra Tester} installed on Android device.
     '''
+
+    osName = platform.system()
+    ''' The OS name. We sometimes need specific behavior. '''
+    isLinux = (osName == 'Linux')
+    isDarwin = (osName == 'Darwin')
 
     imageDirectory = None
     ''' The directory used to store screenshot images '''
@@ -3875,6 +3881,25 @@ You should force ViewServer back-end.''')
             v.setText(text)
             # This is not deleting the text, so appending if there's something
             # v.type(text)
+
+    @staticmethod
+    def sayText(text):
+        if ViewClient.isLinux:
+            if DEBUG:
+                print >> sys.stderr, 'Saying "%s" using festival' % text
+            time.sleep(2)
+            pipe = subprocess.Popen(['/usr/bin/festival'])
+            pipe.communicate('(SayText "%s")' % text)
+            pipe.terminate()
+            time.sleep(5)
+        elif ViewClient.isDarwin:
+            if DEBUG:
+                print >> sys.stderr, 'Saying "%s"' % text
+            time.sleep(2)
+            subprocess.check_call(['/usr/bin/say', text])
+            time.sleep(5)
+        else:
+            print >> sys.stderr, "sayText: Unsupported OS: {}".format(ViewClient.osName)
 
     def getViewIds(self):
         '''

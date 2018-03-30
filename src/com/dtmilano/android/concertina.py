@@ -19,22 +19,15 @@ limitations under the License.
 
 '''
 import json
-import platform
 import random
-import subprocess
-import sys
 
 __author__ = 'diego'
-__version__ = '15.1.0'
+__version__ = '15.1.1'
 
 DEBUG = True
 
 
 class Concertina:
-    osName = platform.system()
-    ''' The OS name. We sometimes need specific behavior. '''
-    isLinux = (osName == 'Linux')
-    isDarwin = (osName == 'Darwin')
 
     PHRASES = {
         "generic": [
@@ -44,8 +37,8 @@ class Concertina:
             "Jennifer Lopez is a Man (only on Tuesday)",
             "That... Is what she said",
             "Make me a sandwich",
-            "King Kongs brother was a Rabbit... Hmmm",
-            "Tuesday, thats when it will all begin",
+            "King Kong's brother was a Rabbit... Hmmm",
+            "Tuesday, that's when it will all begin",
             "Rulers, do they rule the world?",
             "Can a pen write without writing it down.",
             "The iPod is a gigantic hummer",
@@ -238,19 +231,7 @@ class Concertina:
 
     @staticmethod
     def sayRandomText(target=None):
-        text = Concertina.getRandomText(target)
-        if Concertina.isLinux:
-            if DEBUG:
-                print >> sys.stderr, 'Saying "%s" using festival' % text
-            pipe = subprocess.Popen(['/usr/bin/festival'])
-            pipe.communicate('(SayText "%s")' % text)
-            pipe.terminate()
-        elif Concertina.isDarwin:
-            if DEBUG:
-                print >> sys.stderr, 'Saying "%s"' % text
-            # subprocess.check_call(['/usr/bin/say', 'OK Google'])
-            # time.sleep(2)
-            subprocess.check_call(['/usr/bin/say', text])
+        return Concertina.getRandomText(target)
 
     @staticmethod
     def getRandomEmail():
@@ -284,3 +265,7 @@ class Concertina:
             n = float(len(config['views']['classes']))
             config['views']['probabilities'] = [1 / n for _ in config['views']['classes']]
         return config
+
+    @staticmethod
+    def getConcertinaConfigDefault():
+        return json.dumps(Concertina.readConcertinaConfig(None), indent=4, sort_keys=True)

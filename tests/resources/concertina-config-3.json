@@ -18,7 +18,7 @@
     ]
   },
   "views": {
-    "classes": ["android.widget.EditText", "android.widget.Scrollable", ".*"],
-    "probabilities": [0.3, 0.3, 0.4]
+    "classes": ["android.widget.EditText", "android.widget.Scrollable", "android.widget.ImageView", ".*"],
+    "probabilities": [0.0, 0.0, 1.0, 0.0]
     }
 }
