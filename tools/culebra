@@ -19,7 +19,6 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 
 '''
-from com.dtmilano.android.concertina import Concertina
 
 __version__ = '15.1.0'
 
@@ -39,6 +38,7 @@ except:
 
 from com.dtmilano.android.viewclient import ViewClient, ViewClientOptions, View, CulebraOptions
 from com.dtmilano.android.culebron import Culebron, Operation, Unit
+from com.dtmilano.android.concertina import Concertina
 
 DEBUG = False
 USAGE = 'usage: %s [OPTION]... [serialno]'
