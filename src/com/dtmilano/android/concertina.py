@@ -58,7 +58,7 @@ class Concertina:
             "by the light of the street lamp",
             "slippers soaked from the heavy dew",
             "haunted by the oddly familiar musid",
-            "The 'poke' button on facebook is awesome...\nBut I think there should be a 'stab' button...",
+            "The 'poke' button on facebook is awesome...\\\nBut I think there should be a 'stab' button...",
             #
             # Was riding a horse yesterday and fell off. I almost got killed! THANK GOODNESS
             # the Walmart greeter saw what happened and came over and unplugged it.
