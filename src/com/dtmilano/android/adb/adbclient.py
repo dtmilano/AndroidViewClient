@@ -683,7 +683,7 @@ class AdbClient:
         cmd = 'input keyevent %s' % name
         for _ in range(1, repeat):
             cmd += ' %s' % name
-        if DEBUG or True:
+        if DEBUG:
             print >> sys.stderr, "press(%s)" % cmd
         self.shell(cmd)
 
