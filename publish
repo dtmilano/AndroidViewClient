@@ -1,8 +1,9 @@
 #! /bin/bash
 
+set -e
 eval $(grep version setup.py | sed 's/,$//')
 tag="v$version"
 git tag "$tag"
 git push --tags
-python setup.py bdist_egg bdist_wheel --universal
+python2.7 setup.py clean build --executable='/usr/bin/env python2.7' bdist_egg bdist_wheel --universal
 twine upload dist/androidviewclient-${version}-*
