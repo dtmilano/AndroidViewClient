@@ -28,7 +28,6 @@ DEBUG = True
 
 
 class Concertina:
-
     PHRASES = {
         "generic": [
             "Chicken Wings grow on trees",
@@ -198,7 +197,22 @@ class Concertina:
             "Alexa, tell me a wizard joke",
             "Alexa, what's up?",
             "Alexa, what can you do?",
-            "Alexa, show me restaurants in Montreal"
+            "Alexa, show me restaurants in Montreal",
+            "Alexa, what’s the news?",
+            "Alexa, why is Pluto not a planet?",
+            "Alexa, translate ’good morning’ in Japanese.",
+            "Alexa, open TuneIn Live.",
+            "Alexa, what’s your favorite word?",
+            "Alexa, who’s leading the Masters?",
+            "Alexa, play 'Your Song' by Lady Gaga.",
+            "Alexa, set a sleep timer for ten minutes.",
+            "Alexa, who is your favorite poet?",
+            "Alexa, tell me a baseball joke.",
+            "Alexa, read my audiobook.",
+            "Alexa, teach me something.",
+            "Alexa, why is water wet?",
+            "Alexa, how do I set up calling and messaging?",
+            "Alexa, give me a tongue twister.",
         ]
     }
 
@@ -249,6 +263,7 @@ class Concertina:
             config = dict()
         if 'limits' not in config:
             config['limits'] = dict()
+            config['limits']['iterations'] = 100
             config['limits']['maxNoTargetViewsIterations'] = 25
         if 'probabilities' not in config:
             config['probabilities'] = dict()
@@ -261,9 +276,21 @@ class Concertina:
             config['systemKeys']['probabilities'] = [1 / n for _ in config['systemKeys']['keys']]
         if 'views' not in config:
             config['views'] = dict()
-            config['views']['classes'] = ['android.widget.EditText', 'android.widget.Scrollable', '.*']
-            n = float(len(config['views']['classes']))
-            config['views']['probabilities'] = [1 / n for _ in config['views']['classes']]
+            config['views']['selector'] = ['classes', 'contentDescriptions']
+            config['views']['probabilities'] = [0.5, 0.5]
+
+            config['views']['classes'] = dict()
+            config['views']['classes']['regexs'] = ['android.widget.Button', 'android.widget.EditText',
+                                                    'android.widget.Scrollable', '.*']
+            n = float(len(config['views']['classes']['regexs']))
+            config['views']['classes']['probabilities'] = [1 / n for _ in config['views']['classes']['regexs']]
+
+            config['views']['contentDescriptions'] = dict()
+            config['views']['contentDescriptions']['regexs'] = ['.*']
+            n = float(len(config['views']['contentDescriptions']['regexs']))
+            config['views']['contentDescriptions']['probabilities'] = [1 / n for _ in
+                                                                       config['views']['contentDescriptions']['regexs']]
+
         return config
 
     @staticmethod

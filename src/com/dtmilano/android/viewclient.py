@@ -3896,7 +3896,8 @@ You should force ViewServer back-end.''')
             if DEBUG:
                 print >> sys.stderr, 'Saying "%s"' % text
             time.sleep(2)
-            subprocess.check_call(['/usr/bin/say', text])
+            voice = 'Samantha'
+            subprocess.check_call(['/usr/bin/say', '-v', voice, text])
             time.sleep(5)
         else:
             print >> sys.stderr, "sayText: Unsupported OS: {}".format(ViewClient.osName)

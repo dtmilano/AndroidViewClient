@@ -1,4 +1,7 @@
 {
+  "limits": {
+    "iterations": 1
+  },
   "probabilities": {
     "systemKeys": 0,
     "views": 1
@@ -11,14 +14,36 @@
       "MENU"
     ],
     "probabilities": [
-      0.5,
-      0.5,
+      0,
+      0,
       0,
       0
     ]
   },
   "views": {
-    "classes": ["android.widget.EditText", "android.widget.Scrollable", "android.widget.ImageView", ".*"],
-    "probabilities": [0.0, 0.0, 1.0, 0.0]
+    "selector": ["classes", "contentDescriptions"],
+    "probabilities": [0, 1],
+    "classes": {
+      "regexs": [
+        "android.widget.EditText",
+        "android.widget.Scrollable",
+        "android.widget.ImageView",
+        ".*"
+      ],
+      "probabilities": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "contentDescriptions": {
+      "regexs": [
+        "Ask Alexa"
+      ],
+      "probabilities": [
+        1.0
+      ]
     }
+  }
 }

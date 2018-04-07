@@ -30,7 +30,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.viewclient import ViewClient
 
-__version__ = '15.1.2'
+__version__ = '15.2.0'
 
 import sys
 import threading
@@ -280,6 +280,7 @@ This is usually installed by python package. Check your distribution details.
         self.unscaledScreenshot = None
         self.image = None
         self.screenshot = None
+        self.iterations = 0
         self.noTargetViewsCount = 0
         if DEBUG:
             try:
@@ -484,7 +485,7 @@ This is usually installed by python package. Check your distribution details.
     def showSideFrame(self):
         if not self.isSideFrameShown:
             self.sideFrame.grid(row=1, column=2, rowspan=4, sticky=Tkinter.N + Tkinter.S)
-            self.isSideFrameSown = True
+            self.isSideFrameShown = True
         if DEBUG:
             self.printGridInfo()
 
@@ -833,8 +834,7 @@ This is usually installed by python package. Check your distribution details.
                 y = round(y / self.device.display['density'], 2)
             self.printOperation(None, Operation.LONG_TOUCH_POINT, x, y, 2000, self.coordinatesUnit,
                                 self.device.display['orientation'])
-            self.printOperation(None, Operation.SLEEP, 5)
-            time.sleep(5)
+            self.sleep(5)
             self.isLongTouchingPoint = False
             self.takeScreenshotAndShowItOnWindow()
             # self.hideVignette()
@@ -1460,11 +1460,18 @@ This is usually installed by python package. Check your distribution details.
                 if _len > 0:
                     self.noTargetViewsCount = 0
                     views = self.concertinaConfig['views']
-                    _cr = numpy.random.choice(views['classes'], 1, p=views['probabilities'])[0]
+                    selector = numpy.random.choice(views['selector'], 1, p=views['probabilities'])[0]
+                    _regex = numpy.random.choice(views[selector]['regexs'], 1, p=views[selector]['probabilities'])[0]
                     _tvli = []
                     for _i in range(len(self.targetViews)):
-                        if re.match(_cr, self.targetViews[_i].getClass()):
-                            _tvli.append(_i)
+                        if selector == 'classes':
+                            if re.match(_regex, self.targetViews[_i].getClass()):
+                                _tvli.append(_i)
+                        elif selector == 'contentDescriptions':
+                            if re.match(_regex, self.targetViews[_i].getContentDescription()):
+                                _tvli.append(_i)
+                        else:
+                            print >> sys.stderr, "CONCERTINA: unknown selector: {}".format(selector)
                     # i = random.randrange(len(self.targetViews))
                     if _tvli:
                         i = random.choice(_tvli)
@@ -1474,7 +1481,7 @@ This is usually installed by python package. Check your distribution details.
                             print >> sys.stderr, "CONCERTINA: selected", unicode(
                                 target.__smallStr__()), target.getContentDescription()
                             print >> sys.stderr, "CONCERTINA: selected", box
-                            print >> sys.stderr, "CONCERTINA: filter class", _cr
+                            print >> sys.stderr, "CONCERTINA: filter class", _regex
                             print >> sys.stderr, "CONCERTINA: filtered views"
                             for _i in _tvli:
                                 print >> sys.stderr, "CONCERTINA:    view class", self.targetViews[_i].getClass(), \
@@ -1525,16 +1532,16 @@ This is usually installed by python package. Check your distribution details.
                         elif target.getContentDescription() in ['Voice Search', 'Tap to speak']:
                             self.touchView(target)
                             self.sayText(Concertina.sayRandomText())
-                            time.sleep(5)
+                            self.sleep(5)
                             needToSleep = True
                         elif target.getContentDescription() in ['Ask Alexa']:
                             if DEBUG_CONCERTINA:
                                 print >> sys.stderr, "Alexa detected, speaking..."
                             self.touchView(target)
-                            time.sleep(2)
-                            Concertina.sayRandomText('alexa')
+                            self.sleep(2)
+                            self.sayText(Concertina.sayRandomText('alexa'))
                             # alexa might be speaking, so let's wait a bit
-                            time.sleep(15)
+                            self.sleep(15)
                             needToSleep = True
                         elif probabilities['views'] > 0 and random.choice(['SCROLL', 'TOUCH']) == 'SCROLL' and (
                                 isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView'):
@@ -1613,7 +1620,15 @@ This is usually installed by python package. Check your distribution details.
                         print >> sys.stderr, "CONCERTINA: Cannot detect target Views after {} iterations".format(
                             self.noTargetViewsCount)
                         sys.exit(1)
+        if self.iterations >= self.concertinaConfig['limits']['iterations']:
+            print >> sys.stderr, "CONCERTINA: Maximum number of iterations reached"
+            sys.exit(0)
+        self.iterations += 1
         self.window.after(5000 if dontinteract or needToSleep else 0, self.concertinaLoopCallback)
+
+    def sleep(self, s):
+        time.sleep(s)
+        self.printOperation(None, Operation.SLEEP, s)
 
     def getViewContainingPointAndLongTouch(self, x, y):
         # FIXME: this method is almost exactly as getViewContainingPointAndTouch()
