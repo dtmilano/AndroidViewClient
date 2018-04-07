@@ -23,3 +23,7 @@ dist/
 *.iws
 **/.idea/workspace.xml
 **/.idea/tasks.xml
+
+# venv #
+########
+venv/*
