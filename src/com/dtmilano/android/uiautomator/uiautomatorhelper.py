@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.2.0'
+__version__ = '15.2.1'
 
 import json
 import os
@@ -30,6 +30,7 @@ import threading
 
 try:
     import requests
+
     REQUESTS_AVAILABLE = True
 except:
     REQUESTS_AVAILABLE = False
@@ -39,16 +40,18 @@ from com.dtmilano.android.common import obtainAdbPath
 
 __author__ = 'diego'
 
-
 DEBUG = False
 
 lock = threading.Lock()
+
 
 class RunTestsThread(threading.Thread):
     """
     Runs the instrumentation for the specified package in a new thread.
     """
-    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, adbClient=None, testClass=None, testRunner=None):
+
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, adbClient=None,
+                 testClass=None, testRunner=None):
         threading.Thread.__init__(self, group=group, target=target, name=name, verbose=verbose)
         self.adbClient = adbClient
         self.testClass = testClass
@@ -108,8 +111,10 @@ On OSX install
         instrumentation = self.adbClient.shell('pm list instrumentation %s' % self.PACKAGE)
         if not instrumentation:
             raise RuntimeError('The target device does not contain the instrumentation for %s' % self.PACKAGE)
-        if not re.match('instrumentation:%s/%s \(target=%s\)' % (self.TEST_CLASS, self.TEST_RUNNER, self.PACKAGE), instrumentation):
-            raise RuntimeError('The instrumentation found for %s does not match the expected %s/%s' % (self.PACKAGE, self.TEST_CLASS, self.TEST_RUNNER))
+        if not re.match('instrumentation:%s/%s \(target=%s\)' % (self.TEST_CLASS, self.TEST_RUNNER, self.PACKAGE),
+                        instrumentation):
+            raise RuntimeError('The instrumentation found for %s does not match the expected %s/%s' % (
+            self.PACKAGE, self.TEST_CLASS, self.TEST_RUNNER))
         self.adb = self.__whichAdb(adb)
         ''' The adb command '''
         self.osName = platform.system()
@@ -127,7 +132,6 @@ On OSX install
         except RuntimeError, ex:
             self.thread.forceStop()
             raise ex
-
 
     def __connectSession(self):
         if DEBUG:
@@ -156,7 +160,7 @@ On OSX install
         if DEBUG:
             print >> sys.stderr, "UiAutomatorHelper: HEAD", response
             print >> sys.stderr, "UiAutomatorHelper: Releasing lock"
-        #lock.release()
+        # lock.release()
         return session
 
     def __whichAdb(self, adb):
@@ -187,7 +191,6 @@ On OSX install
         self.thread.start()
         if DEBUG:
             print >> sys.stderr, "__runTests: end"
-
 
     def __httpCommand(self, url, params=None, method='GET'):
         if method == 'GET':
@@ -290,7 +293,8 @@ On OSX install
         elif segments:
             params = {'segments': ','.join(str(p) for p in segments), "segmentSteps": segmentSteps}
         else:
-            raise RuntimeError("Cannot determine method invocation from provided parameters. startX and startY or segments must be provided.")
+            raise RuntimeError(
+                "Cannot determine method invocation from provided parameters. startX and startY or segments must be provided.")
         return self.__httpCommand('/UiDevice/swipe', params)
 
     def takeScreenshot(self, scale=1.0, quality=90):
@@ -306,21 +310,24 @@ On OSX install
     #
     def setText(self, uiObject, text):
         # NOTICE: uiObject can receive UiObject or UiObject2
+        element = uiObject.__class__.__name__
+        _f = {'UiObject': '0x%x', 'UiObject2': '%d'}[element]
         params = {'text': text}
-        return self.__httpCommand('/UiObject/0x%x/setText' % uiObject.oid, params)
+        return self.__httpCommand(('/%s/' + _f + '/setText') % (element, uiObject.oid), params)
 
     #
     # UiObject2
     #
     def clickAndWait(self, uiObject2, eventCondition, timeout):
         params = {'eventCondition': eventCondition, 'timeout': timeout}
-        return self.__httpCommand('/UiObject2/%d/clickAndWait' % (uiObject2.oid), params)
+        return self.__httpCommand('/UiObject2/%d/clickAndWait' % uiObject2.oid, params)
 
     def getText(self, uiObject=None):
         # NOTICE: uiObject can receive UiObject or UiObject2
         element = uiObject.__class__.__name__
+        _f = {'UiObject': '0x%x', 'UiObject2': '%d'}[element]
         if uiObject:
-            path = '/%s/%d/getText' % (element, uiObject.oid)
+            path = ('/%s/' + _f + '/getText') % (element, uiObject.oid)
         else:
             raise ValueError("No uiObject or uiObject2 specified")
         response = self.__httpCommand(path, None)
@@ -343,7 +350,7 @@ On OSX install
     #
     # UiScrollable
     #
-    def uiScrollable(self, path, params = None):
+    def uiScrollable(self, path, params=None):
         response = self.__httpCommand('/UiScrollable/' + path, params)
         if DEBUG:
             print >> sys.stderr, "UiAutomatorHelper: uiScrollable: response=", response
@@ -445,11 +452,16 @@ class UiScrollable:
         return self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/flingToEnd', {'maxSwipes': maxSwipes})
 
     def getChildByDescription(self, uiSelector, description, allowScrollSearch):
-        oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByDescription', {'uiSelector': uiSelector, 'contentDescription': description, 'allowScrollSearch': allowScrollSearch})
+        oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByDescription',
+                                                            {'uiSelector': uiSelector,
+                                                             'contentDescription': description,
+                                                             'allowScrollSearch': allowScrollSearch})
         return UiObject(self.uiAutomatorHelper, oid, response)
 
     def getChildByText(self, uiSelector, text, allowScrollSearch):
-        oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByText', {'uiSelector': uiSelector, 'text': text, 'allowScrollSearch': allowScrollSearch})
+        oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByText',
+                                                            {'uiSelector': uiSelector, 'text': text,
+                                                             'allowScrollSearch': allowScrollSearch})
         return UiObject(self.uiAutomatorHelper, oid, response)
 
     def setAsHorizontalList(self):

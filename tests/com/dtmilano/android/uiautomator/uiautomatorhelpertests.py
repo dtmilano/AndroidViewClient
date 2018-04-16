@@ -1,10 +1,11 @@
 #! /usr/bin/env python
-from PIL import Image
+# -*- coding: utf-8 -*-
+import cStringIO
+import os
 import random
 import sys
-import os
-import time
-import cStringIO
+
+from PIL import Image
 
 try:
     sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
@@ -13,7 +14,7 @@ except:
 
 
 from com.dtmilano.android.viewclient import ViewClient
-from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper
+from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper, UiObject2
 
 __author__ = 'diego'
 
@@ -21,6 +22,7 @@ import unittest
 
 
 DEBUG = False
+
 
 class UiAutomatorHelperTests(unittest.TestCase):
     def setUp(self):
@@ -75,6 +77,13 @@ class UiAutomatorHelperTests(unittest.TestCase):
         if DEBUG:
             print >> sys.stderr, "response=", response
 
+    def testSetText_UiObject2_Chinese_text(self):
+        # This enters a Reminder using Calendar
+        uio = self.uiAutomatorHelper.findObject(
+            bySelector=u'res@com.google.android.calendar:id/title_edit_text,clazz@android.widget.EditText,text@$Remind me to…,package@com.google.android.calendar')
+        self.assertIsNotNone(uio)
+        self.assertTrue(isinstance(uio, UiObject2))
+        uio.setText(u"提醒我包括中文支持")
 
 
 if __name__ == '__main__':
