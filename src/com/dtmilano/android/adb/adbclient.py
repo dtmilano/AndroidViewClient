@@ -22,7 +22,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '15.1.2'
+__version__ = '15.2.0'
 
 import sys
 import warnings
