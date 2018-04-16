@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '15.1.2'
+__version__ = '15.2.0'
 
 import ast
 import getopt
@@ -75,7 +75,7 @@ OPTS_HELP = {
     'H': 'prints this help',
     'V': 'verbose comments',
     'I': 'ignore secure device',
-    'F': 'force view server use (even if UiAutomator present:w)',
+    'F': 'force view server use (even if UiAutomator present)',
     'S': 'don\'t start ViewServer',
     'k': 'don\'t ignore UiAutomator killed',
     'w': 'dump WINDOW content (default: -1, all windows)',
@@ -218,6 +218,9 @@ if options[DO_NOT_DUMP_VIEWS]:
     transform = MAP[DO_NOT_DUMP_VIEWS]
 
 vc = ViewClient(*ViewClient.connectToDeviceOrExit(**kwargs1), **kwargs2)
+if options[WINDOW] == 'list':
+    vc.list()
+    sys.exit(0)
 if options[SAVE_SCREENSHOT]:
     vc.device.reconnect = True  # (not options[DO_NOT_DUMP_VIEWS])
     ext = os.path.splitext(options[SAVE_SCREENSHOT])[1][1:].upper()

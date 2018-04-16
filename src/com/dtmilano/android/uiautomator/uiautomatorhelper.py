@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.1.2'
+__version__ = '15.1.3'
 
 import json
 import os
@@ -305,8 +305,9 @@ On OSX install
     # UiObject
     #
     def setText(self, uiObject, text):
+        # NOTICE: uiObject can receive UiObject or UiObject2
         params = {'text': text}
-        return self.__httpCommand('/UiObject/0x%x/setText' % (uiObject.oid), params)
+        return self.__httpCommand('/UiObject/0x%x/setText' % uiObject.oid, params)
 
     #
     # UiObject2
@@ -315,11 +316,11 @@ On OSX install
         params = {'eventCondition': eventCondition, 'timeout': timeout}
         return self.__httpCommand('/UiObject2/%d/clickAndWait' % (uiObject2.oid), params)
 
-    def getText(self, uiObject=None, uiObject2=None):
+    def getText(self, uiObject=None):
+        # NOTICE: uiObject can receive UiObject or UiObject2
+        element = uiObject.__class__.__name__
         if uiObject:
-            path = '/UiObject/%d/getText' % (uiObject.oid)
-        elif uiObject2:
-            path = '/UiObject2/%d/getText' % (uiObject2.oid)
+            path = '/%s/%d/getText' % (element, uiObject.oid)
         else:
             raise ValueError("No uiObject or uiObject2 specified")
         response = self.__httpCommand(path, None)
@@ -412,10 +413,14 @@ class UiObject2:
         self.uiAutomatorHelper.longClick(oid=self.oid)
 
     def getText(self):
-        return self.uiAutomatorHelper.getText(uiObject2=self)
+        # NOTICE: even if this is an uiObject2 we are invoking the only "getText" method in UiAutomatorHelper
+        # passing the uiObject2 as uiObject
+        return self.uiAutomatorHelper.getText(uiObject=self)
 
     def setText(self, text):
-        self.uiAutomatorHelper.setText(uiObject2=self, text=text)
+        # NOTICE: even if this is an uiObject2 we are invoking the only "setText" method in UiAutomatorHelper
+        # passing the uiObject2 as uiObject
+        self.uiAutomatorHelper.setText(uiObject=self, text=text)
 
 
 class UiScrollable:
