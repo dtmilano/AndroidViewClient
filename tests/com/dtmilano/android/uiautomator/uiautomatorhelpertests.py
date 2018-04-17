@@ -79,6 +79,7 @@ class UiAutomatorHelperTests(unittest.TestCase):
 
     def testSetText_UiObject2_Chinese_text(self):
         # This enters a Reminder using Calendar
+        # See https://github.com/dtmilano/AndroidViewClient/issues/242
         uio = self.uiAutomatorHelper.findObject(
             bySelector=u'res@com.google.android.calendar:id/title_edit_text,clazz@android.widget.EditText,text@$Remind me to…,package@com.google.android.calendar')
         self.assertIsNotNone(uio)
