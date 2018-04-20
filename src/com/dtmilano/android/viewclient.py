@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.2.1'
+__version__ = '15.2.2'
 
 import sys
 import warnings
@@ -3883,7 +3883,7 @@ You should force ViewServer back-end.''')
             # v.type(text)
 
     @staticmethod
-    def sayText(text):
+    def sayText(text, voice=None):
         if ViewClient.isLinux:
             if DEBUG:
                 print >> sys.stderr, 'Saying "%s" using festival' % text
@@ -3895,8 +3895,9 @@ You should force ViewServer back-end.''')
         elif ViewClient.isDarwin:
             if DEBUG:
                 print >> sys.stderr, 'Saying "%s"' % text
-            time.sleep(2)
-            voice = 'Samantha'
+            time.sleep(1)
+            if not voice:
+                voice = 'Samantha'
             subprocess.check_call(['/usr/bin/say', '-v', voice, text])
             time.sleep(5)
         else:
