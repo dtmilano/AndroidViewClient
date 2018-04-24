@@ -30,7 +30,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.viewclient import ViewClient
 
-__version__ = '15.2.2'
+__version__ = '15.2.3'
 
 import sys
 import threading
