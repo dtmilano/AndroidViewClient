@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.2.2'
+__version__ = '15.2.3'
 
 import sys
 import warnings
@@ -107,7 +107,7 @@ ID_PROPERTY_UI_AUTOMATOR = 'uniqueId'
 TEXT_PROPERTY = 'text:mText'
 TEXT_PROPERTY_API_10 = 'mText'
 TEXT_PROPERTY_UI_AUTOMATOR = 'text'
-WS = u"\xfe" # the whitespace replacement char for TEXT_PROPERTY
+WS = u"\xfe"  # the whitespace replacement char for TEXT_PROPERTY
 TAG_PROPERTY = 'getTag()'
 LEFT_PROPERTY = 'layout:mLeft'
 LEFT_PROPERTY_API_8 = 'mLeft'
@@ -3883,21 +3883,29 @@ You should force ViewServer back-end.''')
             # v.type(text)
 
     @staticmethod
-    def sayText(text, voice=None):
+    def sayText(text, voice=None, verbose=False):
         if ViewClient.isLinux:
+            if verbose:
+                # FIXME: should use Colors, but for now it's fine
+                # print in magenta (35)
+                print "\x1b[{}{}m>> saying: {}\x1b[0m".format(35, '', text)
+            time.sleep(2)
             if DEBUG:
                 print >> sys.stderr, 'Saying "%s" using festival' % text
-            time.sleep(2)
             pipe = subprocess.Popen(['/usr/bin/festival'])
             pipe.communicate('(SayText "%s")' % text)
             pipe.terminate()
             time.sleep(5)
         elif ViewClient.isDarwin:
-            if DEBUG:
-                print >> sys.stderr, 'Saying "%s"' % text
+            if verbose:
+                # FIXME: should use Colors, but for now it's fine
+                # print in magenta (35)
+                print "\x1b[{}{}m>> saying: {}\x1b[0m".format(35, '', text)
             time.sleep(1)
             if not voice:
                 voice = 'Samantha'
+            if DEBUG:
+                print >> sys.stderr, 'Saying "%s" as %s' % (text, voice)
             subprocess.check_call(['/usr/bin/say', '-v', voice, text])
             time.sleep(5)
         else:
