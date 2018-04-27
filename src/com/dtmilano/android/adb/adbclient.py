@@ -300,15 +300,15 @@ class AdbClient:
         if not sock:
             sock = self.socket
         self.checkConnected(sock)
-        if nob is None:
-            nob = int(sock.recv(4), 16)
-        if DEBUG:
-            print >> sys.stderr, "    __receive: receiving", nob, "bytes"
-        recv = bytearray(nob)
-        view = memoryview(recv)
-        nr = 0
         timerId = self.setTimer(timeout=self.timeout, description="recv")
         try:
+            if nob is None:
+                nob = int(sock.recv(4), 16)
+            if DEBUG:
+                print >> sys.stderr, "    __receive: receiving", nob, "bytes"
+            recv = bytearray(nob)
+            view = memoryview(recv)
+            nr = 0
             while nr < nob:
                 l = sock.recv_into(view, len(view))
                 if DEBUG:
