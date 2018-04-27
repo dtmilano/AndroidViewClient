@@ -1,3 +1,4 @@
+# coding=utf-8
 '''
 Copyright (C) 2012-2018  Diego Torres Milano
 Created on Dec 1, 2012
@@ -178,7 +179,7 @@ class AdbClient:
         self.reconnect = reconnect
         self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
 
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
 
         self.checkVersion(ignoreversioncheck)
 
@@ -197,20 +198,22 @@ class AdbClient:
             self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
             self.initDisplayProperties()
 
-    def timeoutHandler(self, timerId):
-        print >> sys.stderr, "TIMEOUT HANDLER", timerId
+    def timeoutHandler(self, timerId, description=None):
+        if DEBUG:
+            print >> sys.stderr, "\nTIMEOUT HANDLER", timerId, ':', description
         self.timers[timerId] = "EXPIRED"
-        raise Timer.TimeoutException("Timer %d has expired" % timerId)
+        raise Timer.TimeoutException("Timer %s has expired" % description)
 
-    def setTimer(self, timeout):
+    def setTimer(self, timeout, description=None):
         """
         Sets a timer.
 
+        :param description:
         :param timeout: timeout in seconds
         :return: the timerId
         """
         self.timerId += 1
-        timer = Timer(timeout, self.timeoutHandler, [self.timerId])
+        timer = Timer(timeout, self.timeoutHandler, (self.timerId, description))
         timer.start()
         self.timers[self.timerId] = timer
         return self.timerId
@@ -275,7 +278,14 @@ class AdbClient:
         else:
             self.checkConnected()
         b = bytearray(msg, 'utf-8')
-        self.socket.send('%04X%s' % (len(b), b))
+        timerId = self.setTimer(timeout=self.timeout, description="send")
+        try:
+            self.socket.send('%04X%s' % (len(b), b))
+        except Exception as ex:
+            raise RuntimeError("Error sending %d bytes" % len(b), ex)
+        finally:
+            self.cancelTimer(timerId)
+
         if checkok:
             self.__checkOk()
         if reconnect:
@@ -297,7 +307,7 @@ class AdbClient:
         recv = bytearray(nob)
         view = memoryview(recv)
         nr = 0
-        timerId = self.setTimer(timeout=self.timeout)
+        timerId = self.setTimer(timeout=self.timeout, description="recv")
         try:
             while nr < nob:
                 l = sock.recv_into(view, len(view))
@@ -308,9 +318,6 @@ class AdbClient:
                 nr += l
                 if self.timers[timerId] == 'EXPIRED':
                     raise Timer.TimeoutException('%d EXPIRED' % timerId)
-        except Timer.TimeoutException, ex:
-            if self.timers[timerId] == 'EXPIRED':
-                raise RuntimeError("Timeout receiving %d bytes (%d received)" % (nob, nr))
         finally:
             self.cancelTimer(timerId)
         if DEBUG:
@@ -323,10 +330,17 @@ class AdbClient:
         if not sock:
             sock = self.socket
         self.checkConnected(sock=sock)
-        timerId = self.setTimer(timeout=self.timeout)
-        recv = sock.recv(4)
+
+        timerId = self.setTimer(timeout=self.timeout, description="checkOK")
+        try:
+            recv = sock.recv(4)
+        finally:
+            self.cancelTimer(timerId)
+
         if DEBUG:
             print >> sys.stderr, "    __checkOk: recv=", repr(recv)
+
+        timerId = self.setTimer(timeout=self.timeout, description="checkOK")
         try:
             if recv != OKAY:
                 error = sock.recv(1024)
@@ -383,15 +397,15 @@ class AdbClient:
             _s = AdbClient.connect(self.hostname, self.port, timeout=5)
             msg = 'host:track-devices'
             b = bytearray(msg, 'utf-8')
+            timerId = self.setTimer(timeout=timeout, description="setTransport")
             try:
-                timerId = self.setTimer(timeout=timeout)
                 _s.send('%04X%s' % (len(b), b))
                 self.__checkOk(sock=_s)
                 # eat '0000'
                 _s.recv(4)
                 found = False
                 while not found:
-                    sys.stderr.write(".")
+                    sys.stderr.write("o")
                     sys.stderr.flush()
                     try:
                         for line in _s.recv(1024).splitlines():
@@ -408,13 +422,12 @@ class AdbClient:
                         pass
                     finally:
                         time.sleep(3)
+                    if DEBUG:
+                        print >> sys.stderr, "Checking if timer %d is EXPIRED:" % timerId, self.timers[timerId]
                     if self.timers[timerId] == "EXPIRED":
                         break
-                self.cancelTimer(timerId)
-            except Timer.TimeoutException as ex:
-                print >> sys.stderr, "EXCEPTION", ex
-                pass
             finally:
+                self.cancelTimer(timerId)
                 _s.close()
                 sys.stderr.write("\n")
                 sys.stderr.flush()
@@ -434,6 +447,8 @@ class AdbClient:
         self.isTransportSet = True
 
     def __checkTransport(self):
+        if DEBUG:
+            print >> sys.stderr, "__checkTransport()"
         if not self.isTransportSet:
             raise RuntimeError("ERROR: Transport is not set")
 
@@ -464,42 +479,41 @@ class AdbClient:
         self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
         return devices
 
-    def shell(self, cmd=None):
-        self.lock.acquire()
-
-        if DEBUG_SHELL:
-            print >> sys.stderr, "shell(cmd=%s)" % cmd
+    def shell(self, _cmd=None):
+        if DEBUG:
+            print >> sys.stderr, "shell(_cmd=%s)" % _cmd
         self.__checkTransport()
-        if cmd:
-            self.__send('shell:%s' % cmd, checkok=True, reconnect=False)
-            chunks = []
-            while True:
-                chunk = None
-                try:
-                    chunk = self.socket.recv(4096)
-                except Exception, ex:
-                    print >> sys.stderr, "ERROR:", ex
-                if not chunk:
-                    break
-                chunks.append(chunk)
-            if self.reconnect:
-                if DEBUG:
-                    print >> sys.stderr, "Reconnecting..."
-                self.close()
-                self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
-                self.__setTransport()
+        #
+        # synchronized
+        #
+        self.lock.acquire()
+        with self.lock:
+            if _cmd:
+                self.__send('shell:%s' % _cmd, checkok=True, reconnect=False)
+                chunks = []
+                while True:
+                    chunk = None
+                    try:
+                        chunk = self.socket.recv(4096)
+                    except Exception as ex:
+                        print >> sys.stderr, "ERROR:", ex
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                if self.reconnect:
+                    if DEBUG:
+                        print >> sys.stderr, "Reconnecting..."
+                    self.close()
+                    self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
+                    self.__setTransport()
 
-            self.lock.release()
-            return ''.join(chunks)
-        else:
-            self.__send('shell:')
-            # sin = self.socket.makefile("rw")
-            # sout = self.socket.makefile("r")
-            # return (sin, sin)
-            sout = adbClient.socket.makefile("r")
-
-            self.lock.release()
-            return sout
+                return ''.join(chunks)
+            else:
+                self.__send('shell:')
+                # sin = self.socket.makefile("rw")
+                # sout = self.socket.makefile("r")
+                # return (sin, sin)
+                return adbClient.socket.makefile("r")
 
     def getRestrictedScreen(self):
         ''' Gets C{mRestrictedScreen} values from dumpsys. This is a method to obtain display dimensions '''
