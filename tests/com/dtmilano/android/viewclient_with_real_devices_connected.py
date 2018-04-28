@@ -40,12 +40,11 @@ class ViewClientTest(unittest.TestCase):
            - emulator-5554
            - emulator-5556
         '''
-        print >> sys.stderr, "path = ", sys.path
         if ViewClientTest.CONNECT_EMULATORS:
-            sys.argv = ['testViewClient_localPort_remotePort', ViewClientTest.serialno1]
+            sys.argv = ['testViewClient_localPort_remotePort', cls.serialno1]
             cls.device1, cls.serialno1 = ViewClient.connectToDeviceOrExit(timeout=30)
 
-            sys.argv = ['testViewClient_localPort_remotePort', ViewClientTest.serialno2]
+            sys.argv = ['testViewClient_localPort_remotePort', cls.serialno2]
             cls.device2, cls.serialno2 = ViewClient.connectToDeviceOrExit(timeout=30)
 
     def setUp(self):
@@ -101,6 +100,7 @@ class ViewClientTest(unittest.TestCase):
 
     def testViewClient_device_disconnected(self):
         # Script gets stuck on ViewClient(device, serial) #243
+        # This cannot run on emulator because we have to disconnect the USB or network
         d, s = ViewClient.connectToDeviceOrExit()
         self.assertIsNotNone(d)
         self.assertIsNotNone(s)

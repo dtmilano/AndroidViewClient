@@ -198,7 +198,7 @@ class AdbClient:
             self.build[VERSION_SDK_PROPERTY] = int(self.__getProp(VERSION_SDK_PROPERTY))
             self.initDisplayProperties()
 
-    def timeoutHandler(self, timerId, description=None):
+    def __timeoutHandler(self, timerId, description=None):
         if DEBUG:
             print >> sys.stderr, "\nTIMEOUT HANDLER", timerId, ':', description
         self.timers[timerId] = "EXPIRED"
@@ -213,7 +213,7 @@ class AdbClient:
         :return: the timerId
         """
         self.timerId += 1
-        timer = Timer(timeout, self.timeoutHandler, (self.timerId, description))
+        timer = Timer(timeout, self.__timeoutHandler, (self.timerId, description))
         timer.start()
         self.timers[self.timerId] = timer
         return self.timerId
