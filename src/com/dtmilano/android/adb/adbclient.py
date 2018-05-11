@@ -374,7 +374,7 @@ class AdbClient:
         # version = self.socket.recv(8, socket.MSG_WAITALL)
         version = self.__readExactly(self.socket, 8)
 
-        VALID_ADB_VERSIONS = ["00040027", "00040024", "00040023", "00040020", "0004001f"]
+        VALID_ADB_VERSIONS = ["00040028", "00040027", "00040024", "00040023", "00040020", "0004001f"]
 
         if not (version in VALID_ADB_VERSIONS) and not ignoreversioncheck:
             raise RuntimeError(
