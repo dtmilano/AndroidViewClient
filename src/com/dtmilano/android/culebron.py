@@ -238,6 +238,9 @@ This is usually installed by python package. Check your distribution details.
         '''
 
         self.vc = vc
+        if 'CONCERTINA' in self.vc.debug:
+            global DEBUG_CONCERTINA
+            DEBUG_CONCERTINA = self.vc.debug['CONCERTINA'] is not None
         self.printOperation = printOperation
         self.device = device
         self.sdkVersion = device.getSdkVersion()

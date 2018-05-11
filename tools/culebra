@@ -39,6 +39,7 @@ except:
 from com.dtmilano.android.viewclient import ViewClient, ViewClientOptions, View, CulebraOptions
 from com.dtmilano.android.culebron import Culebron, Operation, Unit
 from com.dtmilano.android.concertina import Concertina
+from com.dtmilano.android.common import debugArgsToDict
 
 DEBUG = False
 USAGE = 'usage: %s [OPTION]... [serialno]'
@@ -1109,7 +1110,7 @@ progname = os.path.basename(sys.argv[0])
 try:
     optlist, args = getopt.getopt(sys.argv[1:], CulebraOptions.SHORT_OPTS, CulebraOptions.LONG_OPTS)
     sys.argv[1:] = args
-except getopt.GetoptError, e:
+except getopt.GetoptError as e:
     error(str(e))
     usage()
 
@@ -1119,6 +1120,7 @@ kwargs2 = {ViewClientOptions.FORCE_VIEW_SERVER_USE: False, ViewClientOptions.STA
            ViewClientOptions.AUTO_DUMP: False, ViewClientOptions.IGNORE_UIAUTOMATOR_KILLED: True,
            ViewClientOptions.COMPRESSED_DUMP: True,
            ViewClientOptions.USE_UIAUTOMATOR_HELPER: False,
+           ViewClientOptions.DEBUG: {},
            }
 options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH_TEXT: True,
            CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION: True,
@@ -1244,6 +1246,8 @@ for o, a in optlist:
             concertinaConfigHelp()
     elif o in ['1', CulebraOptions.INSTALL_APK]:
         options[CulebraOptions.INSTALL_APK] = a
+    elif o in ['X', ViewClientOptions.DEBUG]:
+        kwargs2[ViewClientOptions.DEBUG] = debugArgsToDict(a)
 
 if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[
     CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):

@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.2.4'
+__version__ = '15.3.0'
 
 import sys
 import warnings
@@ -2431,6 +2431,7 @@ class ViewClient:
         self.uiAutomatorHelper = None
         ''' The UiAutomatorHelper '''
 
+        self.debug = debug
         if debug:
             if 'DEVICE' in debug:
                 global DEBUG_DEVICE
@@ -4376,7 +4377,7 @@ class CulebraOptions:
     CONCERTINA_CONFIG = 'concertina-config'
     INSTALL_APK = 'install-apk'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB0hcJ:1:'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB0hcJ:1:X:'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
               DO_NOT_START_VIEW_SERVER,
               DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -4400,6 +4401,7 @@ class CulebraOptions:
               CONCERTINA,
               CONCERTINA_CONFIG + '=',
               INSTALL_APK + '=',
+              'debug' + '=',
               ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
               FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL', FIND_VIEWS_WITH_CONTENT_DESCRIPTION: 'BOOL',
@@ -4412,7 +4414,8 @@ class CulebraOptions:
               SERIALNO: 'LIST',
               DEVICE_ART: 'MODEL',
               CONCERTINA_CONFIG: 'FILENAME',
-              INSTALL_APK: 'FILENAME'}
+              INSTALL_APK: 'FILENAME',
+              'debug': 'LIST',}
     OPTS_HELP = {
             'H': 'prints this help',
             'V': 'verbose comments',
@@ -4450,6 +4453,7 @@ class CulebraOptions:
             'c': 'enable concertina mode (EXPERIMENTAL)',
             'J': 'concertina config file (JSON)',
             '1': 'install APK as precondition (use with -U)',
+            'X': 'debug options',
             }
 
 class CulebraTestCase(unittest.TestCase):

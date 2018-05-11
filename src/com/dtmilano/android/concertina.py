@@ -267,8 +267,8 @@ class Concertina:
             config['limits']['maxNoTargetViewsIterations'] = 25
         if 'probabilities' not in config:
             config['probabilities'] = dict()
-            config['probabilities']['systemKeys'] = 1 / 6
-            config['probabilities']['views'] = 5 / 6
+            config['probabilities']['systemKeys'] = 1 / 6.0
+            config['probabilities']['views'] = 5 / 6.0
         if 'systemKeys' not in config:
             config['systemKeys'] = dict()
             config['systemKeys']['keys'] = ['ENTER', 'BACK', 'HOME', 'MENU']

@@ -20,8 +20,10 @@ limitations under the License.
 
 __version__ = '15.2.4'
 
+import ast
 import os
 import platform
+import re
 
 
 def _nd(name):
@@ -183,3 +185,21 @@ def profileEnd():
     print >> sys.stderr, '.' * 60
     print >> sys.stderr, "STATS:\n", s.getvalue()
     print >> sys.stderr, '.' * 60
+
+
+def debugArgsToDict(a):
+    """
+    Converts a string representation of debug arguments to a dictionary.
+    The string can be of the form
+
+       IDENTIFIER1=val1,IDENTIFIER2=val2
+
+
+     :param a: the argument string
+     :return: the dictionary
+
+    """
+    s = a.replace('+', ' ')
+    s = s.replace('=', ':')
+    s = re.sub(r'([A-Z][A-Z_]+)', r"'\1'", s)
+    return ast.literal_eval('{ ' + s + ' }')
