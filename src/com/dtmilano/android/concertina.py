@@ -233,6 +233,14 @@ class Concertina:
         "abc123",
     ]
 
+    PLACES = [
+        "los angeles",
+        "seattle",
+        "ushuaia",
+        "white horse",
+        "berlin"
+    ]
+
     def __init__(self):
         pass
 
@@ -254,6 +262,10 @@ class Concertina:
     @staticmethod
     def getRandomPassword():
         return random.choice(Concertina.PASSWORDS)
+
+    @staticmethod
+    def getRandomPlace():
+        return random.choice(Concertina.PLACES)
 
     @staticmethod
     def readConcertinaConfig(concertinaConfigFile):

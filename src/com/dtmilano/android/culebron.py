@@ -30,7 +30,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.viewclient import ViewClient
 
-__version__ = '15.3.0'
+__version__ = '15.3.1'
 
 import sys
 import threading
@@ -586,6 +586,7 @@ This is usually installed by python package. Check your distribution details.
             self.printOperation(None, Operation.DUMP, window, dump)
         else:
             dump = []
+        self.dump = dump
         # the root element cannot be deleted from Treeview once added.
         # We have no option but to recreate it
         self.viewTree = ViewTree(self.sideFrame)
@@ -1440,9 +1441,12 @@ This is usually installed by python package. Check your distribution details.
         needToSleep = False
         if not dontinteract:
             if DEBUG_CONCERTINA:
-                print >> sys.stderr, "CONCERTINA: should select one of these targets:"
-                for v in self.targetViews:
-                    print >> sys.stderr, "    ", unicode(v.__tinyStr__()), v.getContentDescription()
+                if len(self.targetViews) > 0:
+                    print >> sys.stderr, "CONCERTINA: should select one of these {} targets:".format(len(self.targetViews))
+                    for v in self.targetViews:
+                        print >> sys.stderr, "    ", unicode(v.__tinyStr__()), v.getContentDescription()
+                else:
+                    print >> sys.stderr, "CONCERTINA: empty target list, nothing to select"
             rand = random.random()
             if DEBUG_CONCERTINA:
                 print >> sys.stderr, "CONCERTINA: random=%f" % rand
@@ -1453,9 +1457,8 @@ This is usually installed by python package. Check your distribution details.
                 k = numpy.random.choice(systemKeys['keys'], 1, p=systemKeys['probabilities'])[0]
                 if DEBUG_CONCERTINA:
                     print >> sys.stderr, "CONCERTINA: system key=" + k
-                # DEBUG ONLY!
-                # print >> sys.stderr, "Not sending key event"
                 self.command(k)
+                self.sleepAndRefreshScreen()
             else:
                 # Right now we have p[systemKeys] + p[views] = 1
                 # Act on views
@@ -1602,32 +1605,45 @@ This is usually installed by python package. Check your distribution details.
                                 if DEBUG_CONCERTINA:
                                     print >> sys.stderr, "CONCERTINA: touchOtherViews probability == 0"
                         if needToSleep:
-                            self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
-                            if DEBUG_CONCERTINA:
-                                print >> sys.stderr, "CONCERTINA: waiting 5 secs"
-                            time.sleep(5)
-                            if DEBUG_CONCERTINA:
-                                print >> sys.stderr, "CONCERTINA: updating window"
-                            self.takeScreenshotAndShowItOnWindow()
+                            self.sleepAndRefreshScreen()
                     else:
                         # _tvli
                         if DEBUG_CONCERTINA:
                             print >> sys.stderr, "CONCERTINA: Filter results in empty target list"
                 else:
-                    # Let's wait to see if some View appear
-                    needToSleep = True
-                    self.noTargetViewsCount += 1
-                    if DEBUG_CONCERTINA:
-                        print >> sys.stderr, "CONCERTINA: No target views", self.noTargetViewsCount
-                    if self.noTargetViewsCount >= self.concertinaConfig['limits']['maxNoTargetViewsIterations']:
-                        print >> sys.stderr, "CONCERTINA: Cannot detect target Views after {} iterations".format(
-                            self.noTargetViewsCount)
-                        sys.exit(1)
+                    # There are many cases where the Views are not touchable/selectable/focusable/etc so they don't
+                    # appear in targetViews, like popups, menus, lisviews, etc. so let's give them a change
+                    if self.dump and probabilities['views'] > 0:
+                        target = random.choice(self.dump)
+                        if DEBUG_CONCERTINA:
+                            print >> sys.stderr, "CONCERTINA: touching non-target view {}".format(target)
+                        self.touchView(target)
+                        self.sleepAndRefreshScreen()
+                        needToSleep = True
+                    else:
+                        # Let's wait to see if some View appear
+                        needToSleep = True
+                        self.noTargetViewsCount += 1
+                        if DEBUG_CONCERTINA:
+                            print >> sys.stderr, "CONCERTINA: No target views", self.noTargetViewsCount
+                        if self.noTargetViewsCount >= self.concertinaConfig['limits']['maxNoTargetViewsIterations']:
+                            print >> sys.stderr, "CONCERTINA: Cannot detect target Views after {} iterations".format(
+                                self.noTargetViewsCount)
+                            sys.exit(1)
         if self.iterations >= self.concertinaConfig['limits']['iterations']:
             print >> sys.stderr, "CONCERTINA: Maximum number of iterations reached"
             sys.exit(0)
         self.iterations += 1
         self.window.after(5000 if dontinteract or needToSleep else 0, self.concertinaLoopCallback)
+
+    def sleepAndRefreshScreen(self):
+        self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
+        if DEBUG_CONCERTINA:
+            print >> sys.stderr, "CONCERTINA: waiting 5 secs"
+        time.sleep(5)
+        if DEBUG_CONCERTINA:
+            print >> sys.stderr, "CONCERTINA: updating window"
+        self.takeScreenshotAndShowItOnWindow()
 
     def sleep(self, s):
         time.sleep(s)
