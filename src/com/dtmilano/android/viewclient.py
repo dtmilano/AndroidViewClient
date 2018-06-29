@@ -2561,7 +2561,7 @@ class ViewClient:
             else:
                 # culebratester Intrumentation running prevents `uiautomator dump` from working correctly, then if we are not
                 # using UiAutomatorHelper let's kill it, just in case
-                subprocess.check_call([self.adb, '-s', self.serialno, 'shell', 'am', 'force-stop', 'com.dtmilano.android.culebratester'])
+                self.device.shell('am force-stop com.dtmilano.android.culebratester')
 
 
         self.uiDevice = UiDevice(self)
