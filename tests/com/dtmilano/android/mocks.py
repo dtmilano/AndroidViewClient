@@ -752,6 +752,15 @@ class MockDevice(object):
             self.viewServer.shutdown()
             #del(self.viewServer)
 
+    def touch(self, x, y, eventType):
+        pass
+
+    def press(self, k, e, repeat=1):
+        pass
+
+    def type(self, text):
+        pass
+
 import sys
 import time
 import select

@@ -7,13 +7,9 @@ Created on Feb 5, 2012
 @author: diego
 '''
 
-import sys
-import os
-import time
-import StringIO
-import unittest
 import exceptions
-import platform
+import os
+import sys
 
 # PyDev sets PYTHONPATH, use it
 try:
@@ -29,7 +25,7 @@ except:
     pass
 
 from com.dtmilano.android.viewclient import *
-from mocks import MockDevice, MockViewServer
+from mocks import MockDevice
 from mocks import DUMP, DUMP_SAMPLE_UI, VIEW_MAP, VIEW_MAP_API_8, VIEW_MAP_API_17, RUNNING, STOPPED, WINDOWS
 
 os_name = platform.system()
@@ -275,6 +271,42 @@ class ViewTest(unittest.TestCase):
     def testIsClickable_api17(self):
         v = View(VIEW_MAP_API_17, MockDevice(), 17)
         self.assertTrue(v.isClickable())
+
+    def testCopyConstructor(self):
+        device = MockDevice()
+        mv = VIEW_MAP_API_17.copy()
+        mv['class'] = u'android.widget.View'
+        v = View(mv, device, 17)
+        self.assertEqual(v.getClass(), u'android.widget.View')
+
+        mt = VIEW_MAP_API_17.copy()
+        mt['class'] = u'android.widget.TextView'
+        t = TextView(mt, device, 17)
+        self.assertEqual(t.getClass(), u'android.widget.TextView')
+
+        me = VIEW_MAP_API_17.copy()
+        me['class'] = u'android.widget.EditText'
+        e = TextView(me, device, 17)
+        self.assertEqual(e.getClass(), u'android.widget.EditText')
+
+        v1 = View.clone(v)
+        self.assertEqual(u'android.widget.View', v1.getClass())
+
+        t1 = TextView.clone(t)
+        self.assertEqual(u'android.widget.TextView', t1.getClass())
+
+        e1 = EditText.clone(e)
+        self.assertEqual(u'android.widget.EditText', e1.getClass())
+
+        t2 = TextView.clone(v)
+        self.assertEqual(u'android.widget.TextView', t2.getClass())
+
+        e2 = EditText.clone(v)
+        self.assertEqual(u'android.widget.EditText', e2.getClass())
+
+        e2.setText("hello")
+
+
 
 class ViewClientTest(unittest.TestCase):
 

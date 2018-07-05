@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.3.1'
+__version__ = '15.4.0'
 
 import sys
 import warnings
@@ -208,6 +208,17 @@ class View:
         '''
 
         return cls(view.map, view.device, view.version, view.forceviewserveruse, view.windowId, view.uiAutomatorHelper)
+
+    @classmethod
+    def clone(cls, view):
+        _map = view.map.copy()
+        # enforce the correct class in the map
+        _map['class'] = cls.getAndroidClassName()
+        return cls(_map, view.device, view.version, view.forceviewserveruse, view.windowId, view.uiAutomatorHelper)
+
+    @classmethod
+    def getAndroidClassName(cls):
+        return 'android.widget.View'
 
     def __init__(self, _map, device, version=-1, forceviewserveruse=False, windowId=None, uiAutomatorHelper=None):
         '''
@@ -1158,12 +1169,18 @@ class TextView(View):
     TextView class.
     '''
 
-    pass
+    @classmethod
+    def getAndroidClassName(cls):
+        return 'android.widget.TextView'
 
 class EditText(TextView):
     '''
     EditText class.
     '''
+
+    @classmethod
+    def getAndroidClassName(cls):
+        return 'android.widget.EditText'
 
     def type(self, text, alreadyTouched=False):
         if not text:
