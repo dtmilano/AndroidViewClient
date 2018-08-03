@@ -486,7 +486,6 @@ class AdbClient:
         #
         # synchronized
         #
-        self.lock.acquire()
         with self.lock:
             if _cmd:
                 self.__send('shell:%s' % _cmd, checkok=True, reconnect=False)
