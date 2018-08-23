@@ -6,7 +6,7 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
-__version__ = '15.4.0'
+__version__ = '15.4.1'
 
 import getopt
 import os
