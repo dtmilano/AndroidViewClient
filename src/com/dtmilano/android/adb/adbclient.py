@@ -103,7 +103,10 @@ class Device:
     def __init__(self, serialno, status, qualifiers=None):
         self.serialno = serialno
         self.status = status
-        self.qualifiers = qualifiers
+        self.qualifiers = qualifiers.split(None) if qualifiers else None
+
+    def has_qualifier(self, qualifier):
+        return self.qualifiers and qualifier in self.qualifiers
 
     def __str__(self):
         return "<<<" + self.serialno + ", " + self.status + ", %s>>>" % self.qualifiers
@@ -434,7 +437,7 @@ class AdbClient:
         if len(devices) == 0:
             raise RuntimeError("ERROR: There are no connected devices")
         for device in devices:
-            if serialnoRE.match(device.serialno):
+            if serialnoRE.match(device.serialno) or device.has_qualifier(self.serialno):
                 found = True
                 break
         if not found:
