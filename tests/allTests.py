@@ -20,8 +20,6 @@ from comm.dtmilano.android.viewclienttests import ViewTest, ViewClientTest
 
 
 if __name__ == "__main__":
-    sys.argv = ['', 'ViewTest.testName']
-    sys.argv = ['allTests', 'AdbClientTests', 'ViewTests', 'ViewClientTests']
     adbClientTestsSuite = unittest.TestLoader().loadTestsFromTestCase(AdbClientTest)
     viewTestsSuite = unittest.TestLoader().loadTestsFromTestCase(ViewTest)
     viewClientTestsSuite = unittest.TestLoader().loadTestsFromTestCase(ViewClientTest)
@@ -29,5 +27,5 @@ if __name__ == "__main__":
     suite.addTest(adbClientTestsSuite)
     suite.addTest(viewTestsSuite)
     suite.addTest(viewClientTestsSuite)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-    pass
+
+    unittest.TextTestRunner(verbosity=3).run(suite)

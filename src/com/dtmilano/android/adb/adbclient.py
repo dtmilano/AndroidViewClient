@@ -72,8 +72,8 @@ try:
 except KeyError:
     PORT = 5037
 
-OKAY = 'OKAY'
-FAIL = 'FAIL'
+OKAY = b'OKAY'
+FAIL = b'FAIL'
 
 UP = 0
 DOWN = 1
@@ -81,7 +81,7 @@ DOWN_AND_UP = 2
 
 TIMEOUT = 15
 
-WIFI_SERVICE = 'wifi'
+WIFI_SERVICE = b'wifi'
 
 # some device properties
 VERSION_SDK_PROPERTY = 'ro.build.version.sdk'
@@ -280,10 +280,11 @@ class AdbClient:
                 self.__setTransport()
         else:
             self.checkConnected()
+
         b = bytearray(msg, 'utf-8')
         timerId = self.setTimer(timeout=self.timeout, description="send")
         try:
-            self.socket.send('%04X%s' % (len(b), b))
+            self.socket.send(b'%04X%s' % (len(b), b))
         except Exception as ex:
             raise RuntimeError("Error sending %d bytes" % len(b), ex)
         finally:
@@ -291,6 +292,7 @@ class AdbClient:
 
         if checkok:
             self.__checkOk()
+
         if reconnect:
             if DEBUG:
                 print("    __send: reconnecting", file=sys.stderr)
@@ -325,7 +327,7 @@ class AdbClient:
             self.cancelTimer(timerId)
         if DEBUG:
             print("    __receive: returning len=", len(recv), file=sys.stderr)
-        return str(recv)
+        return recv.decode('utf-8')
 
     def __checkOk(self, sock=None):
         if DEBUG:
@@ -347,7 +349,7 @@ class AdbClient:
         try:
             if recv != OKAY:
                 error = sock.recv(1024)
-                if error.startswith('0049'):
+                if error.startswith(b'0049'):
                     raise RuntimeError(
                         "ERROR: This computer is unauthorized. Please check the confirmation dialog on your device.")
                 else:
@@ -443,6 +445,7 @@ class AdbClient:
         if not found:
             raise RuntimeError("ERROR: couldn't find device that matches '%s' in %s" % (self.serialno, devices))
         self.serialno = device.serialno
+        
         msg = 'host:transport:%s' % self.serialno
         if DEBUG:
             print("    __setTransport: msg=", msg, file=sys.stderr)
@@ -465,7 +468,8 @@ class AdbClient:
             l = sock.recv_into(view, len(view))
             view = view[l:]
             nb += l
-        return str(_buffer)
+
+        return _buffer.decode('utf-8')
 
     def getDevices(self):
         if DEBUG:
@@ -476,6 +480,7 @@ class AdbClient:
         except RuntimeError as ex:
             print("**ERROR:", ex, file=sys.stderr)
             return None
+
         devices = []
         for line in self.__receive().splitlines():
             devices.append(Device.factory(line))
@@ -496,7 +501,7 @@ class AdbClient:
                 while True:
                     chunk = None
                     try:
-                        chunk = self.socket.recv(4096)
+                        chunk = self.socket.recv(4096).decode('utf-8')
                     except Exception as ex:
                         print("ERROR:", ex, file=sys.stderr)
                     if not chunk:
@@ -694,8 +699,7 @@ class AdbClient:
 
     def press(self, name, eventType=DOWN_AND_UP, repeat=1):
         self.__checkTransport()
-        if isinstance(name, str):
-            name = name.decode('ascii', errors='replace')
+
         cmd = 'input keyevent %s' % name
         for _ in range(1, repeat):
             cmd += ' %s' % name
@@ -972,7 +976,7 @@ class AdbClient:
             normalized = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
             encoded = normalized.replace(' ', '%s')
         else:
-            encoded = str(text)
+            encoded = text.decode('utf-8')
         # FIXME find out which characters can be dangerous,
         # for example not worst idea to escape "
         self.shell('input text "%s"' % encoded)

@@ -2697,7 +2697,6 @@ class ViewClient:
 
         @return: the device and serialno used for the connection
         '''
-
         progname = os.path.basename(sys.argv[0])
         if serialno is None:
             # eat all the extra options the invoking script may have added
@@ -3207,7 +3206,7 @@ class ViewClient:
             # is raised
             transform = ViewClient.TRAVERSE_CIT
 
-        if type(root) == bytes and root == "ROOT":
+        if root == "ROOT":
             root = self.root
 
         return ViewClient.__traverse(root, indent, transform, stream)
@@ -3296,7 +3295,6 @@ class ViewClient:
                 if DEBUG_UI_AUTOMATOR:
                     print("executing '%s'" % cmd, file=sys.stderr)
                 received = self.device.shell(cmd)
-                received = str(received, encoding='utf-8', errors='replace')
             if not received:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             if DEBUG:
@@ -3494,7 +3492,7 @@ You should force ViewServer back-end.''')
         if not root:
             return None
 
-        if type(root) == bytes and root == "ROOT":
+        if root == "ROOT":
             return self.findViewById(viewId, self.root, viewFilter)
 
         if root.getId() == viewId:
@@ -3571,7 +3569,7 @@ You should force ViewServer back-end.''')
             print("ERROR: no root, did you forget to call dump()?", file=sys.stderr)
             return matchingViews
 
-        if type(root) == bytes and root == "ROOT":
+        if root == "ROOT":
             root = self.root
 
         if DEBUG: print("__findViewWithAttributeInTree: type val=", type(val), file=sys.stderr)
@@ -3609,7 +3607,7 @@ You should force ViewServer back-end.''')
             print("ERROR: no root, did you forget to call dump()?", file=sys.stderr)
             return None
 
-        if type(root) == bytes and root == "ROOT":
+        if root == "ROOT":
             root = self.root
 
         if DEBUG: print("__findViewWithAttributeInTree: type val=", type(val), file=sys.stderr)
@@ -3658,7 +3656,7 @@ You should force ViewServer back-end.''')
             print("ERROR: no root, did you forget to call dump()?", file=sys.stderr)
             return None
 
-        if type(root) == bytes and root == "ROOT":
+        if root == "ROOT":
             root = self.root
 
         if DEBUG: print("__findViewWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (root.__smallStr__(), attr, regex), file=sys.stderr)
