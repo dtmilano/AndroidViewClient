@@ -114,8 +114,8 @@ def obtainAdbPath():
     if exeFile:
         return exeFile
 
-    ANDROID_HOME = os.environ['ANDROID_HOME'] if os.environ.has_key('ANDROID_HOME') else '/opt/android-sdk'
-    HOME = os.environ['HOME'] if os.environ.has_key('HOME') else ''
+    ANDROID_HOME = os.environ['ANDROID_HOME'] if 'ANDROID_HOME' in os.environ else '/opt/android-sdk'
+    HOME = os.environ['HOME'] if 'HOME' in os.environ else ''
 
     possibleChoices = [os.path.join(ANDROID_HOME, 'platform-tools', adb),
                        os.path.join(HOME, "android", 'platform-tools', adb),
@@ -156,7 +156,7 @@ def obtainAdbPath():
         if not FORCE_FAIL and exeFile is not None and os.access(exeFile, os.X_OK if not isWindows else os.F_OK):
             return exeFile
 
-    if not os.environ.has_key('ANDROID_HOME'):
+    if 'ANDROID_HOME' not in os.environ:
         helpMsg = 'Did you forget to set ANDROID_HOME in the environment?'
     else:
         helpMsg = ''
@@ -177,14 +177,14 @@ def profileStart():
 
 def profileEnd():
     profile.disable()
-    import StringIO, pstats
+    import io, pstats
     import sys
-    s = StringIO.StringIO()
+    s = io.StringIO()
     ps = pstats.Stats(profile, stream=s).sort_stats('cumulative')
     ps.print_stats()
-    print >> sys.stderr, '.' * 60
-    print >> sys.stderr, "STATS:\n", s.getvalue()
-    print >> sys.stderr, '.' * 60
+    print('.' * 60, file=sys.stderr)
+    print("STATS:\n", s.getvalue(), file=sys.stderr)
+    print('.' * 60, file=sys.stderr)
 
 
 def debugArgsToDict(a):

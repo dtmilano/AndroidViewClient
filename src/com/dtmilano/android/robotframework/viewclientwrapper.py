@@ -48,7 +48,7 @@ class ViewClientWrapper:
         self.vc = ViewClient(device, serialno)
         self.device = device
         if DEBUG:
-            print >> sys.stderr, "ViewClientWrapper: connected to", device, serialno
+            print("ViewClientWrapper: connected to", device, serialno, file=sys.stderr)
 
     def dump(self):
         """Dumps window hierarchy."""

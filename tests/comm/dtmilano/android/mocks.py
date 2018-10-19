@@ -128,7 +128,7 @@ VIEW_MAP = {'padding:mUserPaddingRight': '12', 'drawing:getSolidColor()': '0', '
 
 VIEW_MAP_API_8 = {'padding:mUserPaddingRight': '12', 'drawing:getSolidColor()': '0', 'getFilterTouchesWhenObscured()': 'false', 'drawing:isOpaque()': 'false', 'mPrivateFlags_DRAWING_CACHE_INVALID': '0x0', 'focus:isFocusable()': 'true', 'mSystemUiVisibility': '0', 'isSoundEffectsEnabled()': 'true', 'layout:layout_width': 'MATCH_PARENT', 'layout:getWidth()': '1140', 'drawing:isDrawingCacheEnabled()': 'false', 'mPrivateFlags_DRAWN': '0x20', 'text:getSelectionEnd()': '-1', 'getTag()': 'null', 'getEllipsize()': 'null', 'focus:hasFocus()': 'false', 'layout:getResolvedLayoutDirection()': 'RESOLVED_DIRECTION_LTR', 'measurement:mMinWidth': '64', 'padding:mUserPaddingEnd': '-1', 'isFocusableInTouchMode()': 'false', 'text:mTextDirection': 'INHERIT', 'isHovered()': 'false', 'layout:layout_leftMargin': '50', 'layout:layout_endMargin': '-2147483648', 'padding:mPaddingBottom': '4', 'measurement:mMeasuredHeight': '48', 'layout:getLayoutDirection()': 'INHERIT', 'layout:mBottom': '364', 'mSystemUiVisibility_SYSTEM_UI_FLAG_VISIBLE': '0x0', 'layout:layout_startMargin': '-2147483648', 'class': 'android.widget.ToggleButton', 'text:mText': 'Button with ID', 'padding:mPaddingRight': '12', 'mPrivateFlags': '-2130704336', 'layout:layout_bottomMargin': '10', 'layout:layout_height': 'WRAP_CONTENT', 'uniqueId': 'id/button_with_id', 'focus:isFocused()': 'false', 'measurement:mMeasuredWidth': '1140', 'padding:mUserPaddingRelative': 'false', 'text:getSelectionStart()': '-1', 'mViewFlags': '-1744814079', 'isClickable()': 'true', 'getScrollBarStyle()': 'INSIDE_OVERLAY', 'layout:layout_rightMargin': '50', 'padding:mUserPaddingLeft': '12', 'oid': 'b4781818', 'layout:getBaseline()': '29', 'isEnabled()': 'true', 'isChecked()': 'false', 'drawing:mLayerType': 'NONE', 'drawing:willNotDraw()': 'false', 'layout:mRight': '1190', 'drawing:willNotCacheDrawing()': 'false', 'mTop': '316', 'isHapticFeedbackEnabled()': 'true', 'getVisibility()': 'VISIBLE', 'scrolling:mScrollX': '0', 'text:mResolvedTextDirection': 'FIRST_STRONG', 'isInTouchMode()': 'true', 'padding:mPaddingTop': '4', 'layout:layout_weight': '0.0', 'measurement:mMinHeight': '48', 'mID': 'id/button_with_id', 'layout:layout_topMargin': '50', 'padding:mUserPaddingStart': '-1', 'padding:mPaddingLeft': '12', 'isSelected()': 'false', 'isActivated()': 'false', 'padding:mUserPaddingBottom': '4', 'layout:layout_gravity': 'NONE', 'mLeft': '50', 'layout:isLayoutRtl()': 'false', 'layout:getHeight()': '48', 'scrolling:mScrollY': '0'}
 
-VIEW_MAP_API_17 = {u'clickable': u'true', u'bounds': ((323, 725), (475, 881)), u'enabled': u'true', 'uniqueId': 'id/no_id/33', u'text': u'6', u'selected': u'false', u'scrollable': u'false', u'focused': u'false', u'long-clickable': u'false', u'class': u'android.widget.Button', u'focusable': u'true', u'content-desc': u'', u'package': u'com.android.calculator2', u'checked': u'false', u'password': u'false', u'checkable': u'false', u'index': u'2'}
+VIEW_MAP_API_17 = {'clickable': 'true', 'bounds': ((323, 725), (475, 881)), 'enabled': 'true', 'uniqueId': 'id/no_id/33', 'text': '6', 'selected': 'false', 'scrollable': 'false', 'focused': 'false', 'long-clickable': 'false', 'class': 'android.widget.Button', 'focusable': 'true', 'content-desc': '', 'package': 'com.android.calculator2', 'checked': 'false', 'password': 'false', 'checkable': 'false', 'index': '2'}
 
 DUMPSYS_WINDOW_PARTIAL = '''
 
@@ -684,7 +684,7 @@ class MockDevice(object):
         self.viewServer = "WHAT?"
         if startviewserver:
             if DEBUG:
-                print >> sys.stderr, "\n**** Starting ViewServer... ****", self
+                print("\n**** Starting ViewServer... ****", self, file=sys.stderr)
             self.viewServer = MockViewServer()
         else:
             self.viewServer = None
@@ -741,14 +741,14 @@ class MockDevice(object):
 
     def shutdownMockViewServer(self):
         if DEBUG:
-            print >> sys.stderr, "MockDevice.shutdownMockViewServer()", self,
+            print("MockDevice.shutdownMockViewServer()", self, end=' ', file=sys.stderr)
             try:
-                print >> sys.stderr, "viewServer=", self.viewServer
+                print("viewServer=", self.viewServer, file=sys.stderr)
             except:
-                print >> sys.stderr, "NO VIEWSERVER !!!!", dir(self)
+                print("NO VIEWSERVER !!!!", dir(self), file=sys.stderr)
         if self.viewServer:
             if DEBUG:
-                print >> sys.stderr, "    shutdownMockViewServer: shutting down ViewServer"
+                print("    shutdownMockViewServer: shutting down ViewServer", file=sys.stderr)
             self.viewServer.shutdown()
             #del(self.viewServer)
 
@@ -767,20 +767,20 @@ import select
 #from select import cpython_compatible_select as select
 import threading
 import socket
-import SocketServer
+import socketserver
 
 
 class MockViewServer():
     HOST, PORT = "localhost", 4939
 
-    class MockViewServerHandler(SocketServer.BaseRequestHandler):
+    class MockViewServerHandler(socketserver.BaseRequestHandler):
         def handle(self):
             if DEBUG:
-                print >>sys.stderr, "MockViewServerHandler: handling request (self=%s)" % self
+                print("MockViewServerHandler: handling request (self=%s)" % self, file=sys.stderr)
             # self.request is the TCP socket connected to the client
             self.data = self.request.recv(1024).strip()
             if DEBUG:
-                print >>sys.stderr, "MockViewServerHandler: data='%s'" % self.data
+                print("MockViewServerHandler: data='%s'" % self.data, file=sys.stderr)
             if self.data == 'SHUTDOWN':
                 self.running = False
                 return
@@ -803,26 +803,26 @@ class MockViewServer():
 
         def run(self):
             if DEBUG:
-                print >> sys.stderr, "ServerThread: serving running=", self.running
+                print("ServerThread: serving running=", self.running, file=sys.stderr)
             # In 2.5 serve_forever() never exits and there's no way of stopping the server
             #self.server.serve_forever(self.pollInterval)
             while self.running:
                 if DEBUG:
-                    print >> sys.stderr, "ServerThread: polling (self=%s)" % self
+                    print("ServerThread: polling (self=%s)" % self, file=sys.stderr)
                 r, w, e = select.select([self.server], [], [], self.pollInterval)
                 if r:
                     if self.server:
                         try:
                             self.server.handle_request()
                         except:
-                            print >> sys.stderr, "ServerThread: the socket may have been closed"
+                            print("ServerThread: the socket may have been closed", file=sys.stderr)
 
 
     def __init__(self, host=HOST, port=PORT):
         # Create the server, binding to localhost on port
         if DEBUG:
-            print >>sys.stderr, "MockViewServer: starting server on host=%s port=%s" % (host, port)
-        self.server = SocketServer.TCPServer((host, port), MockViewServer.MockViewServerHandler)
+            print("MockViewServer: starting server on host=%s port=%s" % (host, port), file=sys.stderr)
+        self.server = socketserver.TCPServer((host, port), MockViewServer.MockViewServerHandler)
         self.server.socket.setblocking(0)
         self.host = host
         self.port = port
@@ -835,16 +835,16 @@ class MockViewServer():
 
     def shutdown(self):
         if DEBUG:
-            print >> sys.stderr, "**** MockViewServer.shutdown() ****"
+            print("**** MockViewServer.shutdown() ****", file=sys.stderr)
         try:
             self.server.socket.shutdown(socket.SHUT_RDWR)
             #if DEBUG:
             #    print >> sys.stderr, "    shutdown: shutting down the server, serve_forever() should exit"
             #self.server.shutdown()
             if DEBUG:
-                print >> sys.stderr, "    shutdown: DONE"
-        except Exception, ex:
-            print >> sys.stderr, "ERROR", ex
+                print("    shutdown: DONE", file=sys.stderr)
+        except Exception as ex:
+            print("ERROR", ex, file=sys.stderr)
             pass
         self.serverThread.running = False
         #self.server.socket.shutdown(socket.SHUT_RDWR)

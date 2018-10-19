@@ -26,5 +26,5 @@ from com.dtmilano.android.viewclient import View, TextView, EditText, ViewClient
 
 # Script gets stuck on ViewClient(device, serial) #243
 d, s = ViewClient.connectToDeviceOrExit()
-raw_input('\n** Disconnect the device now and press <ENTER>')
+input('\n** Disconnect the device now and press <ENTER>')
 device = ViewClient(d, s)

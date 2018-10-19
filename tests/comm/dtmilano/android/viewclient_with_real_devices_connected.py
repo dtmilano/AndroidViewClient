@@ -60,15 +60,15 @@ class ViewClientTest(unittest.TestCase):
     def testConnectToDeviceOrExit_none(self):
         sys.argv = ['VIEWCLIENT']
         device, serialno = ViewClient.connectToDeviceOrExit()
-        self.assertNotEquals(None, device)
-        self.assertNotEquals(None, serialno)
+        self.assertNotEqual(None, device)
+        self.assertNotEqual(None, serialno)
 
     def testConnectToDeviceOrExit_emulator_5556(self):
         if ViewClientTest.CONNECT_EMULATORS:
             sys.argv = ['VIEWCLIENT', 'emulator-5556']
             device, serialno = ViewClient.connectToDeviceOrExit()
-            self.assertNotEquals(None, device)
-            self.assertNotEquals(None, serialno)
+            self.assertNotEqual(None, device)
+            self.assertNotEqual(None, serialno)
 
     #    @unittest.skip("until multiple devices could be connected")
     #    def testViewClient_localPort_remotePort(self):
@@ -84,7 +84,7 @@ class ViewClientTest(unittest.TestCase):
         if ViewClientTest.CONNECT_EMULATORS:
             localPort1 = 9005
             remotePort1 = 9006
-            print "Conencting to", remotePort1
+            print("Conencting to", remotePort1)
             vc1 = ViewClient(device=ViewClientTest.device1, serialno=ViewClientTest.serialno1,
                              localport=localPort1, remoteport=remotePort1, autodump=True)
             self.assertTrue(vc1.getRoot() is not None)
@@ -92,7 +92,7 @@ class ViewClientTest(unittest.TestCase):
 
             localPort2 = 9007
             remotePort2 = 9008
-            print "Conencting to", remotePort2
+            print("Conencting to", remotePort2)
             vc2 = ViewClient(device=ViewClientTest.device2, serialno=ViewClientTest.serialno2,
                              localport=localPort2, remoteport=remotePort2, autodump=True)
             self.assertTrue(vc2.getRoot() is not None)
@@ -104,7 +104,7 @@ class ViewClientTest(unittest.TestCase):
         d, s = ViewClient.connectToDeviceOrExit()
         self.assertIsNotNone(d)
         self.assertIsNotNone(s)
-        raw_input('\n** Disconnect the device now and press <ENTER>')
+        input('\n** Disconnect the device now and press <ENTER>')
         device = ViewClient(d, s)
         self.assertIsNotNone(device)
 

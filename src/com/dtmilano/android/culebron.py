@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 
 '''
-import StringIO
+import io
 import random
 import re
 import time
@@ -50,13 +50,13 @@ except:
     PIL_AVAILABLE = False
 
 try:
-    import Tkinter
-    import tkSimpleDialog
-    import tkFileDialog
-    import tkFont
-    import ScrolledText
-    import ttk
-    from Tkconstants import DISABLED, NORMAL
+    import tkinter
+    import tkinter.simpledialog
+    import tkinter.filedialog
+    import tkinter.font
+    import tkinter.scrolledtext
+    import tkinter.ttk
+    from tkinter.constants import DISABLED, NORMAL
 
     TKINTER_AVAILABLE = True
 except:
@@ -143,7 +143,7 @@ class Operation:
 
     @staticmethod
     def toCommandName(operation):
-        return next((cmd for cmd, op in Operation.COMMAND_NAME_OPERATION_MAP.items() if op == operation), None)
+        return next((cmd for cmd, op in list(Operation.COMMAND_NAME_OPERATION_MAP.items()) if op == operation), None)
 
 
 class Culebron:
@@ -249,7 +249,7 @@ This is usually installed by python package. Check your distribution details.
         self.concertina = concertina
         self.concertinaConfig = dict()
         self.concertinaConfigFile = concertinaConfigFile
-        self.window = Tkinter.Tk()
+        self.window = tkinter.Tk()
         try:
             f = resource_filename(Requirement.parse("androidviewclient"),
                                   "share/pixmaps/culebra.png")
@@ -260,13 +260,13 @@ This is usually installed by python package. Check your distribution details.
             self.window.tk.call('wm', 'iconphoto', self.window._w, icon)
         self.mainMenu = MainMenu(self)
         self.window.config(menu=self.mainMenu)
-        self.mainFrame = Tkinter.Frame(self.window)
-        self.placeholder = Tkinter.Frame(self.mainFrame, width=400, height=400, background=Color.LIGHT_GRAY)
+        self.mainFrame = tkinter.Frame(self.window)
+        self.placeholder = tkinter.Frame(self.mainFrame, width=400, height=400, background=Color.LIGHT_GRAY)
         self.placeholder.grid(row=1, column=1, rowspan=4)
-        self.sideFrame = Tkinter.Frame(self.window)
+        self.sideFrame = tkinter.Frame(self.window)
         self.viewTree = ViewTree(self.sideFrame)
         self.viewDetails = ViewDetails(self.sideFrame)
-        self.mainFrame.grid(row=1, column=1, columnspan=1, rowspan=4, sticky=Tkinter.N + Tkinter.S)
+        self.mainFrame.grid(row=1, column=1, columnspan=1, rowspan=4, sticky=tkinter.N + tkinter.S)
         self.isSideFrameShown = False
         self.isViewTreeShown = False
         self.isViewDetailsShown = False
@@ -292,15 +292,15 @@ This is usually installed by python package. Check your distribution details.
                 pass
 
     def printGridInfo(self):
-        print >> sys.stderr, "window:", repr(self.window)
-        print >> sys.stderr, "main:", repr(self.mainFrame)
-        print >> sys.stderr, "main:", self.mainFrame.grid_info()
-        print >> sys.stderr, "side:", repr(self.sideFrame)
-        print >> sys.stderr, "side:", self.sideFrame.grid_info()
-        print >> sys.stderr, "tree:", repr(self.viewTree)
-        print >> sys.stderr, "tree:", self.viewTree.grid_info()
-        print >> sys.stderr, "details:", repr(self.viewDetails)
-        print >> sys.stderr, "details:", self.viewDetails.grid_info()
+        print("window:", repr(self.window), file=sys.stderr)
+        print("main:", repr(self.mainFrame), file=sys.stderr)
+        print("main:", self.mainFrame.grid_info(), file=sys.stderr)
+        print("side:", repr(self.sideFrame), file=sys.stderr)
+        print("side:", self.sideFrame.grid_info(), file=sys.stderr)
+        print("tree:", repr(self.viewTree), file=sys.stderr)
+        print("tree:", self.viewTree.grid_info(), file=sys.stderr)
+        print("details:", repr(self.viewDetails), file=sys.stderr)
+        print("details:", self.viewDetails.grid_info(), file=sys.stderr)
 
     def takeScreenshotAndShowItOnWindow(self):
         '''
@@ -316,14 +316,14 @@ This is usually installed by python package. Check your distribution details.
         '''
 
         if PROFILE:
-            print >> sys.stderr, "PROFILING: takeScreenshotAndShowItOnWindow()"
+            print("PROFILING: takeScreenshotAndShowItOnWindow()", file=sys.stderr)
             profileStart()
 
         if DEBUG:
-            print >> sys.stderr, "takeScreenshotAndShowItOnWindow()"
+            print("takeScreenshotAndShowItOnWindow()", file=sys.stderr)
         if self.vc and self.vc.uiAutomatorHelper:
             received = self.vc.uiAutomatorHelper.takeScreenshot()
-            stream = StringIO.StringIO(received)
+            stream = io.StringIO(received)
             self.unscaledScreenshot = Image.open(stream)
         else:
             self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
@@ -335,16 +335,16 @@ This is usually installed by python package. Check your distribution details.
             self.image = self.image.resize((scaledWidth, scaledHeight), PIL.Image.ANTIALIAS)
             (width, height) = self.image.size
             if self.isDarwin and 14 < self.sdkVersion < 23:
-                stream = StringIO.StringIO()
+                stream = io.StringIO()
                 self.image.save(stream, 'GIF')
                 import base64
                 gif = base64.b64encode(stream.getvalue())
                 stream.close()
         if self.canvas is None:
             if DEBUG:
-                print >> sys.stderr, "Creating canvas", width, 'x', height
+                print("Creating canvas", width, 'x', height, file=sys.stderr)
             self.placeholder.grid_forget()
-            self.canvas = Tkinter.Canvas(self.mainFrame, width=width, height=height)
+            self.canvas = tkinter.Canvas(self.mainFrame, width=width, height=height)
             self.canvas.focus_set()
             self.enableEvents()
             self.createMessageArea(width, height)
@@ -355,23 +355,23 @@ This is usually installed by python package. Check your distribution details.
             # is used as usual then the result is a completely transparent image and only
             # the "Please wait..." is seen.
             # Converting it to GIF seems to solve the problem
-            self.screenshot = Tkinter.PhotoImage(data=gif)
+            self.screenshot = tkinter.PhotoImage(data=gif)
         else:
             self.screenshot = ImageTk.PhotoImage(self.image)
         if self.imageId is not None:
             self.canvas.delete(self.imageId)
-        self.imageId = self.canvas.create_image(0, 0, anchor=Tkinter.NW, image=self.screenshot)
+        self.imageId = self.canvas.create_image(0, 0, anchor=tkinter.NW, image=self.screenshot)
         if DEBUG:
             try:
-                print >> sys.stderr, "Grid info", self.canvas.grid_info()
+                print("Grid info", self.canvas.grid_info(), file=sys.stderr)
             except:
-                print >> sys.stderr, "Exception getting grid info"
+                print("Exception getting grid info", file=sys.stderr)
         gridInfo = None
         try:
             gridInfo = self.canvas.grid_info()
         except:
             if DEBUG:
-                print >> sys.stderr, "Adding canvas to grid (1,1)"
+                print("Adding canvas to grid (1,1)", file=sys.stderr)
             self.canvas.grid(row=1, column=1, rowspan=4)
         if not gridInfo:
             self.canvas.grid(row=1, column=1, rowspan=4)
@@ -386,10 +386,10 @@ This is usually installed by python package. Check your distribution details.
             profileEnd()
 
     def createMessageArea(self, width, height):
-        self.__message = Tkinter.Label(self.window, text='', background=Color.GOLD, font=('Helvetica', 16),
-                                       anchor=Tkinter.W)
+        self.__message = tkinter.Label(self.window, text='', background=Color.GOLD, font=('Helvetica', 16),
+                                       anchor=tkinter.W)
         self.__message.configure(width=width)
-        self.__messageAreaId = self.canvas.create_window(0, 0, anchor=Tkinter.NW, window=self.__message)
+        self.__messageAreaId = self.canvas.create_window(0, 0, anchor=tkinter.NW, window=self.__message)
         self.canvas.itemconfig(self.__messageAreaId, state='hidden')
         self.isMessageAreaVisible = False
 
@@ -419,7 +419,7 @@ This is usually installed by python package. Check your distribution details.
 
     def toast(self, text, background=None, timeout=5):
         if DEBUG:
-            print >> sys.stderr, "toast(", text, ",", background, ")"
+            print("toast(", text, ",", background, ")", file=sys.stderr)
         self.message(text, background)
         if text:
             t = threading.Timer(timeout, self.hideMessageArea)
@@ -429,10 +429,10 @@ This is usually installed by python package. Check your distribution details.
 
     def createVignette(self, width, height):
         if DEBUG:
-            print >> sys.stderr, "createVignette(%d, %d)" % (width, height)
+            print("createVignette(%d, %d)" % (width, height), file=sys.stderr)
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
                                                        stipple='gray50')
-        font = tkFont.Font(family='Helvetica', size=int(144 * self.scale))
+        font = tkinter.font.Font(family='Helvetica', size=int(144 * self.scale))
         msg = "Please\nwait..."
         self.waitMessageShadowId = self.canvas.create_text(width / 2 + 2, height / 2 + 2, text=msg,
                                                            fill=Color.DARK_GRAY, font=font)
@@ -442,12 +442,12 @@ This is usually installed by python package. Check your distribution details.
 
     def showVignette(self):
         if DEBUG:
-            print >> sys.stderr, "showVignette()"
+            print("showVignette()", file=sys.stderr)
         if self.canvas is None:
             return
         if self.vignetteId:
             if DEBUG:
-                print >> sys.stderr, "    showing vignette"
+                print("    showing vignette", file=sys.stderr)
             # disable events while we are processing one
             self.disableEvents()
             self.canvas.lift(self.vignetteId)
@@ -457,12 +457,12 @@ This is usually installed by python package. Check your distribution details.
 
     def hideVignette(self):
         if DEBUG:
-            print >> sys.stderr, "hideVignette()"
+            print("hideVignette()", file=sys.stderr)
         if self.canvas is None:
             return
         if self.vignetteId:
             if DEBUG:
-                print >> sys.stderr, "    hiding vignette"
+                print("    hiding vignette", file=sys.stderr)
             self.canvas.lift(self.imageId)
             self.canvas.update_idletasks()
             self.enableEvents()
@@ -487,7 +487,7 @@ This is usually installed by python package. Check your distribution details.
 
     def showSideFrame(self):
         if not self.isSideFrameShown:
-            self.sideFrame.grid(row=1, column=2, rowspan=4, sticky=Tkinter.N + Tkinter.S)
+            self.sideFrame.grid(row=1, column=2, rowspan=4, sticky=tkinter.N + tkinter.S)
             self.isSideFrameShown = True
         if DEBUG:
             self.printGridInfo()
@@ -500,7 +500,7 @@ This is usually installed by python package. Check your distribution details.
 
     def showViewTree(self):
         self.showSideFrame()
-        self.viewTree.grid(row=1, column=1, rowspan=3, sticky=Tkinter.N + Tkinter.S)
+        self.viewTree.grid(row=1, column=1, rowspan=3, sticky=tkinter.N + tkinter.S)
         self.isViewTreeShown = True
         if DEBUG:
             self.printGridInfo()
@@ -519,7 +519,7 @@ This is usually installed by python package. Check your distribution details.
         row = 4
         # if self.viewTree.grid_info() != {}:
         #    row += 1
-        self.viewDetails.grid(row=row, column=1, rowspan=1, sticky=Tkinter.S)
+        self.viewDetails.grid(row=row, column=1, rowspan=1, sticky=tkinter.S)
         self.isViewDetailsShown = True
         if DEBUG:
             self.printGridInfo()
@@ -534,7 +534,7 @@ This is usually installed by python package. Check your distribution details.
 
     def viewTreeItemClicked(self, event):
         if DEBUG:
-            print >> sys.stderr, "viewTreeitemClicked:", event.__dict__
+            print("viewTreeitemClicked:", event.__dict__, file=sys.stderr)
         self.unmarkTargets()
         vuid = self.viewTree.viewTree.identify_row(event.y)
         if vuid:
@@ -553,9 +553,9 @@ This is usually installed by python package. Check your distribution details.
         vuid = view.getUniqueId()
         text = view.__smallStr__()
         if view.getParent() is None:
-            self.viewTree.insert('', Tkinter.END, vuid, text=text)
+            self.viewTree.insert('', tkinter.END, vuid, text=text)
         else:
-            self.viewTree.insert(view.getParent().getUniqueId(), Tkinter.END, vuid, text=text, tags=('ttk'))
+            self.viewTree.insert(view.getParent().getUniqueId(), tkinter.END, vuid, text=text, tags=('ttk'))
             self.viewTree.set(vuid, 'T', '*' if view.isTarget() else ' ')
             self.viewTree.tag_bind('ttk', '<1>', self.viewTreeItemClicked)
 
@@ -565,7 +565,7 @@ This is usually installed by python package. Check your distribution details.
         '''
 
         if DEBUG:
-            print >> sys.stderr, "findTargets()"
+            print("findTargets()", file=sys.stderr)
         LISTVIEW_CLASS = 'android.widget.ListView'
         ''' The ListView class name '''
         self.targets = []
@@ -574,7 +574,7 @@ This is usually installed by python package. Check your distribution details.
         ''' The list of target Views '''
         if CHECK_KEYBOARD_SHOWN:
             if self.device.isKeyboardShown():
-                print >> sys.stderr, "#### keyboard is show but handling it is not implemented yet ####"
+                print("#### keyboard is show but handling it is not implemented yet ####", file=sys.stderr)
                 # FIXME: still no windows in uiautomator
                 window = -1
             else:
@@ -592,7 +592,7 @@ This is usually installed by python package. Check your distribution details.
         self.viewTree = ViewTree(self.sideFrame)
         for v in dump:
             if DEBUG:
-                print >> sys.stderr, "    findTargets: analyzing", v.getClass(), v.getId()
+                print("    findTargets: analyzing", v.getClass(), v.getId(), file=sys.stderr)
             if v.getClass() == LISTVIEW_CLASS:
                 # We may want to touch ListView elements, not just the ListView
                 continue
@@ -603,7 +603,7 @@ This is usually installed by python package. Check your distribution details.
                 # or add it if it's touchable, focusable, whatever
                 ((x1, y1), (x2, y2)) = v.getCoords()
                 if DEBUG:
-                    print >> sys.stderr, "appending target", ((x1, y1, x2, y2))
+                    print("appending target", ((x1, y1, x2, y2)), file=sys.stderr)
                 v.setTarget(True)
                 self.targets.append((x1, y1, x2, y2))
                 self.targetViews.append(v)
@@ -616,14 +616,14 @@ This is usually installed by python package. Check your distribution details.
 
     def getViewContainingPointAndGenerateTestCondition(self, x, y):
         if DEBUG:
-            print >> sys.stderr, 'getViewContainingPointAndGenerateTestCondition(%d, %d)' % (x, y)
+            print('getViewContainingPointAndGenerateTestCondition(%d, %d)' % (x, y), file=sys.stderr)
         self.finishGeneratingTestCondition()
         vlist = self.vc.findViewsContainingPoint((x, y))
         vlist.reverse()
         for v in vlist:
             text = v.getText()
             if text:
-                self.toast(u'Asserting view with text=%s' % text, timeout=5)
+                self.toast('Asserting view with text=%s' % text, timeout=5)
                 # FIXME: only getText() is invoked by the generated assert(), a parameter
                 # should be used to provide different alternatives to printOperation()
                 self.printOperation(v, Operation.TEST, text)
@@ -633,35 +633,35 @@ This is usually installed by python package. Check your distribution details.
         if self.vc:
             vlist = self.vc.findViewsContainingPoint((x, y))
             if DEBUG_FIND_VIEW:
-                print >> sys.stderr, "Views found:"
+                print("Views found:", file=sys.stderr)
                 for v in vlist:
-                    print >> sys.stderr, "   ", v.__smallStr__()
+                    print("   ", v.__smallStr__(), file=sys.stderr)
             vlist.reverse()
             for v in vlist:
                 if DEBUG:
-                    print >> sys.stderr, "checking if", v, "is in", self.targetViews
+                    print("checking if", v, "is in", self.targetViews, file=sys.stderr)
                 if v in self.targetViews:
                     if DEBUG_TOUCH:
-                        print >> sys.stderr
-                        print >> sys.stderr, "I guess you are trying to touch:", v
-                        print >> sys.stderr
+                        print(file=sys.stderr)
+                        print("I guess you are trying to touch:", v, file=sys.stderr)
+                        print(file=sys.stderr)
                     return v
 
         return None
 
     def getViewContainingPointAndTouch(self, x, y):
         if DEBUG:
-            print >> sys.stderr, 'getViewContainingPointAndTouch(%d, %d)' % (x, y)
+            print('getViewContainingPointAndTouch(%d, %d)' % (x, y), file=sys.stderr)
         if self.areEventsDisabled:
             if DEBUG:
-                print >> sys.stderr, "Ignoring event"
+                print("Ignoring event", file=sys.stderr)
             self.canvas.update_idletasks()
             return
 
         self.showVignette()
         if DEBUG_POINT:
-            print >> sys.stderr, "getViewsContainingPointAndTouch(x=%s, y=%s)" % (x, y)
-            print >> sys.stderr, "self.vc=", self.vc
+            print("getViewsContainingPointAndTouch(x=%s, y=%s)" % (x, y), file=sys.stderr)
+            print("self.vc=", self.vc, file=sys.stderr)
         v = self.findViewContainingPointInTargets(x, y)
 
         if v is None:
@@ -690,11 +690,11 @@ This is usually installed by python package. Check your distribution details.
                 title = "EditText"
                 kwargs = {}
                 if DEBUG:
-                    print >> sys.stderr, v
+                    print(v, file=sys.stderr)
                 if v.isPassword():
                     title = "Password"
                     kwargs = {'show': '*'}
-                text = tkSimpleDialog.askstring(title, "Enter text to type into this field", **kwargs)
+                text = tkinter.simpledialog.askstring(title, "Enter text to type into this field", **kwargs)
                 self.canvas.focus_set()
                 if text:
                     self.vc.setText(v, text)
@@ -756,7 +756,7 @@ This is usually installed by python package. Check your distribution details.
 
     def setText(self, v, text):
         if DEBUG:
-            print >> sys.stderr, "setText(%s, '%s')" % (v.__tinyStr__(), text)
+            print("setText(%s, '%s')" % (v.__tinyStr__(), text), file=sys.stderr)
         # This is deleting the existing text, which should be asked in the dialog, but I would have to implement
         # the dialog myself
         v.setText(text)
@@ -766,7 +766,7 @@ This is usually installed by python package. Check your distribution details.
 
     def sayText(self, text):
         if DEBUG:
-            print >> sys.stderr, "sayText('%s')" % text
+            print("sayText('%s')" % text, file=sys.stderr)
         ViewClient.sayText(text)
         self.printOperation(None, Operation.SAY_TEXT, text)
 
@@ -787,15 +787,15 @@ This is usually installed by python package. Check your distribution details.
         '''
 
         if DEBUG:
-            print >> sys.stderr, 'touchPoint(%d, %d)' % (x, y)
-            print >> sys.stderr, 'touchPoint:', type(x), type(y)
+            print('touchPoint(%d, %d)' % (x, y), file=sys.stderr)
+            print('touchPoint:', type(x), type(y), file=sys.stderr)
         if self.areEventsDisabled:
             if DEBUG:
-                print >> sys.stderr, "Ignoring event"
+                print("Ignoring event", file=sys.stderr)
             self.canvas.update_idletasks()
             return
         if DEBUG:
-            print >> sys.stderr, "Is touching point:", self.isTouchingPoint
+            print("Is touching point:", self.isTouchingPoint, file=sys.stderr)
         if self.isTouchingPoint:
             self.showVignette()
             if self.vc:
@@ -822,14 +822,14 @@ This is usually installed by python package. Check your distribution details.
         '''
 
         if DEBUG:
-            print >> sys.stderr, 'longTouchPoint(%d, %d)' % (x, y)
+            print('longTouchPoint(%d, %d)' % (x, y), file=sys.stderr)
         if self.areEventsDisabled:
             if DEBUG:
-                print >> sys.stderr, "Ignoring event"
+                print("Ignoring event", file=sys.stderr)
             self.canvas.update_idletasks()
             return
         if DEBUG:
-            print >> sys.stderr, "Is long touching point:", self.isLongTouchingPoint
+            print("Is long touching point:", self.isLongTouchingPoint, file=sys.stderr)
         if self.isLongTouchingPoint:
             self.showVignette()
             self.vc.longTouch(x, y)
@@ -857,11 +857,11 @@ This is usually installed by python package. Check your distribution details.
 
     def onButton1Pressed(self, event):
         if DEBUG:
-            print >> sys.stderr, "onButton1Pressed((", event.x, ", ", event.y, "))"
+            print("onButton1Pressed((", event.x, ", ", event.y, "))", file=sys.stderr)
         (scaledX, scaledY) = (event.x / self.scale, event.y / self.scale)
         if DEBUG:
-            print >> sys.stderr, "    onButton1Pressed: scaled: (", scaledX, ", ", scaledY, ")"
-            print >> sys.stderr, "    onButton1Pressed: is grabbing:", self.isGrabbingTouch
+            print("    onButton1Pressed: scaled: (", scaledX, ", ", scaledY, ")", file=sys.stderr)
+            print("    onButton1Pressed: is grabbing:", self.isGrabbingTouch, file=sys.stderr)
 
         if self.isGrabbingTouch:
             self.onTouchListener((scaledX, scaledY))
@@ -886,7 +886,7 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlButton1Pressed(self, event):
         if DEBUG:
-            print >> sys.stderr, "onCtrlButton1Pressed((", event.x, ", ", event.y, "))"
+            print("onCtrlButton1Pressed((", event.x, ", ", event.y, "))", file=sys.stderr)
         (scaledX, scaledY) = (event.x / self.scale, event.y / self.scale)
         l = self.vc.findViewsContainingPoint((scaledX, scaledY))
         if l and len(l) > 0:
@@ -898,14 +898,14 @@ This is usually installed by python package. Check your distribution details.
 
     def onButton2Pressed(self, event):
         if DEBUG:
-            print >> sys.stderr, "onButton2Pressed((", event.x, ", ", event.y, "))"
+            print("onButton2Pressed((", event.x, ", ", event.y, "))", file=sys.stderr)
         osName = platform.system()
         if osName == 'Darwin':
             self.showPopupMenu(event)
 
     def onButton3Pressed(self, event):
         if DEBUG:
-            print >> sys.stderr, "onButton3Pressed((", event.x, ", ", event.y, "))"
+            print("onButton3Pressed((", event.x, ", ", event.y, "))", file=sys.stderr)
         self.showPopupMenu(event)
 
     def command(self, keycode):
@@ -919,13 +919,13 @@ This is usually installed by python package. Check your distribution details.
 
     def onKeyPressed(self, event):
         if DEBUG_KEY:
-            print >> sys.stderr, "onKeyPressed(", repr(event), ")"
-            print >> sys.stderr, "    event", type(event.char), len(event.char), repr(
-                event.char), "keysym=", event.keysym, "keycode=", event.keycode, event.type, "state=", event.state
-            print >> sys.stderr, "    events disabled:", self.areEventsDisabled
+            print("onKeyPressed(", repr(event), ")", file=sys.stderr)
+            print("    event", type(event.char), len(event.char), repr(
+                event.char), "keysym=", event.keysym, "keycode=", event.keycode, event.type, "state=", event.state, file=sys.stderr)
+            print("    events disabled:", self.areEventsDisabled, file=sys.stderr)
         if self.areEventsDisabled:
             if DEBUG_KEY:
-                print >> sys.stderr, "ignoring event"
+                print("ignoring event", file=sys.stderr)
             self.canvas.update_idletasks()
             return
 
@@ -935,7 +935,7 @@ This is usually installed by python package. Check your distribution details.
         if len(char) == 0 and not (
                 keysym in Culebron.KEYSYM_TO_KEYCODE_MAP or keysym in Culebron.KEYSYM_CULEBRON_COMMANDS):
             if DEBUG_KEY:
-                print >> sys.stderr, "returning because len(char) == 0"
+                print("returning because len(char) == 0", file=sys.stderr)
             return
 
         ###
@@ -977,11 +977,11 @@ This is usually installed by python package. Check your distribution details.
 
         if keysym in Culebron.KEYSYM_TO_KEYCODE_MAP:
             if DEBUG_KEY:
-                print >> sys.stderr, "Pressing", Culebron.KEYSYM_TO_KEYCODE_MAP[keysym]
+                print("Pressing", Culebron.KEYSYM_TO_KEYCODE_MAP[keysym], file=sys.stderr)
             # ALT-F12 is handled as a special case
             if keysym == 'F12' and (event.state == 8 or event.state == 24):
                 if DEBUG_KEY:
-                    print >> sys.stderr, "Special ALT-F12 case"
+                    print("Special ALT-F12 case", file=sys.stderr)
                 for d in ['/dev/input/event2', '/dev/input/event6']:
                     self.device.longPress('MOVE_HOME', duration=0.1, dev=d, scancode=0x700e3, repeat=50)
                     self.printOperation(None, Operation.LONG_PRESS, 'MOVE_HOME', 0.1, d, 0x700e3, 50)
@@ -992,7 +992,7 @@ This is usually installed by python package. Check your distribution details.
         # ALT-M
         elif keysym == 'm' and event.state == 24:
             if DEBUG_KEY:
-                print >> sys.stderr, "Sending MENU"
+                print("Sending MENU", file=sys.stderr)
             self.command('MENU')
         elif char == '':
             # do nothing
@@ -1043,7 +1043,7 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlA(self, event):
         if DEBUG:
-            print >> sys.stderr, "onCtrlA(", event, ")"
+            print("onCtrlA(", event, ")", file=sys.stderr)
         self.printStartActivityAtTop()
 
     def showDragDialog(self):
@@ -1167,18 +1167,18 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlQ(self, event):
         if DEBUG:
-            print >> sys.stderr, "onCtrlQ(%s)" % event
+            print("onCtrlQ(%s)" % event, file=sys.stderr)
         self.quit()
 
     def quit(self):
         if self.vc.uiAutomatorHelper:
             if DEBUG or True:
-                print >> sys.stderr, "Quitting UiAutomatorHelper..."
+                print("Quitting UiAutomatorHelper...", file=sys.stderr)
             self.vc.uiAutomatorHelper.quit()
         self.window.destroy()
 
     def showSleepDialog(self):
-        seconds = tkSimpleDialog.askfloat('Sleep Interval', 'Value in seconds:', initialvalue=1, minvalue=0,
+        seconds = tkinter.simpledialog.askfloat('Sleep Interval', 'Value in seconds:', initialvalue=1, minvalue=0,
                                           parent=self.window)
         if seconds is not None:
             self.printOperation(None, Operation.SLEEP, seconds)
@@ -1210,7 +1210,7 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlT(self, event):
         if DEBUG:
-            print >> sys.stderr, "onCtrlT()"
+            print("onCtrlT()", file=sys.stderr)
         if self.vc is None:
             self.toast('Test conditions can be generated when a back-end is defined')
             return
@@ -1219,11 +1219,11 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlU(self, event):
         if DEBUG:
-            print >> sys.stderr, "onCtrlU()"
+            print("onCtrlU()", file=sys.stderr)
 
     def onCtrlV(self, event):
         if DEBUG:
-            print >> sys.stderr, "onCtrlV()"
+            print("onCtrlV()", file=sys.stderr)
         self.printOperation(None, Operation.TRAVERSE)
 
     def toggleTargetZones(self):
@@ -1232,7 +1232,7 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlZ(self, event):
         if DEBUG:
-            print >> sys.stderr, "onCtrlZ()"
+            print("onCtrlZ()", file=sys.stderr)
         self.toggleTargetZones()
 
     def showControlPanel(self):
@@ -1293,7 +1293,7 @@ This is usually installed by python package. Check your distribution details.
 
     def toggleTargets(self):
         if DEBUG:
-            print >> sys.stderr, "toggletargets: aretargetsmarked=", self.areTargetsMarked
+            print("toggletargets: aretargetsmarked=", self.areTargetsMarked, file=sys.stderr)
         if not self.areTargetsMarked:
             self.markTargets()
         else:
@@ -1301,15 +1301,15 @@ This is usually installed by python package. Check your distribution details.
 
     def markTargets(self):
         if DEBUG:
-            print >> sys.stderr, "marktargets: aretargetsmarked=", self.areTargetsMarked
-            print >> sys.stderr, "    marktargets: targets=", self.targets
+            print("marktargets: aretargetsmarked=", self.areTargetsMarked, file=sys.stderr)
+            print("    marktargets: targets=", self.targets, file=sys.stderr)
         colors = ["#ff00ff", "#ffff00", "#00ffff"]
 
         self.markedTargetIds = {}
         c = 0
         for (x1, y1, x2, y2) in self.targets:
             if DEBUG:
-                print "adding rectangle:", x1, y1, x2, y2
+                print("adding rectangle:", x1, y1, x2, y2)
             self.markTarget(x1, y1, x2, y2, colors[c % len(colors)])
             c += 1
         self.areTargetsMarked = True
@@ -1346,14 +1346,14 @@ This is usually installed by python package. Check your distribution details.
 
     def drawTouchedPoint(self, x, y):
         if DEBUG:
-            print >> sys.stderr, "drawTouchedPoint(", x, ",", y, ")"
+            print("drawTouchedPoint(", x, ",", y, ")", file=sys.stderr)
         size = 50
         return self.canvas.create_oval((x - size) * self.scale, (y - size) * self.scale, (x + size) * self.scale,
                                        (y + size) * self.scale, fill=Color.MAGENTA)
 
     def drawDragLine(self, x0, y0, x1, y1):
         if DEBUG:
-            print >> sys.stderr, "drawDragLine(", x0, ",", y0, ",", x1, ",", y1, ")"
+            print("drawDragLine(", x0, ",", y0, ",", x1, ",", y1, ")", file=sys.stderr)
         width = 15
         return self.canvas.create_line(x0 * self.scale, y0 * self.scale, x1 * self.scale, y1 * self.scale, width=width,
                                        fill=Color.MAGENTA, arrow="last", arrowshape=(50, 50, 30), dash=(50, 25))
@@ -1361,8 +1361,8 @@ This is usually installed by python package. Check your distribution details.
     def executeCommandAndRefresh(self, command):
         self.showVignette()
         if DEBUG:
-            print >> sys.stderr, 'DEBUG: command=', command, command.__name__
-            print >> sys.stderr, 'DEBUG: command=', command.__self__, command.__self__.view
+            print('DEBUG: command=', command, command.__name__, file=sys.stderr)
+            print('DEBUG: command=', command.__self__, command.__self__.view, file=sys.stderr)
         try:
             view = command.__self__.view
         except AttributeError:
@@ -1378,7 +1378,7 @@ This is usually installed by python package. Check your distribution details.
         self.takeScreenshotAndShowItOnWindow()
 
     def changeLanguage(self):
-        code = tkSimpleDialog.askstring("Change language", "Enter the language code")
+        code = tkinter.simpledialog.askstring("Change language", "Enter the language code")
         self.vc.uiDevice.changeLanguage(code)
         self.printOperation(None, Operation.CHANGE_LANGUAGE, code)
         self.refresh()
@@ -1388,7 +1388,7 @@ This is usually installed by python package. Check your distribution details.
 
     def setGrab(self, state):
         if DEBUG:
-            print >> sys.stderr, "Culebron.setGrab(%s)" % state
+            print("Culebron.setGrab(%s)" % state, file=sys.stderr)
         if state and not self.onTouchListener:
             warnings.warn('Starting to grab but no onTouchListener')
         self.isGrabbingTouch = state
@@ -1400,7 +1400,7 @@ This is usually installed by python package. Check your distribution details.
     @staticmethod
     def isClickableCheckableOrFocusable(v):
         if DEBUG_ISCCOF:
-            print >> sys.stderr, "isClickableCheckableOrFocusable(", v.__tinyStr__(), ")"
+            print("isClickableCheckableOrFocusable(", v.__tinyStr__(), ")", file=sys.stderr)
         try:
             if not v.isEnabled():
                 # if not enabled, then it cannot be a target
@@ -1423,7 +1423,7 @@ This is usually installed by python package. Check your distribution details.
 
     def mainloop(self):
         self.window.title("%s v%s" % (Culebron.APPLICATION_NAME, __version__))
-        self.window.resizable(width=Tkinter.FALSE, height=Tkinter.FALSE)
+        self.window.resizable(width=tkinter.FALSE, height=tkinter.FALSE)
         self.window.lift()
         if self.concertina:
             self.concertinaConfig = Concertina.readConcertinaConfig(self.concertinaConfigFile)
@@ -1442,21 +1442,21 @@ This is usually installed by python package. Check your distribution details.
         if not dontinteract:
             if DEBUG_CONCERTINA:
                 if len(self.targetViews) > 0:
-                    print >> sys.stderr, "CONCERTINA: should select one of these {} targets:".format(len(self.targetViews))
+                    print("CONCERTINA: should select one of these {} targets:".format(len(self.targetViews)), file=sys.stderr)
                     for v in self.targetViews:
-                        print >> sys.stderr, "    ", unicode(v.__tinyStr__()), v.getContentDescription()
+                        print("    ", str(v.__tinyStr__()), v.getContentDescription(), file=sys.stderr)
                 else:
-                    print >> sys.stderr, "CONCERTINA: empty target list, nothing to select"
+                    print("CONCERTINA: empty target list, nothing to select", file=sys.stderr)
             rand = random.random()
             if DEBUG_CONCERTINA:
-                print >> sys.stderr, "CONCERTINA: random=%f" % rand
+                print("CONCERTINA: random=%f" % rand, file=sys.stderr)
             probabilities = self.concertinaConfig['probabilities']
             if rand > (1 - probabilities['systemKeys']):
                 # Send key events
                 systemKeys = self.concertinaConfig['systemKeys']
                 k = numpy.random.choice(systemKeys['keys'], 1, p=systemKeys['probabilities'])[0]
                 if DEBUG_CONCERTINA:
-                    print >> sys.stderr, "CONCERTINA: system key=" + k
+                    print("CONCERTINA: system key=" + k, file=sys.stderr)
                 self.command(k)
                 self.sleepAndRefreshScreen()
             else:
@@ -1477,23 +1477,23 @@ This is usually installed by python package. Check your distribution details.
                             if re.match(_regex, self.targetViews[_i].getContentDescription()):
                                 _tvli.append(_i)
                         else:
-                            print >> sys.stderr, "CONCERTINA: unknown selector: {}".format(selector)
+                            print("CONCERTINA: unknown selector: {}".format(selector), file=sys.stderr)
                     # i = random.randrange(len(self.targetViews))
                     if _tvli:
                         i = random.choice(_tvli)
                         target = self.targetViews[i]
                         box = self.targets[i]
                         if DEBUG_CONCERTINA:
-                            print >> sys.stderr, "CONCERTINA: selected", unicode(
-                                target.__smallStr__()), target.getContentDescription()
-                            print >> sys.stderr, "CONCERTINA: selected", box
-                            print >> sys.stderr, "CONCERTINA: filter class", _regex
-                            print >> sys.stderr, "CONCERTINA: filtered views"
+                            print("CONCERTINA: selected", str(
+                                target.__smallStr__()), target.getContentDescription(), file=sys.stderr)
+                            print("CONCERTINA: selected", box, file=sys.stderr)
+                            print("CONCERTINA: filter class", _regex, file=sys.stderr)
+                            print("CONCERTINA: filtered views", file=sys.stderr)
                             for _i in _tvli:
-                                print >> sys.stderr, "CONCERTINA:    view class", self.targetViews[_i].getClass(), \
-                                    self.targetViews[_i].getContentDescription()
+                                print("CONCERTINA:    view class", self.targetViews[_i].getClass(), \
+                                    self.targetViews[_i].getContentDescription(), file=sys.stderr)
                             for _v in self.targetViews:
-                                print >> sys.stderr, "CONCERTINA: view class", _v.getClass()
+                                print("CONCERTINA: view class", _v.getClass(), file=sys.stderr)
                         _id = self.markTarget(*box)
                         self.window.update_idletasks()
                         time.sleep(1)
@@ -1507,11 +1507,11 @@ This is usually installed by python package. Check your distribution details.
                             parentClass = None
                         isScrollable = target.isScrollable()
                         if DEBUG_CONCERTINA:
-                            print >> sys.stderr, "CONCERTINA: class", clazz
-                            print >> sys.stderr, "CONCERTINA: parent", parentClass
-                            print >> sys.stderr, "CONCERTINA: is scrollable: ", isScrollable
+                            print("CONCERTINA: class", clazz, file=sys.stderr)
+                            print("CONCERTINA: parent", parentClass, file=sys.stderr)
+                            print("CONCERTINA: is scrollable: ", isScrollable, file=sys.stderr)
                             if parent:
-                                print >> sys.stderr, "CONCERTINA: is scrollable parent: ", parent.isScrollable()
+                                print("CONCERTINA: is scrollable parent: ", parent.isScrollable(), file=sys.stderr)
                                 # cond = (isScrollable or parent.isScrollable() or parentClass == 'android.widget.ScrollView')
                                 # DEBUG ONLY!
                                 # print >> sys.stderr, "CONCERTINA: check:", cond
@@ -1530,7 +1530,7 @@ This is usually installed by python package. Check your distribution details.
                             else:
                                 text = Concertina.getRandomText()
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, "Entering text: ", text
+                                print("Entering text: ", text, file=sys.stderr)
                             if not text:
                                 raise RuntimeError('text is None')
                             self.setText(target, text)
@@ -1542,7 +1542,7 @@ This is usually installed by python package. Check your distribution details.
                             needToSleep = True
                         elif target.getContentDescription() in ['Ask Alexa']:
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, "Alexa detected, speaking..."
+                                print("Alexa detected, speaking...", file=sys.stderr)
                             self.touchView(target)
                             self.sleep(2)
                             self.sayText(Concertina.sayRandomText('alexa'))
@@ -1557,29 +1557,29 @@ This is usually installed by python package. Check your distribution details.
                                 ((l, t), (r, b)) = target.getBounds()
                             else:
                                 if DEBUG_CONCERTINA:
-                                    print >> sys.stderr, "CONCERTINA: using parent bounds because it's scrollable"
+                                    print("CONCERTINA: using parent bounds because it's scrollable", file=sys.stderr)
                                 ((l, t), (r, b)) = parent.getBounds()
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, "CONCERTINA: bounds=", ((l, t), (r, b))
+                                print("CONCERTINA: bounds=", ((l, t), (r, b)), file=sys.stderr)
                             if random.choice(['VERTICAL', 'HORIZONTAL']) == 'VERTICAL':
                                 if DEBUG_CONCERTINA:
-                                    print >> sys.stderr, 'CONCERTINA: VERTICAL'
+                                    print('CONCERTINA: VERTICAL', file=sys.stderr)
                                 sp = (l + (r - l) / 2, t + 50)
                                 ep = (l + (r - l) / 2, b - 50)
                             else:
                                 if DEBUG_CONCERTINA:
-                                    print >> sys.stderr, 'CONCERTINA: HORIZONTAL'
+                                    print('CONCERTINA: HORIZONTAL', file=sys.stderr)
                                 sp = (l + 50, t + (b - t) / 2)
                                 ep = (r - 50, t + (b - t) / 2)
                             if random.choice(['FORWARD', 'REVERSE']) == 'REVERSE':
                                 if DEBUG_CONCERTINA:
-                                    print >> sys.stderr, 'CONCERTINA: REVERSE'
+                                    print('CONCERTINA: REVERSE', file=sys.stderr)
                                 temp = sp
                                 sp = ep
                                 ep = temp
                             else:
                                 if DEBUG_CONCERTINA:
-                                    print >> sys.stderr, 'CONCERTINA: FORWARD'
+                                    print('CONCERTINA: FORWARD', file=sys.stderr)
                             d = 500
                             s = 20
                             _id = self.canvas.create_rectangle(l * self.scale, t * self.scale, r * self.scale,
@@ -1593,7 +1593,7 @@ This is usually installed by python package. Check your distribution details.
                             self.window.update_idletasks()
                             time.sleep(5)
                             if DEBUG_CONCERTINA:
-                                print >> sys.stderr, "CONCERTINA: dragging %s %s %s %s %s" % (sp, ep, d, s, units)
+                                print("CONCERTINA: dragging %s %s %s %s %s" % (sp, ep, d, s, units), file=sys.stderr)
                             self.drag(sp, ep, d, s, units)
                             needToSleep = True
                         else:
@@ -1603,20 +1603,20 @@ This is usually installed by python package. Check your distribution details.
                             else:
                                 needToSleep = False
                                 if DEBUG_CONCERTINA:
-                                    print >> sys.stderr, "CONCERTINA: touchOtherViews probability == 0"
+                                    print("CONCERTINA: touchOtherViews probability == 0", file=sys.stderr)
                         if needToSleep:
                             self.sleepAndRefreshScreen()
                     else:
                         # _tvli
                         if DEBUG_CONCERTINA:
-                            print >> sys.stderr, "CONCERTINA: Filter results in empty target list"
+                            print("CONCERTINA: Filter results in empty target list", file=sys.stderr)
                 else:
                     # There are many cases where the Views are not touchable/selectable/focusable/etc so they don't
                     # appear in targetViews, like popups, menus, lisviews, etc. so let's give them a change
                     if self.dump and probabilities['views'] > 0:
                         target = random.choice(self.dump)
                         if DEBUG_CONCERTINA:
-                            print >> sys.stderr, "CONCERTINA: touching non-target view {}".format(target)
+                            print("CONCERTINA: touching non-target view {}".format(target), file=sys.stderr)
                         self.touchView(target)
                         self.sleepAndRefreshScreen()
                         needToSleep = True
@@ -1625,13 +1625,13 @@ This is usually installed by python package. Check your distribution details.
                         needToSleep = True
                         self.noTargetViewsCount += 1
                         if DEBUG_CONCERTINA:
-                            print >> sys.stderr, "CONCERTINA: No target views", self.noTargetViewsCount
+                            print("CONCERTINA: No target views", self.noTargetViewsCount, file=sys.stderr)
                         if self.noTargetViewsCount >= self.concertinaConfig['limits']['maxNoTargetViewsIterations']:
-                            print >> sys.stderr, "CONCERTINA: Cannot detect target Views after {} iterations".format(
-                                self.noTargetViewsCount)
+                            print("CONCERTINA: Cannot detect target Views after {} iterations".format(
+                                self.noTargetViewsCount), file=sys.stderr)
                             sys.exit(1)
         if self.iterations >= self.concertinaConfig['limits']['iterations']:
-            print >> sys.stderr, "CONCERTINA: Maximum number of iterations reached"
+            print("CONCERTINA: Maximum number of iterations reached", file=sys.stderr)
             sys.exit(0)
         self.iterations += 1
         self.window.after(5000 if dontinteract or needToSleep else 0, self.concertinaLoopCallback)
@@ -1639,10 +1639,10 @@ This is usually installed by python package. Check your distribution details.
     def sleepAndRefreshScreen(self):
         self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         if DEBUG_CONCERTINA:
-            print >> sys.stderr, "CONCERTINA: waiting 5 secs"
+            print("CONCERTINA: waiting 5 secs", file=sys.stderr)
         time.sleep(5)
         if DEBUG_CONCERTINA:
-            print >> sys.stderr, "CONCERTINA: updating window"
+            print("CONCERTINA: updating window", file=sys.stderr)
         self.takeScreenshotAndShowItOnWindow()
 
     def sleep(self, s):
@@ -1652,17 +1652,17 @@ This is usually installed by python package. Check your distribution details.
     def getViewContainingPointAndLongTouch(self, x, y):
         # FIXME: this method is almost exactly as getViewContainingPointAndTouch()
         if DEBUG:
-            print >> sys.stderr, 'getViewContainingPointAndLongTouch(%d, %d)' % (x, y)
+            print('getViewContainingPointAndLongTouch(%d, %d)' % (x, y), file=sys.stderr)
         if self.areEventsDisabled:
             if DEBUG:
-                print >> sys.stderr, "Ignoring event"
+                print("Ignoring event", file=sys.stderr)
             self.canvas.update_idletasks()
             return
 
         self.showVignette()
         if DEBUG_POINT:
-            print >> sys.stderr, "getViewsContainingPointAndLongTouch(x=%s, y=%s)" % (x, y)
-            print >> sys.stderr, "self.vc=", self.vc
+            print("getViewsContainingPointAndLongTouch(x=%s, y=%s)" % (x, y), file=sys.stderr)
+            print("self.vc=", self.vc, file=sys.stderr)
         v = self.findViewContainingPointInTargets(x, y)
 
         if v is None:
@@ -1698,23 +1698,23 @@ This is usually installed by python package. Check your distribution details.
 
 
 if TKINTER_AVAILABLE:
-    class MainMenu(Tkinter.Menu):
+    class MainMenu(tkinter.Menu):
         def __init__(self, culebron):
-            Tkinter.Menu.__init__(self, culebron.window)
+            tkinter.Menu.__init__(self, culebron.window)
             self.culebron = culebron
 
-            self.fileMenu = Tkinter.Menu(self, tearoff=False)
+            self.fileMenu = tkinter.Menu(self, tearoff=False)
             self.fileMenu.add_command(label="Quit", underline=0, accelerator='Command-Q', command=self.culebron.quit)
             self.add_cascade(label="File", underline=0, menu=self.fileMenu)
 
-            self.viewMenu = Tkinter.Menu(self, tearoff=False)
-            self.showViewTree = Tkinter.BooleanVar()
+            self.viewMenu = tkinter.Menu(self, tearoff=False)
+            self.showViewTree = tkinter.BooleanVar()
             self.showViewTree.set(False)
             state = NORMAL if culebron.vc else DISABLED
             self.viewMenu.add_checkbutton(label="Tree", underline=0, accelerator='Command-T', onvalue=True,
                                           offvalue=False, variable=self.showViewTree, state=state,
                                           command=self.onshowViewTreeChanged)
-            self.showViewDetails = Tkinter.BooleanVar()
+            self.showViewDetails = tkinter.BooleanVar()
             self.showViewDetails.set(False)
             state = NORMAL if culebron.vc else DISABLED
             self.viewMenu.add_checkbutton(label="View details", underline=0, accelerator='Command-V', onvalue=True,
@@ -1722,7 +1722,7 @@ if TKINTER_AVAILABLE:
                                           command=self.onShowViewDetailsChanged)
             self.add_cascade(label="View", underline=0, menu=self.viewMenu)
 
-            self.uiDeviceMenu = Tkinter.Menu(self, tearoff=False)
+            self.uiDeviceMenu = tkinter.Menu(self, tearoff=False)
             state = NORMAL if culebron.vc else DISABLED
             self.uiDeviceMenu.add_command(label="Open Notification", underline=6, state=state,
                                           command=lambda: culebron.executeCommandAndRefresh(
@@ -1736,7 +1736,7 @@ if TKINTER_AVAILABLE:
                                           command=self.culebron.changeLanguage)
             self.add_cascade(label="UiDevice", menu=self.uiDeviceMenu)
 
-            self.helpMenu = Tkinter.Menu(self, tearoff=False)
+            self.helpMenu = tkinter.Menu(self, tearoff=False)
             self.helpMenu.add_command(label="Keyboard shortcuts", underline=0, accelerator='Command-K',
                                       command=self.culebron.showHelp)
             self.add_cascade(label="Help", underline=0, menu=self.helpMenu)
@@ -1757,21 +1757,21 @@ if TKINTER_AVAILABLE:
                 self.culebron.hideViewDetails()
 
 
-    class ViewTree(Tkinter.Frame):
+    class ViewTree(tkinter.Frame):
         def __init__(self, parent):
-            Tkinter.Frame.__init__(self, parent)
-            self.viewTree = ttk.Treeview(self, columns=['T'], height=35)
+            tkinter.Frame.__init__(self, parent)
+            self.viewTree = tkinter.ttk.Treeview(self, columns=['T'], height=35)
             self.viewTree.column(0, width=20)
-            self.viewTree.heading('#0', None, text='View', anchor=Tkinter.W)
-            self.viewTree.heading(0, None, text='T', anchor=Tkinter.W)
-            self.scrollbar = ttk.Scrollbar(self, orient=Tkinter.HORIZONTAL, command=self.__xscroll)
-            self.viewTree.grid(row=1, rowspan=1, column=1, sticky=Tkinter.N + Tkinter.S)
-            self.scrollbar.grid(row=2, rowspan=1, column=1, sticky=Tkinter.E + Tkinter.W)
+            self.viewTree.heading('#0', None, text='View', anchor=tkinter.W)
+            self.viewTree.heading(0, None, text='T', anchor=tkinter.W)
+            self.scrollbar = tkinter.ttk.Scrollbar(self, orient=tkinter.HORIZONTAL, command=self.__xscroll)
+            self.viewTree.grid(row=1, rowspan=1, column=1, sticky=tkinter.N + tkinter.S)
+            self.scrollbar.grid(row=2, rowspan=1, column=1, sticky=tkinter.E + tkinter.W)
             self.viewTree.configure(xscrollcommand=self.scrollbar.set)
 
         def __xscroll(self, *args):
             if DEBUG:
-                print >> sys.stderr, "__xscroll:", args
+                print("__xscroll:", args, file=sys.stderr)
             self.viewTree.xview(*args)
 
         def insert(self, parent, index, iid=None, **kw):
@@ -1800,16 +1800,16 @@ if TKINTER_AVAILABLE:
 
         def tag_bind(self, tagname, sequence=None, callback=None):
             if DEBUG:
-                print >> sys.stderr, 'ViewTree.tag_bind(', tagname, ',', sequence, ',', callback, ')'
+                print('ViewTree.tag_bind(', tagname, ',', sequence, ',', callback, ')', file=sys.stderr)
             return self.viewTree.tag_bind(tagname, sequence, callback)
 
 
-    class ViewDetails(Tkinter.Frame):
+    class ViewDetails(tkinter.Frame):
         VIEW_DETAILS = "View Details:\n"
 
         def __init__(self, parent):
-            Tkinter.Frame.__init__(self, parent)
-            self.label = Tkinter.Label(self, bd=1, width=30, wraplength=200, justify=Tkinter.LEFT, anchor=Tkinter.NW)
+            tkinter.Frame.__init__(self, parent)
+            self.label = tkinter.Label(self, bd=1, width=30, wraplength=200, justify=tkinter.LEFT, anchor=tkinter.NW)
             self.label.configure(text=self.VIEW_DETAILS)
             self.label.configure(bg="white")
             self.label.grid(row=3, column=1, rowspan=1)
@@ -1818,12 +1818,12 @@ if TKINTER_AVAILABLE:
             self.label.configure(text=self.VIEW_DETAILS + view.__str__())
 
 
-    class StatusBar(Tkinter.Frame):
+    class StatusBar(tkinter.Frame):
 
         def __init__(self, parent):
-            Tkinter.Frame.__init__(self, parent)
-            self.label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
-            self.label.grid(row=1, column=1, columnspan=2, sticky=Tkinter.E + Tkinter.W)
+            tkinter.Frame.__init__(self, parent)
+            self.label = tkinter.Label(self, bd=1, relief=tkinter.SUNKEN, anchor=tkinter.W)
+            self.label.grid(row=1, column=1, columnspan=2, sticky=tkinter.E + tkinter.W)
 
         def set(self, fmt, *args):
             self.label.config(text=fmt % args)
@@ -1836,10 +1836,10 @@ if TKINTER_AVAILABLE:
 
     class LabeledEntry():
         def __init__(self, parent, text, validate, validatecmd):
-            self.f = Tkinter.Frame(parent)
-            Tkinter.Label(self.f, text=text, anchor="w", padx=8).grid(row=1, column=1, sticky=Tkinter.E)
-            self.entry = Tkinter.Entry(self.f, validate=validate, validatecommand=validatecmd)
-            self.entry.grid(row=1, column=2, padx=5, sticky=Tkinter.E)
+            self.f = tkinter.Frame(parent)
+            tkinter.Label(self.f, text=text, anchor="w", padx=8).grid(row=1, column=1, sticky=tkinter.E)
+            self.entry = tkinter.Entry(self.f, validate=validate, validatecommand=validatecmd)
+            self.entry.grid(row=1, column=2, padx=5, sticky=tkinter.E)
 
         def grid(self, **kwargs):
             self.f.grid(kwargs)
@@ -1848,18 +1848,18 @@ if TKINTER_AVAILABLE:
             return self.entry.get()
 
         def set(self, text):
-            self.entry.delete(0, Tkinter.END)
+            self.entry.delete(0, tkinter.END)
             self.entry.insert(0, text)
 
 
     class LabeledEntryWithButton(LabeledEntry):
         def __init__(self, parent, text, buttonText, command, validate, validatecmd):
             LabeledEntry.__init__(self, parent, text, validate, validatecmd)
-            self.button = Tkinter.Button(self.f, text=buttonText, command=command)
+            self.button = tkinter.Button(self.f, text=buttonText, command=command)
             self.button.grid(row=1, column=3)
 
 
-    class DragDialog(Tkinter.Toplevel):
+    class DragDialog(tkinter.Toplevel):
 
         DEFAULT_DURATION = 1000
         DEFAULT_STEPS = 20
@@ -1874,7 +1874,7 @@ if TKINTER_AVAILABLE:
         def __init__(self, culebron):
             self.culebron = culebron
             self.parent = culebron.window
-            Tkinter.Toplevel.__init__(self, self.parent)
+            tkinter.Toplevel.__init__(self, self.parent)
             self.transient(self.parent)
             self.culebron.setDragDialogShowed(True)
             self.title("Drag: selecting parameters")
@@ -1898,17 +1898,17 @@ if TKINTER_AVAILABLE:
                                              validatecmd=self.validate)
             self.ep.grid(row=2, column=1, columnspan=3, pady=5)
 
-            l = Tkinter.Label(self, text="Units")
-            l.grid(row=3, column=1, sticky=Tkinter.E)
+            l = tkinter.Label(self, text="Units")
+            l.grid(row=3, column=1, sticky=tkinter.E)
 
-            self.units = Tkinter.StringVar()
+            self.units = tkinter.StringVar()
             self.units.set(Unit.DIP)
             col = 2
             for u in dir(Unit):
                 if u.startswith('_'):
                     continue
-                rb = Tkinter.Radiobutton(self, text=u, variable=self.units, value=u)
-                rb.grid(row=3, column=col, padx=20, sticky=Tkinter.E)
+                rb = tkinter.Radiobutton(self, text=u, variable=self.units, value=u)
+                rb.grid(row=3, column=col, padx=20, sticky=tkinter.E)
                 col += 1
 
             self.d = LabeledEntry(self, "Duration", validate="focusout", validatecmd=self.validate)
@@ -1925,13 +1925,13 @@ if TKINTER_AVAILABLE:
             # add standard button box. override if you don't want the
             # standard buttons
 
-            box = Tkinter.Frame(self)
+            box = tkinter.Frame(self)
 
-            self.ok = Tkinter.Button(box, text="OK", width=10, command=self.onOk, default=Tkinter.ACTIVE,
-                                     state=Tkinter.DISABLED)
-            self.ok.grid(row=6, column=1, sticky=Tkinter.E, padx=5, pady=5)
-            w = Tkinter.Button(box, text="Cancel", width=10, command=self.onCancel)
-            w.grid(row=6, column=2, sticky=Tkinter.E, padx=5, pady=5)
+            self.ok = tkinter.Button(box, text="OK", width=10, command=self.onOk, default=tkinter.ACTIVE,
+                                     state=tkinter.DISABLED)
+            self.ok.grid(row=6, column=1, sticky=tkinter.E, padx=5, pady=5)
+            w = tkinter.Button(box, text="Cancel", width=10, command=self.onCancel)
+            w.grid(row=6, column=2, sticky=tkinter.E, padx=5, pady=5)
 
             self.bind("<Return>", self.onOk)
             self.bind("<Escape>", self.onCancel)
@@ -1940,19 +1940,19 @@ if TKINTER_AVAILABLE:
 
         def onValidate(self, value):
             if self.sp.get() and self.ep.get() and self.d.get() and self.s.get():
-                self.ok.configure(state=Tkinter.NORMAL)
+                self.ok.configure(state=tkinter.NORMAL)
             else:
-                self.ok.configure(state=Tkinter.DISABLED)
+                self.ok.configure(state=tkinter.DISABLED)
 
         def onOk(self, event=None):
             if DEBUG:
-                print >> sys.stderr, "onOK()"
-                print >> sys.stderr, "values are:",
-                print >> sys.stderr, self.sp.get(),
-                print >> sys.stderr, self.ep.get(),
-                print >> sys.stderr, self.d.get(),
-                print >> sys.stderr, self.s.get(),
-                print >> sys.stderr, self.units.get()
+                print("onOK()", file=sys.stderr)
+                print("values are:", end=' ', file=sys.stderr)
+                print(self.sp.get(), end=' ', file=sys.stderr)
+                print(self.ep.get(), end=' ', file=sys.stderr)
+                print(self.d.get(), end=' ', file=sys.stderr)
+                print(self.s.get(), end=' ', file=sys.stderr)
+                print(self.units.get(), file=sys.stderr)
 
             sp = make_tuple(self.sp.get())
             ep = make_tuple(self.ep.get())
@@ -2047,7 +2047,7 @@ if TKINTER_AVAILABLE:
             self.__cleanUpEpId()
 
 
-    class ContextMenu(Tkinter.Menu):
+    class ContextMenu(tkinter.Menu):
         # FIXME: should get rid of the nested classes, otherwise it's not possible to create a parent class
         # SubMenu for UiScrollableSubMenu
         '''
@@ -2071,11 +2071,11 @@ if TKINTER_AVAILABLE:
                 self.event = event
                 self.command = command
 
-        class UiScrollableSubMenu(Tkinter.Menu):
+        class UiScrollableSubMenu(tkinter.Menu):
             def __init__(self, menu, description, view, culebron):
                 # Tkninter.Menu is not extending object, so we can't do this:
                 # super(ContextMenu, self).__init__(culebron.window, tearoff=False)
-                Tkinter.Menu.__init__(self, menu, tearoff=False)
+                tkinter.Menu.__init__(self, menu, tearoff=False)
                 self.description = description
                 self.add_command(label='Fling backward',
                                  command=lambda: culebron.executeCommandAndRefresh(view.uiScrollable.flingBackward))
@@ -2089,9 +2089,9 @@ if TKINTER_AVAILABLE:
         def __init__(self, culebron, view):
             # Tkninter.Menu is not extending object, so we can't do this:
             # super(ContextMenu, self).__init__(culebron.window, tearoff=False)
-            Tkinter.Menu.__init__(self, culebron.window, tearoff=False)
+            tkinter.Menu.__init__(self, culebron.window, tearoff=False)
             if DEBUG_CONTEXT_MENU:
-                print >> sys.stderr, "Creating ContextMenu for", view.__smallStr__() if view else "No View"
+                print("Creating ContextMenu for", view.__smallStr__() if view else "No View", file=sys.stderr)
             self.view = view
             items = []
 
@@ -2175,17 +2175,17 @@ if TKINTER_AVAILABLE:
                 pass
 
 
-    class HelpDialog(Tkinter.Toplevel):
+    class HelpDialog(tkinter.Toplevel):
 
         def __init__(self, culebron):
             self.culebron = culebron
             self.parent = culebron.window
-            Tkinter.Toplevel.__init__(self, self.parent)
+            tkinter.Toplevel.__init__(self, self.parent)
             # self.transient(self.parent)
             self.title("%s: help" % Culebron.APPLICATION_NAME)
 
-            self.text = ScrolledText.ScrolledText(self, width=60, height=40)
-            self.text.insert(Tkinter.INSERT, '''
+            self.text = tkinter.scrolledtext.ScrolledText(self, width=60, height=40)
+            self.text.insert(tkinter.INSERT, '''
     Special keys
     ------------
     
@@ -2219,9 +2219,9 @@ if TKINTER_AVAILABLE:
             # add standard button box. override if you don't want the
             # standard buttons
 
-            box = Tkinter.Frame(self)
+            box = tkinter.Frame(self)
 
-            w = Tkinter.Button(box, text="Dismiss", width=10, command=self.onDismiss, default=Tkinter.ACTIVE)
+            w = tkinter.Button(box, text="Dismiss", width=10, command=self.onDismiss, default=tkinter.ACTIVE)
             w.grid(row=1, column=1, padx=5, pady=5)
 
             self.bind("<Return>", self.onDismiss)
@@ -2245,6 +2245,6 @@ if TKINTER_AVAILABLE:
             self.fileTypes = [('images', self.ext)]
 
         def askSaveAsFilename(self):
-            return tkFileDialog.asksaveasfilename(parent=self.parent, filetypes=self.fileTypes,
+            return tkinter.filedialog.asksaveasfilename(parent=self.parent, filetypes=self.fileTypes,
                                                   defaultextension=self.ext, initialdir=self.dirname,
                                                   initialfile=self.basename)

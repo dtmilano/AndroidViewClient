@@ -40,7 +40,7 @@ class AdbClientTest(unittest.TestCase):
         # serialno in setTransport()
         try:
             adbClient = AdbClient('fakeserialno', settransport=False)
-        except RuntimeError, ex:
+        except RuntimeError as ex:
             if re.search('Connection refused', str(ex)):
                 raise RuntimeError("adb is not running")
             raise(ex)
@@ -51,7 +51,7 @@ class AdbClientTest(unittest.TestCase):
             if device.status == 'device':
                 cls.androidSerial = device.serialno
                 if VERBOSE:
-                    print "AdbClientTest: using device %s" % cls.androidSerial
+                    print("AdbClientTest: using device %s" % cls.androidSerial)
                 return
         raise RuntimeError("No on-line devices found")
 
@@ -72,13 +72,13 @@ class AdbClientTest(unittest.TestCase):
             # will raise an exception
             adbClient.getSdkVersion()
             self.fail("No exception was generated")
-        except RuntimeError, ex:
+        except RuntimeError as ex:
             self.assertIsNotNone(re.search("ERROR: Transport is not set", str(ex)), "Couldn't find error message: %s" % ex)
 
     def testSerialno_nonExistent(self):
         try:
             AdbClient('doesnotexist')
-        except RuntimeError, ex:
+        except RuntimeError as ex:
             self.assertIsNotNone(re.search("ERROR: couldn't find device that matches 'doesnotexist'", str(ex)), "Couldn't find error message: %s" % ex)
 
     def testSerialno_empty(self):
@@ -217,19 +217,19 @@ class AdbClientTest(unittest.TestCase):
     def testCommandsSequence(self):
         self.adbClient.setReconnect(True)
         if VERBOSE:
-            print "Sending touch(480, 800)"
+            print("Sending touch(480, 800)")
         self.adbClient.touch(480, 800)
         self.assertTrue(self.adbClient.checkConnected())
         if VERBOSE:
-            print "Typing 'command 1'"
+            print("Typing 'command 1'")
         self.adbClient.type("command 1")
         self.assertTrue(self.adbClient.checkConnected())
         if VERBOSE:
-            print "Typing 'command 2'"
+            print("Typing 'command 2'")
         self.adbClient.type("command 2")
         self.assertTrue(self.adbClient.checkConnected())
         if VERBOSE:
-            print "Pressing ENTER"
+            print("Pressing ENTER")
         self.adbClient.press('KEYCODE_ENTER')
         self.assertTrue(self.adbClient.checkConnected())
 
