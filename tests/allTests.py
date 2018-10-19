@@ -9,23 +9,25 @@ import unittest
 import sys
 import os
 
+
 try:
     sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
     pass
 
-from com.dtmilano.android.adb.adbclienttests import AdbClientTests
-from com.dtmilano.android.viewclienttests import ViewTests, ViewClientTests
+from comm.dtmilano.android.adb.adbclienttests import AdbClientTest
+from comm.dtmilano.android.viewclienttests import ViewTest, ViewClientTest
+
 
 if __name__ == "__main__":
-    #sys.argv = ['', 'ViewTest.testName']
-    #sys,argv = ['allTests', 'AdbClientTests', 'ViewTests', 'ViewClientTests']
-#     adbClientTestsSuite = unittest.TestLoader().loadTestsFromTestCase(AdbClientTests)
-#     viewTestsSuite = unittest.TestLoader().loadTestsFromTestCase(ViewTests)
-#     viewClientTestsSuite = unittest.TestLoader().loadTestsFromTestCase(ViewClientTests)
-#     suite = unittest.TestSuite()
-#     suite.addTest(adbClientTestsSuite)
-#     suite.addTest(viewTestsSuite)
-#     suite.addTest(viewClientTestsSuite)
-#     unittest.TextTestRunner(verbosity=2).run(suite)
+    sys.argv = ['', 'ViewTest.testName']
+    sys.argv = ['allTests', 'AdbClientTests', 'ViewTests', 'ViewClientTests']
+    adbClientTestsSuite = unittest.TestLoader().loadTestsFromTestCase(AdbClientTest)
+    viewTestsSuite = unittest.TestLoader().loadTestsFromTestCase(ViewTest)
+    viewClientTestsSuite = unittest.TestLoader().loadTestsFromTestCase(ViewClientTest)
+    suite = unittest.TestSuite()
+    suite.addTest(adbClientTestsSuite)
+    suite.addTest(viewTestsSuite)
+    suite.addTest(viewClientTestsSuite)
+    unittest.TextTestRunner(verbosity=2).run(suite)
     pass

@@ -192,6 +192,7 @@ class AdbClientTest(unittest.TestCase):
         self.assertIsNotNone(self.adbClient.getWindows())
         
     def testGetFocusedWindow(self):
+
         pkg = self.__checkPackageInstalled()
         if pkg:
             self.adbClient.startActivity(pkg[0] + '/.' + pkg[1])
