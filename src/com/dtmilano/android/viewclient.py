@@ -1141,9 +1141,9 @@ class View:
 
         return __str
 
-
     def __str__(self):
-        __str = str("View[", 'utf-8', 'replace')
+        __str = "View[" + 'utf-8' + 'replace'
+
         if "class" in self.map:
             __str += " class=" + self.map["class"].__str__() + " "
         for a in self.map:
@@ -3254,7 +3254,6 @@ class ViewClient:
 
         @return: the list of Views as C{str} received from the server after being split into lines
         '''
-
         if sleep > 0:
             time.sleep(sleep)
 
@@ -3282,7 +3281,7 @@ class ViewClient:
                         pathname = '/storage/self'
                         filename = 'window_dump.xml'
                         cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
-                    elif self.ro['product.board'] in ['msd838', 'msd938_STB', 'msd938']:
+                    elif self.ro['product.board'] in ['msd838', 'msd938_STB', 'msd938', 'msm8916']:
                             cmd = 'uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.compressedDump else '')
                     else:
                         pathname = '/sdcard'
