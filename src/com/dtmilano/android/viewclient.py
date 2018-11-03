@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.5.0'
+__version__ = '15.5.1'
 
 import sys
 import warnings
@@ -42,7 +42,7 @@ import pickle
 import platform
 import xml.parsers.expat
 import unittest
-import StringIO
+import io
 from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy,\
     obtainVwVh, obtainAdbPath
 from com.dtmilano.android.window import Window
@@ -107,7 +107,7 @@ ID_PROPERTY_UI_AUTOMATOR = 'uniqueId'
 TEXT_PROPERTY = 'text:mText'
 TEXT_PROPERTY_API_10 = 'mText'
 TEXT_PROPERTY_UI_AUTOMATOR = 'text'
-WS = u"\xfe"  # the whitespace replacement char for TEXT_PROPERTY
+WS = "\xfe"  # the whitespace replacement char for TEXT_PROPERTY
 TAG_PROPERTY = 'getTag()'
 LEFT_PROPERTY = 'layout:mLeft'
 LEFT_PROPERTY_API_8 = 'mLeft'
@@ -163,8 +163,8 @@ class View:
         '''
 
         if DEBUG_VIEW_FACTORY:
-            print >> sys.stderr, "View.factory(%s, %s, %s, %s, %s, %s)" % (arg1, arg2, version, forceviewserveruse, windowId, uiAutomatorHelper)
-        if type(arg1) == types.ClassType:
+            print("View.factory(%s, %s, %s, %s, %s, %s)" % (arg1, arg2, version, forceviewserveruse, windowId, uiAutomatorHelper), file=sys.stderr)
+        if type(arg1) == type:
             cls = arg1
             attrs = None
         else:
@@ -177,10 +177,10 @@ class View:
             device = arg2
             view = None
 
-        if attrs and attrs.has_key('class'):
+        if attrs and 'class' in attrs:
             clazz = attrs['class']
             if DEBUG_VIEW_FACTORY:
-                print >> sys.stderr, "    View.factory: creating View with specific class: %s" % clazz
+                print("    View.factory: creating View with specific class: %s" % clazz, file=sys.stderr)
             if clazz == 'android.widget.TextView':
                 return TextView(attrs, device, version, forceviewserveruse, windowId, uiAutomatorHelper)
             elif clazz == 'android.widget.EditText':
@@ -198,7 +198,7 @@ class View:
             return copy.copy(view)
         else:
             if DEBUG_VIEW_FACTORY:
-                print >> sys.stderr, "    View.factory: creating generic View"
+                print("    View.factory: creating generic View", file=sys.stderr)
             return View(attrs, device, version, forceviewserveruse, windowId, uiAutomatorHelper)
 
     @classmethod
@@ -240,13 +240,13 @@ class View:
         '''
 
         if DEBUG_VIEW:
-            print >> sys.stderr, "View.__init__(%s, %s, %s, %s)" % ("map" if _map is not None else None, device, version, forceviewserveruse)
+            print("View.__init__(%s, %s, %s, %s)" % ("map" if _map is not None else None, device, version, forceviewserveruse), file=sys.stderr)
             if _map:
-                print >> sys.stderr, "    map:", type(_map)
-                for attr, val in _map.iteritems():
+                print("    map:", type(_map), file=sys.stderr)
+                for attr, val in _map.items():
                     if len(val) > 50:
                         val = val[:50] + "..."
-                    print >> sys.stderr, "        %s=%s" % (attr, val)
+                    print("        %s=%s" % (attr, val), file=sys.stderr)
         self.map = _map
         ''' The map that contains the C{attr},C{value} pairs '''
         self.device = device
@@ -378,56 +378,56 @@ class View:
 
     def __getattr__(self, name):
         if DEBUG_GETATTR:
-            print >>sys.stderr, "__getattr__(%s)    version: %d" % (name, self.build[VERSION_SDK_PROPERTY])
+            print("__getattr__(%s)    version: %d" % (name, self.build[VERSION_SDK_PROPERTY]), file=sys.stderr)
 
         # NOTE:
         # I should try to see if 'name' is a defined method
         # but it seems that if I call locals() here an infinite loop is entered
 
-        if self.map.has_key(name):
+        if name in self.map:
             r = self.map[name]
-        elif self.map.has_key(name + '()'):
+        elif name + '()' in self.map:
             # the method names are stored in the map with their trailing '()'
             r = self.map[name + '()']
         elif name.count("_") > 0:
             mangledList = self.allPossibleNamesWithColon(name)
-            mangledName = self.intersection(mangledList, self.map.keys())
-            if len(mangledName) > 0 and self.map.has_key(mangledName[0]):
+            mangledName = self.intersection(mangledList, list(self.map.keys()))
+            if len(mangledName) > 0 and mangledName[0] in self.map:
                 r = self.map[mangledName[0]]
             else:
                 # Default behavior
-                raise AttributeError, name
+                raise AttributeError(name)
         elif name.startswith('is'):
             # try removing 'is' prefix
             if DEBUG_GETATTR:
-                print >> sys.stderr, "    __getattr__: trying without 'is' prefix"
+                print("    __getattr__: trying without 'is' prefix", file=sys.stderr)
             suffix = name[2:].lower()
-            if self.map.has_key(suffix):
+            if suffix in self.map:
                 r = self.map[suffix]
             else:
                 # Default behavior
-                raise AttributeError, name
+                raise AttributeError(name)
         elif name.startswith('get'):
             # try removing 'get' prefix
             if DEBUG_GETATTR:
-                print >> sys.stderr, "    __getattr__: trying without 'get' prefix"
+                print("    __getattr__: trying without 'get' prefix", file=sys.stderr)
             suffix = name[3:].lower()
-            if self.map.has_key(suffix):
+            if suffix in self.map:
                 r = self.map[suffix]
             else:
                 # Default behavior
-                raise AttributeError, name
+                raise AttributeError(name)
         elif name == 'getResourceId':
             if DEBUG_GETATTR:
-                print >> sys.stderr, "    __getattr__: getResourceId"
-            if self.map.has_key('resource-id'):
+                print("    __getattr__: getResourceId", file=sys.stderr)
+            if 'resource-id' in self.map:
                 r = self.map['resource-id']
             else:
                 # Default behavior
-                raise AttributeError, name
+                raise AttributeError(name)
         else:
             # Default behavior
-            raise AttributeError, name
+            raise AttributeError(name)
 
 
         # if the method name starts with 'is' let's assume its return value is boolean
@@ -441,7 +441,7 @@ class View:
         # this should not cached in some way
         def innerMethod():
             if DEBUG_GETATTR:
-                print >>sys.stderr, "innerMethod: %s returning %s" % (innerMethod.__name__, r)
+                print("innerMethod: %s returning %s" % (innerMethod.__name__, r), file=sys.stderr)
             return r
 
         innerMethod.__name__ = name
@@ -455,7 +455,7 @@ class View:
 
     def __call__(self, *args, **kwargs):
         if DEBUG_CALL:
-            print >>sys.stderr, "__call__(%s)" % (args if args else None)
+            print("__call__(%s)" % (args if args else None), file=sys.stderr)
 
     def getClass(self):
         '''
@@ -601,7 +601,7 @@ class View:
         '''
 
         if DEBUG_COORDS:
-            print >>sys.stderr, "getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
+            print("getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId()), file=sys.stderr)
         x = 0
 
         if self.useUiAutomator:
@@ -610,12 +610,12 @@ class View:
             try:
                 if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
                     _x = int(self.map[self.leftProperty])
-                    if DEBUG_COORDS: print >>sys.stderr, "   getX: VISIBLE adding %d" % _x
+                    if DEBUG_COORDS: print("   getX: VISIBLE adding %d" % _x, file=sys.stderr)
                     x += _x
             except:
                 warnings.warn("View %s has no '%s' property" % (self.getId(), self.leftProperty))
 
-        if DEBUG_COORDS: print >>sys.stderr, "   getX: returning %d" % (x)
+        if DEBUG_COORDS: print("   getX: returning %d" % (x), file=sys.stderr)
         return x
 
     def getY(self):
@@ -631,7 +631,7 @@ class View:
         '''
 
         if DEBUG_COORDS:
-            print >>sys.stderr, "getY(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
+            print("getY(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId()), file=sys.stderr)
         y = 0
 
         if self.useUiAutomator:
@@ -640,12 +640,12 @@ class View:
             try:
                 if GET_VISIBILITY_PROPERTY in self.map and self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
                     _y = int(self.map[self.topProperty])
-                    if DEBUG_COORDS: print >>sys.stderr, "   getY: VISIBLE adding %d" % _y
+                    if DEBUG_COORDS: print("   getY: VISIBLE adding %d" % _y, file=sys.stderr)
                     y += _y
             except:
                 warnings.warn("View %s has no '%s' property" % (self.getId(), self.topProperty))
 
-        if DEBUG_COORDS: print >>sys.stderr, "   getY: returning %d" % (y)
+        if DEBUG_COORDS: print("   getY: returning %d" % (y), file=sys.stderr)
         return y
 
     def getXY(self, debug=False):
@@ -663,7 +663,7 @@ class View:
                 _id = self.getId()
             except:
                 _id = "NO_ID"
-            print >> sys.stderr, "getXY(%s %s ## %s)" % (self.getClass(), _id, self.getUniqueId())
+            print("getXY(%s %s ## %s)" % (self.getClass(), _id, self.getUniqueId()), file=sys.stderr)
 
         x = self.__getX()
         y = self.__getY()
@@ -671,68 +671,68 @@ class View:
             return (x, y)
 
         parent = self.parent
-        if DEBUG_COORDS: print >> sys.stderr, "   getXY: x=%s y=%s parent=%s" % (x, y, parent.getUniqueId() if parent else "None")
+        if DEBUG_COORDS: print("   getXY: x=%s y=%s parent=%s" % (x, y, parent.getUniqueId() if parent else "None"), file=sys.stderr)
         hx = 0
         ''' Hierarchy accumulated X '''
         hy = 0
         ''' Hierarchy accumulated Y '''
 
-        if DEBUG_COORDS: print >> sys.stderr, "   getXY: not using UiAutomator, calculating parent coordinates"
+        if DEBUG_COORDS: print("   getXY: not using UiAutomator, calculating parent coordinates", file=sys.stderr)
         while parent != None:
-            if DEBUG_COORDS: print >> sys.stderr, "      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId())
+            if DEBUG_COORDS: print("      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId()), file=sys.stderr)
             if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
                 if parent.getClass() in [ 'com.android.internal.widget.ActionBarView',
                                    'com.android.internal.widget.ActionBarContextView',
                                    'com.android.internal.view.menu.ActionMenuView',
                                    'com.android.internal.policy.impl.PhoneWindow$DecorView' ]:
-                    if DEBUG_COORDS: print >> sys.stderr, "   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.__getX(), parent.__getY())
+                    if DEBUG_COORDS: print("   getXY: skipping %s %s (%d,%d)" % (parent.getClass(), parent.getId(), parent.__getX(), parent.__getY()), file=sys.stderr)
                     parent = parent.parent
                     continue
-            if DEBUG_COORDS: print >> sys.stderr, "   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy)
+            if DEBUG_COORDS: print("   getXY: parent=%s x=%d hx=%d y=%d hy=%d" % (parent.getId(), x, hx, y, hy), file=sys.stderr)
             hx += parent.__getX()
             hy += parent.__getY()
             parent = parent.parent
 
         (wvx, wvy) = self.__dumpWindowsInformation(debug=debug)
         if DEBUG_COORDS or debug:
-            print >>sys.stderr, "   getXY: wv=(%d, %d) (windows information)" % (wvx, wvy)
+            print("   getXY: wv=(%d, %d) (windows information)" % (wvx, wvy), file=sys.stderr)
         try:
             if self.windowId:
                 fw = self.windows[self.windowId]
             else:
                 fw = self.windows[self.currentFocus]
             if DEBUG_STATUSBAR:
-                print >> sys.stderr, "    getXY: focused window=", fw
-                print >> sys.stderr, "    getXY: deciding whether to consider statusbar offset because current focused windows is at", (fw.wvx, fw.wvy), "parent", (fw.px, fw.py)
+                print("    getXY: focused window=", fw, file=sys.stderr)
+                print("    getXY: deciding whether to consider statusbar offset because current focused windows is at", (fw.wvx, fw.wvy), "parent", (fw.px, fw.py), file=sys.stderr)
         except KeyError:
             fw = None
         (sbw, sbh) = self.__obtainStatusBarDimensionsIfVisible()
         if DEBUG_COORDS or debug:
-            print >>sys.stderr, "   getXY: sb=(%d, %d) (statusbar dimensions)" % (sbw, sbh)
+            print("   getXY: sb=(%d, %d) (statusbar dimensions)" % (sbw, sbh), file=sys.stderr)
         statusBarOffset = 0
         pwx = 0
         pwy = 0
 
         if fw:
             if DEBUG_COORDS:
-                print >>sys.stderr, "    getXY: focused window=", fw, "sb=", (sbw, sbh)
+                print("    getXY: focused window=", fw, "sb=", (sbw, sbh), file=sys.stderr)
             if fw.wvy <= sbh: # it's very unlikely that fw.wvy < sbh, that is a window over the statusbar
-                if DEBUG_STATUSBAR: print >>sys.stderr, "        getXY: yes, considering offset=", sbh
+                if DEBUG_STATUSBAR: print("        getXY: yes, considering offset=", sbh, file=sys.stderr)
                 statusBarOffset = sbh
             else:
-                if DEBUG_STATUSBAR: print >>sys.stderr, "        getXY: no, ignoring statusbar offset fw.wvy=", fw.wvy, ">", sbh
+                if DEBUG_STATUSBAR: print("        getXY: no, ignoring statusbar offset fw.wvy=", fw.wvy, ">", sbh, file=sys.stderr)
 
             if fw.py == fw.wvy:
-                if DEBUG_STATUSBAR: print >>sys.stderr, "        getXY: but wait, fw.py == fw.wvy so we are adjusting by ", (fw.px, fw.py)
+                if DEBUG_STATUSBAR: print("        getXY: but wait, fw.py == fw.wvy so we are adjusting by ", (fw.px, fw.py), file=sys.stderr)
                 pwx = fw.px
                 pwy = fw.py
             else:
-                if DEBUG_STATUSBAR: print >>sys.stderr, "    getXY: fw.py=%d <= fw.wvy=%d, no adjustment" % (fw.py, fw.wvy)
+                if DEBUG_STATUSBAR: print("    getXY: fw.py=%d <= fw.wvy=%d, no adjustment" % (fw.py, fw.wvy), file=sys.stderr)
 
         if DEBUG_COORDS or DEBUG_STATUSBAR or debug:
-            print >>sys.stderr, "   getXY: returning (%d, %d) ***" % (x+hx+wvx+pwx, y+hy+wvy-statusBarOffset+pwy)
-            print >>sys.stderr, "                     x=%d+%d+%d+%d" % (x,hx,wvx,pwx)
-            print >>sys.stderr, "                     y=%d+%d+%d-%d+%d" % (y,hy,wvy,statusBarOffset,pwy)
+            print("   getXY: returning (%d, %d) ***" % (x+hx+wvx+pwx, y+hy+wvy-statusBarOffset+pwy), file=sys.stderr)
+            print("                     x=%d+%d+%d+%d" % (x,hx,wvx,pwx), file=sys.stderr)
+            print("                     y=%d+%d+%d-%d+%d" % (y,hy,wvy,statusBarOffset,pwy), file=sys.stderr)
         return (x+hx+wvx+pwx, y+hy+wvy-statusBarOffset+pwy)
 
     def getCoords(self):
@@ -743,7 +743,7 @@ class View:
         '''
 
         if DEBUG_COORDS:
-            print >>sys.stderr, "getCoords(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId())
+            print("getCoords(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId()), file=sys.stderr)
 
         (x, y) = self.getXY();
         w = self.getWidth()
@@ -789,10 +789,10 @@ class View:
         sbh = 0
         for winId in self.windows:
             w = self.windows[winId]
-            if DEBUG_COORDS: print >> sys.stderr, "      __obtainStatusBarDimensionsIfVisible: w=", w, "   w.activity=", w.activity, "%%%"
+            if DEBUG_COORDS: print("      __obtainStatusBarDimensionsIfVisible: w=", w, "   w.activity=", w.activity, "%%%", file=sys.stderr)
             if w.activity == 'StatusBar':
                 if w.wvy == 0 and w.visibility == 0:
-                    if DEBUG_COORDS: print >> sys.stderr, "      __obtainStatusBarDimensionsIfVisible: statusBar=", (w.wvw, w.wvh)
+                    if DEBUG_COORDS: print("      __obtainStatusBarDimensionsIfVisible: statusBar=", (w.wvw, w.wvh), file=sys.stderr)
                     sbw = w.wvw
                     sbh = w.wvh
                 break
@@ -812,7 +812,7 @@ class View:
         self.windows = {}
         self.currentFocus = None
         dww = self.device.shell('dumpsys window windows')
-        if DEBUG_WINDOWS or debug: print >> sys.stderr, dww
+        if DEBUG_WINDOWS or debug: print(dww, file=sys.stderr)
         lines = dww.splitlines()
         widRE = re.compile('^ *Window #%s Window\{%s (u\d+ )?%s?.*\}:' %
                             (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
@@ -853,7 +853,7 @@ class View:
                     m = viewVisibilityRE.search(lines[l2])
                     if m:
                         visibility = int(m.group('visibility'))
-                        if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: visibility=", visibility
+                        if DEBUG_COORDS: print("__dumpWindowsInformation: visibility=", visibility, file=sys.stderr)
                     if self.build[VERSION_SDK_PROPERTY] >= 17:
                         m = framesRE.search(lines[l2])
                         if m:
@@ -909,12 +909,12 @@ class View:
             return (w.wvx, w.wvy)
         elif self.currentFocus in self.windows and self.windows[self.currentFocus].visibility == 0:
             if DEBUG_COORDS or debug:
-                print >> sys.stderr, "__dumpWindowsInformation: focus=", self.currentFocus
-                print >> sys.stderr, "__dumpWindowsInformation:", self.windows[self.currentFocus]
+                print("__dumpWindowsInformation: focus=", self.currentFocus, file=sys.stderr)
+                print("__dumpWindowsInformation:", self.windows[self.currentFocus], file=sys.stderr)
             w = self.windows[self.currentFocus]
             return (w.wvx, w.wvy)
         else:
-            if DEBUG_COORDS: print >> sys.stderr, "__dumpWindowsInformation: (0,0)"
+            if DEBUG_COORDS: print("__dumpWindowsInformation: (0,0)", file=sys.stderr)
             return (0,0)
 
     def touch(self, eventType=adbclient.DOWN_AND_UP, deltaX=0, deltaY=0):
@@ -936,10 +936,10 @@ class View:
         if deltaY:
             y += deltaY
         if DEBUG_TOUCH:
-            print >>sys.stderr, "should touch @ (%d, %d)" % (x, y)
+            print("should touch @ (%d, %d)" % (x, y), file=sys.stderr)
         if VIEW_CLIENT_TOUCH_WORKAROUND_ENABLED and eventType == adbclient.DOWN_AND_UP:
             if WARNINGS:
-                print >> sys.stderr, "ViewClient: touch workaround enabled"
+                print("ViewClient: touch workaround enabled", file=sys.stderr)
             self.device.touch(x, y, eventType=adbclient.DOWN)
             time.sleep(50/1000.0)
             self.device.touch(x+10, y+10, eventType=adbclient.UP)
@@ -950,12 +950,12 @@ class View:
                     try:
                         oid = self.uiAutomatorHelper.findObject(bySelector=selector)
                         if DEBUG_UI_AUTOMATOR_HELPER:
-                            print >> sys.stderr, "oid=", oid
-                            print >> sys.stderr, "ignoring click delta to click View as UiObject"
+                            print("oid=", oid, file=sys.stderr)
+                            print("ignoring click delta to click View as UiObject", file=sys.stderr)
                         oid.click();
                     except RuntimeError as e:
-                        print >> sys.stderr, e.message
-                        print >> sys.stderr, "UiObject click failed, using co-ordinates"
+                        print(e.message, file=sys.stderr)
+                        print("UiObject click failed, using co-ordinates", file=sys.stderr)
                         self.uiAutomatorHelper.click(x=x, y=y)
                 else:
                     # FIXME:
@@ -1007,7 +1007,8 @@ class View:
     def intersection(self, l1, l2):
         return list(set(l1) & set(l2))
 
-    def containsPoint(self, (x, y)):
+    def containsPoint(self, xxx_todo_changeme):
+        (x, y) = xxx_todo_changeme
         (X, Y, W, H) = self.getPositionAndSize()
         return (((x >= X) and (x <= (X+W)) and ((y >= Y) and (y <= (Y+H)))))
 
@@ -1076,7 +1077,7 @@ class View:
         if os.path.isdir(filename):
             filename = os.path.join(filename, self.variableNameFromId() + '.' + _format.lower())
         if DEBUG:
-            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format" % (filename, _format)
+            print("writeImageToFile: saving image to '%s' in %s format" % (filename, _format), file=sys.stderr)
         #self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, _format)
         # crop:
         # im.crop(box) ⇒ image
@@ -1085,12 +1086,12 @@ class View:
         ((l, t), (r, b)) = self.getCoords()
         box = (l, t, r, b)
         if DEBUG:
-            print >> sys.stderr, "writeImageToFile: cropping", box, "    reconnect=", self.device.reconnect
+            print("writeImageToFile: cropping", box, "    reconnect=", self.device.reconnect, file=sys.stderr)
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "Taking screenshot using UiAutomatorHelper"
+                print("Taking screenshot using UiAutomatorHelper", file=sys.stderr)
             received = self.uiAutomatorHelper.takeScreenshot()
-            stream = StringIO.StringIO(received)
+            stream = io.StringIO(received)
             try:
                 from PIL import Image
                 image = Image.open(stream)
@@ -1098,16 +1099,16 @@ class View:
                 # FIXME: this method should be global
                 self.pilNotInstalledWarning()
                 sys.exit(1)
-            except IOError, ex:
-                print >> sys.stderr, ex
-                print repr(stream)
+            except IOError as ex:
+                print(ex, file=sys.stderr)
+                print(repr(stream))
                 sys.exit(1)
         else:
             image = self.device.takeSnapshot(reconnect=self.device.reconnect)
         image.crop(box).save(filename, _format)
 
     def __smallStr__(self):
-        __str = unicode("View[", 'utf-8', 'replace')
+        __str = str("View[", 'utf-8', 'replace')
         if "class" in self.map:
             __str += " class=" + self.map['class']
         __str += " id=%s" % self.getId()
@@ -1120,7 +1121,7 @@ class View:
         return __str
 
     def __tinyStr__(self):
-        __str = unicode("View[", 'utf-8', 'replace')
+        __str = str("View[", 'utf-8', 'replace')
         if "class" in self.map:
             __str += " class=" + re.sub('.*\.', '', self.map['class'])
         __str += " id=%s" % self.getId()
@@ -1129,7 +1130,7 @@ class View:
         return __str
 
     def __microStr__(self):
-        __str = unicode('', 'utf-8', 'replace')
+        __str = str('', 'utf-8', 'replace')
         if "class" in self.map:
             __str += re.sub('.*\.', '', self.map['class'])
         _id = self.getId().replace('id/no_id/', '-')
@@ -1140,18 +1141,18 @@ class View:
 
         return __str
 
-
     def __str__(self):
-        __str = unicode("View[", 'utf-8', 'replace')
+        __str = "View[" + 'utf-8' + 'replace'
+
         if "class" in self.map:
             __str += " class=" + self.map["class"].__str__() + " "
         for a in self.map:
             __str += a + "="
             # decode() works only on python's 8-bit strings
-            if isinstance(self.map[a], unicode):
+            if isinstance(self.map[a], str):
                 __str += self.map[a]
             else:
-                __str += unicode(str(self.map[a]), 'utf-8', errors='replace')
+                __str += str(str(self.map[a]), 'utf-8', errors='replace')
             __str += " "
         __str += "]   parent="
         if self.parent:
@@ -1254,15 +1255,15 @@ class UiDevice():
         '''
 
         STATUS_BAR_SETTINGS_SETTINGS_BUTTON = [
-            u"Settings", u"Cài đặt", u"Instellingen", u"Կարգավորումներ", u"设置", u"Nastavitve", u"සැකසීම්", u"Ayarlar",
-            u"Setelan", u"Настройки", u"تنظیمات", u"Mga Setting", u"Тохиргоо", u"Configuració", u"Setări", u"Налады",
-            u"Einstellungen", u"პარამეტრები", u"सेटिङहरू", u"Կարգավորումներ", u"Nustatymai", u"Beállítások", u"設定",
-            u"सेटिंग", u"Настройки", u"Inställningar", u"設定", u"ການຕັ້ງຄ່າ", u"Configurações", u"Tetapan", u"설정",
-            u"ការ​កំណត់", u"Ajustes", u"הגדרות", u"Ustawienia", u"Nastavení", u"Ρυθμίσεις", u"Тохиргоо", u"Ayarlar",
-            u"Indstillinger", u"Налаштування", u"Mipangilio", u"Izilungiselelo", u"設定", u"Nastavenia", u"Paramètres",
-            u"ቅንብሮች", u"การตั้งค่า", u"Seaded", u"Iestatījumi", u"Innstillinger", u"Подешавања", u"الإعدادات", u"සැකසීම්",
-            u"Definições", u"Configuración", u"პარამეტრები", u"Postavke", u"Ayarlar", u"Impostazioni", u"Asetukset",
-            u"Instellings", u"Seaded", u"ការ​កំណត់", u"सेटिङहरू", u"Tetapan"
+            "Settings", "Cài đặt", "Instellingen", "Կարգավորումներ", "设置", "Nastavitve", "සැකසීම්", "Ayarlar",
+            "Setelan", "Настройки", "تنظیمات", "Mga Setting", "Тохиргоо", "Configuració", "Setări", "Налады",
+            "Einstellungen", "პარამეტრები", "सेटिङहरू", "Կարգավորումներ", "Nustatymai", "Beállítások", "設定",
+            "सेटिंग", "Настройки", "Inställningar", "設定", "ການຕັ້ງຄ່າ", "Configurações", "Tetapan", "설정",
+            "ការ​កំណត់", "Ajustes", "הגדרות", "Ustawienia", "Nastavení", "Ρυθμίσεις", "Тохиргоо", "Ayarlar",
+            "Indstillinger", "Налаштування", "Mipangilio", "Izilungiselelo", "設定", "Nastavenia", "Paramètres",
+            "ቅንብሮች", "การตั้งค่า", "Seaded", "Iestatījumi", "Innstillinger", "Подешавања", "الإعدادات", "සැකසීම්",
+            "Definições", "Configuración", "პარამეტრები", "Postavke", "Ayarlar", "Impostazioni", "Asetukset",
+            "Instellings", "Seaded", "ការ​កំណត់", "सेटिङहरू", "Tetapan"
             ]
 
         self.openQuickSettings()
@@ -1271,8 +1272,8 @@ class UiDevice():
         found = False
         for s in STATUS_BAR_SETTINGS_SETTINGS_BUTTON:
             if DEBUG:
-                print >> sys.stderr, u"finding view with cd=", type(s)
-            view = self.vc.findViewWithContentDescription(u'''{0}'''.format(s))
+                print("finding view with cd=", type(s), file=sys.stderr)
+            view = self.vc.findViewWithContentDescription('''{0}'''.format(s))
             if view:
                 found = True
                 view.touch()
@@ -1282,9 +1283,9 @@ class UiDevice():
             # for previous APIs, let's find the text
             for s in STATUS_BAR_SETTINGS_SETTINGS_BUTTON:
                 if DEBUG:
-                    print >> sys.stderr, "s=", type(s)
+                    print("s=", type(s), file=sys.stderr)
                     try:
-                        print >> sys.stderr, "finding view with text=", u'''{0}'''.format(s)
+                        print("finding view with text=", '''{0}'''.format(s), file=sys.stderr)
                     except:
                         pass
                 view = self.vc.findViewWithText(s)
@@ -1301,755 +1302,755 @@ class UiDevice():
 
     def changeLanguage(self, languageTo):
         LANGUAGE_SETTINGS = {
-            "en":    u"Language & input",
-            "af":    u"Taal en invoer",
-            "am":    u"ቋንቋ እና ግቤት",
-            "ar":    u"اللغة والإدخال",
-            "az":    u"Dil və daxiletmə",
-            "az-rAZ":    u"Dil və daxiletmə",
-            "be":    u"Мова і ўвод",
-            "bg":    u"Език и въвеждане",
-            "ca":    u"Idioma i introducció de text",
-            "cs":    u"Jazyk a zadávání",
-            "da":    u"Sprog og input",
-            "de":    u"Sprache & Eingabe",
-            "el":    u"Γλώσσα και εισαγωγή",
-            "en-rGB":    u"Language & input",
-            "en-rIN":    u"Language & input",
-            "es":    u"Idioma e introducción de texto",
-            "es-rUS":    u"Teclado e idioma",
-            "et":    u"Keeled ja sisestamine",
-            "et-rEE":    u"Keeled ja sisestamine",
-            "fa":    u"زبان و ورود اطلاعات",
-            "fi":    u"Kieli ja syöttötapa",
-            "fr":    u"Langue et saisie",
-            "fr-rCA":    u"Langue et saisie",
-            "hi":    u"भाषा और अक्षर",
-            "hr":    u"Jezik i ulaz",
-            "hu":    u"Nyelv és bevitel",
-            "hy":    u"Լեզվի & ներմուծում",
-            "hy-rAM":    u"Լեզու և ներմուծում",
-            "in":    u"Bahasa & masukan",
-            "it":    u"Lingua e immissione",
-            "iw":    u"שפה וקלט",
-            "ja":    u"言語と入力",
-            "ka":    u"ენისა და შეყვანის პარამეტრები",
-            "ka-rGE":    u"ენისა და შეყვანის პარამეტრები",
-            "km":    u"ភាសា & ការ​បញ្ចូល",
-            "km-rKH":    u"ភាសា & ការ​បញ្ចូល",
-            "ko":    u"언어 및 키보드",
-            "lo":    u"ພາສາ & ການປ້ອນຂໍ້ມູນ",
-            "lo-rLA":    u"ພາສາ & ການປ້ອນຂໍ້ມູນ",
-            "lt":    u"Kalba ir įvestis",
-            "lv":    u"Valodas ievade",
-            "mn":    u"Хэл & оруулах",
-            "mn-rMN":    u"Хэл & оруулах",
-            "ms":    u"Bahasa & input",
-            "ms-rMY":    u"Bahasa & input",
-            "nb":    u"Språk og inndata",
-            "ne":    u"भाषा र इनपुट",
-            "ne-rNP":    u"भाषा र इनपुट",
-            "nl":    u"Taal en invoer",
-            "pl":    u"Język, klawiatura, głos",
-            "pt":    u"Idioma e entrada",
-            "pt-rPT":    u"Idioma e entrada",
-            "ro":    u"Limbă și introducere de text",
-            "ru":    u"Язык и ввод",
-            "si":    u"භාෂාව සහ ආදානය",
-            "si-rLK":    u"භාෂාව සහ ආදානය",
-            "sk":    u"Jazyk & vstup",
-            "sl":    u"Jezik in vnos",
-            "sr":    u"Језик и унос",
-            "sv":    u"Språk och inmatning",
-            "sw":    u"Lugha, Kibodi na Sauti",
-            "th":    u"ภาษาและการป้อนข้อมูล",
-            "tl":    u"Wika at input",
-            "tr":    u"Dil ve giriş",
-            "uk":    u"Мова та введення",
-            "vi":    u"Ngôn ngữ & phương thức nhập",
-            "zh-rCN":    u"语言和输入法",
-            "zh-rHK":    u"語言與輸入裝置",
-            "zh-rTW":    u"語言與輸入設定",
-            "zu":    u"Ulimi & ukufakwa",
+            "en":    "Language & input",
+            "af":    "Taal en invoer",
+            "am":    "ቋንቋ እና ግቤት",
+            "ar":    "اللغة والإدخال",
+            "az":    "Dil və daxiletmə",
+            "az-rAZ":    "Dil və daxiletmə",
+            "be":    "Мова і ўвод",
+            "bg":    "Език и въвеждане",
+            "ca":    "Idioma i introducció de text",
+            "cs":    "Jazyk a zadávání",
+            "da":    "Sprog og input",
+            "de":    "Sprache & Eingabe",
+            "el":    "Γλώσσα και εισαγωγή",
+            "en-rGB":    "Language & input",
+            "en-rIN":    "Language & input",
+            "es":    "Idioma e introducción de texto",
+            "es-rUS":    "Teclado e idioma",
+            "et":    "Keeled ja sisestamine",
+            "et-rEE":    "Keeled ja sisestamine",
+            "fa":    "زبان و ورود اطلاعات",
+            "fi":    "Kieli ja syöttötapa",
+            "fr":    "Langue et saisie",
+            "fr-rCA":    "Langue et saisie",
+            "hi":    "भाषा और अक्षर",
+            "hr":    "Jezik i ulaz",
+            "hu":    "Nyelv és bevitel",
+            "hy":    "Լեզվի & ներմուծում",
+            "hy-rAM":    "Լեզու և ներմուծում",
+            "in":    "Bahasa & masukan",
+            "it":    "Lingua e immissione",
+            "iw":    "שפה וקלט",
+            "ja":    "言語と入力",
+            "ka":    "ენისა და შეყვანის პარამეტრები",
+            "ka-rGE":    "ენისა და შეყვანის პარამეტრები",
+            "km":    "ភាសា & ការ​បញ្ចូល",
+            "km-rKH":    "ភាសា & ការ​បញ្ចូល",
+            "ko":    "언어 및 키보드",
+            "lo":    "ພາສາ & ການປ້ອນຂໍ້ມູນ",
+            "lo-rLA":    "ພາສາ & ການປ້ອນຂໍ້ມູນ",
+            "lt":    "Kalba ir įvestis",
+            "lv":    "Valodas ievade",
+            "mn":    "Хэл & оруулах",
+            "mn-rMN":    "Хэл & оруулах",
+            "ms":    "Bahasa & input",
+            "ms-rMY":    "Bahasa & input",
+            "nb":    "Språk og inndata",
+            "ne":    "भाषा र इनपुट",
+            "ne-rNP":    "भाषा र इनपुट",
+            "nl":    "Taal en invoer",
+            "pl":    "Język, klawiatura, głos",
+            "pt":    "Idioma e entrada",
+            "pt-rPT":    "Idioma e entrada",
+            "ro":    "Limbă și introducere de text",
+            "ru":    "Язык и ввод",
+            "si":    "භාෂාව සහ ආදානය",
+            "si-rLK":    "භාෂාව සහ ආදානය",
+            "sk":    "Jazyk & vstup",
+            "sl":    "Jezik in vnos",
+            "sr":    "Језик и унос",
+            "sv":    "Språk och inmatning",
+            "sw":    "Lugha, Kibodi na Sauti",
+            "th":    "ภาษาและการป้อนข้อมูล",
+            "tl":    "Wika at input",
+            "tr":    "Dil ve giriş",
+            "uk":    "Мова та введення",
+            "vi":    "Ngôn ngữ & phương thức nhập",
+            "zh-rCN":    "语言和输入法",
+            "zh-rHK":    "語言與輸入裝置",
+            "zh-rTW":    "語言與輸入設定",
+            "zu":    "Ulimi & ukufakwa",
         }
 
         PHONE_LANGUAGE = {
-            "en":    u"Language",
-            "af":    u"Taal",
-            "am":    u"ቋንቋ",
-            "ar":    u"اللغة",
-            "az":    u"Dil",
-            "az-rAZ":    u"Dil",
-            "be":    u"Мова",
-            "bg":    u"Език",
-            "ca":    u"Idioma",
-            "cs":    u"Jazyk",
-            "da":    u"Sprog",
-            "de":    u"Sprache",
-            "el":    u"Γλώσσα",
-            "en-rGB":    u"Language",
-            "en-rIN":    u"Language",
-            "es":    u"Idioma",
-            "es-rUS":    u"Idioma",
-            "et":    u"Keel",
-            "et-rEE":    u"Keel",
-            "fa":    u"زبان",
-            "fi":    u"Kieli",
-            "fr":    u"Langue",
-            "fr-rCA":    u"Langue",
-            "hi":    u"भाषा",
-            "hr":    u"Jezik",
-            "hu":    u"Nyelv",
-            "hy":    u"Lեզուն",
-            "hy-rAM":    u"Lեզուն",
-            "in":    u"Bahasa",
-            "it":    u"Lingua",
-            "iw":    u"שפה",
-            "ja":    u"言語",
-            "ka":    u"ენა",
-            "ka-rGE":    u"ენა",
-            "km":    u"ភាសា",
-            "km-rKH":    u"ភាសា",
-            "ko":    u"언어",
-            "lo":    u"ພາສາ",
-            "lo-rLA":    u"ພາສາ",
-            "lt":    u"Kalba",
-            "lv":    u"Valoda",
-            "mn":    u"Хэл",
-            "mn-rMN":    u"Хэл",
-            "ms":    u"Bahasa",
-            "ms-rMY":    u"Bahasa",
-            "nb":    u"Språk",
-            "ne":    u"भाषा",
-            "nl":    u"Taal",
-            "pl":    u"Język",
-            "pt":    u"Idioma",
-            "pt-rPT":    u"Idioma",
-            "ro":    u"Limba",
-            "ru":    u"Язык",
-            "si":    u"භාෂාව",
-            "si-rLK":    u"භාෂාව",
-            "sk":    u"Jazyk",
-            "sl":    u"Jezik",
-            "sr":    u"Језик",
-            "sv":    u"Språk",
-            "sw":    u"Lugha",
-            "th":    u"ภาษา",
-            "tl":    u"Wika",
-            "tr":    u"Dil",
-            "uk":    u"Мова",
-            "vi":    u"Ngôn ngữ",
-            "zh-rCN":    u"语言",
-            "zh-rHK":    u"語言",
-            "zh-rTW":    u"語言",
-            "zu":    u"Ulimi",
+            "en":    "Language",
+            "af":    "Taal",
+            "am":    "ቋንቋ",
+            "ar":    "اللغة",
+            "az":    "Dil",
+            "az-rAZ":    "Dil",
+            "be":    "Мова",
+            "bg":    "Език",
+            "ca":    "Idioma",
+            "cs":    "Jazyk",
+            "da":    "Sprog",
+            "de":    "Sprache",
+            "el":    "Γλώσσα",
+            "en-rGB":    "Language",
+            "en-rIN":    "Language",
+            "es":    "Idioma",
+            "es-rUS":    "Idioma",
+            "et":    "Keel",
+            "et-rEE":    "Keel",
+            "fa":    "زبان",
+            "fi":    "Kieli",
+            "fr":    "Langue",
+            "fr-rCA":    "Langue",
+            "hi":    "भाषा",
+            "hr":    "Jezik",
+            "hu":    "Nyelv",
+            "hy":    "Lեզուն",
+            "hy-rAM":    "Lեզուն",
+            "in":    "Bahasa",
+            "it":    "Lingua",
+            "iw":    "שפה",
+            "ja":    "言語",
+            "ka":    "ენა",
+            "ka-rGE":    "ენა",
+            "km":    "ភាសា",
+            "km-rKH":    "ភាសា",
+            "ko":    "언어",
+            "lo":    "ພາສາ",
+            "lo-rLA":    "ພາສາ",
+            "lt":    "Kalba",
+            "lv":    "Valoda",
+            "mn":    "Хэл",
+            "mn-rMN":    "Хэл",
+            "ms":    "Bahasa",
+            "ms-rMY":    "Bahasa",
+            "nb":    "Språk",
+            "ne":    "भाषा",
+            "nl":    "Taal",
+            "pl":    "Język",
+            "pt":    "Idioma",
+            "pt-rPT":    "Idioma",
+            "ro":    "Limba",
+            "ru":    "Язык",
+            "si":    "භාෂාව",
+            "si-rLK":    "භාෂාව",
+            "sk":    "Jazyk",
+            "sl":    "Jezik",
+            "sr":    "Језик",
+            "sv":    "Språk",
+            "sw":    "Lugha",
+            "th":    "ภาษา",
+            "tl":    "Wika",
+            "tr":    "Dil",
+            "uk":    "Мова",
+            "vi":    "Ngôn ngữ",
+            "zh-rCN":    "语言",
+            "zh-rHK":    "語言",
+            "zh-rTW":    "語言",
+            "zu":    "Ulimi",
         }
 
         LANGUAGES = {
-            "en": u"English (United States)",
-            "es-rUS": u"Español (Estados Unidos)",
-            "af": u"Afrikaans", # Afrikaans
-            "af-rNA": u"Afrikaans (Namibië)", # Afrikaans (Namibia)
-            "af-rZA": u"Afrikaans (Suid-Afrika)", # Afrikaans (South Africa)
-            "agq": u"Aghem", # Aghem
-            "agq-rCM": u"Aghem (Kàmàlûŋ)", # Aghem (Cameroon)
-            "ak": u"Akan", # Akan
-            "ak-rGH": u"Akan (Gaana)", # Akan (Ghana)
-            "am": u"አማርኛ", # Amharic
-            "am-rET": u"አማርኛ (ኢትዮጵያ)", # Amharic (Ethiopia)
-            "ar": u"العربية", # Arabic
-            "ar_001": u"العربية (العالم)", # Arabic (World)
-            "ar-rAE": u"العربية (الإمارات العربية المتحدة)", # Arabic (United Arab Emirates)
-            "ar-rBH": u"العربية (البحرين)", # Arabic (Bahrain)
-            "ar-rDJ": u"العربية (جيبوتي)", # Arabic (Djibouti)
-            "ar-rDZ": u"العربية (الجزائر)", # Arabic (Algeria)
-            "ar-rEG": u"العربية (مصر)", # Arabic (Egypt)
-            "ar-rEH": u"العربية (الصحراء الغربية)", # Arabic (Western Sahara)
-            "ar-rER": u"العربية (أريتريا)", # Arabic (Eritrea)
-            "ar-rIL": u"العربية (إسرائيل)", # Arabic (Israel)
-            "ar-rIQ": u"العربية (العراق)", # Arabic (Iraq)
-            "ar-rJO": u"العربية (الأردن)", # Arabic (Jordan)
-            "ar-rKM": u"العربية (جزر القمر)", # Arabic (Comoros)
-            "ar-rKW": u"العربية (الكويت)", # Arabic (Kuwait)
-            "ar-rLB": u"العربية (لبنان)", # Arabic (Lebanon)
-            "ar-rLY": u"العربية (ليبيا)", # Arabic (Libya)
-            "ar-rMA": u"العربية (المغرب)", # Arabic (Morocco)
-            "ar-rMR": u"العربية (موريتانيا)", # Arabic (Mauritania)
-            "ar-rOM": u"العربية (عُمان)", # Arabic (Oman)
-            "ar-rPS": u"العربية (فلسطين)", # Arabic (Palestine)
-            "ar-rQA": u"العربية (قطر)", # Arabic (Qatar)
-            "ar-rSA": u"العربية (المملكة العربية السعودية)", # Arabic (Saudi Arabia)
-            "ar-rSD": u"العربية (السودان)", # Arabic (Sudan)
-            "ar-rSO": u"العربية (الصومال)", # Arabic (Somalia)
-            "ar-rSY": u"العربية (سوريا)", # Arabic (Syria)
-            "ar-rTD": u"العربية (تشاد)", # Arabic (Chad)
-            "ar-rTN": u"العربية (تونس)", # Arabic (Tunisia)
-            "ar-rYE": u"العربية (اليمن)", # Arabic (Yemen)
-            "as": u"অসমীয়া", # Assamese
-            "as-rIN": u"অসমীয়া (ভাৰত)", # Assamese (India)
-            "asa": u"Kipare", # Asu
-            "asa-rTZ": u"Kipare (Tadhania)", # Asu (Tanzania)
-            "az": u"Azərbaycanca", # Azerbaijani
-            "az-rCYRL": u"Азәрбајҹан (CYRL)", # Azerbaijani (CYRL)
-            "az-rCYRL_AZ": u"Азәрбајҹан (Азәрбајҹан,AZ)", # Azerbaijani (Azerbaijan,AZ)
-            "az-rLATN": u"Azərbaycanca (LATN)", # Azerbaijani (LATN)
-            "az-rLATN_AZ": u"Azərbaycanca (Azərbaycan,AZ)", # Azerbaijani (Azerbaijan,AZ)
-            "bas": u"Ɓàsàa", # Basaa
-            "bas-rCM": u"Ɓàsàa (Kàmɛ̀rûn)", # Basaa (Cameroon)
-            "be": u"беларуская", # Belarusian
-            "be-rBY": u"беларуская (Беларусь)", # Belarusian (Belarus)
-            "bem": u"Ichibemba", # Bemba
-            "bem-rZM": u"Ichibemba (Zambia)", # Bemba (Zambia)
-            "bez": u"Hibena", # Bena
-            "bez-rTZ": u"Hibena (Hutanzania)", # Bena (Tanzania)
-            "bg": u"български", # Bulgarian
-            "bg-rBG": u"български (България)", # Bulgarian (Bulgaria)
-            "bm": u"Bamanakan", # Bambara
-            "bm-rML": u"Bamanakan (Mali)", # Bambara (Mali)
-            "bn": u"বাংলা", # Bengali
-            "bn-rBD": u"বাংলা (বাংলাদেশ)", # Bengali (Bangladesh)
-            "bn-rIN": u"বাংলা (ভারত)", # Bengali (India)
-            "bo": u"པོད་སྐད་", # Tibetan
-            "bo-rCN": u"པོད་སྐད་ (རྒྱ་ནག)", # Tibetan (China)
-            "bo-rIN": u"པོད་སྐད་ (རྒྱ་གར་)", # Tibetan (India)
-            "br": u"Brezhoneg", # Breton
-            "br-rFR": u"Brezhoneg (Frañs)", # Breton (France)
-            "brx": u"बड़ो", # Bodo
-            "brx-rIN": u"बड़ो (भारत)", # Bodo (India)
-            "bs": u"Bosanski", # Bosnian
-            "bs-rCYRL": u"босански (CYRL)", # Bosnian (CYRL)
-            "bs-rCYRL_BA": u"босански (Босна и Херцеговина,BA)", # Bosnian (Bosnia and Herzegovina,BA)
-            "bs-rLATN": u"Bosanski (LATN)", # Bosnian (LATN)
-            "bs-rLATN_BA": u"Bosanski (Bosna i Hercegovina,BA)", # Bosnian (Bosnia and Herzegovina,BA)
-            "ca": u"Català", # Catalan
-            "ca-rAD": u"Català (Andorra)", # Catalan (Andorra)
-            "ca-rES": u"Català (Espanya)", # Catalan (Spain)
-            "cgg": u"Rukiga", # Chiga
-            "cgg-rUG": u"Rukiga (Uganda)", # Chiga (Uganda)
-            "chr": u"ᏣᎳᎩ", # Cherokee
-            "chr-rUS": u"ᏣᎳᎩ (ᎠᎹᏰᏟ)", # Cherokee (United States)
-            "cs": u"čeština", # Czech
-            "cs-rCZ": u"čeština (Česká republika)", # Czech (Czech Republic)
-            "cy": u"Cymraeg", # Welsh
-            "cy-rGB": u"Cymraeg (y Deyrnas Unedig)", # Welsh (United Kingdom)
-            "da": u"Dansk", # Danish
-            "da-rDK": u"Dansk (Danmark)", # Danish (Denmark)
-            "dav": u"Kitaita", # Taita
-            "dav-rKE": u"Kitaita (Kenya)", # Taita (Kenya)
-            "de": u"Deutsch", # German
-            "de-rAT": u"Deutsch (Österreich)", # German (Austria)
-            "de-rBE": u"Deutsch (Belgien)", # German (Belgium)
-            "de-rCH": u"Deutsch (Schweiz)", # German (Switzerland)
-            "de-rDE": u"Deutsch (Deutschland)", # German (Germany)
-            "de-rLI": u"Deutsch (Liechtenstein)", # German (Liechtenstein)
-            "de-rLU": u"Deutsch (Luxemburg)", # German (Luxembourg)
-            "dje": u"Zarmaciine", # Zarma
-            "dje-rNE": u"Zarmaciine (Nižer)", # Zarma (Niger)
-            "dua": u"Duálá", # Duala
-            "dua-rCM": u"Duálá (Cameroun)", # Duala (Cameroon)
-            "dyo": u"Joola", # Jola-Fonyi
-            "dyo-rSN": u"Joola (Senegal)", # Jola-Fonyi (Senegal)
-            "dz": u"རྫོང་ཁ", # Dzongkha
-            "dz-rBT": u"རྫོང་ཁ (འབྲུག)", # Dzongkha (Bhutan)
-            "ebu": u"Kĩembu", # Embu
-            "ebu-rKE": u"Kĩembu (Kenya)", # Embu (Kenya)
-            "ee": u"Eʋegbe", # Ewe
-            "ee-rGH": u"Eʋegbe (Ghana nutome)", # Ewe (Ghana)
-            "ee-rTG": u"Eʋegbe (Togo nutome)", # Ewe (Togo)
-            "el": u"Ελληνικά", # Greek
-            "el-rCY": u"Ελληνικά (Κύπρος)", # Greek (Cyprus)
-            "el-rGR": u"Ελληνικά (Ελλάδα)", # Greek (Greece)
-            "en": u"English", # English
-            "en_150": u"English (Europe)", # English (Europe)
-            "en-rAG": u"English (Antigua and Barbuda)", # English (Antigua and Barbuda)
-            "en-rAS": u"English (American Samoa)", # English (American Samoa)
-            "en-rAU": u"English (Australia)", # English (Australia)
-            "en-rBB": u"English (Barbados)", # English (Barbados)
-            "en-rBE": u"English (Belgium)", # English (Belgium)
-            "en-rBM": u"English (Bermuda)", # English (Bermuda)
-            "en-rBS": u"English (Bahamas)", # English (Bahamas)
-            "en-rBW": u"English (Botswana)", # English (Botswana)
-            "en-rBZ": u"English (Belize)", # English (Belize)
-            "en-rCA": u"English (Canada)", # English (Canada)
-            "en-rCM": u"English (Cameroon)", # English (Cameroon)
-            "en-rDM": u"English (Dominica)", # English (Dominica)
-            "en-rFJ": u"English (Fiji)", # English (Fiji)
-            "en-rFM": u"English (Micronesia)", # English (Micronesia)
-            "en-rGB": u"English (United Kingdom)", # English (United Kingdom)
-            "en-rGD": u"English (Grenada)", # English (Grenada)
-            "en-rGG": u"English (Guernsey)", # English (Guernsey)
-            "en-rGH": u"English (Ghana)", # English (Ghana)
-            "en-rGI": u"English (Gibraltar)", # English (Gibraltar)
-            "en-rGM": u"English (Gambia)", # English (Gambia)
-            "en-rGU": u"English (Guam)", # English (Guam)
-            "en-rGY": u"English (Guyana)", # English (Guyana)
-            "en-rHK": u"English (Hong Kong)", # English (Hong Kong)
-            "en-rIE": u"English (Ireland)", # English (Ireland)
-            "en-rIM": u"English (Isle of Man)", # English (Isle of Man)
-            "en-rIN": u"English (India)", # English (India)
-            "en-rJE": u"English (Jersey)", # English (Jersey)
-            "en-rJM": u"English (Jamaica)", # English (Jamaica)
-            "en-rKE": u"English (Kenya)", # English (Kenya)
-            "en-rKI": u"English (Kiribati)", # English (Kiribati)
-            "en-rKN": u"English (Saint Kitts and Nevis)", # English (Saint Kitts and Nevis)
-            "en-rKY": u"English (Cayman Islands)", # English (Cayman Islands)
-            "en-rLC": u"English (Saint Lucia)", # English (Saint Lucia)
-            "en-rLR": u"English (Liberia)", # English (Liberia)
-            "en-rLS": u"English (Lesotho)", # English (Lesotho)
-            "en-rMG": u"English (Madagascar)", # English (Madagascar)
-            "en-rMH": u"English (Marshall Islands)", # English (Marshall Islands)
-            "en-rMP": u"English (Northern Mariana Islands)", # English (Northern Mariana Islands)
-            "en-rMT": u"English (Malta)", # English (Malta)
-            "en-rMU": u"English (Mauritius)", # English (Mauritius)
-            "en-rMW": u"English (Malawi)", # English (Malawi)
-            "en-rNA": u"English (Namibia)", # English (Namibia)
-            "en-rNG": u"English (Nigeria)", # English (Nigeria)
-            "en-rNZ": u"English (New Zealand)", # English (New Zealand)
-            "en-rPG": u"English (Papua New Guinea)", # English (Papua New Guinea)
-            "en-rPH": u"English (Philippines)", # English (Philippines)
-            "en-rPK": u"English (Pakistan)", # English (Pakistan)
-            "en-rPR": u"English (Puerto Rico)", # English (Puerto Rico)
-            "en-rPW": u"English (Palau)", # English (Palau)
-            "en-rSB": u"English (Solomon Islands)", # English (Solomon Islands)
-            "en-rSC": u"English (Seychelles)", # English (Seychelles)
-            "en-rSG": u"English (Singapore)", # English (Singapore)
-            "en-rSL": u"English (Sierra Leone)", # English (Sierra Leone)
-            "en-rSS": u"English (South Sudan)", # English (South Sudan)
-            "en-rSZ": u"English (Swaziland)", # English (Swaziland)
-            "en-rTC": u"English (Turks and Caicos Islands)", # English (Turks and Caicos Islands)
-            "en-rTO": u"English (Tonga)", # English (Tonga)
-            "en-rTT": u"English (Trinidad and Tobago)", # English (Trinidad and Tobago)
-            "en-rTZ": u"English (Tanzania)", # English (Tanzania)
-            "en-rUG": u"English (Uganda)", # English (Uganda)
-            "en-rUM": u"English (U.S. Outlying Islands)", # English (U.S. Outlying Islands)
-            "en-rUS": u"English (United States)", # English (United States)
-            "en-rUS_POSIX": u"English (United States,Computer)", # English (United States,Computer)
-            "en-rVC": u"English (Saint Vincent and the Grenadines)", # English (Saint Vincent and the Grenadines)
-            "en-rVG": u"English (British Virgin Islands)", # English (British Virgin Islands)
-            "en-rVI": u"English (U.S. Virgin Islands)", # English (U.S. Virgin Islands)
-            "en-rVU": u"English (Vanuatu)", # English (Vanuatu)
-            "en-rWS": u"English (Samoa)", # English (Samoa)
-            "en-rZA": u"English (South Africa)", # English (South Africa)
-            "en-rZM": u"English (Zambia)", # English (Zambia)
-            "en-rZW": u"English (Zimbabwe)", # English (Zimbabwe)
-            "eo": u"Esperanto", # Esperanto
-            "es": u"Español", # Spanish
-            "es_419": u"Español (Latinoamérica)", # Spanish (Latin America)
-            "es-rAR": u"Español (Argentina)", # Spanish (Argentina)
-            "es-rBO": u"Español (Bolivia)", # Spanish (Bolivia)
-            "es-rCL": u"Español (Chile)", # Spanish (Chile)
-            "es-rCO": u"Español (Colombia)", # Spanish (Colombia)
-            "es-rCR": u"Español (Costa Rica)", # Spanish (Costa Rica)
-            "es-rCU": u"Español (Cuba)", # Spanish (Cuba)
-            "es-rDO": u"Español (República Dominicana)", # Spanish (Dominican Republic)
-            "es-rEA": u"Español (Ceuta y Melilla)", # Spanish (Ceuta and Melilla)
-            "es-rEC": u"Español (Ecuador)", # Spanish (Ecuador)
-            "es-rES": u"Español (España)", # Spanish (Spain)
-            "es-rGQ": u"Español (Guinea Ecuatorial)", # Spanish (Equatorial Guinea)
-            "es-rGT": u"Español (Guatemala)", # Spanish (Guatemala)
-            "es-rHN": u"Español (Honduras)", # Spanish (Honduras)
-            "es-rIC": u"Español (Islas Canarias)", # Spanish (Canary Islands)
-            "es-rMX": u"Español (México)", # Spanish (Mexico)
-            "es-rNI": u"Español (Nicaragua)", # Spanish (Nicaragua)
-            "es-rPA": u"Español (Panamá)", # Spanish (Panama)
-            "es-rPE": u"Español (Perú)", # Spanish (Peru)
-            "es-rPH": u"Español (Filipinas)", # Spanish (Philippines)
-            "es-rPR": u"Español (Puerto Rico)", # Spanish (Puerto Rico)
-            "es-rPY": u"Español (Paraguay)", # Spanish (Paraguay)
-            "es-rSV": u"Español (El Salvador)", # Spanish (El Salvador)
-            "es-rUS": u"Español (Estados Unidos)", # Spanish (United States)
-            "es-rUY": u"Español (Uruguay)", # Spanish (Uruguay)
-            "es-rVE": u"Español (Venezuela)", # Spanish (Venezuela)
-            "et": u"Eesti", # Estonian
-            "et-rEE": u"Eesti (Eesti)", # Estonian (Estonia)
-            "eu": u"Euskara", # Basque
-            "eu-rES": u"Euskara (Espainia)", # Basque (Spain)
-            "ewo": u"Ewondo", # Ewondo
-            "ewo-rCM": u"Ewondo (Kamərún)", # Ewondo (Cameroon)
-            "fa": u"فارسی", # Persian
-            "fa-rAF": u"دری (افغانستان)", # Persian (Afghanistan)
-            "fa-rIR": u"فارسی (ایران)", # Persian (Iran)
-            "ff": u"Pulaar", # Fulah
-            "ff-rSN": u"Pulaar (Senegaal)", # Fulah (Senegal)
-            "fi": u"Suomi", # Finnish
-            "fi-rFI": u"Suomi (Suomi)", # Finnish (Finland)
-            "fil": u"Filipino", # Filipino
-            "fil-rPH": u"Filipino (Pilipinas)", # Filipino (Philippines)
-            "fo": u"Føroyskt", # Faroese
-            "fo-rFO": u"Føroyskt (Føroyar)", # Faroese (Faroe Islands)
-            "fr": u"Français", # French
-            "fr-rBE": u"Français (Belgique)", # French (Belgium)
-            "fr-rBF": u"Français (Burkina Faso)", # French (Burkina Faso)
-            "fr-rBI": u"Français (Burundi)", # French (Burundi)
-            "fr-rBJ": u"Français (Bénin)", # French (Benin)
-            "fr-rBL": u"Français (Saint-Barthélémy)", # French (Saint Barthélemy)
-            "fr-rCA": u"Français (Canada)", # French (Canada)
-            "fr-rCD": u"Français (République démocratique du Congo)", # French (Congo [DRC])
-            "fr-rCF": u"Français (République centrafricaine)", # French (Central African Republic)
-            "fr-rCG": u"Français (Congo-Brazzaville)", # French (Congo [Republic])
-            "fr-rCH": u"Français (Suisse)", # French (Switzerland)
-            "fr-rCI": u"Français (Côte d’Ivoire)", # French (Côte d’Ivoire)
-            "fr-rCM": u"Français (Cameroun)", # French (Cameroon)
-            "fr-rDJ": u"Français (Djibouti)", # French (Djibouti)
-            "fr-rDZ": u"Français (Algérie)", # French (Algeria)
-            "fr-rFR": u"Français (France)", # French (France)
-            "fr-rGA": u"Français (Gabon)", # French (Gabon)
-            "fr-rGF": u"Français (Guyane française)", # French (French Guiana)
-            "fr-rGN": u"Français (Guinée)", # French (Guinea)
-            "fr-rGP": u"Français (Guadeloupe)", # French (Guadeloupe)
-            "fr-rGQ": u"Français (Guinée équatoriale)", # French (Equatorial Guinea)
-            "fr-rHT": u"Français (Haïti)", # French (Haiti)
-            "fr-rKM": u"Français (Comores)", # French (Comoros)
-            "fr-rLU": u"Français (Luxembourg)", # French (Luxembourg)
-            "fr-rMA": u"Français (Maroc)", # French (Morocco)
-            "fr-rMC": u"Français (Monaco)", # French (Monaco)
-            "fr-rMF": u"Français (Saint-Martin [partie française])", # French (Saint Martin)
-            "fr-rMG": u"Français (Madagascar)", # French (Madagascar)
-            "fr-rML": u"Français (Mali)", # French (Mali)
-            "fr-rMQ": u"Français (Martinique)", # French (Martinique)
-            "fr-rMR": u"Français (Mauritanie)", # French (Mauritania)
-            "fr-rMU": u"Français (Maurice)", # French (Mauritius)
-            "fr-rNC": u"Français (Nouvelle-Calédonie)", # French (New Caledonia)
-            "fr-rNE": u"Français (Niger)", # French (Niger)
-            "fr-rPF": u"Français (Polynésie française)", # French (French Polynesia)
-            "fr-rRE": u"Français (Réunion)", # French (Réunion)
-            "fr-rRW": u"Français (Rwanda)", # French (Rwanda)
-            "fr-rSC": u"Français (Seychelles)", # French (Seychelles)
-            "fr-rSN": u"Français (Sénégal)", # French (Senegal)
-            "fr-rSY": u"Français (Syrie)", # French (Syria)
-            "fr-rTD": u"Français (Tchad)", # French (Chad)
-            "fr-rTG": u"Français (Togo)", # French (Togo)
-            "fr-rTN": u"Français (Tunisie)", # French (Tunisia)
-            "fr-rVU": u"Français (Vanuatu)", # French (Vanuatu)
-            "fr-rYT": u"Français (Mayotte)", # French (Mayotte)
-            "ga": u"Gaeilge", # Irish
-            "ga-rIE": u"Gaeilge (Éire)", # Irish (Ireland)
-            "gl": u"Galego", # Galician
-            "gl-rES": u"Galego (España)", # Galician (Spain)
-            "gsw": u"Schwiizertüütsch", # Swiss German
-            "gsw-rCH": u"Schwiizertüütsch (Schwiiz)", # Swiss German (Switzerland)
-            "gu": u"ગુજરાતી", # Gujarati
-            "gu-rIN": u"ગુજરાતી (ભારત)", # Gujarati (India)
-            "guz": u"Ekegusii", # Gusii
-            "guz-rKE": u"Ekegusii (Kenya)", # Gusii (Kenya)
-            "gv": u"Gaelg", # Manx
-            "gv-rGB": u"Gaelg (Rywvaneth Unys)", # Manx (United Kingdom)
-            "ha": u"Hausa", # Hausa
-            "ha-rLATN": u"Hausa (LATN)", # Hausa (LATN)
-            "ha-rLATN_GH": u"Hausa (Gana,GH)", # Hausa (Ghana,GH)
-            "ha-rLATN_NE": u"Hausa (Nijar,NE)", # Hausa (Niger,NE)
-            "ha-rLATN_NG": u"Hausa (Najeriya,NG)", # Hausa (Nigeria,NG)
-            "haw": u"ʻŌlelo Hawaiʻi", # Hawaiian
-            "haw-rUS": u"ʻŌlelo Hawaiʻi (ʻAmelika Hui Pū ʻIa)", # Hawaiian (United States)
-            "iw": u"עברית", # Hebrew
-            "iw-rIL": u"עברית (ישראל)", # Hebrew (Israel)
-            "hi": u"हिन्दी", # Hindi
-            "hi-rIN": u"हिन्दी (भारत)", # Hindi (India)
-            "hr": u"Hrvatski", # Croatian
-            "hr-rBA": u"Hrvatski (Bosna i Hercegovina)", # Croatian (Bosnia and Herzegovina)
-            "hr-rHR": u"Hrvatski (Hrvatska)", # Croatian (Croatia)
-            "hu": u"Magyar", # Hungarian
-            "hu-rHU": u"Magyar (Magyarország)", # Hungarian (Hungary)
-            "hy": u"հայերեն", # Armenian
-            "hy-rAM": u"հայերեն (Հայաստան)", # Armenian (Armenia)
-            "in": u"Bahasa Indonesia", # Indonesian
-            "in-rID": u"Bahasa Indonesia (Indonesia)", # Indonesian (Indonesia)
-            "ig": u"Igbo", # Igbo
-            "ig-rNG": u"Igbo (Nigeria)", # Igbo (Nigeria)
-            "ii": u"ꆈꌠꉙ", # Sichuan Yi
-            "ii-rCN": u"ꆈꌠꉙ (ꍏꇩ)", # Sichuan Yi (China)
-            "is": u"íslenska", # Icelandic
-            "is-rIS": u"íslenska (Ísland)", # Icelandic (Iceland)
-            "it": u"Italiano", # Italian
-            "it-rCH": u"Italiano (Svizzera)", # Italian (Switzerland)
-            "it-rIT": u"Italiano (Italia)", # Italian (Italy)
-            "it-rSM": u"Italiano (San Marino)", # Italian (San Marino)
-            "ja": u"日本語", # Japanese
-            "ja-rJP": u"日本語 (日本)", # Japanese (Japan)
-            "jgo": u"Ndaꞌa", # Ngomba
-            "jgo-rCM": u"Ndaꞌa (Kamɛlûn)", # Ngomba (Cameroon)
-            "jmc": u"Kimachame", # Machame
-            "jmc-rTZ": u"Kimachame (Tanzania)", # Machame (Tanzania)
-            "ka": u"ქართული", # Georgian
-            "ka-rGE": u"ქართული (საქართველო)", # Georgian (Georgia)
-            "kab": u"Taqbaylit", # Kabyle
-            "kab-rDZ": u"Taqbaylit (Lezzayer)", # Kabyle (Algeria)
-            "kam": u"Kikamba", # Kamba
-            "kam-rKE": u"Kikamba (Kenya)", # Kamba (Kenya)
-            "kde": u"Chimakonde", # Makonde
-            "kde-rTZ": u"Chimakonde (Tanzania)", # Makonde (Tanzania)
-            "kea": u"Kabuverdianu", # Kabuverdianu
-            "kea-rCV": u"Kabuverdianu (Kabu Verdi)", # Kabuverdianu (Cape Verde)
-            "khq": u"Koyra ciini", # Koyra Chiini
-            "khq-rML": u"Koyra ciini (Maali)", # Koyra Chiini (Mali)
-            "ki": u"Gikuyu", # Kikuyu
-            "ki-rKE": u"Gikuyu (Kenya)", # Kikuyu (Kenya)
-            "kk": u"қазақ тілі", # Kazakh
-            "kk-rCYRL": u"қазақ тілі (CYRL)", # Kazakh (CYRL)
-            "kk-rCYRL_KZ": u"қазақ тілі (Қазақстан,KZ)", # Kazakh (Kazakhstan,KZ)
-            "kl": u"Kalaallisut", # Kalaallisut
-            "kl-rGL": u"Kalaallisut (Kalaallit Nunaat)", # Kalaallisut (Greenland)
-            "kln": u"Kalenjin", # Kalenjin
-            "kln-rKE": u"Kalenjin (Emetab Kenya)", # Kalenjin (Kenya)
-            "km": u"ខ្មែរ", # Khmer
-            "km-rKH": u"ខ្មែរ (កម្ពុជា)", # Khmer (Cambodia)
-            "kn": u"ಕನ್ನಡ", # Kannada
-            "kn-rIN": u"ಕನ್ನಡ (ಭಾರತ)", # Kannada (India)
-            "ko": u"한국어", # Korean
-            "ko-rKP": u"한국어 (조선 민주주의 인민 공화국)", # Korean (North Korea)
-            "ko-rKR": u"한국어 (대한민국)", # Korean (South Korea)
-            "kok": u"कोंकणी", # Konkani
-            "kok-rIN": u"कोंकणी (भारत)", # Konkani (India)
-            "ks": u"کٲشُر", # Kashmiri
-            "ks-rARAB": u"کٲشُر (ARAB)", # Kashmiri (ARAB)
-            "ks-rARAB_IN": u"کٲشُر (ہِنٛدوستان,IN)", # Kashmiri (India,IN)
-            "ksb": u"Kishambaa", # Shambala
-            "ksb-rTZ": u"Kishambaa (Tanzania)", # Shambala (Tanzania)
-            "ksf": u"Rikpa", # Bafia
-            "ksf-rCM": u"Rikpa (kamɛrún)", # Bafia (Cameroon)
-            "kw": u"Kernewek", # Cornish
-            "kw-rGB": u"Kernewek (Rywvaneth Unys)", # Cornish (United Kingdom)
-            "lag": u"Kɨlaangi", # Langi
-            "lag-rTZ": u"Kɨlaangi (Taansanía)", # Langi (Tanzania)
-            "lg": u"Luganda", # Ganda
-            "lg-rUG": u"Luganda (Yuganda)", # Ganda (Uganda)
-            "ln": u"Lingála", # Lingala
-            "ln-rAO": u"Lingála (Angóla)", # Lingala (Angola)
-            "ln-rCD": u"Lingála (Repibiki demokratiki ya Kongó)", # Lingala (Congo [DRC])
-            "ln-rCF": u"Lingála (Repibiki ya Afríka ya Káti)", # Lingala (Central African Republic)
-            "ln-rCG": u"Lingála (Kongo)", # Lingala (Congo [Republic])
-            "lo": u"ລາວ", # Lao
-            "lo-rLA": u"ລາວ (ສ.ປ.ປ ລາວ)", # Lao (Laos)
-            "lt": u"Lietuvių", # Lithuanian
-            "lt-rLT": u"Lietuvių (Lietuva)", # Lithuanian (Lithuania)
-            "lu": u"Tshiluba", # Luba-Katanga
-            "lu-rCD": u"Tshiluba (Ditunga wa Kongu)", # Luba-Katanga (Congo [DRC])
-            "luo": u"Dholuo", # Luo
-            "luo-rKE": u"Dholuo (Kenya)", # Luo (Kenya)
-            "luy": u"Luluhia", # Luyia
-            "luy-rKE": u"Luluhia (Kenya)", # Luyia (Kenya)
-            "lv": u"Latviešu", # Latvian
-            "lv-rLV": u"Latviešu (Latvija)", # Latvian (Latvia)
-            "mas": u"Maa", # Masai
-            "mas-rKE": u"Maa (Kenya)", # Masai (Kenya)
-            "mas-rTZ": u"Maa (Tansania)", # Masai (Tanzania)
-            "mer": u"Kĩmĩrũ", # Meru
-            "mer-rKE": u"Kĩmĩrũ (Kenya)", # Meru (Kenya)
-            "mfe": u"Kreol morisien", # Morisyen
-            "mfe-rMU": u"Kreol morisien (Moris)", # Morisyen (Mauritius)
-            "mg": u"Malagasy", # Malagasy
-            "mg-rMG": u"Malagasy (Madagasikara)", # Malagasy (Madagascar)
-            "mgh": u"Makua", # Makhuwa-Meetto
-            "mgh-rMZ": u"Makua (Umozambiki)", # Makhuwa-Meetto (Mozambique)
-            "mgo": u"Metaʼ", # Meta'
-            "mgo-rCM": u"Metaʼ (Kamalun)", # Meta' (Cameroon)
-            "mk": u"македонски", # Macedonian
-            "mk-rMK": u"македонски (Македонија)", # Macedonian (Macedonia [FYROM])
-            "ml": u"മലയാളം", # Malayalam
-            "ml-rIN": u"മലയാളം (ഇന്ത്യ)", # Malayalam (India)
-            "mn": u"монгол", # Mongolian
-            "mn-rCYRL": u"монгол (CYRL)", # Mongolian (CYRL)
-            "mn-rCYRL_MN": u"монгол (Монгол,MN)", # Mongolian (Mongolia,MN)
-            "mr": u"मराठी", # Marathi
-            "mr-rIN": u"मराठी (भारत)", # Marathi (India)
-            "ms": u"Bahasa Melayu", # Malay
-            "ms-rLATN": u"Bahasa Melayu (LATN)", # Malay (LATN)
-            "ms-rLATN_BN": u"Bahasa Melayu (Brunei,BN)", # Malay (Brunei,BN)
-            "ms-rLATN_MY": u"Bahasa Melayu (Malaysia,MY)", # Malay (Malaysia,MY)
-            "ms-rLATN_SG": u"Bahasa Melayu (Singapura,SG)", # Malay (Singapore,SG)
-            "mt": u"Malti", # Maltese
-            "mt-rMT": u"Malti (Malta)", # Maltese (Malta)
-            "mua": u"MUNDAŊ", # Mundang
-            "mua-rCM": u"MUNDAŊ (kameruŋ)", # Mundang (Cameroon)
-            "my": u"ဗမာ", # Burmese
-            "my-rMM": u"ဗမာ (မြန်မာ)", # Burmese (Myanmar [Burma])
-            "naq": u"Khoekhoegowab", # Nama
-            "naq-rNA": u"Khoekhoegowab (Namibiab)", # Nama (Namibia)
-            "nb": u"Norsk bokmål", # Norwegian Bokmål
-            "nb-rNO": u"Norsk bokmål (Norge)", # Norwegian Bokmål (Norway)
-            "nd": u"IsiNdebele", # North Ndebele
-            "nd-rZW": u"IsiNdebele (Zimbabwe)", # North Ndebele (Zimbabwe)
-            "ne": u"नेपाली", # Nepali
-            "ne-rIN": u"नेपाली (भारत)", # Nepali (India)
-            "ne-rNP": u"नेपाली (नेपाल)", # Nepali (Nepal)
-            "nl": u"Nederlands", # Dutch
-            "nl-rAW": u"Nederlands (Aruba)", # Dutch (Aruba)
-            "nl-rBE": u"Nederlands (België)", # Dutch (Belgium)
-            "nl-rCW": u"Nederlands (Curaçao)", # Dutch (Curaçao)
-            "nl-rNL": u"Nederlands (Nederland)", # Dutch (Netherlands)
-            "nl-rSR": u"Nederlands (Suriname)", # Dutch (Suriname)
-            "nl-rSX": u"Nederlands (Sint-Maarten)", # Dutch (Sint Maarten)
-            "nmg": u"Nmg", # Kwasio
-            "nmg-rCM": u"Nmg (Kamerun)", # Kwasio (Cameroon)
-            "nn": u"Nynorsk", # Norwegian Nynorsk
-            "nn-rNO": u"Nynorsk (Noreg)", # Norwegian Nynorsk (Norway)
-            "nus": u"Thok Nath", # Nuer
-            "nus-rSD": u"Thok Nath (Sudan)", # Nuer (Sudan)
-            "nyn": u"Runyankore", # Nyankole
-            "nyn-rUG": u"Runyankore (Uganda)", # Nyankole (Uganda)
-            "om": u"Oromoo", # Oromo
-            "om-rET": u"Oromoo (Itoophiyaa)", # Oromo (Ethiopia)
-            "om-rKE": u"Oromoo (Keeniyaa)", # Oromo (Kenya)
-            "or": u"ଓଡ଼ିଆ", # Oriya
-            "or-rIN": u"ଓଡ଼ିଆ (ଭାରତ)", # Oriya (India)
-            "pa": u"ਪੰਜਾਬੀ", # Punjabi
-            "pa-rARAB": u"پنجاب (ARAB)", # Punjabi (ARAB)
-            "pa-rARAB_PK": u"پنجاب (پکستان,PK)", # Punjabi (Pakistan,PK)
-            "pa-rGURU": u"ਪੰਜਾਬੀ (GURU)", # Punjabi (GURU)
-            "pa-rGURU_IN": u"ਪੰਜਾਬੀ (ਭਾਰਤ,IN)", # Punjabi (India,IN)
-            "pl": u"Polski", # Polish
-            "pl-rPL": u"Polski (Polska)", # Polish (Poland)
-            "ps": u"پښتو", # Pashto
-            "ps-rAF": u"پښتو (افغانستان)", # Pashto (Afghanistan)
-            "pt": u"Português", # Portuguese
-            "pt-rAO": u"Português (Angola)", # Portuguese (Angola)
-            "pt-rBR": u"Português (Brasil)", # Portuguese (Brazil)
-            "pt-rCV": u"Português (Cabo Verde)", # Portuguese (Cape Verde)
-            "pt-rGW": u"Português (Guiné Bissau)", # Portuguese (Guinea-Bissau)
-            "pt-rMO": u"Português (Macau)", # Portuguese (Macau)
-            "pt-rMZ": u"Português (Moçambique)", # Portuguese (Mozambique)
-            "pt-rPT": u"Português (Portugal)", # Portuguese (Portugal)
-            "pt-rST": u"Português (São Tomé e Príncipe)", # Portuguese (São Tomé and Príncipe)
-            "pt-rTL": u"Português (Timor-Leste)", # Portuguese (Timor-Leste)
-            "rm": u"Rumantsch", # Romansh
-            "rm-rCH": u"Rumantsch (Svizra)", # Romansh (Switzerland)
-            "rn": u"Ikirundi", # Rundi
-            "rn-rBI": u"Ikirundi (Uburundi)", # Rundi (Burundi)
-            "ro": u"Română", # Romanian
-            "ro-rMD": u"Română (Republica Moldova)", # Romanian (Moldova)
-            "ro-rRO": u"Română (România)", # Romanian (Romania)
-            "rof": u"Kihorombo", # Rombo
-            "rof-rTZ": u"Kihorombo (Tanzania)", # Rombo (Tanzania)
-            "ru": u"русский", # Russian
-            "ru-rBY": u"русский (Беларусь)", # Russian (Belarus)
-            "ru-rKG": u"русский (Киргизия)", # Russian (Kyrgyzstan)
-            "ru-rKZ": u"русский (Казахстан)", # Russian (Kazakhstan)
-            "ru-rMD": u"русский (Молдова)", # Russian (Moldova)
-            "ru-rRU": u"русский (Россия)", # Russian (Russia)
-            "ru-rUA": u"русский (Украина)", # Russian (Ukraine)
-            "rw": u"Kinyarwanda", # Kinyarwanda
-            "rw-rRW": u"Kinyarwanda (Rwanda)", # Kinyarwanda (Rwanda)
-            "rwk": u"Kiruwa", # Rwa
-            "rwk-rTZ": u"Kiruwa (Tanzania)", # Rwa (Tanzania)
-            "saq": u"Kisampur", # Samburu
-            "saq-rKE": u"Kisampur (Kenya)", # Samburu (Kenya)
-            "sbp": u"Ishisangu", # Sangu
-            "sbp-rTZ": u"Ishisangu (Tansaniya)", # Sangu (Tanzania)
-            "seh": u"Sena", # Sena
-            "seh-rMZ": u"Sena (Moçambique)", # Sena (Mozambique)
-            "ses": u"Koyraboro senni", # Koyraboro Senni
-            "ses-rML": u"Koyraboro senni (Maali)", # Koyraboro Senni (Mali)
-            "sg": u"Sängö", # Sango
-            "sg-rCF": u"Sängö (Ködörösêse tî Bêafrîka)", # Sango (Central African Republic)
-            "shi": u"ⵜⴰⵎⴰⵣⵉⵖⵜ", # Tachelhit
-            "shi-rLATN": u"Tamazight (LATN)", # Tachelhit (LATN)
-            "shi-rLATN_MA": u"Tamazight (lmɣrib,MA)", # Tachelhit (Morocco,MA)
-            "shi-rTFNG": u"ⵜⴰⵎⴰⵣⵉⵖⵜ (TFNG)", # Tachelhit (TFNG)
-            "shi-rTFNG_MA": u"ⵜⴰⵎⴰⵣⵉⵖⵜ (ⵍⵎⵖⵔⵉⴱ,MA)", # Tachelhit (Morocco,MA)
-            "si": u"සිංහල", # Sinhala
-            "si-rLK": u"සිංහල (ශ්‍රී ලංකාව)", # Sinhala (Sri Lanka)
-            "sk": u"Slovenčina", # Slovak
-            "sk-rSK": u"Slovenčina (Slovensko)", # Slovak (Slovakia)
-            "sl": u"Slovenščina", # Slovenian
-            "sl-rSI": u"Slovenščina (Slovenija)", # Slovenian (Slovenia)
-            "sn": u"ChiShona", # Shona
-            "sn-rZW": u"ChiShona (Zimbabwe)", # Shona (Zimbabwe)
-            "so": u"Soomaali", # Somali
-            "so-rDJ": u"Soomaali (Jabuuti)", # Somali (Djibouti)
-            "so-rET": u"Soomaali (Itoobiya)", # Somali (Ethiopia)
-            "so-rKE": u"Soomaali (Kiiniya)", # Somali (Kenya)
-            "so-rSO": u"Soomaali (Soomaaliya)", # Somali (Somalia)
-            "sq": u"Shqip", # Albanian
-            "sq-rAL": u"Shqip (Shqipëria)", # Albanian (Albania)
-            "sq-rMK": u"Shqip (Maqedoni)", # Albanian (Macedonia [FYROM])
-            "sr": u"Српски", # Serbian
-            "sr-rCYRL": u"Српски (CYRL)", # Serbian (CYRL)
-            "sr-rCYRL_BA": u"Српски (Босна и Херцеговина,BA)", # Serbian (Bosnia and Herzegovina,BA)
-            "sr-rCYRL_ME": u"Српски (Црна Гора,ME)", # Serbian (Montenegro,ME)
-            "sr-rCYRL_RS": u"Српски (Србија,RS)", # Serbian (Serbia,RS)
-            "sr-rLATN": u"Srpski (LATN)", # Serbian (LATN)
-            "sr-rLATN_BA": u"Srpski (Bosna i Hercegovina,BA)", # Serbian (Bosnia and Herzegovina,BA)
-            "sr-rLATN_ME": u"Srpski (Crna Gora,ME)", # Serbian (Montenegro,ME)
-            "sr-rLATN_RS": u"Srpski (Srbija,RS)", # Serbian (Serbia,RS)
-            "sv": u"Svenska", # Swedish
-            "sv-rAX": u"Svenska (Åland)", # Swedish (Åland Islands)
-            "sv-rFI": u"Svenska (Finland)", # Swedish (Finland)
-            "sv-rSE": u"Svenska (Sverige)", # Swedish (Sweden)
-            "sw": u"Kiswahili", # Swahili
-            "sw-rKE": u"Kiswahili (Kenya)", # Swahili (Kenya)
-            "sw-rTZ": u"Kiswahili (Tanzania)", # Swahili (Tanzania)
-            "sw-rUG": u"Kiswahili (Uganda)", # Swahili (Uganda)
-            "swc": u"Kiswahili ya Kongo", # Congo Swahili
-            "swc-rCD": u"Kiswahili ya Kongo (Jamhuri ya Kidemokrasia ya Kongo)", # Congo Swahili (Congo [DRC])
-            "ta": u"தமிழ்", # Tamil
-            "ta-rIN": u"தமிழ் (இந்தியா)", # Tamil (India)
-            "ta-rLK": u"தமிழ் (இலங்கை)", # Tamil (Sri Lanka)
-            "ta-rMY": u"தமிழ் (மலேஷியா)", # Tamil (Malaysia)
-            "ta-rSG": u"தமிழ் (சிங்கப்பூர்)", # Tamil (Singapore)
-            "te": u"తెలుగు", # Telugu
-            "te-rIN": u"తెలుగు (భారత దేశం)", # Telugu (India)
-            "teo": u"Kiteso", # Teso
-            "teo-rKE": u"Kiteso (Kenia)", # Teso (Kenya)
-            "teo-rUG": u"Kiteso (Uganda)", # Teso (Uganda)
-            "th": u"ไทย", # Thai
-            "th-rTH": u"ไทย (ไทย)", # Thai (Thailand)
-            "ti": u"ትግርኛ", # Tigrinya
-            "ti-rER": u"ትግርኛ (ER)", # Tigrinya (Eritrea)
-            "ti-rET": u"ትግርኛ (ET)", # Tigrinya (Ethiopia)
-            "to": u"Lea fakatonga", # Tongan
-            "to-rTO": u"Lea fakatonga (Tonga)", # Tongan (Tonga)
-            "tr": u"Türkçe", # Turkish
-            "tr-rCY": u"Türkçe (Güney Kıbrıs Rum Kesimi)", # Turkish (Cyprus)
-            "tr-rTR": u"Türkçe (Türkiye)", # Turkish (Turkey)
-            "twq": u"Tasawaq senni", # Tasawaq
-            "twq-rNE": u"Tasawaq senni (Nižer)", # Tasawaq (Niger)
-            "tzm": u"Tamaziɣt", # Central Atlas Tamazight
-            "tzm-rLATN": u"Tamaziɣt (LATN)", # Central Atlas Tamazight (LATN)
-            "tzm-rLATN_MA": u"Tamaziɣt (Meṛṛuk,MA)", # Central Atlas Tamazight (Morocco,MA)
-            "uk": u"українська", # Ukrainian
-            "uk-rUA": u"українська (Україна)", # Ukrainian (Ukraine)
-            "ur": u"اردو", # Urdu
-            "ur-rIN": u"اردو (بھارت)", # Urdu (India)
-            "ur-rPK": u"اردو (پاکستان)", # Urdu (Pakistan)
-            "uz": u"Ўзбек", # Uzbek
-            "uz-rARAB": u"اوزبیک (ARAB)", # Uzbek (ARAB)
-            "uz-rARAB_AF": u"اوزبیک (افغانستان,AF)", # Uzbek (Afghanistan,AF)
-            "uz-rCYRL": u"Ўзбек (CYRL)", # Uzbek (CYRL)
-            "uz-rCYRL_UZ": u"Ўзбек (Ўзбекистон,UZ)", # Uzbek (Uzbekistan,UZ)
-            "uz-rLATN": u"Oʻzbekcha (LATN)", # Uzbek (LATN)
-            "uz-rLATN_UZ": u"Oʻzbekcha (Oʻzbekiston,UZ)", # Uzbek (Uzbekistan,UZ)
-            "vai": u"ꕙꔤ", # Vai
-            "vai-rLATN": u"Vai (LATN)", # Vai (LATN)
-            "vai-rLATN_LR": u"Vai (Laibhiya,LR)", # Vai (Liberia,LR)
-            "vai-rVAII": u"ꕙꔤ (VAII)", # Vai (VAII)
-            "vai-rVAII_LR": u"ꕙꔤ (ꕞꔤꔫꕩ,LR)", # Vai (Liberia,LR)
-            "vi": u"Tiếng Việt", # Vietnamese
-            "vi-rVN": u"Tiếng Việt (Việt Nam)", # Vietnamese (Vietnam)
-            "vun": u"Kyivunjo", # Vunjo
-            "vun-rTZ": u"Kyivunjo (Tanzania)", # Vunjo (Tanzania)
-            "xog": u"Olusoga", # Soga
-            "xog-rUG": u"Olusoga (Yuganda)", # Soga (Uganda)
-            "yav": u"Nuasue", # Yangben
-            "yav-rCM": u"Nuasue (Kemelún)", # Yangben (Cameroon)
-            "yo": u"Èdè Yorùbá", # Yoruba
-            "yo-rNG": u"Èdè Yorùbá (Orílẹ́ède Nàìjíríà)", # Yoruba (Nigeria)
+            "en": "English (United States)",
+            "es-rUS": "Español (Estados Unidos)",
+            "af": "Afrikaans", # Afrikaans
+            "af-rNA": "Afrikaans (Namibië)", # Afrikaans (Namibia)
+            "af-rZA": "Afrikaans (Suid-Afrika)", # Afrikaans (South Africa)
+            "agq": "Aghem", # Aghem
+            "agq-rCM": "Aghem (Kàmàlûŋ)", # Aghem (Cameroon)
+            "ak": "Akan", # Akan
+            "ak-rGH": "Akan (Gaana)", # Akan (Ghana)
+            "am": "አማርኛ", # Amharic
+            "am-rET": "አማርኛ (ኢትዮጵያ)", # Amharic (Ethiopia)
+            "ar": "العربية", # Arabic
+            "ar_001": "العربية (العالم)", # Arabic (World)
+            "ar-rAE": "العربية (الإمارات العربية المتحدة)", # Arabic (United Arab Emirates)
+            "ar-rBH": "العربية (البحرين)", # Arabic (Bahrain)
+            "ar-rDJ": "العربية (جيبوتي)", # Arabic (Djibouti)
+            "ar-rDZ": "العربية (الجزائر)", # Arabic (Algeria)
+            "ar-rEG": "العربية (مصر)", # Arabic (Egypt)
+            "ar-rEH": "العربية (الصحراء الغربية)", # Arabic (Western Sahara)
+            "ar-rER": "العربية (أريتريا)", # Arabic (Eritrea)
+            "ar-rIL": "العربية (إسرائيل)", # Arabic (Israel)
+            "ar-rIQ": "العربية (العراق)", # Arabic (Iraq)
+            "ar-rJO": "العربية (الأردن)", # Arabic (Jordan)
+            "ar-rKM": "العربية (جزر القمر)", # Arabic (Comoros)
+            "ar-rKW": "العربية (الكويت)", # Arabic (Kuwait)
+            "ar-rLB": "العربية (لبنان)", # Arabic (Lebanon)
+            "ar-rLY": "العربية (ليبيا)", # Arabic (Libya)
+            "ar-rMA": "العربية (المغرب)", # Arabic (Morocco)
+            "ar-rMR": "العربية (موريتانيا)", # Arabic (Mauritania)
+            "ar-rOM": "العربية (عُمان)", # Arabic (Oman)
+            "ar-rPS": "العربية (فلسطين)", # Arabic (Palestine)
+            "ar-rQA": "العربية (قطر)", # Arabic (Qatar)
+            "ar-rSA": "العربية (المملكة العربية السعودية)", # Arabic (Saudi Arabia)
+            "ar-rSD": "العربية (السودان)", # Arabic (Sudan)
+            "ar-rSO": "العربية (الصومال)", # Arabic (Somalia)
+            "ar-rSY": "العربية (سوريا)", # Arabic (Syria)
+            "ar-rTD": "العربية (تشاد)", # Arabic (Chad)
+            "ar-rTN": "العربية (تونس)", # Arabic (Tunisia)
+            "ar-rYE": "العربية (اليمن)", # Arabic (Yemen)
+            "as": "অসমীয়া", # Assamese
+            "as-rIN": "অসমীয়া (ভাৰত)", # Assamese (India)
+            "asa": "Kipare", # Asu
+            "asa-rTZ": "Kipare (Tadhania)", # Asu (Tanzania)
+            "az": "Azərbaycanca", # Azerbaijani
+            "az-rCYRL": "Азәрбајҹан (CYRL)", # Azerbaijani (CYRL)
+            "az-rCYRL_AZ": "Азәрбајҹан (Азәрбајҹан,AZ)", # Azerbaijani (Azerbaijan,AZ)
+            "az-rLATN": "Azərbaycanca (LATN)", # Azerbaijani (LATN)
+            "az-rLATN_AZ": "Azərbaycanca (Azərbaycan,AZ)", # Azerbaijani (Azerbaijan,AZ)
+            "bas": "Ɓàsàa", # Basaa
+            "bas-rCM": "Ɓàsàa (Kàmɛ̀rûn)", # Basaa (Cameroon)
+            "be": "беларуская", # Belarusian
+            "be-rBY": "беларуская (Беларусь)", # Belarusian (Belarus)
+            "bem": "Ichibemba", # Bemba
+            "bem-rZM": "Ichibemba (Zambia)", # Bemba (Zambia)
+            "bez": "Hibena", # Bena
+            "bez-rTZ": "Hibena (Hutanzania)", # Bena (Tanzania)
+            "bg": "български", # Bulgarian
+            "bg-rBG": "български (България)", # Bulgarian (Bulgaria)
+            "bm": "Bamanakan", # Bambara
+            "bm-rML": "Bamanakan (Mali)", # Bambara (Mali)
+            "bn": "বাংলা", # Bengali
+            "bn-rBD": "বাংলা (বাংলাদেশ)", # Bengali (Bangladesh)
+            "bn-rIN": "বাংলা (ভারত)", # Bengali (India)
+            "bo": "པོད་སྐད་", # Tibetan
+            "bo-rCN": "པོད་སྐད་ (རྒྱ་ནག)", # Tibetan (China)
+            "bo-rIN": "པོད་སྐད་ (རྒྱ་གར་)", # Tibetan (India)
+            "br": "Brezhoneg", # Breton
+            "br-rFR": "Brezhoneg (Frañs)", # Breton (France)
+            "brx": "बड़ो", # Bodo
+            "brx-rIN": "बड़ो (भारत)", # Bodo (India)
+            "bs": "Bosanski", # Bosnian
+            "bs-rCYRL": "босански (CYRL)", # Bosnian (CYRL)
+            "bs-rCYRL_BA": "босански (Босна и Херцеговина,BA)", # Bosnian (Bosnia and Herzegovina,BA)
+            "bs-rLATN": "Bosanski (LATN)", # Bosnian (LATN)
+            "bs-rLATN_BA": "Bosanski (Bosna i Hercegovina,BA)", # Bosnian (Bosnia and Herzegovina,BA)
+            "ca": "Català", # Catalan
+            "ca-rAD": "Català (Andorra)", # Catalan (Andorra)
+            "ca-rES": "Català (Espanya)", # Catalan (Spain)
+            "cgg": "Rukiga", # Chiga
+            "cgg-rUG": "Rukiga (Uganda)", # Chiga (Uganda)
+            "chr": "ᏣᎳᎩ", # Cherokee
+            "chr-rUS": "ᏣᎳᎩ (ᎠᎹᏰᏟ)", # Cherokee (United States)
+            "cs": "čeština", # Czech
+            "cs-rCZ": "čeština (Česká republika)", # Czech (Czech Republic)
+            "cy": "Cymraeg", # Welsh
+            "cy-rGB": "Cymraeg (y Deyrnas Unedig)", # Welsh (United Kingdom)
+            "da": "Dansk", # Danish
+            "da-rDK": "Dansk (Danmark)", # Danish (Denmark)
+            "dav": "Kitaita", # Taita
+            "dav-rKE": "Kitaita (Kenya)", # Taita (Kenya)
+            "de": "Deutsch", # German
+            "de-rAT": "Deutsch (Österreich)", # German (Austria)
+            "de-rBE": "Deutsch (Belgien)", # German (Belgium)
+            "de-rCH": "Deutsch (Schweiz)", # German (Switzerland)
+            "de-rDE": "Deutsch (Deutschland)", # German (Germany)
+            "de-rLI": "Deutsch (Liechtenstein)", # German (Liechtenstein)
+            "de-rLU": "Deutsch (Luxemburg)", # German (Luxembourg)
+            "dje": "Zarmaciine", # Zarma
+            "dje-rNE": "Zarmaciine (Nižer)", # Zarma (Niger)
+            "dua": "Duálá", # Duala
+            "dua-rCM": "Duálá (Cameroun)", # Duala (Cameroon)
+            "dyo": "Joola", # Jola-Fonyi
+            "dyo-rSN": "Joola (Senegal)", # Jola-Fonyi (Senegal)
+            "dz": "རྫོང་ཁ", # Dzongkha
+            "dz-rBT": "རྫོང་ཁ (འབྲུག)", # Dzongkha (Bhutan)
+            "ebu": "Kĩembu", # Embu
+            "ebu-rKE": "Kĩembu (Kenya)", # Embu (Kenya)
+            "ee": "Eʋegbe", # Ewe
+            "ee-rGH": "Eʋegbe (Ghana nutome)", # Ewe (Ghana)
+            "ee-rTG": "Eʋegbe (Togo nutome)", # Ewe (Togo)
+            "el": "Ελληνικά", # Greek
+            "el-rCY": "Ελληνικά (Κύπρος)", # Greek (Cyprus)
+            "el-rGR": "Ελληνικά (Ελλάδα)", # Greek (Greece)
+            "en": "English", # English
+            "en_150": "English (Europe)", # English (Europe)
+            "en-rAG": "English (Antigua and Barbuda)", # English (Antigua and Barbuda)
+            "en-rAS": "English (American Samoa)", # English (American Samoa)
+            "en-rAU": "English (Australia)", # English (Australia)
+            "en-rBB": "English (Barbados)", # English (Barbados)
+            "en-rBE": "English (Belgium)", # English (Belgium)
+            "en-rBM": "English (Bermuda)", # English (Bermuda)
+            "en-rBS": "English (Bahamas)", # English (Bahamas)
+            "en-rBW": "English (Botswana)", # English (Botswana)
+            "en-rBZ": "English (Belize)", # English (Belize)
+            "en-rCA": "English (Canada)", # English (Canada)
+            "en-rCM": "English (Cameroon)", # English (Cameroon)
+            "en-rDM": "English (Dominica)", # English (Dominica)
+            "en-rFJ": "English (Fiji)", # English (Fiji)
+            "en-rFM": "English (Micronesia)", # English (Micronesia)
+            "en-rGB": "English (United Kingdom)", # English (United Kingdom)
+            "en-rGD": "English (Grenada)", # English (Grenada)
+            "en-rGG": "English (Guernsey)", # English (Guernsey)
+            "en-rGH": "English (Ghana)", # English (Ghana)
+            "en-rGI": "English (Gibraltar)", # English (Gibraltar)
+            "en-rGM": "English (Gambia)", # English (Gambia)
+            "en-rGU": "English (Guam)", # English (Guam)
+            "en-rGY": "English (Guyana)", # English (Guyana)
+            "en-rHK": "English (Hong Kong)", # English (Hong Kong)
+            "en-rIE": "English (Ireland)", # English (Ireland)
+            "en-rIM": "English (Isle of Man)", # English (Isle of Man)
+            "en-rIN": "English (India)", # English (India)
+            "en-rJE": "English (Jersey)", # English (Jersey)
+            "en-rJM": "English (Jamaica)", # English (Jamaica)
+            "en-rKE": "English (Kenya)", # English (Kenya)
+            "en-rKI": "English (Kiribati)", # English (Kiribati)
+            "en-rKN": "English (Saint Kitts and Nevis)", # English (Saint Kitts and Nevis)
+            "en-rKY": "English (Cayman Islands)", # English (Cayman Islands)
+            "en-rLC": "English (Saint Lucia)", # English (Saint Lucia)
+            "en-rLR": "English (Liberia)", # English (Liberia)
+            "en-rLS": "English (Lesotho)", # English (Lesotho)
+            "en-rMG": "English (Madagascar)", # English (Madagascar)
+            "en-rMH": "English (Marshall Islands)", # English (Marshall Islands)
+            "en-rMP": "English (Northern Mariana Islands)", # English (Northern Mariana Islands)
+            "en-rMT": "English (Malta)", # English (Malta)
+            "en-rMU": "English (Mauritius)", # English (Mauritius)
+            "en-rMW": "English (Malawi)", # English (Malawi)
+            "en-rNA": "English (Namibia)", # English (Namibia)
+            "en-rNG": "English (Nigeria)", # English (Nigeria)
+            "en-rNZ": "English (New Zealand)", # English (New Zealand)
+            "en-rPG": "English (Papua New Guinea)", # English (Papua New Guinea)
+            "en-rPH": "English (Philippines)", # English (Philippines)
+            "en-rPK": "English (Pakistan)", # English (Pakistan)
+            "en-rPR": "English (Puerto Rico)", # English (Puerto Rico)
+            "en-rPW": "English (Palau)", # English (Palau)
+            "en-rSB": "English (Solomon Islands)", # English (Solomon Islands)
+            "en-rSC": "English (Seychelles)", # English (Seychelles)
+            "en-rSG": "English (Singapore)", # English (Singapore)
+            "en-rSL": "English (Sierra Leone)", # English (Sierra Leone)
+            "en-rSS": "English (South Sudan)", # English (South Sudan)
+            "en-rSZ": "English (Swaziland)", # English (Swaziland)
+            "en-rTC": "English (Turks and Caicos Islands)", # English (Turks and Caicos Islands)
+            "en-rTO": "English (Tonga)", # English (Tonga)
+            "en-rTT": "English (Trinidad and Tobago)", # English (Trinidad and Tobago)
+            "en-rTZ": "English (Tanzania)", # English (Tanzania)
+            "en-rUG": "English (Uganda)", # English (Uganda)
+            "en-rUM": "English (U.S. Outlying Islands)", # English (U.S. Outlying Islands)
+            "en-rUS": "English (United States)", # English (United States)
+            "en-rUS_POSIX": "English (United States,Computer)", # English (United States,Computer)
+            "en-rVC": "English (Saint Vincent and the Grenadines)", # English (Saint Vincent and the Grenadines)
+            "en-rVG": "English (British Virgin Islands)", # English (British Virgin Islands)
+            "en-rVI": "English (U.S. Virgin Islands)", # English (U.S. Virgin Islands)
+            "en-rVU": "English (Vanuatu)", # English (Vanuatu)
+            "en-rWS": "English (Samoa)", # English (Samoa)
+            "en-rZA": "English (South Africa)", # English (South Africa)
+            "en-rZM": "English (Zambia)", # English (Zambia)
+            "en-rZW": "English (Zimbabwe)", # English (Zimbabwe)
+            "eo": "Esperanto", # Esperanto
+            "es": "Español", # Spanish
+            "es_419": "Español (Latinoamérica)", # Spanish (Latin America)
+            "es-rAR": "Español (Argentina)", # Spanish (Argentina)
+            "es-rBO": "Español (Bolivia)", # Spanish (Bolivia)
+            "es-rCL": "Español (Chile)", # Spanish (Chile)
+            "es-rCO": "Español (Colombia)", # Spanish (Colombia)
+            "es-rCR": "Español (Costa Rica)", # Spanish (Costa Rica)
+            "es-rCU": "Español (Cuba)", # Spanish (Cuba)
+            "es-rDO": "Español (República Dominicana)", # Spanish (Dominican Republic)
+            "es-rEA": "Español (Ceuta y Melilla)", # Spanish (Ceuta and Melilla)
+            "es-rEC": "Español (Ecuador)", # Spanish (Ecuador)
+            "es-rES": "Español (España)", # Spanish (Spain)
+            "es-rGQ": "Español (Guinea Ecuatorial)", # Spanish (Equatorial Guinea)
+            "es-rGT": "Español (Guatemala)", # Spanish (Guatemala)
+            "es-rHN": "Español (Honduras)", # Spanish (Honduras)
+            "es-rIC": "Español (Islas Canarias)", # Spanish (Canary Islands)
+            "es-rMX": "Español (México)", # Spanish (Mexico)
+            "es-rNI": "Español (Nicaragua)", # Spanish (Nicaragua)
+            "es-rPA": "Español (Panamá)", # Spanish (Panama)
+            "es-rPE": "Español (Perú)", # Spanish (Peru)
+            "es-rPH": "Español (Filipinas)", # Spanish (Philippines)
+            "es-rPR": "Español (Puerto Rico)", # Spanish (Puerto Rico)
+            "es-rPY": "Español (Paraguay)", # Spanish (Paraguay)
+            "es-rSV": "Español (El Salvador)", # Spanish (El Salvador)
+            "es-rUS": "Español (Estados Unidos)", # Spanish (United States)
+            "es-rUY": "Español (Uruguay)", # Spanish (Uruguay)
+            "es-rVE": "Español (Venezuela)", # Spanish (Venezuela)
+            "et": "Eesti", # Estonian
+            "et-rEE": "Eesti (Eesti)", # Estonian (Estonia)
+            "eu": "Euskara", # Basque
+            "eu-rES": "Euskara (Espainia)", # Basque (Spain)
+            "ewo": "Ewondo", # Ewondo
+            "ewo-rCM": "Ewondo (Kamərún)", # Ewondo (Cameroon)
+            "fa": "فارسی", # Persian
+            "fa-rAF": "دری (افغانستان)", # Persian (Afghanistan)
+            "fa-rIR": "فارسی (ایران)", # Persian (Iran)
+            "ff": "Pulaar", # Fulah
+            "ff-rSN": "Pulaar (Senegaal)", # Fulah (Senegal)
+            "fi": "Suomi", # Finnish
+            "fi-rFI": "Suomi (Suomi)", # Finnish (Finland)
+            "fil": "Filipino", # Filipino
+            "fil-rPH": "Filipino (Pilipinas)", # Filipino (Philippines)
+            "fo": "Føroyskt", # Faroese
+            "fo-rFO": "Føroyskt (Føroyar)", # Faroese (Faroe Islands)
+            "fr": "Français", # French
+            "fr-rBE": "Français (Belgique)", # French (Belgium)
+            "fr-rBF": "Français (Burkina Faso)", # French (Burkina Faso)
+            "fr-rBI": "Français (Burundi)", # French (Burundi)
+            "fr-rBJ": "Français (Bénin)", # French (Benin)
+            "fr-rBL": "Français (Saint-Barthélémy)", # French (Saint Barthélemy)
+            "fr-rCA": "Français (Canada)", # French (Canada)
+            "fr-rCD": "Français (République démocratique du Congo)", # French (Congo [DRC])
+            "fr-rCF": "Français (République centrafricaine)", # French (Central African Republic)
+            "fr-rCG": "Français (Congo-Brazzaville)", # French (Congo [Republic])
+            "fr-rCH": "Français (Suisse)", # French (Switzerland)
+            "fr-rCI": "Français (Côte d’Ivoire)", # French (Côte d’Ivoire)
+            "fr-rCM": "Français (Cameroun)", # French (Cameroon)
+            "fr-rDJ": "Français (Djibouti)", # French (Djibouti)
+            "fr-rDZ": "Français (Algérie)", # French (Algeria)
+            "fr-rFR": "Français (France)", # French (France)
+            "fr-rGA": "Français (Gabon)", # French (Gabon)
+            "fr-rGF": "Français (Guyane française)", # French (French Guiana)
+            "fr-rGN": "Français (Guinée)", # French (Guinea)
+            "fr-rGP": "Français (Guadeloupe)", # French (Guadeloupe)
+            "fr-rGQ": "Français (Guinée équatoriale)", # French (Equatorial Guinea)
+            "fr-rHT": "Français (Haïti)", # French (Haiti)
+            "fr-rKM": "Français (Comores)", # French (Comoros)
+            "fr-rLU": "Français (Luxembourg)", # French (Luxembourg)
+            "fr-rMA": "Français (Maroc)", # French (Morocco)
+            "fr-rMC": "Français (Monaco)", # French (Monaco)
+            "fr-rMF": "Français (Saint-Martin [partie française])", # French (Saint Martin)
+            "fr-rMG": "Français (Madagascar)", # French (Madagascar)
+            "fr-rML": "Français (Mali)", # French (Mali)
+            "fr-rMQ": "Français (Martinique)", # French (Martinique)
+            "fr-rMR": "Français (Mauritanie)", # French (Mauritania)
+            "fr-rMU": "Français (Maurice)", # French (Mauritius)
+            "fr-rNC": "Français (Nouvelle-Calédonie)", # French (New Caledonia)
+            "fr-rNE": "Français (Niger)", # French (Niger)
+            "fr-rPF": "Français (Polynésie française)", # French (French Polynesia)
+            "fr-rRE": "Français (Réunion)", # French (Réunion)
+            "fr-rRW": "Français (Rwanda)", # French (Rwanda)
+            "fr-rSC": "Français (Seychelles)", # French (Seychelles)
+            "fr-rSN": "Français (Sénégal)", # French (Senegal)
+            "fr-rSY": "Français (Syrie)", # French (Syria)
+            "fr-rTD": "Français (Tchad)", # French (Chad)
+            "fr-rTG": "Français (Togo)", # French (Togo)
+            "fr-rTN": "Français (Tunisie)", # French (Tunisia)
+            "fr-rVU": "Français (Vanuatu)", # French (Vanuatu)
+            "fr-rYT": "Français (Mayotte)", # French (Mayotte)
+            "ga": "Gaeilge", # Irish
+            "ga-rIE": "Gaeilge (Éire)", # Irish (Ireland)
+            "gl": "Galego", # Galician
+            "gl-rES": "Galego (España)", # Galician (Spain)
+            "gsw": "Schwiizertüütsch", # Swiss German
+            "gsw-rCH": "Schwiizertüütsch (Schwiiz)", # Swiss German (Switzerland)
+            "gu": "ગુજરાતી", # Gujarati
+            "gu-rIN": "ગુજરાતી (ભારત)", # Gujarati (India)
+            "guz": "Ekegusii", # Gusii
+            "guz-rKE": "Ekegusii (Kenya)", # Gusii (Kenya)
+            "gv": "Gaelg", # Manx
+            "gv-rGB": "Gaelg (Rywvaneth Unys)", # Manx (United Kingdom)
+            "ha": "Hausa", # Hausa
+            "ha-rLATN": "Hausa (LATN)", # Hausa (LATN)
+            "ha-rLATN_GH": "Hausa (Gana,GH)", # Hausa (Ghana,GH)
+            "ha-rLATN_NE": "Hausa (Nijar,NE)", # Hausa (Niger,NE)
+            "ha-rLATN_NG": "Hausa (Najeriya,NG)", # Hausa (Nigeria,NG)
+            "haw": "ʻŌlelo Hawaiʻi", # Hawaiian
+            "haw-rUS": "ʻŌlelo Hawaiʻi (ʻAmelika Hui Pū ʻIa)", # Hawaiian (United States)
+            "iw": "עברית", # Hebrew
+            "iw-rIL": "עברית (ישראל)", # Hebrew (Israel)
+            "hi": "हिन्दी", # Hindi
+            "hi-rIN": "हिन्दी (भारत)", # Hindi (India)
+            "hr": "Hrvatski", # Croatian
+            "hr-rBA": "Hrvatski (Bosna i Hercegovina)", # Croatian (Bosnia and Herzegovina)
+            "hr-rHR": "Hrvatski (Hrvatska)", # Croatian (Croatia)
+            "hu": "Magyar", # Hungarian
+            "hu-rHU": "Magyar (Magyarország)", # Hungarian (Hungary)
+            "hy": "հայերեն", # Armenian
+            "hy-rAM": "հայերեն (Հայաստան)", # Armenian (Armenia)
+            "in": "Bahasa Indonesia", # Indonesian
+            "in-rID": "Bahasa Indonesia (Indonesia)", # Indonesian (Indonesia)
+            "ig": "Igbo", # Igbo
+            "ig-rNG": "Igbo (Nigeria)", # Igbo (Nigeria)
+            "ii": "ꆈꌠꉙ", # Sichuan Yi
+            "ii-rCN": "ꆈꌠꉙ (ꍏꇩ)", # Sichuan Yi (China)
+            "is": "íslenska", # Icelandic
+            "is-rIS": "íslenska (Ísland)", # Icelandic (Iceland)
+            "it": "Italiano", # Italian
+            "it-rCH": "Italiano (Svizzera)", # Italian (Switzerland)
+            "it-rIT": "Italiano (Italia)", # Italian (Italy)
+            "it-rSM": "Italiano (San Marino)", # Italian (San Marino)
+            "ja": "日本語", # Japanese
+            "ja-rJP": "日本語 (日本)", # Japanese (Japan)
+            "jgo": "Ndaꞌa", # Ngomba
+            "jgo-rCM": "Ndaꞌa (Kamɛlûn)", # Ngomba (Cameroon)
+            "jmc": "Kimachame", # Machame
+            "jmc-rTZ": "Kimachame (Tanzania)", # Machame (Tanzania)
+            "ka": "ქართული", # Georgian
+            "ka-rGE": "ქართული (საქართველო)", # Georgian (Georgia)
+            "kab": "Taqbaylit", # Kabyle
+            "kab-rDZ": "Taqbaylit (Lezzayer)", # Kabyle (Algeria)
+            "kam": "Kikamba", # Kamba
+            "kam-rKE": "Kikamba (Kenya)", # Kamba (Kenya)
+            "kde": "Chimakonde", # Makonde
+            "kde-rTZ": "Chimakonde (Tanzania)", # Makonde (Tanzania)
+            "kea": "Kabuverdianu", # Kabuverdianu
+            "kea-rCV": "Kabuverdianu (Kabu Verdi)", # Kabuverdianu (Cape Verde)
+            "khq": "Koyra ciini", # Koyra Chiini
+            "khq-rML": "Koyra ciini (Maali)", # Koyra Chiini (Mali)
+            "ki": "Gikuyu", # Kikuyu
+            "ki-rKE": "Gikuyu (Kenya)", # Kikuyu (Kenya)
+            "kk": "қазақ тілі", # Kazakh
+            "kk-rCYRL": "қазақ тілі (CYRL)", # Kazakh (CYRL)
+            "kk-rCYRL_KZ": "қазақ тілі (Қазақстан,KZ)", # Kazakh (Kazakhstan,KZ)
+            "kl": "Kalaallisut", # Kalaallisut
+            "kl-rGL": "Kalaallisut (Kalaallit Nunaat)", # Kalaallisut (Greenland)
+            "kln": "Kalenjin", # Kalenjin
+            "kln-rKE": "Kalenjin (Emetab Kenya)", # Kalenjin (Kenya)
+            "km": "ខ្មែរ", # Khmer
+            "km-rKH": "ខ្មែរ (កម្ពុជា)", # Khmer (Cambodia)
+            "kn": "ಕನ್ನಡ", # Kannada
+            "kn-rIN": "ಕನ್ನಡ (ಭಾರತ)", # Kannada (India)
+            "ko": "한국어", # Korean
+            "ko-rKP": "한국어 (조선 민주주의 인민 공화국)", # Korean (North Korea)
+            "ko-rKR": "한국어 (대한민국)", # Korean (South Korea)
+            "kok": "कोंकणी", # Konkani
+            "kok-rIN": "कोंकणी (भारत)", # Konkani (India)
+            "ks": "کٲشُر", # Kashmiri
+            "ks-rARAB": "کٲشُر (ARAB)", # Kashmiri (ARAB)
+            "ks-rARAB_IN": "کٲشُر (ہِنٛدوستان,IN)", # Kashmiri (India,IN)
+            "ksb": "Kishambaa", # Shambala
+            "ksb-rTZ": "Kishambaa (Tanzania)", # Shambala (Tanzania)
+            "ksf": "Rikpa", # Bafia
+            "ksf-rCM": "Rikpa (kamɛrún)", # Bafia (Cameroon)
+            "kw": "Kernewek", # Cornish
+            "kw-rGB": "Kernewek (Rywvaneth Unys)", # Cornish (United Kingdom)
+            "lag": "Kɨlaangi", # Langi
+            "lag-rTZ": "Kɨlaangi (Taansanía)", # Langi (Tanzania)
+            "lg": "Luganda", # Ganda
+            "lg-rUG": "Luganda (Yuganda)", # Ganda (Uganda)
+            "ln": "Lingála", # Lingala
+            "ln-rAO": "Lingála (Angóla)", # Lingala (Angola)
+            "ln-rCD": "Lingála (Repibiki demokratiki ya Kongó)", # Lingala (Congo [DRC])
+            "ln-rCF": "Lingála (Repibiki ya Afríka ya Káti)", # Lingala (Central African Republic)
+            "ln-rCG": "Lingála (Kongo)", # Lingala (Congo [Republic])
+            "lo": "ລາວ", # Lao
+            "lo-rLA": "ລາວ (ສ.ປ.ປ ລາວ)", # Lao (Laos)
+            "lt": "Lietuvių", # Lithuanian
+            "lt-rLT": "Lietuvių (Lietuva)", # Lithuanian (Lithuania)
+            "lu": "Tshiluba", # Luba-Katanga
+            "lu-rCD": "Tshiluba (Ditunga wa Kongu)", # Luba-Katanga (Congo [DRC])
+            "luo": "Dholuo", # Luo
+            "luo-rKE": "Dholuo (Kenya)", # Luo (Kenya)
+            "luy": "Luluhia", # Luyia
+            "luy-rKE": "Luluhia (Kenya)", # Luyia (Kenya)
+            "lv": "Latviešu", # Latvian
+            "lv-rLV": "Latviešu (Latvija)", # Latvian (Latvia)
+            "mas": "Maa", # Masai
+            "mas-rKE": "Maa (Kenya)", # Masai (Kenya)
+            "mas-rTZ": "Maa (Tansania)", # Masai (Tanzania)
+            "mer": "Kĩmĩrũ", # Meru
+            "mer-rKE": "Kĩmĩrũ (Kenya)", # Meru (Kenya)
+            "mfe": "Kreol morisien", # Morisyen
+            "mfe-rMU": "Kreol morisien (Moris)", # Morisyen (Mauritius)
+            "mg": "Malagasy", # Malagasy
+            "mg-rMG": "Malagasy (Madagasikara)", # Malagasy (Madagascar)
+            "mgh": "Makua", # Makhuwa-Meetto
+            "mgh-rMZ": "Makua (Umozambiki)", # Makhuwa-Meetto (Mozambique)
+            "mgo": "Metaʼ", # Meta'
+            "mgo-rCM": "Metaʼ (Kamalun)", # Meta' (Cameroon)
+            "mk": "македонски", # Macedonian
+            "mk-rMK": "македонски (Македонија)", # Macedonian (Macedonia [FYROM])
+            "ml": "മലയാളം", # Malayalam
+            "ml-rIN": "മലയാളം (ഇന്ത്യ)", # Malayalam (India)
+            "mn": "монгол", # Mongolian
+            "mn-rCYRL": "монгол (CYRL)", # Mongolian (CYRL)
+            "mn-rCYRL_MN": "монгол (Монгол,MN)", # Mongolian (Mongolia,MN)
+            "mr": "मराठी", # Marathi
+            "mr-rIN": "मराठी (भारत)", # Marathi (India)
+            "ms": "Bahasa Melayu", # Malay
+            "ms-rLATN": "Bahasa Melayu (LATN)", # Malay (LATN)
+            "ms-rLATN_BN": "Bahasa Melayu (Brunei,BN)", # Malay (Brunei,BN)
+            "ms-rLATN_MY": "Bahasa Melayu (Malaysia,MY)", # Malay (Malaysia,MY)
+            "ms-rLATN_SG": "Bahasa Melayu (Singapura,SG)", # Malay (Singapore,SG)
+            "mt": "Malti", # Maltese
+            "mt-rMT": "Malti (Malta)", # Maltese (Malta)
+            "mua": "MUNDAŊ", # Mundang
+            "mua-rCM": "MUNDAŊ (kameruŋ)", # Mundang (Cameroon)
+            "my": "ဗမာ", # Burmese
+            "my-rMM": "ဗမာ (မြန်မာ)", # Burmese (Myanmar [Burma])
+            "naq": "Khoekhoegowab", # Nama
+            "naq-rNA": "Khoekhoegowab (Namibiab)", # Nama (Namibia)
+            "nb": "Norsk bokmål", # Norwegian Bokmål
+            "nb-rNO": "Norsk bokmål (Norge)", # Norwegian Bokmål (Norway)
+            "nd": "IsiNdebele", # North Ndebele
+            "nd-rZW": "IsiNdebele (Zimbabwe)", # North Ndebele (Zimbabwe)
+            "ne": "नेपाली", # Nepali
+            "ne-rIN": "नेपाली (भारत)", # Nepali (India)
+            "ne-rNP": "नेपाली (नेपाल)", # Nepali (Nepal)
+            "nl": "Nederlands", # Dutch
+            "nl-rAW": "Nederlands (Aruba)", # Dutch (Aruba)
+            "nl-rBE": "Nederlands (België)", # Dutch (Belgium)
+            "nl-rCW": "Nederlands (Curaçao)", # Dutch (Curaçao)
+            "nl-rNL": "Nederlands (Nederland)", # Dutch (Netherlands)
+            "nl-rSR": "Nederlands (Suriname)", # Dutch (Suriname)
+            "nl-rSX": "Nederlands (Sint-Maarten)", # Dutch (Sint Maarten)
+            "nmg": "Nmg", # Kwasio
+            "nmg-rCM": "Nmg (Kamerun)", # Kwasio (Cameroon)
+            "nn": "Nynorsk", # Norwegian Nynorsk
+            "nn-rNO": "Nynorsk (Noreg)", # Norwegian Nynorsk (Norway)
+            "nus": "Thok Nath", # Nuer
+            "nus-rSD": "Thok Nath (Sudan)", # Nuer (Sudan)
+            "nyn": "Runyankore", # Nyankole
+            "nyn-rUG": "Runyankore (Uganda)", # Nyankole (Uganda)
+            "om": "Oromoo", # Oromo
+            "om-rET": "Oromoo (Itoophiyaa)", # Oromo (Ethiopia)
+            "om-rKE": "Oromoo (Keeniyaa)", # Oromo (Kenya)
+            "or": "ଓଡ଼ିଆ", # Oriya
+            "or-rIN": "ଓଡ଼ିଆ (ଭାରତ)", # Oriya (India)
+            "pa": "ਪੰਜਾਬੀ", # Punjabi
+            "pa-rARAB": "پنجاب (ARAB)", # Punjabi (ARAB)
+            "pa-rARAB_PK": "پنجاب (پکستان,PK)", # Punjabi (Pakistan,PK)
+            "pa-rGURU": "ਪੰਜਾਬੀ (GURU)", # Punjabi (GURU)
+            "pa-rGURU_IN": "ਪੰਜਾਬੀ (ਭਾਰਤ,IN)", # Punjabi (India,IN)
+            "pl": "Polski", # Polish
+            "pl-rPL": "Polski (Polska)", # Polish (Poland)
+            "ps": "پښتو", # Pashto
+            "ps-rAF": "پښتو (افغانستان)", # Pashto (Afghanistan)
+            "pt": "Português", # Portuguese
+            "pt-rAO": "Português (Angola)", # Portuguese (Angola)
+            "pt-rBR": "Português (Brasil)", # Portuguese (Brazil)
+            "pt-rCV": "Português (Cabo Verde)", # Portuguese (Cape Verde)
+            "pt-rGW": "Português (Guiné Bissau)", # Portuguese (Guinea-Bissau)
+            "pt-rMO": "Português (Macau)", # Portuguese (Macau)
+            "pt-rMZ": "Português (Moçambique)", # Portuguese (Mozambique)
+            "pt-rPT": "Português (Portugal)", # Portuguese (Portugal)
+            "pt-rST": "Português (São Tomé e Príncipe)", # Portuguese (São Tomé and Príncipe)
+            "pt-rTL": "Português (Timor-Leste)", # Portuguese (Timor-Leste)
+            "rm": "Rumantsch", # Romansh
+            "rm-rCH": "Rumantsch (Svizra)", # Romansh (Switzerland)
+            "rn": "Ikirundi", # Rundi
+            "rn-rBI": "Ikirundi (Uburundi)", # Rundi (Burundi)
+            "ro": "Română", # Romanian
+            "ro-rMD": "Română (Republica Moldova)", # Romanian (Moldova)
+            "ro-rRO": "Română (România)", # Romanian (Romania)
+            "rof": "Kihorombo", # Rombo
+            "rof-rTZ": "Kihorombo (Tanzania)", # Rombo (Tanzania)
+            "ru": "русский", # Russian
+            "ru-rBY": "русский (Беларусь)", # Russian (Belarus)
+            "ru-rKG": "русский (Киргизия)", # Russian (Kyrgyzstan)
+            "ru-rKZ": "русский (Казахстан)", # Russian (Kazakhstan)
+            "ru-rMD": "русский (Молдова)", # Russian (Moldova)
+            "ru-rRU": "русский (Россия)", # Russian (Russia)
+            "ru-rUA": "русский (Украина)", # Russian (Ukraine)
+            "rw": "Kinyarwanda", # Kinyarwanda
+            "rw-rRW": "Kinyarwanda (Rwanda)", # Kinyarwanda (Rwanda)
+            "rwk": "Kiruwa", # Rwa
+            "rwk-rTZ": "Kiruwa (Tanzania)", # Rwa (Tanzania)
+            "saq": "Kisampur", # Samburu
+            "saq-rKE": "Kisampur (Kenya)", # Samburu (Kenya)
+            "sbp": "Ishisangu", # Sangu
+            "sbp-rTZ": "Ishisangu (Tansaniya)", # Sangu (Tanzania)
+            "seh": "Sena", # Sena
+            "seh-rMZ": "Sena (Moçambique)", # Sena (Mozambique)
+            "ses": "Koyraboro senni", # Koyraboro Senni
+            "ses-rML": "Koyraboro senni (Maali)", # Koyraboro Senni (Mali)
+            "sg": "Sängö", # Sango
+            "sg-rCF": "Sängö (Ködörösêse tî Bêafrîka)", # Sango (Central African Republic)
+            "shi": "ⵜⴰⵎⴰⵣⵉⵖⵜ", # Tachelhit
+            "shi-rLATN": "Tamazight (LATN)", # Tachelhit (LATN)
+            "shi-rLATN_MA": "Tamazight (lmɣrib,MA)", # Tachelhit (Morocco,MA)
+            "shi-rTFNG": "ⵜⴰⵎⴰⵣⵉⵖⵜ (TFNG)", # Tachelhit (TFNG)
+            "shi-rTFNG_MA": "ⵜⴰⵎⴰⵣⵉⵖⵜ (ⵍⵎⵖⵔⵉⴱ,MA)", # Tachelhit (Morocco,MA)
+            "si": "සිංහල", # Sinhala
+            "si-rLK": "සිංහල (ශ්‍රී ලංකාව)", # Sinhala (Sri Lanka)
+            "sk": "Slovenčina", # Slovak
+            "sk-rSK": "Slovenčina (Slovensko)", # Slovak (Slovakia)
+            "sl": "Slovenščina", # Slovenian
+            "sl-rSI": "Slovenščina (Slovenija)", # Slovenian (Slovenia)
+            "sn": "ChiShona", # Shona
+            "sn-rZW": "ChiShona (Zimbabwe)", # Shona (Zimbabwe)
+            "so": "Soomaali", # Somali
+            "so-rDJ": "Soomaali (Jabuuti)", # Somali (Djibouti)
+            "so-rET": "Soomaali (Itoobiya)", # Somali (Ethiopia)
+            "so-rKE": "Soomaali (Kiiniya)", # Somali (Kenya)
+            "so-rSO": "Soomaali (Soomaaliya)", # Somali (Somalia)
+            "sq": "Shqip", # Albanian
+            "sq-rAL": "Shqip (Shqipëria)", # Albanian (Albania)
+            "sq-rMK": "Shqip (Maqedoni)", # Albanian (Macedonia [FYROM])
+            "sr": "Српски", # Serbian
+            "sr-rCYRL": "Српски (CYRL)", # Serbian (CYRL)
+            "sr-rCYRL_BA": "Српски (Босна и Херцеговина,BA)", # Serbian (Bosnia and Herzegovina,BA)
+            "sr-rCYRL_ME": "Српски (Црна Гора,ME)", # Serbian (Montenegro,ME)
+            "sr-rCYRL_RS": "Српски (Србија,RS)", # Serbian (Serbia,RS)
+            "sr-rLATN": "Srpski (LATN)", # Serbian (LATN)
+            "sr-rLATN_BA": "Srpski (Bosna i Hercegovina,BA)", # Serbian (Bosnia and Herzegovina,BA)
+            "sr-rLATN_ME": "Srpski (Crna Gora,ME)", # Serbian (Montenegro,ME)
+            "sr-rLATN_RS": "Srpski (Srbija,RS)", # Serbian (Serbia,RS)
+            "sv": "Svenska", # Swedish
+            "sv-rAX": "Svenska (Åland)", # Swedish (Åland Islands)
+            "sv-rFI": "Svenska (Finland)", # Swedish (Finland)
+            "sv-rSE": "Svenska (Sverige)", # Swedish (Sweden)
+            "sw": "Kiswahili", # Swahili
+            "sw-rKE": "Kiswahili (Kenya)", # Swahili (Kenya)
+            "sw-rTZ": "Kiswahili (Tanzania)", # Swahili (Tanzania)
+            "sw-rUG": "Kiswahili (Uganda)", # Swahili (Uganda)
+            "swc": "Kiswahili ya Kongo", # Congo Swahili
+            "swc-rCD": "Kiswahili ya Kongo (Jamhuri ya Kidemokrasia ya Kongo)", # Congo Swahili (Congo [DRC])
+            "ta": "தமிழ்", # Tamil
+            "ta-rIN": "தமிழ் (இந்தியா)", # Tamil (India)
+            "ta-rLK": "தமிழ் (இலங்கை)", # Tamil (Sri Lanka)
+            "ta-rMY": "தமிழ் (மலேஷியா)", # Tamil (Malaysia)
+            "ta-rSG": "தமிழ் (சிங்கப்பூர்)", # Tamil (Singapore)
+            "te": "తెలుగు", # Telugu
+            "te-rIN": "తెలుగు (భారత దేశం)", # Telugu (India)
+            "teo": "Kiteso", # Teso
+            "teo-rKE": "Kiteso (Kenia)", # Teso (Kenya)
+            "teo-rUG": "Kiteso (Uganda)", # Teso (Uganda)
+            "th": "ไทย", # Thai
+            "th-rTH": "ไทย (ไทย)", # Thai (Thailand)
+            "ti": "ትግርኛ", # Tigrinya
+            "ti-rER": "ትግርኛ (ER)", # Tigrinya (Eritrea)
+            "ti-rET": "ትግርኛ (ET)", # Tigrinya (Ethiopia)
+            "to": "Lea fakatonga", # Tongan
+            "to-rTO": "Lea fakatonga (Tonga)", # Tongan (Tonga)
+            "tr": "Türkçe", # Turkish
+            "tr-rCY": "Türkçe (Güney Kıbrıs Rum Kesimi)", # Turkish (Cyprus)
+            "tr-rTR": "Türkçe (Türkiye)", # Turkish (Turkey)
+            "twq": "Tasawaq senni", # Tasawaq
+            "twq-rNE": "Tasawaq senni (Nižer)", # Tasawaq (Niger)
+            "tzm": "Tamaziɣt", # Central Atlas Tamazight
+            "tzm-rLATN": "Tamaziɣt (LATN)", # Central Atlas Tamazight (LATN)
+            "tzm-rLATN_MA": "Tamaziɣt (Meṛṛuk,MA)", # Central Atlas Tamazight (Morocco,MA)
+            "uk": "українська", # Ukrainian
+            "uk-rUA": "українська (Україна)", # Ukrainian (Ukraine)
+            "ur": "اردو", # Urdu
+            "ur-rIN": "اردو (بھارت)", # Urdu (India)
+            "ur-rPK": "اردو (پاکستان)", # Urdu (Pakistan)
+            "uz": "Ўзбек", # Uzbek
+            "uz-rARAB": "اوزبیک (ARAB)", # Uzbek (ARAB)
+            "uz-rARAB_AF": "اوزبیک (افغانستان,AF)", # Uzbek (Afghanistan,AF)
+            "uz-rCYRL": "Ўзбек (CYRL)", # Uzbek (CYRL)
+            "uz-rCYRL_UZ": "Ўзбек (Ўзбекистон,UZ)", # Uzbek (Uzbekistan,UZ)
+            "uz-rLATN": "Oʻzbekcha (LATN)", # Uzbek (LATN)
+            "uz-rLATN_UZ": "Oʻzbekcha (Oʻzbekiston,UZ)", # Uzbek (Uzbekistan,UZ)
+            "vai": "ꕙꔤ", # Vai
+            "vai-rLATN": "Vai (LATN)", # Vai (LATN)
+            "vai-rLATN_LR": "Vai (Laibhiya,LR)", # Vai (Liberia,LR)
+            "vai-rVAII": "ꕙꔤ (VAII)", # Vai (VAII)
+            "vai-rVAII_LR": "ꕙꔤ (ꕞꔤꔫꕩ,LR)", # Vai (Liberia,LR)
+            "vi": "Tiếng Việt", # Vietnamese
+            "vi-rVN": "Tiếng Việt (Việt Nam)", # Vietnamese (Vietnam)
+            "vun": "Kyivunjo", # Vunjo
+            "vun-rTZ": "Kyivunjo (Tanzania)", # Vunjo (Tanzania)
+            "xog": "Olusoga", # Soga
+            "xog-rUG": "Olusoga (Yuganda)", # Soga (Uganda)
+            "yav": "Nuasue", # Yangben
+            "yav-rCM": "Nuasue (Kemelún)", # Yangben (Cameroon)
+            "yo": "Èdè Yorùbá", # Yoruba
+            "yo-rNG": "Èdè Yorùbá (Orílẹ́ède Nàìjíríà)", # Yoruba (Nigeria)
             # This was the obtained from Locale, but it seems it's different in Settings
             #"zh": u"中文", # Chinese
-            "zh": u"中文 (简体)", # Chinese
-            "zh-rHANS": u"中文 (HANS)", # Chinese (HANS)
-            "zh-rHANS_CN": u"中文 (中国,CN)", # Chinese (China,CN)
-            "zh-rHANS_HK": u"中文 (香港,HK)", # Chinese (Hong Kong,HK)
-            "zh-rHANS_MO": u"中文 (澳门,MO)", # Chinese (Macau,MO)
-            "zh-rHANS_SG": u"中文 (新加坡,SG)", # Chinese (Singapore,SG)
-            "zh-rHANT": u"中文 (HANT)", # Chinese (HANT)
-            "zh-rHANT_HK": u"中文 (香港,HK)", # Chinese (Hong Kong,HK)
-            "zh-rHANT_MO": u"中文 (澳門,MO)", # Chinese (Macau,MO)
-            "zh-rHANT_TW": u"中文 (台灣,TW)", # Chinese (Taiwan,TW)
-            "zu": u"IsiZulu", # Zulu
-            "zu-rZA": u"IsiZulu (iNingizimu Afrika)", # Zulu (South Africa)
+            "zh": "中文 (简体)", # Chinese
+            "zh-rHANS": "中文 (HANS)", # Chinese (HANS)
+            "zh-rHANS_CN": "中文 (中国,CN)", # Chinese (China,CN)
+            "zh-rHANS_HK": "中文 (香港,HK)", # Chinese (Hong Kong,HK)
+            "zh-rHANS_MO": "中文 (澳门,MO)", # Chinese (Macau,MO)
+            "zh-rHANS_SG": "中文 (新加坡,SG)", # Chinese (Singapore,SG)
+            "zh-rHANT": "中文 (HANT)", # Chinese (HANT)
+            "zh-rHANT_HK": "中文 (香港,HK)", # Chinese (Hong Kong,HK)
+            "zh-rHANT_MO": "中文 (澳門,MO)", # Chinese (Macau,MO)
+            "zh-rHANT_TW": "中文 (台灣,TW)", # Chinese (Taiwan,TW)
+            "zu": "IsiZulu", # Zulu
+            "zu-rZA": "IsiZulu (iNingizimu Afrika)", # Zulu (South Africa)
         }
 
-        if not languageTo in LANGUAGES.keys():
+        if not languageTo in list(LANGUAGES.keys()):
             raise RuntimeError("%s is not a supported language by AndroidViewClient" % languageTo)
         self.openQuickSettingsSettings()
         view = None
@@ -2058,14 +2059,14 @@ class UiDevice():
         if self.vc.getSdkVersion() >= 20:
             for _ in range(ATTEMPTS):
                 com_android_settings___id_dashboard = self.vc.findViewByIdOrRaise("com.android.settings:id/dashboard")
-                for k, v in LANGUAGE_SETTINGS.iteritems():
+                for k, v in LANGUAGE_SETTINGS.items():
                     if DEBUG_CHANGE_LANGUAGE:
-                        print >> sys.stderr, "searching for", v
+                        print("searching for", v, file=sys.stderr)
                     view = self.vc.findViewWithText(v, root=com_android_settings___id_dashboard)
                     if view:
                         currentLanguage = k
                         if DEBUG_CHANGE_LANGUAGE:
-                            print >> sys.stderr, "found current language:", k
+                            print("found current language:", k, file=sys.stderr)
                         break
                 if view:
                     break
@@ -2083,7 +2084,7 @@ class UiDevice():
         else:
             for _ in range(ATTEMPTS):
                 android___id_list = self.vc.findViewByIdOrRaise("android:id/list")
-                for k, v in LANGUAGE_SETTINGS.iteritems():
+                for k, v in LANGUAGE_SETTINGS.items():
                     view = self.vc.findViewWithText(v, root=android___id_list)
                     if view:
                         currentLanguage = k
@@ -2105,7 +2106,7 @@ class UiDevice():
         android___id_list = self.vc.findViewByIdOrRaise("android:id/list")
         android___id_list.uiScrollable.setViewClient(self.vc)
         if DEBUG_CHANGE_LANGUAGE:
-            print >> sys.stderr, "scrolling to find", LANGUAGES[languageTo]
+            print("scrolling to find", LANGUAGES[languageTo], file=sys.stderr)
         view = android___id_list.uiScrollable.scrollTextIntoView(LANGUAGES[languageTo])
         if view is not None:
             view.touch()
@@ -2150,8 +2151,8 @@ class UiScrollable(UiCollection):
             s = (self.x + self.w * self.swipeDeadZonePercentage, self.y + self.h/2)
             e = (self.x + self.w * (1.0 - self.swipeDeadZonePercentage), self.y + self.h/2)
         if DEBUG:
-            print >> sys.stderr, "flingBackward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
-            print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
+            print("flingBackward: view=", self.view.__smallStr__(), self.view.getPositionAndSize(), file=sys.stderr)
+            print("self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps), file=sys.stderr)
         self.view.device.drag(s, e, self.duration, self.steps, self.view.device.display['orientation'])
 
     def flingForward(self):
@@ -2162,22 +2163,22 @@ class UiScrollable(UiCollection):
             s = (self.x + self.w * (1.0 - self.swipeDeadZonePercentage), self.y + self.h/2)
             e = (self.x + self.w * self.swipeDeadZonePercentage, self.y + self.h/2)
         if DEBUG:
-            print >> sys.stderr, "flingForward: view=", self.view.__smallStr__(), self.view.getPositionAndSize()
-            print >> sys.stderr, "self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps)
+            print("flingForward: view=", self.view.__smallStr__(), self.view.getPositionAndSize(), file=sys.stderr)
+            print("self.view.device.drag(%s, %s, %s, %s)" % (s, e, self.duration, self.steps), file=sys.stderr)
         self.view.device.drag(s, e, self.duration, self.steps, self.view.device.display['orientation'])
 
     def flingToBeginning(self, maxSwipes=10):
         if self.vertical:
             for _ in range(maxSwipes):
                 if DEBUG:
-                    print >> sys.stderr, "flinging to beginning"
+                    print("flinging to beginning", file=sys.stderr)
                 self.flingBackward()
 
     def flingToEnd(self, maxSwipes=10):
         if self.vertical:
             for _ in range(maxSwipes):
                 if DEBUG:
-                    print >> sys.stderr, "flinging to end"
+                    print("flinging to end", file=sys.stderr)
                 self.flingForward()
 
     def scrollTextIntoView(self, text):
@@ -2193,13 +2194,13 @@ class UiScrollable(UiCollection):
             # with this UiScrollable.
             # It's using setViewClient() now.
             if DEBUG or DEBUG_CHANGE_LANGUAGE:
-                print >> sys.stderr, u"Searching for text='%s'" % text
+                print("Searching for text='%s'" % text, file=sys.stderr)
                 for v in self.vc.views:
                     try:
-                        print >> sys.stderr, "    scrollTextIntoView: v=", v.getId(),
-                        print >> sys.stderr, v.getText()
-                    except Exception, e:
-                        print >> sys.stderr, e
+                        print("    scrollTextIntoView: v=", v.getId(), end=' ', file=sys.stderr)
+                        print(v.getText(), file=sys.stderr)
+                    except Exception as e:
+                        print(e, file=sys.stderr)
                         pass
             #v = self.vc.findViewWithText(text, root=self.view)
             v = self.vc.findViewWithText(text)
@@ -2259,7 +2260,7 @@ class UiAutomator2AndroidViewClient():
             bounds = re.split('[\][,]', attributes['bounds'])
             attributes['bounds'] = ((int(bounds[1]), int(bounds[2])), (int(bounds[4]), int(bounds[5])))
             if DEBUG_BOUNDS:
-                print >> sys.stderr, "bounds=", attributes['bounds']
+                print("bounds=", attributes['bounds'], file=sys.stderr)
             self.idCount += 1
             child = View.factory(attributes, self.device, version=self.version, uiAutomatorHelper=self.uiAutomatorHelper)
             self.views.append(child)
@@ -2302,8 +2303,8 @@ class UiAutomator2AndroidViewClient():
         try:
             encoded = uiautomatorxml.encode(encoding='utf-8', errors='replace')
             _ = parser.Parse(encoded, True)
-        except xml.parsers.expat.ExpatError, ex:  # @UndefinedVariable
-            print >>sys.stderr, "ERROR: Offending XML:\n", repr(uiautomatorxml)
+        except xml.parsers.expat.ExpatError as ex:  # @UndefinedVariable
+            print("ERROR: Offending XML:\n", repr(uiautomatorxml), file=sys.stderr)
             raise RuntimeError(ex)
         return self.root
 
@@ -2464,7 +2465,7 @@ class ViewClient:
                 DEBUG_UI_AUTOMATOR_HELPER = debug['UI_AUTOMATOR_HELPER']
 
 
-        if DEBUG_DEVICE: print >> sys.stderr, "ViewClient: using device with serialno", self.serialno
+        if DEBUG_DEVICE: print("ViewClient: using device with serialno", self.serialno, file=sys.stderr)
 
         if adb:
             if not os.access(adb, os.X_OK):
@@ -2528,7 +2529,7 @@ class ViewClient:
         ''' Force the use of ViewServer even if the conditions to use UiAutomator are satisfied '''
         self.useUiAutomator = (self.build[VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse # jelly bean 4.1 & 4.2
         if DEBUG:
-            print >> sys.stderr, "    ViewClient.__init__: useUiAutomator=", self.useUiAutomator, "sdk=", self.build[VERSION_SDK_PROPERTY], "forceviewserveruse=", forceviewserveruse
+            print("    ViewClient.__init__: useUiAutomator=", self.useUiAutomator, "sdk=", self.build[VERSION_SDK_PROPERTY], "forceviewserveruse=", forceviewserveruse, file=sys.stderr)
         ''' If UIAutomator is supported by the device it will be used '''
         self.ignoreUiAutomatorKilled = ignoreuiautomatorkilled
         ''' On some devices (i.e. Nexus 7 running 4.2.2) uiautomator is killed just after generating
@@ -2600,7 +2601,7 @@ class ViewClient:
         # should clean up some things
         if hasattr(self, 'uiAutomatorHelper') and self.uiAutomatorHelper:
             if DEBUG or True:
-                print >> sys.stderr, "Stopping UiAutomatorHelper..."
+                print("Stopping UiAutomatorHelper...", file=sys.stderr)
             self.uiAutomatorHelper.quit()
 
     @staticmethod
@@ -2612,7 +2613,7 @@ class ViewClient:
         serialno = serialno.strip()
         #ipRE = re.compile('^\d+\.\d+.\d+.\d+$')
         if IP_RE.match(serialno):
-            if DEBUG_DEVICE: print >>sys.stderr, "ViewClient: adding default port to serialno", serialno, ADB_DEFAULT_PORT
+            if DEBUG_DEVICE: print("ViewClient: adding default port to serialno", serialno, ADB_DEFAULT_PORT, file=sys.stderr)
             return serialno + ':%d' % ADB_DEFAULT_PORT
 
         ipPortRE = re.compile(IP_DOMAIN_NAME_PORT_REGEX, re.IGNORECASE)
@@ -2628,7 +2629,7 @@ class ViewClient:
 
     @staticmethod
     def __obtainDeviceSerialNumber(device):
-        if DEBUG_DEVICE: print >>sys.stderr, "ViewClient: obtaining serial number for connected device"
+        if DEBUG_DEVICE: print("ViewClient: obtaining serial number for connected device", file=sys.stderr)
         serialno = device.getProperty('ro.serialno')
         if not serialno:
             serialno = device.shell('getprop ro.serialno')
@@ -2646,7 +2647,7 @@ class ViewClient:
         if not serialno:
             # If there's only one device connected get its serialno
             adb = ViewClient.__obtainAdbPath()
-            if DEBUG_DEVICE: print >>sys.stderr, "    using adb=%s" % adb
+            if DEBUG_DEVICE: print("    using adb=%s" % adb, file=sys.stderr)
             # Remove ANDROID_SERIAL from the environment when using adb to
             # obtain the serial number of the device, because if the serial
             # number was specified as an environment variable that contains a
@@ -2656,7 +2657,7 @@ class ViewClient:
             s = subprocess.Popen([adb, 'get-serialno'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env).communicate()[0][:-1]
             if s != 'unknown':
                 serialno = s
-        if DEBUG_DEVICE: print >>sys.stderr, "    serialno=%s" % serialno
+        if DEBUG_DEVICE: print("    serialno=%s" % serialno, file=sys.stderr)
         if not serialno:
             warnings.warn("Couldn't obtain the serialno of the connected device")
         return serialno
@@ -2696,7 +2697,6 @@ class ViewClient:
 
         @return: the device and serialno used for the connection
         '''
-
         progname = os.path.basename(sys.argv[0])
         if serialno is None:
             # eat all the extra options the invoking script may have added
@@ -2704,21 +2704,21 @@ class ViewClient:
             while len(args) > 1 and args[1][0] == '-':
                 args.pop(1)
             serialno = args[1] if len(args) > 1 else \
-                    os.environ['ANDROID_SERIAL'] if os.environ.has_key('ANDROID_SERIAL') \
+                    os.environ['ANDROID_SERIAL'] if 'ANDROID_SERIAL' in os.environ \
                     else '.*'
         if IP_RE.match(serialno):
             # If matches an IP address format and port was not specified add the default
             serialno += ':%d' % ADB_DEFAULT_PORT
         if verbose:
-            print >> sys.stderr, 'Connecting to a device with serialno=%s with a timeout of %d secs...' % \
-                (serialno, timeout)
+            print('Connecting to a device with serialno=%s with a timeout of %d secs...' % \
+                (serialno, timeout), file=sys.stderr)
         ViewClient.setAlarm(timeout+5)
         # NOTE: timeout is used for 2 different timeouts, the one to set the alarm to timeout the connection with
         # adb and the timeout used by adb (once connected) for the sockets
         device = adbclient.AdbClient(serialno, ignoreversioncheck=ignoreversioncheck, timeout=timeout)
         ViewClient.setAlarm(0)
         if verbose:
-            print >> sys.stderr, 'Connected to device with serialno=%s' % serialno
+            print('Connected to device with serialno=%s' % serialno, file=sys.stderr)
         secure = device.getSystemProperty('ro.secure')
         debuggable = device.getSystemProperty('ro.debuggable')
         versionProperty = device.getProperty(VERSION_SDK_PROPERTY)
@@ -2726,16 +2726,16 @@ class ViewClient:
             version = int(versionProperty)
         else:
             if verbose:
-                print "Couldn't obtain device SDK version"
+                print("Couldn't obtain device SDK version")
             version = -1
 
         # we are going to use UiAutomator for versions >= 16 that's why we ignore if the device
         # is secure if this is true
         if secure == '1' and debuggable == '0' and not ignoresecuredevice and version < 16:
-            print >> sys.stderr, "%s: ERROR: Device is secure, AndroidViewClient won't work." % progname
+            print("%s: ERROR: Device is secure, AndroidViewClient won't work." % progname, file=sys.stderr)
             if verbose:
-                print >> sys.stderr, "    secure=%s debuggable=%s version=%d ignoresecuredevice=%s" % \
-                    (secure, debuggable, version, ignoresecuredevice)
+                print("    secure=%s debuggable=%s version=%d ignoresecuredevice=%s" % \
+                    (secure, debuggable, version, ignoresecuredevice), file=sys.stderr)
             sys.exit(2)
         if device.serialno:
             # If we know the serialno because it was set by AdbClient, use it
@@ -2747,7 +2747,7 @@ class ViewClient:
             # if a regex was used we have to determine the serialno used
             serialno = ViewClient.__obtainDeviceSerialNumber(device)
         if verbose:
-            print >> sys.stderr, 'Actual device serialno=%s' % serialno
+            print('Actual device serialno=%s' % serialno, file=sys.stderr)
         return device, serialno
 
     @staticmethod
@@ -2775,10 +2775,10 @@ class ViewClient:
                 if not eis and noExtraInfo:
                     eis = noExtraInfo
             if eis:
-                eis = u' {0}'.format(eis)
+                eis = ' {0}'.format(eis)
             if extraAction:
                 extraAction(view)
-            _str = unicode(view.getClass())
+            _str = str(view.getClass())
             _str += ' '
             _str += '%s' % view.getId()
             _str += ' '
@@ -2786,9 +2786,9 @@ class ViewClient:
             if eis:
                 _str += eis
             return _str
-        except Exception, e:
+        except Exception as e:
             import traceback
-            return u'Exception in view=%s: %s:%s\n%s' % (view.__smallStr__(), sys.exc_info()[0].__name__, e, traceback.format_exc())
+            return 'Exception in view=%s: %s:%s\n%s' % (view.__smallStr__(), sys.exc_info()[0].__name__, e, traceback.format_exc())
 
     @staticmethod
     def traverseShowClassIdTextAndUniqueId(view):
@@ -2949,7 +2949,7 @@ class ViewClient:
         PARCEL_TRUE = "Result: Parcel(00000000 00000001   '........')\r\n"
         ''' The TRUE response parcel '''
         if DEBUG:
-            print >>sys.stderr, "serviceResponse: comparing '%s' vs Parcel(%s)" % (response, PARCEL_TRUE)
+            print("serviceResponse: comparing '%s' vs Parcel(%s)" % (response, PARCEL_TRUE), file=sys.stderr)
         return response == PARCEL_TRUE
 
     def setViews(self, received, windowId=None):
@@ -2966,7 +2966,7 @@ class ViewClient:
         ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
         self.__parseTree(received.split("\n"), windowId)
         if DEBUG:
-            print >>sys.stderr, "there are %d views in this dump" % len(self.views)
+            print("there are %d views in this dump" % len(self.views), file=sys.stderr)
 
     def setViewsFromUiAutomatorDump(self, received):
         '''
@@ -2982,7 +2982,7 @@ class ViewClient:
         ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
         self.__parseTreeFromUiAutomatorDump(received)
         if DEBUG:
-            print >>sys.stderr, "there are %d views in this dump" % len(self.views)
+            print("there are %d views in this dump" % len(self.views), file=sys.stderr)
 
 
     def __splitAttrs(self, strArgs):
@@ -3027,7 +3027,7 @@ class ViewClient:
         if m:
             viewId = m.group('viewId')
             if DEBUG:
-                print >>sys.stderr, "found view with id=%s" % viewId
+                print("found view with id=%s" % viewId, file=sys.stderr)
 
         for attr in strArgs.split():
             m = attrRE.match(attr)
@@ -3049,7 +3049,7 @@ class ViewClient:
                     attrs['oid'] = m.group('oid')
                 else:
                     if DEBUG:
-                        print >>sys.stderr, attr, "doesn't match"
+                        print(attr, "doesn't match", file=sys.stderr)
 
         if True: # was assignViewById
             if not viewId:
@@ -3067,7 +3067,7 @@ class ViewClient:
                     i += 1
                 viewId = newId
                 if DEBUG:
-                    print >>sys.stderr, "adding viewById %s" % viewId
+                    print("adding viewById %s" % viewId, file=sys.stderr)
             # We are assigning a new attribute to keep the original id preserved, which could have
             # been NO_ID repeated multiple times
             attrs['uniqueId'] = viewId
@@ -3149,14 +3149,14 @@ class ViewClient:
             self.navRecentApps = self.findViewById('com.android.systemui:id/recent_apps', navButtons)
         else:
             if self.uiAutomatorHelper:
-                print >> sys.stderr, "WARNING: nav buttons not found. Perhaps the device has hardware buttons."
+                print("WARNING: nav buttons not found. Perhaps the device has hardware buttons.", file=sys.stderr)
             self.navBack = None
             self.navHome = None
             self.navRecentApps = None
 
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
         if DEBUG:
-            print >> sys.stderr, "__parseTreeFromUiAutomatorDump(", receivedXml[:40], "...)"
+            print("__parseTreeFromUiAutomatorDump(", receivedXml[:40], "...)", file=sys.stderr)
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY], self.uiAutomatorHelper)
         try:
             start_xml_index = receivedXml.index("<")
@@ -3171,11 +3171,11 @@ class ViewClient:
         self.__updateNavButtons()
         if DEBUG_NAV_BUTTONS:
             if not self.navBack:
-                print >> sys.stderr, "WARNING: navBack not found"
+                print("WARNING: navBack not found", file=sys.stderr)
             if not self.navHome:
-                print >> sys.stderr, "WARNING: navHome not found"
+                print("WARNING: navHome not found", file=sys.stderr)
             if not self.navRecentApps:
-                print >> sys.stderr, "WARNING: navRecentApps not found"
+                print("WARNING: navRecentApps not found", file=sys.stderr)
 
     def getRoot(self):
         '''
@@ -3206,7 +3206,7 @@ class ViewClient:
             # is raised
             transform = ViewClient.TRAVERSE_CIT
 
-        if type(root) == types.StringType and root == "ROOT":
+        if root == "ROOT":
             root = self.root
 
         return ViewClient.__traverse(root, indent, transform, stream)
@@ -3227,8 +3227,8 @@ class ViewClient:
 
         s = transform(root)
         if stream and s:
-            ius = "%s%s" % (indent, s if isinstance(s, unicode) else unicode(s, 'utf-8', 'replace'))
-            print >>stream, ius.encode('utf-8', 'replace')
+            ius = "%s%s" % (indent, s if isinstance(s, str) else str(s, 'utf-8', 'replace'))
+            print(ius.encode('utf-8', 'replace'), file=stream)
 
         for ch in root.children:
             ViewClient.__traverse(ch, indent=indent+"   ", transform=transform, stream=stream)
@@ -3254,7 +3254,6 @@ class ViewClient:
 
         @return: the list of Views as C{str} received from the server after being split into lines
         '''
-
         if sleep > 0:
             time.sleep(sleep)
 
@@ -3282,7 +3281,7 @@ class ViewClient:
                         pathname = '/storage/self'
                         filename = 'window_dump.xml'
                         cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
-                    elif self.ro['product.board'] in ['msd838', 'msd938_STB', 'msd938']:
+                    elif self.ro['product.board'] in ['msd838', 'msd938_STB', 'msd938', 'msm8916']:
                             cmd = 'uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if self.compressedDump else '')
                     else:
                         pathname = '/sdcard'
@@ -3293,18 +3292,17 @@ class ViewClient:
                     # Using /dev/tty this works even on devices with no sdcard
                     cmd = 'uiautomator dump %s /dev/tty >/dev/null' % ('--compressed' if api >= 18 and self.compressedDump else '')
                 if DEBUG_UI_AUTOMATOR:
-                    print >> sys.stderr, "executing '%s'" % cmd
+                    print("executing '%s'" % cmd, file=sys.stderr)
                 received = self.device.shell(cmd)
-                received = unicode(received, encoding='utf-8', errors='replace')
             if not received:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             if DEBUG:
                 self.received = received
             if DEBUG_RECEIVED:
-                print >>sys.stderr, "received %d chars" % len(received)
-                print >>sys.stderr
-                print >>sys.stderr, repr(received)
-                print >>sys.stderr
+                print("received %d chars" % len(received), file=sys.stderr)
+                print(file=sys.stderr)
+                print(repr(received), file=sys.stderr)
+                print(file=sys.stderr)
             onlyKilledRE = re.compile('Killed$')
             if onlyKilledRE.search(received):
                 MONKEY = 'com.android.commands.monkey'
@@ -3314,18 +3312,18 @@ class ViewClient:
                 raise RuntimeError('''ERROR: UiAutomator output contains no valid information. UiAutomator was killed, no reason given.''' + extraInfo)
             if self.ignoreUiAutomatorKilled:
                 if DEBUG_RECEIVED:
-                    print >>sys.stderr, "ignoring UiAutomator Killed"
+                    print("ignoring UiAutomator Killed", file=sys.stderr)
                 killedRE = re.compile('</hierarchy>[\n\S]*Killed', re.MULTILINE)
                 if killedRE.search(received):
                     received = re.sub(killedRE, '</hierarchy>', received)
                 elif DEBUG_RECEIVED:
-                    print "UiAutomator Killed: NOT FOUND!"
+                    print("UiAutomator Killed: NOT FOUND!")
                 # It seems that API18 uiautomator spits this message to stdout
                 dumpedToDevTtyRE = re.compile('</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
                 if dumpedToDevTtyRE.search(received):
                     received = re.sub(dumpedToDevTtyRE, '</hierarchy>', received)
                 if DEBUG_RECEIVED:
-                    print >>sys.stderr, "received=", received
+                    print("received=", received, file=sys.stderr)
             # API19 seems to send this warning as part of the XML.
             # Let's remove it if present
             received = received.replace('WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.\r\n', '')
@@ -3337,7 +3335,7 @@ You should force ViewServer back-end.''')
             if received.startswith('ERROR: could not get idle state.'):
                 # See https://android.googlesource.com/platform/frameworks/testing/+/jb-mr2-release/uiautomator/cmds/uiautomator/src/com/android/commands/uiautomator/DumpCommand.java
                 raise RuntimeError('''The views are being refreshed too frequently to dump.''')
-            if received.find(u'Only ROTATION_0 supported') != -1:
+            if received.find('Only ROTATION_0 supported') != -1:
                 raise RuntimeError('''UiAutomatorHelper backend with support for only ROTATION_0 found.''')
             self.setViewsFromUiAutomatorDump(received)
         else:
@@ -3376,18 +3374,18 @@ You should force ViewServer back-end.''')
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 s.connect((VIEW_SERVER_HOST, self.localPort))
-            except socket.error, ex:
+            except socket.error as ex:
                 raise RuntimeError("ERROR: Connecting to %s:%d: %s" % (VIEW_SERVER_HOST, self.localPort, ex))
             cmd = 'dump %x\r\n' % window
             if DEBUG:
-                print >>sys.stderr, "executing: '%s'" % cmd
+                print("executing: '%s'" % cmd, file=sys.stderr)
             s.send(cmd)
             received = ""
             doneRE = re.compile("DONE")
             ViewClient.setAlarm(120)
             while True:
                 if DEBUG_RECEIVED:
-                    print >>sys.stderr, "    reading from socket..."
+                    print("    reading from socket...", file=sys.stderr)
                 received += s.recv(1024)
                 if doneRE.search(received[-7:]):
                     break
@@ -3396,14 +3394,14 @@ You should force ViewServer back-end.''')
             if DEBUG:
                 self.received = received
             if DEBUG_RECEIVED:
-                print >>sys.stderr, "received %d chars" % len(received)
-                print >>sys.stderr
-                print >>sys.stderr, received
-                print >>sys.stderr
+                print("received %d chars" % len(received), file=sys.stderr)
+                print(file=sys.stderr)
+                print(received, file=sys.stderr)
+                print(file=sys.stderr)
             if received:
                 for c in received:
                     if ord(c) > 127:
-                        received = unicode(received, encoding='utf-8', errors='replace')
+                        received = str(received, encoding='utf-8', errors='replace')
                         break
             self.setViews(received, hex(window)[2:])
 
@@ -3435,7 +3433,7 @@ You should force ViewServer back-end.''')
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 s.connect((VIEW_SERVER_HOST, self.localPort))
-            except socket.error, ex:
+            except socket.error as ex:
                 raise RuntimeError("ERROR: Connecting to %s:%d: %s" % (VIEW_SERVER_HOST, self.localPort, ex))
             s.send('list\r\n')
             received = ""
@@ -3448,10 +3446,10 @@ You should force ViewServer back-end.''')
             if DEBUG:
                 self.received = received
             if DEBUG_RECEIVED:
-                print >>sys.stderr, "received %d chars" % len(received)
-                print >>sys.stderr
-                print >>sys.stderr, received
-                print >>sys.stderr
+                print("received %d chars" % len(received), file=sys.stderr)
+                print(file=sys.stderr)
+                print(received, file=sys.stderr)
+                print(file=sys.stderr)
 
             self.windows = {}
             for line in received.split('\n'):
@@ -3493,7 +3491,7 @@ You should force ViewServer back-end.''')
         if not root:
             return None
 
-        if type(root) == types.StringType and root == "ROOT":
+        if root == "ROOT":
             return self.findViewById(viewId, self.root, viewFilter)
 
         if root.getId() == viewId:
@@ -3567,17 +3565,17 @@ You should force ViewServer back-end.''')
         # Note the plural in this method name
         matchingViews = []
         if not self.root:
-            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            print("ERROR: no root, did you forget to call dump()?", file=sys.stderr)
             return matchingViews
 
-        if type(root) == types.StringType and root == "ROOT":
+        if root == "ROOT":
             root = self.root
 
-        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: type val=", type(val)
-        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val)
+        if DEBUG: print("__findViewWithAttributeInTree: type val=", type(val), file=sys.stderr)
+        if DEBUG: print("__findViewWithAttributeInTree: checking if root=%s has attr=%s == %s" % (root.__smallStr__(), attr, val), file=sys.stderr)
 
         if root and attr in root.map and root.map[attr] == val:
-            if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
+            if DEBUG: print("__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__(), file=sys.stderr)
             matchingViews.append(root)
         else:
             for ch in root.children:
@@ -3587,40 +3585,40 @@ You should force ViewServer back-end.''')
 
     def __findViewWithAttributeInTree(self, attr, val, root):
         if DEBUG:
-            print >> sys.stderr, "    __findViewWithAttributeInTree: type(val)=", type(val)
-            if type(val) != types.UnicodeType and type(val) != re._pattern_type:
-                u = unicode(val, encoding='utf-8', errors='ignore')
+            print("    __findViewWithAttributeInTree: type(val)=", type(val), file=sys.stderr)
+            if type(val) != str and type(val) != re._pattern_type:
+                u = str(val, encoding='utf-8', errors='ignore')
             else:
                 u = val
-            print >> sys.stderr, u'''__findViewWithAttributeInTree({0}'''.format(attr),
+            print('''__findViewWithAttributeInTree({0}'''.format(attr), end=' ', file=sys.stderr)
             try:
-                print >> sys.stderr, u''', {0}'''.format(u),
+                print(''', {0}'''.format(u), end=' ', file=sys.stderr)
             except:
                 pass
-            print >> sys.stderr, u'>>>>>>>>>>>>>>>>>>', type(root)
-            if type(root) == types.StringType:
-                print >> sys.stderr, u'>>>>>>>>>>>>>>>>>>', root
-                print >> sys.stderr, u''', {0})'''.format(root)
+            print('>>>>>>>>>>>>>>>>>>', type(root), file=sys.stderr)
+            if type(root) == bytes:
+                print('>>>>>>>>>>>>>>>>>>', root, file=sys.stderr)
+                print(''', {0})'''.format(root), file=sys.stderr)
             else:
-                print >> sys.stderr, u''', {0})'''.format(root.__smallStr__())
+                print(''', {0})'''.format(root.__smallStr__()), file=sys.stderr)
 
         if not self.root:
-            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            print("ERROR: no root, did you forget to call dump()?", file=sys.stderr)
             return None
 
-        if type(root) == types.StringType and root == "ROOT":
+        if root == "ROOT":
             root = self.root
 
-        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree: type val=", type(val)
+        if DEBUG: print("__findViewWithAttributeInTree: type val=", type(val), file=sys.stderr)
         if DEBUG:
             #print >> sys.stderr, u'''__findViewWithAttributeInTree: checking if root={0}: '''.format(root),
-            print >> sys.stderr, u'''has  {0} == '''.format(attr),
-            if type(val) == types.UnicodeType:
+            print('''has  {0} == '''.format(attr), end=' ', file=sys.stderr)
+            if type(val) == str:
                 u = val
             elif type(val) != re._pattern_type:
-                u = unicode(val, encoding='utf-8', errors='replace')
+                u = str(val, encoding='utf-8', errors='replace')
             try:
-                print >> sys.stderr, u'''{0}'''.format(u)
+                print('''{0}'''.format(u), file=sys.stderr)
             except:
                 pass
 
@@ -3629,13 +3627,13 @@ You should force ViewServer back-end.''')
         else:
             try:
                 if DEBUG:
-                    print >> sys.stderr, u'''__findViewWithAttributeInTree: comparing {0}: '''.format(attr),
-                    print >> sys.stderr, u'''{0} == '''.format(root.map[attr]),
-                    print >> sys.stderr, u'''{0}'''.format(val)
+                    print('''__findViewWithAttributeInTree: comparing {0}: '''.format(attr), end=' ', file=sys.stderr)
+                    print('''{0} == '''.format(root.map[attr]), end=' ', file=sys.stderr)
+                    print('''{0}'''.format(val), file=sys.stderr)
             except:
                 pass
             if root and attr in root.map and root.map[attr] == val:
-                if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
+                if DEBUG: print("__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__(), file=sys.stderr)
                 return root
             else:
                 for ch in root.children:
@@ -3654,16 +3652,16 @@ You should force ViewServer back-end.''')
 
     def __findViewWithAttributeInTreeThatMatches(self, attr, regex, root, rlist=[]):
         if not self.root:
-            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            print("ERROR: no root, did you forget to call dump()?", file=sys.stderr)
             return None
 
-        if type(root) == types.StringType and root == "ROOT":
+        if root == "ROOT":
             root = self.root
 
-        if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (root.__smallStr__(), attr, regex)
+        if DEBUG: print("__findViewWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (root.__smallStr__(), attr, regex), file=sys.stderr)
 
         if root and attr in root.map and regex.match(root.map[attr]):
-            if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__()
+            if DEBUG: print("__findViewWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__(), file=sys.stderr)
             return root
             #print >>sys.stderr, "appending root=%s to rlist=%s" % (root.__smallStr__(), rlist)
             #return rlist.append(root)
@@ -3684,10 +3682,10 @@ You should force ViewServer back-end.''')
         '''
         if DEBUG:
             try:
-                print >> sys.stderr, u'findViewWithAttribute({0}, {1}, {2})'.format(attr, unicode(val, encoding='utf-8', errors='replace'), root)
+                print('findViewWithAttribute({0}, {1}, {2})'.format(attr, str(val, encoding='utf-8', errors='replace'), root), file=sys.stderr)
             except:
                 pass
-            print >> sys.stderr, "    findViewWithAttribute: type(val)=", type(val)
+            print("    findViewWithAttribute: type(val)=", type(val), file=sys.stderr)
 
 
         return self.__findViewWithAttributeInTree(attr, val, root)
@@ -3729,8 +3727,8 @@ You should force ViewServer back-end.''')
     def findViewWithText(self, text, root="ROOT"):
         if DEBUG:
             try:
-                print >>sys.stderr, '''findViewWithText({0}, {1})'''.format(text, root)
-                print >> sys.stderr, "    findViewWithText: type(text)=", type(text)
+                print('''findViewWithText({0}, {1})'''.format(text, root), file=sys.stderr)
+                print("    findViewWithText: type(text)=", type(text), file=sys.stderr)
             except:
                 pass
 
@@ -3757,7 +3755,7 @@ You should force ViewServer back-end.''')
         '''
 
         if DEBUG:
-            print >>sys.stderr, "findViewWithTextOrRaise(%s, %s)" % (text, root)
+            print("findViewWithTextOrRaise(%s, %s)" % (text, root), file=sys.stderr)
         view = self.findViewWithText(text, root)
         if view:
             return view
@@ -3778,11 +3776,11 @@ You should force ViewServer back-end.''')
 
         return self.__findViewWithAttributeInTreeOrRaise('content-desc', contentdescription, root)
 
-    def findViewsContainingPoint(self, (x, y), _filter=None):
+    def findViewsContainingPoint(self, xxx_todo_changeme1, _filter=None):
         '''
         Finds the list of Views that contain the point (x, y).
         '''
-
+        (x, y) = xxx_todo_changeme1
         if not _filter:
             _filter = lambda v: True
 
@@ -3791,7 +3789,7 @@ You should force ViewServer back-end.''')
     def findObject(self, **kwargs):
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "Finding object with %s through UiAutomatorHelper" % (kwargs)
+                print("Finding object with %s through UiAutomatorHelper" % (kwargs), file=sys.stderr)
             return self.uiAutomatorHelper.findObject(**kwargs)
         else:
             warnings.warn("findObject only implemented using UiAutomatorHelper. Use ViewClient.findView...() instead.")
@@ -3813,12 +3811,12 @@ You should force ViewServer back-end.''')
         if self.uiAutomatorHelper:
             if selector:
                 if DEBUG_UI_AUTOMATOR_HELPER:
-                    print >> sys.stderr, "Touching View by selector=%s through UiAutomatorHelper" % (selector)
+                    print("Touching View by selector=%s through UiAutomatorHelper" % (selector), file=sys.stderr)
                 # FIXME: is `selector` a `bySlector`?
                 self.uiAutomatorHelper.findObject(bySelector=selector).click()
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
-                    print >> sys.stderr, "Touching (%d, %d) through UiAutomatorHelper" % (x, y)
+                    print("Touching (%d, %d) through UiAutomatorHelper" % (x, y), file=sys.stderr)
                 self.uiAutomatorHelper.click(x=int(x), y=int(y))
         else:
             self.device.touch(x, y)
@@ -3827,11 +3825,11 @@ You should force ViewServer back-end.''')
         if self.uiAutomatorHelper:
             if selector:
                 if DEBUG_UI_AUTOMATOR_HELPER:
-                    print >> sys.stderr, "ViewClient: Long-touching View by selector=%s through UiAutomatorHelper" % (selector)
+                    print("ViewClient: Long-touching View by selector=%s through UiAutomatorHelper" % (selector), file=sys.stderr)
                 self.uiAutomatorHelper.findObject(selector=selector).longClick()
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
-                    print >> sys.stderr, "ViewClient: Long-touching (%d, %d) through UiAutomatorHelper" % (x, y)
+                    print("ViewClient: Long-touching (%d, %d) through UiAutomatorHelper" % (x, y), file=sys.stderr)
                 self.uiAutomatorHelper.swipe(startX=int(x), startY=int(y), endX=int(x), endY=int(y), steps=400)
         else:
             self.device.longTouch(x, y)
@@ -3845,7 +3843,7 @@ You should force ViewServer back-end.''')
             endY = end[1]
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "Swipe through UiAutomatorHelper", (startX, startY, endX, endY, steps, segments, segmentSteps)
+                print("Swipe through UiAutomatorHelper", (startX, startY, endX, endY, steps, segments, segmentSteps), file=sys.stderr)
             self.uiAutomatorHelper.swipe(startX=startX, startY=startY, endX=endX, endY=endY, steps=steps, segments=segments, segmentSteps=segmentSteps)
         else:
             duration = steps/2.0
@@ -3873,21 +3871,21 @@ You should force ViewServer back-end.''')
         '''By default no meta state'''
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "pressKeyCode(%d, %d)" % (keycode, metaState)
+                print("pressKeyCode(%d, %d)" % (keycode, metaState), file=sys.stderr)
             self.uiAutomatorHelper.pressKeyCode(keycode, metaState)
         else:
             warnings.warn("pressKeyCode only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
 
     def setText(self, v, text):
         if DEBUG:
-            print >> sys.stderr, "setText(%s, '%s')" % (v.__tinyStr__(), text)
+            print("setText(%s, '%s')" % (v.__tinyStr__(), text), file=sys.stderr)
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "Setting text through UiAutomatorHelper for View with ID=%s" % v.getId()
+                print("Setting text through UiAutomatorHelper for View with ID=%s" % v.getId(), file=sys.stderr)
             if v.getId():
                 oid = self.uiAutomatorHelper.findObject(selector='res@%s' % v.getId())
                 if DEBUG_UI_AUTOMATOR_HELPER:
-                    print >> sys.stderr, "oid=", oid, "text=", text
+                    print("oid=", oid, "text=", text, file=sys.stderr)
                 self.uiAutomatorHelper.setText(oid, text)
             else:
                 # The View has no ID so we cannot use the ID to create a selector to find it using findObject()
@@ -3906,10 +3904,10 @@ You should force ViewServer back-end.''')
             if verbose:
                 # FIXME: should use Colors, but for now it's fine
                 # print in magenta (35)
-                print "\x1b[{}{}m>> saying: {}\x1b[0m".format(35, '', text)
+                print("\x1b[{}{}m>> saying: {}\x1b[0m".format(35, '', text))
             time.sleep(2)
             if DEBUG:
-                print >> sys.stderr, 'Saying "%s" using festival' % text
+                print('Saying "%s" using festival' % text, file=sys.stderr)
             pipe = subprocess.Popen(['/usr/bin/festival'])
             pipe.communicate('(SayText "%s")' % text)
             pipe.terminate()
@@ -3918,16 +3916,16 @@ You should force ViewServer back-end.''')
             if verbose:
                 # FIXME: should use Colors, but for now it's fine
                 # print in magenta (35)
-                print "\x1b[{}{}m>> saying: {}\x1b[0m".format(35, '', text)
+                print("\x1b[{}{}m>> saying: {}\x1b[0m".format(35, '', text))
             time.sleep(1)
             if not voice:
                 voice = 'Samantha'
             if DEBUG:
-                print >> sys.stderr, 'Saying "%s" as %s' % (text, voice)
+                print('Saying "%s" as %s' % (text, voice), file=sys.stderr)
             subprocess.check_call(['/usr/bin/say', '-v', voice, text])
             time.sleep(5)
         else:
-            print >> sys.stderr, "sayText: Unsupported OS: {}".format(ViewClient.osName)
+            print("sayText: Unsupported OS: {}".format(ViewClient.osName), file=sys.stderr)
 
     def getViewIds(self):
         '''
@@ -3980,21 +3978,21 @@ You should force ViewServer back-end.''')
         if os.path.isdir(filename):
             filename = os.path.join(filename, self.serialno + '.' + _format.lower())
         if DEBUG:
-            print >> sys.stderr, "writeImageToFile: saving image to '%s' in %s format (reconnect=%s)" % (filename, _format, self.device.reconnect)
+            print("writeImageToFile: saving image to '%s' in %s format (reconnect=%s)" % (filename, _format, self.device.reconnect), file=sys.stderr)
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print >> sys.stderr, "Taking screenshot using UiAutomatorHelper"
+                print("Taking screenshot using UiAutomatorHelper", file=sys.stderr)
             received = self.uiAutomatorHelper.takeScreenshot()
-            stream = StringIO.StringIO(received)
+            stream = io.StringIO(received)
             try:
                 from PIL import Image
                 image = Image.open(stream)
             except ImportError as ex:
                 self.pilNotInstalledWarning()
                 sys.exit(1)
-            except IOError, ex:
-                print >> sys.stderr, ex
-                print repr(stream)
+            except IOError as ex:
+                print(ex, file=sys.stderr)
+                print(repr(stream))
                 sys.exit(1)
         else:
             image = self.device.takeSnapshot(reconnect=self.device.reconnect)
@@ -4196,7 +4194,7 @@ On OSX install
         s2 = pickle.dumps(pickleableTree2)
 
         if DEBUG_DISTANCE:
-            print >>sys.stderr, "distance: calculating distance between", s1[:20], "and", s2[:20]
+            print("distance: calculating distance between", s1[:20], "and", s2[:20], file=sys.stderr)
 
         l1 = len(s1)
         l2 = len(s2)
@@ -4204,11 +4202,11 @@ On OSX install
 
         if l1 == l2:
             if DEBUG_DISTANCE:
-                print >>sys.stderr, "distance: trees have same length, using Hamming distance"
+                print("distance: trees have same length, using Hamming distance", file=sys.stderr)
             return ViewClient.__hammingDistance(s1, s2)/t
         else:
             if DEBUG_DISTANCE:
-                print >>sys.stderr, "distance: trees have different length, using Levenshtein distance"
+                print("distance: trees have different length, using Levenshtein distance", file=sys.stderr)
             return ViewClient.__levenshteinDistance(s1, s2)/t
 
 
@@ -4305,7 +4303,7 @@ On OSX install
         for j in range(1, m+1):
             if DEBUG_DISTANCE:
                 if j % 100 == 0:
-                    print >>sys.stderr, "DEBUG:", int(j/(m+1.0)*100),"%\r",
+                    print("DEBUG:", int(j/(m+1.0)*100),"%\r", end=' ', file=sys.stderr)
             t_j = t[j-1]
             d[0] = j
 
@@ -4319,7 +4317,7 @@ On OSX install
             d = _d
 
         if DEBUG_DISTANCE:
-            print >> sys.stderr, "\n"
+            print("\n", file=sys.stderr)
         return p[n]
 
     def levenshteinDistance(self, tree):
@@ -4336,7 +4334,7 @@ On OSX install
     def excerpt(_str, execute=False):
         code = Excerpt2Code().Parse(_str)
         if execute:
-            exec code
+            exec(code)
         else:
             return code
 
@@ -4625,11 +4623,11 @@ class CulebraTestCase(unittest.TestCase):
         if _filter is None:
             _filter = CulebraTestCase.__passAll
         if DEBUG_MULTI:
-            print >> sys.stderr, "all(%s, %s)" % (arg, _filter)
+            print("all(%s, %s)" % (arg, _filter), file=sys.stderr)
             l = (getattr(d, arg) for d in self.devices)
             for i in l:
-                print >> sys.stderr, "    i=", i
-        return filter(_filter, (getattr(d, arg) for d in self.devices))
+                print("    i=", i, file=sys.stderr)
+        return list(filter(_filter, (getattr(d, arg) for d in self.devices)))
 
     def allVcs(self, _filter=None):
         return self.all('vc', _filter)
@@ -4702,4 +4700,4 @@ if __name__ == "__main__":
     try:
         vc = ViewClient(None)
     except:
-        print "%s: Don't expect this to do anything" % __file__
+        print("%s: Don't expect this to do anything" % __file__)

@@ -53,8 +53,8 @@ class Window(object):
         @param visibility: visibility of the window
         '''
 
-        if DEBUG: print >> sys.stderr, "Window(%d, %s, %s, %d, %d, %d, %d, %d, %d, %d)" % \
-                (num, winId, activity, wvx, wvy, wvw, wvh, px, py, visibility)
+        if DEBUG: print("Window(%d, %s, %s, %d, %d, %d, %d, %d, %d, %d)" % \
+                (num, winId, activity, wvx, wvy, wvw, wvh, px, py, visibility), file=sys.stderr)
         self.num = num
         self.winId = winId
         self.activity = activity

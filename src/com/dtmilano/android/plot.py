@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 
 """
-from __future__ import print_function
+
 
 import sys
 import types
@@ -31,11 +31,11 @@ from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '15.5.0'
+__version__ = '15.5.1'
 
 DEBUG = True
 
-NumberTypes = (types.IntType, types.LongType, types.FloatType)
+NumberTypes = (int, int, float)
 
 
 class Plot:
@@ -87,18 +87,18 @@ class Plot:
             if self.ava:
                 if DEBUG:
                     print("plot:", file=sys.stderr)
-                    for k in self.ava.keys():
+                    for k in list(self.ava.keys()):
                         print("   {}: {}".format(k, self.ava[k]), file=sys.stderr)
 
                 host = host_subplot(111, axes_class=AA.Axes)
                 plt.subplots_adjust(right=0.75)
                 par = {}
-                for k in self.ava.keys():
+                for k in list(self.ava.keys()):
                     if k != Dumpsys.TOTAL:
                         par[k] = host.twinx()
 
                 axis = 1
-                for k in self.ava.keys():
+                for k in list(self.ava.keys()):
                     if k != Dumpsys.TOTAL and k != Dumpsys.ACTIVITIES:
                         offset = axis * 60
                         axis += 1
@@ -123,7 +123,7 @@ class Plot:
                 host.set_xlabel('N')
                 host.set_ylabel(Dumpsys.TOTAL)
 
-                for k in self.ava.keys():
+                for k in list(self.ava.keys()):
                     if k != Dumpsys.TOTAL:
                         par[k].set_ylabel(k)
 
@@ -131,13 +131,13 @@ class Plot:
                 if DEBUG:
                     print("    host plot {} : {}".format(self.na, self.ava[Dumpsys.TOTAL]), file=sys.stderr)
                 plots[Dumpsys.TOTAL], = host.plot(self.na, self.ava[Dumpsys.TOTAL], label=Dumpsys.TOTAL, linewidth=2)
-                for k in self.ava.keys():
+                for k in list(self.ava.keys()):
                     if k != Dumpsys.TOTAL:
                         if DEBUG:
                             print("   {} plot {} : {}".format(k, self.na, self.ava[k]), file=sys.stderr)
                         plots[k], = par[k].plot(self.na, self.ava[k], label=k, linewidth=2)
 
-                for k in self.ava.keys():
+                for k in list(self.ava.keys()):
                     if k != Dumpsys.TOTAL:
                         miny = np.amin(self.ava[k])
                         maxy = np.amax(self.ava[k])

@@ -23,7 +23,7 @@ except:
     pass
 
 from com.dtmilano.android.viewclient import *
-from mocks import MockDevice
+from .mocks import MockDevice
 
 VERBOSE = True
 
@@ -58,7 +58,7 @@ class ViewClientConnectedTest(unittest.TestCase):
         vc = ViewClient(self.device, self.serialno, forceviewserveruse=True)
         ids = vc.getViewIds()
         views = vc.dump()
-        self.assertEquals(len(ids), len(views))
+        self.assertEqual(len(ids), len(views))
 
     def testNewViewClientInstancesDontDuplicateTreeConnected(self):
         vc = {}
@@ -72,13 +72,13 @@ class ViewClientConnectedTest(unittest.TestCase):
             m[i] = len(vc[i].dump())
             d[i] = len(vc[i].getViewIds())
             if VERBOSE:
-                print "Pass %d: Found %d views and %d after dump with %d view Ids" % \
-                    (i, n[i], m[i], d[i])
+                print("Pass %d: Found %d views and %d after dump with %d view Ids" % \
+                    (i, n[i], m[i], d[i]))
 
         for i in range(1, 10):
-            self.assertEquals(n[0], n[i])
-            self.assertEquals(n[0], m[i])
-            self.assertEquals(n[0], d[i])
+            self.assertEqual(n[0], n[i])
+            self.assertEqual(n[0], m[i])
+            self.assertEqual(n[0], d[i])
             
     def testViewClientBackendsConsistency(self):
         kwargs1 = {'verbose': True, 'ignoresecuredevice': False, 'ignoreversioncheck': False}

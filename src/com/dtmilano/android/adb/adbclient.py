@@ -23,7 +23,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '15.5.0'
+__version__ = '15.5.1'
 
 import sys
 import warnings
@@ -39,7 +39,7 @@ if sys.executable:
 import string
 import datetime
 import struct
-import cStringIO as StringIO
+import io as StringIO
 import socket
 import time
 import re
@@ -72,8 +72,8 @@ try:
 except KeyError:
     PORT = 5037
 
-OKAY = 'OKAY'
-FAIL = 'FAIL'
+OKAY = b'OKAY'
+FAIL = b'FAIL'
 
 UP = 0
 DOWN = 1
@@ -81,7 +81,7 @@ DOWN_AND_UP = 2
 
 TIMEOUT = 15
 
-WIFI_SERVICE = 'wifi'
+WIFI_SERVICE = b'wifi'
 
 # some device properties
 VERSION_SDK_PROPERTY = 'ro.build.version.sdk'
@@ -92,12 +92,12 @@ class Device:
     @staticmethod
     def factory(_str):
         if DEBUG:
-            print >> sys.stderr, "Device.factory(", _str, ")"
-            print >> sys.stderr, "   _str=", repr(_str)
-            print >> sys.stderr, "   _str=", _str.replace(' ', '_')
+            print("Device.factory(", _str, ")", file=sys.stderr)
+            print("   _str=", repr(_str), file=sys.stderr)
+            print("   _str=", _str.replace(' ', '_'), file=sys.stderr)
         values = _str.split(None, 2)
         if DEBUG:
-            print >> sys.stderr, "values=", values
+            print("values=", values, file=sys.stderr)
         return Device(*values)
 
     def __init__(self, serialno, status, qualifiers=None):
@@ -145,7 +145,7 @@ class WifiManager:
                 return self.WIFI_STATE_ENABLED
             elif self.WIFI_IS_DISABLED_RE.match(state):
                 return self.WIFI_STATE_DISABLED
-        print >> sys.stderr, "UNKNOWN WIFI STATE:", state
+        print("UNKNOWN WIFI STATE:", state, file=sys.stderr)
         return self.WIFI_STATE_UNKNOWN
 
 
@@ -203,7 +203,7 @@ class AdbClient:
 
     def __timeoutHandler(self, timerId, description=None):
         if DEBUG:
-            print >> sys.stderr, "\nTIMEOUT HANDLER", timerId, ':', description
+            print("\nTIMEOUT HANDLER", timerId, ':', description, file=sys.stderr)
         self.timers[timerId] = "EXPIRED"
         raise Timer.TimeoutException("Timer %s has expired" % description)
 
@@ -223,12 +223,12 @@ class AdbClient:
 
     def cancelTimer(self, timerId):
         if DEBUG:
-            print >> sys.stderr, "Canceling timer with ID=%s" % timerId
+            print("Canceling timer with ID=%s" % timerId, file=sys.stderr)
         if timerId not in self.timers:
-            print >> sys.stderr, "timers does not contain a timer with ID=%s" % timerId
-            print >> sys.stderr, "available timers:"
+            print("timers does not contain a timer with ID=%s" % timerId, file=sys.stderr)
+            print("available timers:", file=sys.stderr)
             for t in self.timers:
-                print >> sys.stderr, "   id=", t
+                print("   id=", t, file=sys.stderr)
         if self.timers[timerId] != "EXPIRED":
             self.timers[timerId].cancel()
         del self.timers[timerId]
@@ -246,7 +246,7 @@ class AdbClient:
     @staticmethod
     def connect(hostname, port, timeout=TIMEOUT):
         if DEBUG:
-            print >> sys.stderr, "AdbClient.connect(%s, %s, %s)" % (hostname, port, timeout)
+            print("AdbClient.connect(%s, %s, %s)" % (hostname, port, timeout), file=sys.stderr)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # SO_LINGER: Idea proposed by kysersozelee (#173)
         l_onoff = 1
@@ -256,13 +256,13 @@ class AdbClient:
         s.settimeout(timeout)
         try:
             s.connect((hostname, port))
-        except socket.error, ex:
+        except socket.error as ex:
             raise RuntimeError("ERROR: Connecting to %s:%d: %s.\nIs adb running on your computer?" % (s, port, ex))
         return s
 
     def close(self):
         if DEBUG:
-            print >> sys.stderr, "Closing socket...", self.socket
+            print("Closing socket...", self.socket, file=sys.stderr)
         if self.socket:
             self.socket.close()
 
@@ -274,16 +274,17 @@ class AdbClient:
 
     def __send(self, msg, checkok=True, reconnect=False):
         if DEBUG:
-            print >> sys.stderr, "__send(%s, checkok=%s, reconnect=%s)" % (msg, checkok, reconnect)
+            print("__send(%s, checkok=%s, reconnect=%s)" % (msg, checkok, reconnect), file=sys.stderr)
         if not re.search('^host:', msg):
             if not self.isTransportSet:
                 self.__setTransport()
         else:
             self.checkConnected()
+
         b = bytearray(msg, 'utf-8')
         timerId = self.setTimer(timeout=self.timeout, description="send")
         try:
-            self.socket.send('%04X%s' % (len(b), b))
+            self.socket.send(b'%04X%s' % (len(b), b))
         except Exception as ex:
             raise RuntimeError("Error sending %d bytes" % len(b), ex)
         finally:
@@ -291,15 +292,16 @@ class AdbClient:
 
         if checkok:
             self.__checkOk()
+
         if reconnect:
             if DEBUG:
-                print >> sys.stderr, "    __send: reconnecting"
+                print("    __send: reconnecting", file=sys.stderr)
             self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
             self.__setTransport()
 
     def __receive(self, nob=None, sock=None):
         if DEBUG:
-            print >> sys.stderr, "__receive(nob=%s)" % nob
+            print("__receive(nob=%s)" % nob, file=sys.stderr)
         if not sock:
             sock = self.socket
         self.checkConnected(sock)
@@ -308,15 +310,15 @@ class AdbClient:
             if nob is None:
                 nob = int(sock.recv(4), 16)
             if DEBUG:
-                print >> sys.stderr, "    __receive: receiving", nob, "bytes"
+                print("    __receive: receiving", nob, "bytes", file=sys.stderr)
             recv = bytearray(nob)
             view = memoryview(recv)
             nr = 0
             while nr < nob:
                 l = sock.recv_into(view, len(view))
                 if DEBUG:
-                    print >> sys.stderr, "l=", l, "nr=", nr
-                    print >> sys.stderr, "timer=", self.timers[timerId]
+                    print("l=", l, "nr=", nr, file=sys.stderr)
+                    print("timer=", self.timers[timerId], file=sys.stderr)
                 view = view[l:]
                 nr += l
                 if self.timers[timerId] == 'EXPIRED':
@@ -324,12 +326,12 @@ class AdbClient:
         finally:
             self.cancelTimer(timerId)
         if DEBUG:
-            print >> sys.stderr, "    __receive: returning len=", len(recv)
-        return str(recv)
+            print("    __receive: returning len=", len(recv), file=sys.stderr)
+        return recv.decode('utf-8')
 
     def __checkOk(self, sock=None):
         if DEBUG:
-            print >> sys.stderr, "__checkOk()"
+            print("__checkOk()", file=sys.stderr)
         if not sock:
             sock = self.socket
         self.checkConnected(sock=sock)
@@ -341,13 +343,13 @@ class AdbClient:
             self.cancelTimer(timerId)
 
         if DEBUG:
-            print >> sys.stderr, "    __checkOk: recv=", repr(recv)
+            print("    __checkOk: recv=", repr(recv), file=sys.stderr)
 
         timerId = self.setTimer(timeout=self.timeout, description="checkOK")
         try:
             if recv != OKAY:
                 error = sock.recv(1024)
-                if error.startswith('0049'):
+                if error.startswith(b'0049'):
                     raise RuntimeError(
                         "ERROR: This computer is unauthorized. Please check the confirmation dialog on your device.")
                 else:
@@ -355,23 +357,23 @@ class AdbClient:
         finally:
             self.cancelTimer(timerId)
         if DEBUG:
-            print >> sys.stderr, "    __checkOk: returning True"
+            print("    __checkOk: returning True", file=sys.stderr)
         return True
 
     def checkConnected(self, sock=None):
         if DEBUG:
-            print >> sys.stderr, "checkConnected()"
+            print("checkConnected()", file=sys.stderr)
         if not sock:
             sock = self.socket
         if not sock:
             raise RuntimeError("ERROR: Not connected")
         if DEBUG:
-            print >> sys.stderr, "    checkConnected: returning True"
+            print("    checkConnected: returning True", file=sys.stderr)
         return True
 
     def checkVersion(self, ignoreversioncheck=False, reconnect=True):
         if DEBUG:
-            print >> sys.stderr, "checkVersion(reconnect=%s)   ignoreversioncheck=%s" % (reconnect, ignoreversioncheck)
+            print("checkVersion(reconnect=%s)   ignoreversioncheck=%s" % (reconnect, ignoreversioncheck), file=sys.stderr)
         self.__send('host:version', reconnect=False)
         # HACK: MSG_WAITALL not available on windows
         # version = self.socket.recv(8, socket.MSG_WAITALL)
@@ -387,7 +389,7 @@ class AdbClient:
 
     def __setTransport(self, timeout=60):
         if DEBUG:
-            print >> sys.stderr, "__setTransport()"
+            print("__setTransport()", file=sys.stderr)
         if not self.serialno:
             raise ValueError("serialno not set, empty or None")
         self.checkConnected()
@@ -395,7 +397,7 @@ class AdbClient:
         found = False
         devices = self.getDevices()
         if len(devices) == 0 and timeout > 0:
-            print >> sys.stderr, "Empty device list, will wait %s secs for devices to appear" % self.timeout
+            print("Empty device list, will wait %s secs for devices to appear" % self.timeout, file=sys.stderr)
             # Sets the timeout to 5 to be able to loop while trying to receive new devices being added
             _s = AdbClient.connect(self.hostname, self.port, timeout=5)
             msg = 'host:track-devices'
@@ -416,7 +418,9 @@ class AdbClient:
                             device = Device.factory(line[4:])
                             if device.status == 'device':
                                 devices.append(device)
+                                # this looks like a bug, we skip serialno matching here
                                 found = True
+                                self.serialno = device.serialno
                                 break
                         if found:
                             break
@@ -426,7 +430,7 @@ class AdbClient:
                     finally:
                         time.sleep(3)
                     if DEBUG:
-                        print >> sys.stderr, "Checking if timer %d is EXPIRED:" % timerId, self.timers[timerId]
+                        print("Checking if timer %d is EXPIRED:" % timerId, self.timers[timerId], file=sys.stderr)
                     if self.timers[timerId] == "EXPIRED":
                         break
             finally:
@@ -437,27 +441,38 @@ class AdbClient:
         if len(devices) == 0:
             raise RuntimeError("ERROR: There are no connected devices")
         for device in devices:
-            if serialnoRE.match(device.serialno) or device.has_qualifier(self.serialno):
+            if serialnoRE.match(device.serialno):
+                found = True
+                # self.serialno could've been a regexp, we can't feed that to adb as a transport
+                self.serialno = device.serialno
+                break
+            if device.has_qualifier(self.serialno):
+                # self.serialno is a proper transport value, it could be more specific than device.serialno
+                # For instance devpath/usbpath specifies exactly one device, while serialno might be the same
+                # for reflashed devices.
+                # The only flipside here is that we fail to pick one (first/random) device from possibly many
+                # having the same qualifier (product: model: or device:) if they have different serials.
+                # This could be fixed by some custom logic or using host:transport-id: support in newer and.
                 found = True
                 break
         if not found:
             raise RuntimeError("ERROR: couldn't find device that matches '%s' in %s" % (self.serialno, devices))
-        self.serialno = device.serialno
+
         msg = 'host:transport:%s' % self.serialno
         if DEBUG:
-            print >> sys.stderr, "    __setTransport: msg=", msg
+            print("    __setTransport: msg=", msg, file=sys.stderr)
         self.__send(msg, reconnect=False)
         self.isTransportSet = True
 
     def __checkTransport(self):
         if DEBUG:
-            print >> sys.stderr, "__checkTransport()"
+            print("__checkTransport()", file=sys.stderr)
         if not self.isTransportSet:
             raise RuntimeError("ERROR: Transport is not set")
 
     def __readExactly(self, sock, size):
         if DEBUG:
-            print >> sys.stderr, "__readExactly(socket=%s, size=%d)" % (sock, size)
+            print("__readExactly(socket=%s, size=%d)" % (sock, size), file=sys.stderr)
         _buffer = bytearray(size)
         view = memoryview(_buffer)
         nb = 0
@@ -465,17 +480,19 @@ class AdbClient:
             l = sock.recv_into(view, len(view))
             view = view[l:]
             nb += l
-        return str(_buffer)
+
+        return _buffer.decode('utf-8')
 
     def getDevices(self):
         if DEBUG:
-            print >> sys.stderr, "getDevices()"
+            print("getDevices()", file=sys.stderr)
         self.__send('host:devices-l', checkok=False)
         try:
             self.__checkOk()
-        except RuntimeError, ex:
-            print >> sys.stderr, "**ERROR:", ex
+        except RuntimeError as ex:
+            print("**ERROR:", ex, file=sys.stderr)
             return None
+
         devices = []
         for line in self.__receive().splitlines():
             devices.append(Device.factory(line))
@@ -484,7 +501,7 @@ class AdbClient:
 
     def shell(self, _cmd=None):
         if DEBUG:
-            print >> sys.stderr, "shell(_cmd=%s)" % _cmd
+            print("shell(_cmd=%s)" % _cmd, file=sys.stderr)
         self.__checkTransport()
         #
         # synchronized
@@ -496,15 +513,15 @@ class AdbClient:
                 while True:
                     chunk = None
                     try:
-                        chunk = self.socket.recv(4096)
+                        chunk = self.socket.recv(4096).decode('utf-8')
                     except Exception as ex:
-                        print >> sys.stderr, "ERROR:", ex
+                        print("ERROR:", ex, file=sys.stderr)
                     if not chunk:
                         break
                     chunks.append(chunk)
                 if self.reconnect:
                     if DEBUG:
-                        print >> sys.stderr, "Reconnecting..."
+                        print("Reconnecting...", file=sys.stderr)
                     self.close()
                     self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                     self.__setTransport()
@@ -613,12 +630,12 @@ class AdbClient:
 
     def __getProp(self, key, strip=True):
         if DEBUG:
-            print >> sys.stderr, "__getProp(%s, %s)" % (key, strip)
+            print("__getProp(%s, %s)" % (key, strip), file=sys.stderr)
         prop = self.shell('getprop %s' % key)
         if strip:
             prop = prop.rstrip('\r\n')
         if DEBUG:
-            print >> sys.stderr, "    __getProp: returning '%s'" % prop
+            print("    __getProp: returning '%s'" % prop, file=sys.stderr)
         return prop
 
     def __getDisplayWidth(self, key, strip=True):
@@ -679,7 +696,7 @@ class AdbClient:
         ])
         '''Maps properties key values (as regexps) to instance methods to obtain its values.'''
 
-        for kre in MAP_PROPS.keys():
+        for kre in list(MAP_PROPS.keys()):
             if kre.match(key):
                 return MAP_PROPS[kre](key=key, strip=strip)
         raise ValueError("key='%s' does not match any map entry")
@@ -694,13 +711,12 @@ class AdbClient:
 
     def press(self, name, eventType=DOWN_AND_UP, repeat=1):
         self.__checkTransport()
-        if isinstance(name, unicode):
-            name = name.decode('ascii', errors='replace')
+
         cmd = 'input keyevent %s' % name
         for _ in range(1, repeat):
             cmd += ' %s' % name
         if DEBUG:
-            print >> sys.stderr, "press(%s)" % cmd
+            print("press(%s)" % cmd, file=sys.stderr)
         self.shell(cmd)
 
     def longPress(self, name, duration=0.5, dev='/dev/input/event0', scancode=0, repeat=1):
@@ -734,7 +750,7 @@ class AdbClient:
         if version >= 19:
             cmd = 'input keyevent --longpress %s' % name
             if DEBUG:
-                print >> sys.stderr, "longPress(%s)" % cmd
+                print("longPress(%s)" % cmd, file=sys.stderr)
             self.shell(cmd)
         else:
             raise RuntimeError("longpress: not supported for API < 19 (version=%d)" % version)
@@ -749,7 +765,7 @@ class AdbClient:
         if uri:
             cmd += ' %s' % uri
         if DEBUG:
-            print >> sys.stderr, "Starting activity: %s" % cmd
+            print("Starting activity: %s" % cmd, file=sys.stderr)
         out = self.shell(cmd)
         if re.search(r"(Error type)|(Error: )|(Cannot find 'App')", out, re.IGNORECASE | re.MULTILINE):
             raise RuntimeError(out)
@@ -792,14 +808,14 @@ class AdbClient:
                  alen) = struct.unpack('<' + 'L' * 14, received)
             if DEBUG:
                 if version == 1:
-                    print >> sys.stderr, "    takeSnapshot:", (
-                        version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen)
+                    print("    takeSnapshot:", (
+                        version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen), file=sys.stderr)
                 elif version == 2:
-                    print >> sys.stderr, "    takeSnapshot:", (
+                    print("    takeSnapshot:", (
                         version, bpp, colorspace, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset,
-                        alen)
+                        alen), file=sys.stderr)
                 else:
-                    print >> sys.stderr, "    takeSnapshot: unknown version", version
+                    print("    takeSnapshot: unknown version", version, file=sys.stderr)
 
             offsets = {roffset: 'R', goffset: 'G', boffset: 'B'}
             if bpp == 32:
@@ -810,14 +826,14 @@ class AdbClient:
             argMode = ''.join([offsets[o] for o in sorted(offsets)])
             if DEBUG:
                 if version == 1:
-                    print >> sys.stderr, "    takeSnapshot:", (
+                    print("    takeSnapshot:", (
                         version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, blen, aoffset, alen,
-                        argMode)
+                        argMode), file=sys.stderr)
                 elif version == 2:
-                    print >> sys.stderr, "    takeSnapshot:", (
+                    print("    takeSnapshot:", (
                         version, bpp, colorspace, size, width, height, roffset, rlen, boffset, blen, goffset, blen,
                         aoffset, alen,
-                        argMode)
+                        argMode), file=sys.stderr)
 
             if argMode == 'BGRA':
                 argMode = 'RGBA'
@@ -828,14 +844,14 @@ class AdbClient:
                 mode = argMode
             self.__send('\0', checkok=False, reconnect=False)
             if DEBUG:
-                print >> sys.stderr, "    takeSnapshot: reading %d bytes" % size
+                print("    takeSnapshot: reading %d bytes" % size, file=sys.stderr)
             received = self.__receive(size)
             if reconnect:
                 self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                 self.__setTransport()
             if DEBUG:
-                print >> sys.stderr, "    takeSnapshot: Image.frombuffer(%s, %s, %s, %s, %s, %s, %s)" % (
-                    mode, (width, height), 'data', 'raw', argMode, 0, 1)
+                print("    takeSnapshot: Image.frombuffer(%s, %s, %s, %s, %s, %s, %s)" % (
+                    mode, (width, height), 'data', 'raw', argMode, 0, 1), file=sys.stderr)
             image = Image.frombuffer(mode, (width, height), received, 'raw', argMode, 0, 1)
         else:
             # ALTERNATIVE_METHOD: screencap
@@ -845,10 +861,10 @@ class AdbClient:
             stream = StringIO.StringIO(received)
             try:
                 image = Image.open(stream)
-            except IOError, ex:
-                print >> sys.stderr, ex
-                print >> sys.stderr, repr(stream)
-                print >> sys.stderr, repr(received)
+            except IOError as ex:
+                print(ex, file=sys.stderr)
+                print(repr(stream), file=sys.stderr)
+                print(repr(received), file=sys.stderr)
                 raise RuntimeError('Cannot convert stream to image: ' + ex.message)
 
         # Just in case let's get the real image size
@@ -865,7 +881,8 @@ class AdbClient:
             profileEnd()
         return image
 
-    def __transformPointByOrientation(self, (x, y), orientationOrig, orientationDest):
+    def __transformPointByOrientation(self, xxx_todo_changeme, orientationOrig, orientationDest):
+        (x, y) = xxx_todo_changeme
         if orientationOrig != orientationDest:
             if orientationDest == 1:
                 _x = x
@@ -879,7 +896,7 @@ class AdbClient:
 
     def touch(self, x, y, orientation=-1, eventType=DOWN_AND_UP):
         if DEBUG_TOUCH:
-            print >> sys.stderr, "touch(x=", x, ", y=", y, ", orientation=", orientation, ", eventType=", eventType, ")"
+            print("touch(x=", x, ", y=", y, ", orientation=", orientation, ", eventType=", eventType, ")", file=sys.stderr)
         self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
@@ -893,7 +910,7 @@ class AdbClient:
 
     def touchDip(self, x, y, orientation=-1, eventType=DOWN_AND_UP):
         if DEBUG_TOUCH:
-            print >> sys.stderr, "touchDip(x=", x, ", y=", y, ", orientation=", orientation, ", eventType=", eventType, ")"
+            print("touchDip(x=", x, ", y=", y, ", orientation=", orientation, ", eventType=", eventType, ")", file=sys.stderr)
         self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
@@ -914,7 +931,7 @@ class AdbClient:
         self.__checkTransport()
         self.drag((x, y), (x, y), duration, orientation)
 
-    def drag(self, (x0, y0), (x1, y1), duration, steps=1, orientation=-1):
+    def drag(self, xxx_todo_changeme1, xxx_todo_changeme2, duration, steps=1, orientation=-1):
         """
         Sends drag event in PX (actually it's using C{input swipe} command).
 
@@ -924,7 +941,8 @@ class AdbClient:
         @param steps: number of steps (currently ignored by C{input swipe})
         @param orientation: the orientation (-1: undefined)
         """
-
+        (x0, y0) = xxx_todo_changeme1
+        (x1, y1) = xxx_todo_changeme2
         self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
@@ -939,7 +957,7 @@ class AdbClient:
         else:
             self.shell('input touchscreen swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration))
 
-    def dragDip(self, (x0, y0), (x1, y1), duration, steps=1, orientation=-1):
+    def dragDip(self, xxx_todo_changeme3, xxx_todo_changeme4, duration, steps=1, orientation=-1):
         """
         Sends drag event in DIP (actually it's using C{input swipe} command.
 
@@ -948,7 +966,8 @@ class AdbClient:
         @param duration: duration of the event in ms
         @param steps: number of steps (currently ignored by C{input swipe})
         """
-
+        (x0, y0) = xxx_todo_changeme3
+        (x1, y1) = xxx_todo_changeme4
         self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
@@ -964,15 +983,15 @@ class AdbClient:
         if type(text) is str:
             escaped = text.replace('%s', '\\%s')
             encoded = escaped.replace(' ', '%s')
-        elif type(text) is unicode:
-            warnings.warn(u"WARNING: 'input text' utility does not support unicode: %s" % text)
+        elif type(text) is str:
+            warnings.warn("WARNING: 'input text' utility does not support unicode: %s" % text)
             normalized = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
             encoded = normalized.replace(' ', '%s')
         else:
-            encoded = str(text)
+            encoded = text.decode('utf-8')
         # FIXME find out which characters can be dangerous,
         # for example not worst idea to escape "
-        self.shell(u'input text "%s"' % encoded)
+        self.shell('input text "%s"' % encoded)
 
     def wake(self):
         self.__checkTransport()
@@ -1129,11 +1148,11 @@ class AdbClient:
 
     def log(self, tag, message, priority='D', verbose=False):
         if DEBUG_LOG:
-            print >> sys.stderr, "log(tag=%s, message=%s, priority=%s, verbose=%s)" % (tag, message, priority, verbose)
+            print("log(tag=%s, message=%s, priority=%s, verbose=%s)" % (tag, message, priority, verbose), file=sys.stderr)
         self.__checkTransport()
         message = self.substituteDeviceTemplate(message)
         if verbose or priority == 'V':
-            print >> sys.stderr, tag + ':', message
+            print(tag + ':', message, file=sys.stderr)
         self.shell('log -p %c -t "%s" %s' % (priority, tag, message))
 
     class __Log:
@@ -1162,7 +1181,7 @@ class AdbClient:
         self.__checkTransport()
         windows = {}
         dww = self.shell('dumpsys window windows')
-        if DEBUG_WINDOWS: print >> sys.stderr, dww
+        if DEBUG_WINDOWS: print(dww, file=sys.stderr)
         lines = dww.splitlines()
         widRE = re.compile('^ *Window #%s Window\{%s (u\d+ )?%s?.*\}:' %
                            (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
@@ -1207,7 +1226,7 @@ class AdbClient:
                     m = viewVisibilityRE.search(lines[l2])
                     if m:
                         visibility = int(m.group('visibility'))
-                        if DEBUG_COORDS: print >> sys.stderr, "getWindows: visibility=", visibility
+                        if DEBUG_COORDS: print("getWindows: visibility=", visibility, file=sys.stderr)
                     if self.build[VERSION_SDK_PROPERTY] >= 17:
                         wvx, wvy = (0, 0)
                         wvw, wvh = (0, 0)
@@ -1255,8 +1274,8 @@ class AdbClient:
 
         if currentFocus in windows and windows[currentFocus].visibility == 0:
             if DEBUG_COORDS:
-                print >> sys.stderr, "getWindows: focus=", currentFocus
-                print >> sys.stderr, "getWindows:", windows[currentFocus]
+                print("getWindows: focus=", currentFocus, file=sys.stderr)
+                print("getWindows:", windows[currentFocus], file=sys.stderr)
             windows[currentFocus].focused = True
 
         return windows
@@ -1268,7 +1287,7 @@ class AdbClient:
         @return: The focused L{Window}.
         '''
 
-        for window in self.getWindows().values():
+        for window in list(self.getWindows().values()):
             if window.focused:
                 return window
         return None
@@ -1331,7 +1350,7 @@ if __name__ == '__main__':
         prompt = re.compile(".+@android:(.*) [$#] \r\r\n")
         while True:
             try:
-                cmd = raw_input('adb $ ')
+                cmd = input('adb $ ')
             except EOFError:
                 break
             if cmd == 'exit':
@@ -1342,10 +1361,10 @@ if __name__ == '__main__':
                 line = sout.readline(4096)
                 if prompt.match(line):
                     break
-                print line,
+                print(line, end=' ')
                 if not line:
                     break
 
-        print "\nBye"
+        print("\nBye")
     else:
-        print 'date:', adbClient.shell('date')
+        print('date:', adbClient.shell('date'))

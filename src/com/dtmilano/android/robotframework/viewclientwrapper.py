@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.5.0'
+__version__ = '15.5.1'
 __author__ = 'diego'
 
 import sys
@@ -48,7 +48,7 @@ class ViewClientWrapper:
         self.vc = ViewClient(device, serialno)
         self.device = device
         if DEBUG:
-            print >> sys.stderr, "ViewClientWrapper: connected to", device, serialno
+            print("ViewClientWrapper: connected to", device, serialno, file=sys.stderr)
 
     def dump(self):
         """Dumps window hierarchy."""

@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.5.0'
+__version__ = '15.5.1'
 
 import json
 import os
@@ -60,19 +60,19 @@ class RunTestsThread(threading.Thread):
 
     def run(self):
         if DEBUG:
-            print >> sys.stderr, "RunTestsThread: Acquiring lock"
+            print("RunTestsThread: Acquiring lock", file=sys.stderr)
         lock.acquire()
         if DEBUG:
-            print >> sys.stderr, "RunTestsThread: Lock acquired"
+            print("RunTestsThread: Lock acquired", file=sys.stderr)
         self.forceStop()
         time.sleep(3)
         if DEBUG:
-            print >> sys.stderr, "Starting test..."
-            print >> sys.stderr, "RunTestsThread: Releasing lock"
+            print("Starting test...", file=sys.stderr)
+            print("RunTestsThread: Releasing lock", file=sys.stderr)
         lock.release()
         out = self.adbClient.shell('am instrument -w ' + self.testClass + '/' + self.testRunner + '; echo "ERROR: $?"')
         if DEBUG:
-            print >> sys.stderr, "\nFinished test."
+            print("\nFinished test.", file=sys.stderr)
         errmsg = out.splitlines()[-1]
         m = re.match('ERROR: (\d+)', errmsg)
         if m:
@@ -84,7 +84,7 @@ class RunTestsThread(threading.Thread):
 
     def forceStop(self):
         if DEBUG:
-            print >> sys.stderr, "Cleaning up before start. Stopping '%s'" % self.pkg
+            print("Cleaning up before start. Stopping '%s'" % self.pkg, file=sys.stderr)
         self.adbClient.shell('am force-stop ' + self.pkg)
 
 
@@ -129,17 +129,17 @@ On OSX install
         self.baseUrl = 'http://%s:%d' % (hostname, localport)
         try:
             self.session = self.__connectSession()
-        except RuntimeError, ex:
+        except RuntimeError as ex:
             self.thread.forceStop()
             raise ex
 
     def __connectSession(self):
         if DEBUG:
-            print >> sys.stderr, "UiAutomatorHelper: Acquiring lock"
+            print("UiAutomatorHelper: Acquiring lock", file=sys.stderr)
         lock.acquire()
         if DEBUG:
-            print >> sys.stderr, "UiAutomatorHelper: Lock acquired"
-            print >> sys.stderr, "UiAutomatorHelper: Connecting session"
+            print("UiAutomatorHelper: Lock acquired", file=sys.stderr)
+            print("UiAutomatorHelper: Connecting session", file=sys.stderr)
         session = requests.Session()
         if not session:
             raise RuntimeError("Cannot create session")
@@ -147,19 +147,19 @@ On OSX install
         while tries > 0:
             time.sleep(0.5)
             if DEBUG:
-                print >> sys.stderr, "UiAutomatorHelper: Attempting to connect to", self.baseUrl, '(tries=%s)' % tries
+                print("UiAutomatorHelper: Attempting to connect to", self.baseUrl, '(tries=%s)' % tries, file=sys.stderr)
             try:
                 response = session.head(self.baseUrl)
                 if response.status_code == 200:
                     break
-            except requests.exceptions.ConnectionError, ex:
+            except requests.exceptions.ConnectionError as ex:
                 tries -= 1
         lock.release()
         if tries == 0:
             raise RuntimeError("Cannot connect to " + self.baseUrl)
         if DEBUG:
-            print >> sys.stderr, "UiAutomatorHelper: HEAD", response
-            print >> sys.stderr, "UiAutomatorHelper: Releasing lock"
+            print("UiAutomatorHelper: HEAD", response, file=sys.stderr)
+            print("UiAutomatorHelper: Releasing lock", file=sys.stderr)
         # lock.release()
         return session
 
@@ -182,15 +182,15 @@ On OSX install
 
     def __runTests(self):
         if DEBUG:
-            print >> sys.stderr, "__runTests: start"
+            print("__runTests: start", file=sys.stderr)
         # We need a new AdbClient instance with timeout=None (means, no timeout) for the long running test service
         newAdbClient = AdbClient(self.adbClient.serialno, self.adbClient.hostname, self.adbClient.port, timeout=None)
         self.thread = RunTestsThread(adbClient=newAdbClient, testClass=self.TEST_CLASS, testRunner=self.TEST_RUNNER)
         if DEBUG:
-            print >> sys.stderr, "__runTests: starting thread"
+            print("__runTests: starting thread", file=sys.stderr)
         self.thread.start()
         if DEBUG:
-            print >> sys.stderr, "__runTests: end"
+            print("__runTests: end", file=sys.stderr)
 
     def __httpCommand(self, url, params=None, method='GET'):
         if method == 'GET':
@@ -225,9 +225,9 @@ On OSX install
     #
     def click(self, **kwargs):
         params = kwargs
-        if not ((params.has_key('x') and params.has_key('y')) or params.has_key('oid')):
+        if not (('x' in params and 'y' in params) or 'oid' in params):
             raise RuntimeError('click: (x, y) or oid must have a value')
-        if params.has_key('oid'):
+        if 'oid' in params:
             return self.__httpCommand('/UiObject2/%d/click' % params['oid'])
         else:
             return self.__httpCommand('/UiDevice/click', params)
@@ -235,35 +235,35 @@ On OSX install
     def dumpWindowHierarchy(self):
         dump = self.__httpCommand('/UiDevice/dumpWindowHierarchy').decode(encoding='UTF-8', errors='replace')
         if DEBUG:
-            print >> sys.stderr, "DUMP: ", dump
+            print("DUMP: ", dump, file=sys.stderr)
         return dump
 
     def findObject(self, **kwargs):
         params = kwargs
-        if not (params.has_key('resourceId') or params.has_key('bySelector')):
+        if not ('resourceId' in params or 'bySelector' in params):
             raise RuntimeError('findObject: resourceId or bySelector must have a value')
         response = self.__httpCommand('/UiDevice/findObject', params)
         # { "status": "OK", "oid": 1, "className": "android.view.View"}
         if DEBUG:
-            print >> sys.stderr, "UiAutomatorHelper: findObject: response=", response
+            print("UiAutomatorHelper: findObject: response=", response, file=sys.stderr)
         r = json.loads(response)
-        if r[u'status'] == 'OK':
+        if r['status'] == 'OK':
             if DEBUG:
-                print >> sys.stderr, "UiAutomatorHelper: findObject: returning", int(r[u'oid'])
-            return UiObject2(self, int(r[u'oid']))
-        elif r[u'status'] == 'ERROR':
+                print("UiAutomatorHelper: findObject: returning", int(r['oid']), file=sys.stderr)
+            return UiObject2(self, int(r['oid']))
+        elif r['status'] == 'ERROR':
             if DEBUG:
-                print >> sys.stderr, "UiAutomatorHelper: findObject: returning", int(r[u'oid'])
-            if r[u'statusCode'] == -1:
+                print("UiAutomatorHelper: findObject: returning", int(r['oid']), file=sys.stderr)
+            if r['statusCode'] == -1:
                 # Object not found
                 return None
         raise RuntimeError("Error: " + response)
 
     def longClick(self, **kwargs):
         params = kwargs
-        if not ((params.has_key('x') and params.has_key('y')) or params.has_key('oid')):
+        if not (('x' in params and 'y' in params) or 'oid' in params):
             raise RuntimeError('longClick: (x, y) or oid must have a value')
-        if params.has_key('oid'):
+        if 'oid' in params:
             return self.__httpCommand('/UiObject2/%d/longClick' % params['oid'])
         else:
             return self.__httpCommand('/UiDevice/longClick', params)
@@ -332,10 +332,10 @@ On OSX install
             raise ValueError("No uiObject or uiObject2 specified")
         response = self.__httpCommand(path, None)
         r = json.loads(response)
-        if r[u'status'] == 'OK':
+        if r['status'] == 'OK':
             if DEBUG:
-                print >> sys.stderr, "UiAutomatorHelper: getText: returning", r[u'text']
-            return r[u'text']
+                print("UiAutomatorHelper: getText: returning", r['text'], file=sys.stderr)
+            return r['text']
         raise RuntimeError("Error: " + response)
 
     def isChecked(self, uiObject=None):
@@ -343,8 +343,8 @@ On OSX install
         path = '/UiObject/%d/isChecked' % (uiObject.oid)
         response = self.__httpCommand(path, None)
         r = json.loads(response)
-        if r[u'status'] == 'OK':
-            return r[u'checked']
+        if r['status'] == 'OK':
+            return r['checked']
         raise RuntimeError("Error: " + response)
 
     #
@@ -353,23 +353,23 @@ On OSX install
     def uiScrollable(self, path, params=None):
         response = self.__httpCommand('/UiScrollable/' + path, params)
         if DEBUG:
-            print >> sys.stderr, "UiAutomatorHelper: uiScrollable: response=", response
+            print("UiAutomatorHelper: uiScrollable: response=", response, file=sys.stderr)
         r = None
         try:
             r = json.loads(response)
         except:
-            print >> sys.stderr, "===================================="
-            print >> sys.stderr, "Invalid JSON RESPONSE: ", response
-        if r[u'status'] == 'OK':
-            if u'oid' in r:
+            print("====================================", file=sys.stderr)
+            print("Invalid JSON RESPONSE: ", response, file=sys.stderr)
+        if r['status'] == 'OK':
+            if 'oid' in r:
                 if DEBUG:
-                    print >> sys.stderr, "UiAutomatorHelper: uiScrollable: returning", int(r[u'oid'])
-                return int(r[u'oid']), r
+                    print("UiAutomatorHelper: uiScrollable: returning", int(r['oid']), file=sys.stderr)
+                return int(r['oid']), r
             else:
                 return r
         if DEBUG:
-            print >> sys.stderr, "RESPONSE: ", response
-            print >> sys.stderr, "r=", r
+            print("RESPONSE: ", response, file=sys.stderr)
+            print("r=", r, file=sys.stderr)
         raise RuntimeError("Error: " + response)
 
 
