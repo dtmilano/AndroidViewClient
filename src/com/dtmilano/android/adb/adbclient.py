@@ -23,7 +23,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '15.5.0'
+__version__ = '15.5.1'
 
 import sys
 import warnings
@@ -418,7 +418,9 @@ class AdbClient:
                             device = Device.factory(line[4:])
                             if device.status == 'device':
                                 devices.append(device)
+                                # this looks like a bug, we skip serialno matching here
                                 found = True
+                                self.serialno = device.serialno
                                 break
                         if found:
                             break
@@ -439,13 +441,23 @@ class AdbClient:
         if len(devices) == 0:
             raise RuntimeError("ERROR: There are no connected devices")
         for device in devices:
-            if serialnoRE.match(device.serialno) or device.has_qualifier(self.serialno):
+            if serialnoRE.match(device.serialno):
+                found = True
+                # self.serialno could've been a regexp, we can't feed that to adb as a transport
+                self.serialno = device.serialno
+                break
+            if device.has_qualifier(self.serialno):
+                # self.serialno is a proper transport value, it could be more specific than device.serialno
+                # For instance devpath/usbpath specifies exactly one device, while serialno might be the same
+                # for reflashed devices.
+                # The only flipside here is that we fail to pick one (first/random) device from possibly many
+                # having the same qualifier (product: model: or device:) if they have different serials.
+                # This could be fixed by some custom logic or using host:transport-id: support in newer and.
                 found = True
                 break
         if not found:
             raise RuntimeError("ERROR: couldn't find device that matches '%s' in %s" % (self.serialno, devices))
-        self.serialno = device.serialno
-        
+
         msg = 'host:transport:%s' % self.serialno
         if DEBUG:
             print("    __setTransport: msg=", msg, file=sys.stderr)

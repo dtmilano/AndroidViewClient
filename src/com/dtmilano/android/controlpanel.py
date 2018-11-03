@@ -19,7 +19,7 @@
     @author: Ahmed Kasem
     '''
 
-__version__ = '15.5.0'
+__version__ = '15.5.1'
 
 import tkinter
 import tkinter.ttk
