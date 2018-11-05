@@ -1152,7 +1152,7 @@ class View:
             if isinstance(self.map[a], str):
                 __str += self.map[a]
             else:
-                __str += str(str(self.map[a]), 'utf-8', errors='replace')
+                __str += str(self.map[a]).encode('utf-8', errors='replace').decode('utf-8')
             __str += " "
         __str += "]   parent="
         if self.parent:
@@ -3228,7 +3228,7 @@ class ViewClient:
         s = transform(root)
         if stream and s:
             ius = "%s%s" % (indent, s if isinstance(s, str) else str(s, 'utf-8', 'replace'))
-            print(ius.encode('utf-8', 'replace'), file=stream)
+            print(ius.encode('utf-8', 'replace').decode('utf-8'), file=stream)
 
         for ch in root.children:
             ViewClient.__traverse(ch, indent=indent+"   ", transform=transform, stream=stream)

@@ -342,6 +342,7 @@ class ViewClientTest(unittest.TestCase):
         except Exception as e:
             self.assertEqual('Device is not connected', e.message)
 
+    @unittest.skip("avoid handling alarm for now")
     def testConnectToDeviceOrExit_environ(self):
         sys.argv = ['']
         os.environ['ANDROID_SERIAL'] = 'ABC123'
@@ -363,6 +364,7 @@ class ViewClientTest(unittest.TestCase):
         except Exception as e: #FIXME: java.lang.NullPointerException:
             self.fail('Serialno was not taken from environment: ' + msg)
 
+    @unittest.skip("avoid handling alarm for now")
     def testConnectToDeviceOrExit_serialno(self):
         sys.argv = ['']
         try:

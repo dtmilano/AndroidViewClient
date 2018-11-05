@@ -749,7 +749,10 @@ class MockDevice(object):
         if self.viewServer:
             if DEBUG:
                 print("    shutdownMockViewServer: shutting down ViewServer", file=sys.stderr)
-            self.viewServer.shutdown()
+            try:
+                self.viewServer.shutdown()
+            except:
+                print("    shutdownMockViewServer: ERROR shutting down ViewServer", file=sys.stderr)
             #del(self.viewServer)
 
     def touch(self, x, y, eventType):

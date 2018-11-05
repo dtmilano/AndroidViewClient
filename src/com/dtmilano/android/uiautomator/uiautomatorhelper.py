@@ -52,7 +52,7 @@ class RunTestsThread(threading.Thread):
 
     def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, verbose=None, adbClient=None,
                  testClass=None, testRunner=None):
-        threading.Thread.__init__(self, group=group, target=target, name=name, verbose=verbose)
+        threading.Thread.__init__(self, group=group, target=target, name=name)
         self.adbClient = adbClient
         self.testClass = testClass
         self.testRunner = testRunner

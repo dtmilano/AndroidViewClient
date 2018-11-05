@@ -106,7 +106,7 @@ def shortAndLongOptions():
     if len(short_opts) != len(LONG_OPTS):
         raise Exception('There is a mismatch between short and long options')
     t = tuple(short_opts) + tuple(LONG_OPTS)
-    l2 = len(t) / 2
+    l2 = int(len(t) / 2)
     sl = []
     for i in range(l2):
         sl.append((t[i], t[i + l2]))
@@ -114,15 +114,15 @@ def shortAndLongOptions():
 
 
 def usage(exitVal=1):
-    print >> sys.stderr, USAGE % progname
-    print >> sys.stderr, "Try '%s --help' for more information." % progname
+    print(USAGE % progname, file=sys.stderr)
+    print("Try '%s --help' for more information." % progname, file=sys.stderr)
     sys.exit(exitVal)
 
 
 def help():
-    print >> sys.stderr, USAGE % progname
-    print >> sys.stderr
-    print >> sys.stderr, "Options:"
+    print(USAGE % progname, file=sys.stderr)
+    print(file=sys.stderr)
+    print("Options:", file=sys.stderr)
     for so, lo in shortAndLongOptions():
         o = '  -%c, --%s' % (so, lo)
         if lo[-1] == '=':
@@ -131,12 +131,12 @@ def help():
             o = '%-34s %-45s' % (o, OPTS_HELP[so])
         except:
             pass
-        print >> sys.stderr, o
+        print(o, file=sys.stderr)
     sys.exit(0)
 
 
 def version():
-    print progname, __version__
+    print('{} version {}'.format(progname, __version__))
     sys.exit(0)
 
 
@@ -145,8 +145,8 @@ progname = os.path.basename(sys.argv[0])
 try:
     opts, args = getopt.getopt(sys.argv[1:], SHORT_OPTS, LONG_OPTS)
     sys.argv[1:] = args
-except getopt.GetoptError, e:
-    print >> sys.stderr, 'ERROR:', str(e)
+except getopt.GetoptError as e:
+    print('ERROR:', str(e), file=sys.stderr)
     usage()
 
 kwargs1 = {VERBOSE: False, 'ignoresecuredevice': False, 'ignoreversioncheck': False}

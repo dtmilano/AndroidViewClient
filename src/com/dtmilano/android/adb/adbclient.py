@@ -91,6 +91,7 @@ VERSION_RELEASE_PROPERTY = 'ro.build.version.release'
 class Device:
     @staticmethod
     def factory(_str):
+        _str = _str.decode('utf-8')
         if DEBUG:
             print("Device.factory(", _str, ")", file=sys.stderr)
             print("   _str=", repr(_str), file=sys.stderr)
@@ -327,7 +328,7 @@ class AdbClient:
             self.cancelTimer(timerId)
         if DEBUG:
             print("    __receive: returning len=", len(recv), file=sys.stderr)
-        return recv.decode('utf-8')
+        return recv
 
     def __checkOk(self, sock=None):
         if DEBUG:
@@ -404,7 +405,7 @@ class AdbClient:
             b = bytearray(msg, 'utf-8')
             timerId = self.setTimer(timeout=timeout, description="setTransport")
             try:
-                _s.send('%04X%s' % (len(b), b))
+                _s.send(b'%04X%s' % (len(b), b))
                 self.__checkOk(sock=_s)
                 # eat '0000'
                 _s.recv(4)
