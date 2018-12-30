@@ -21,9 +21,9 @@ It is a test framework for Android applications that:
 
 :rage: **NOTE**: Pypi statistics are broken see [here](https://github.com/aclark4life/vanity/issues/22). The new statistics can be obtained from [BigQuery](https://bigquery.cloud.google.com/queries/culebra-tester).
 
-As of June 2018 we have reached:
+As of December 2018 we have reached:
 
-<img src="https://github.com/dtmilano/AndroidViewClient/wiki/images/culebra-400k.png" width="80%" align="center">
+<img src="https://github.com/dtmilano/AndroidViewClient/wiki/images/culebra-500k.png" width="80%" align="center">
 
 Thanks to all who made it possible.
 
