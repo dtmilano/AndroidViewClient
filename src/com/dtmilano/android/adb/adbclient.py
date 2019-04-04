@@ -500,7 +500,7 @@ class AdbClient:
         self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
         return devices
 
-    def shell(self, _cmd=None):
+    def shell(self, _cmd=None, _convertOutputToString=True):
         if DEBUG:
             print("shell(_cmd=%s)" % _cmd, file=sys.stderr)
         self.__checkTransport()
@@ -514,7 +514,7 @@ class AdbClient:
                 while True:
                     chunk = None
                     try:
-                        chunk = self.socket.recv(4096).decode('utf-8')
+                        chunk = self.socket.recv(4096)
                     except Exception as ex:
                         print("ERROR:", ex, file=sys.stderr)
                     if not chunk:
@@ -526,8 +526,10 @@ class AdbClient:
                     self.close()
                     self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                     self.__setTransport()
-
-                return ''.join(chunks)
+                if _convertOutputToString:
+                    return b''.join(chunks).decode('utf-8')
+                else:
+                    return b''.join(chunks)
             else:
                 self.__send('shell:')
                 # sin = self.socket.makefile("rw")
@@ -856,10 +858,10 @@ class AdbClient:
             image = Image.frombuffer(mode, (width, height), received, 'raw', argMode, 0, 1)
         else:
             # ALTERNATIVE_METHOD: screencap
-            received = self.shell('/system/bin/screencap -p').replace("\r\n", "\n")
+            received = self.shell('/system/bin/screencap -p', False).replace(b'\r\n', b'\n')
             if not received:
                 raise RuntimeError('"/system/bin/screencap -p" result was empty')
-            stream = StringIO.StringIO(received)
+            stream = StringIO.BytesIO(received)
             try:
                 image = Image.open(stream)
             except IOError as ex:
