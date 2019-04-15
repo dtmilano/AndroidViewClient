@@ -13,7 +13,7 @@ except:
 from com.dtmilano.android.adb import adbclient
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-SAMPLE_PROCESS_NAME = 'com.android.systemui'
+SAMPLE_PROCESS_NAMES = ['com.android.systemui', 'system:ui']
 
 SERIALNO = '.*'
 
@@ -22,11 +22,19 @@ class DumpsysTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.device = adbclient.AdbClient(SERIALNO, ignoreversioncheck=False, timeout=60)
+        cls.sample_process_name = None
+        for line in cls.device.shell('ps').splitlines():
+            process = line.split()[-1]
+            if process in SAMPLE_PROCESS_NAMES:
+                cls.sample_process_name = process
+                break
+        else:
+            raise RuntimeError('Cannot find suitable process from {}'.format(SAMPLE_PROCESS_NAMES))
 
     def setUp(self):
         super(DumpsysTests, self).setUp()
-        self.dumpsysMeminfo = Dumpsys.meminfo(self.device, SAMPLE_PROCESS_NAME)
-        self.dumpsysGfxinfo = Dumpsys.gfxinfo(self.device, SAMPLE_PROCESS_NAME, Dumpsys.FRAMESTATS)
+        self.dumpsysMeminfo = Dumpsys.meminfo(self.device, self.sample_process_name)
+        self.dumpsysGfxinfo = Dumpsys.gfxinfo(self.device, self.sample_process_name, Dumpsys.FRAMESTATS)
 
     def __check_meminfo_values(self, dumpsys):
         self.assertGreater(dumpsys.total, 0)
