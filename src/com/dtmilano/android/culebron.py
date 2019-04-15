@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2018  Diego Torres Milano
+Copyright (C) 2012-2019  Diego Torres Milano
 Created on oct 6, 2014
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.viewclient import ViewClient
 
-__version__ = '15.5.1'
+__version__ = '15.6.0'
 
 import sys
 import threading
@@ -987,13 +987,18 @@ This is usually installed by python package. Check your distribution details.
                     self.printOperation(None, Operation.LONG_PRESS, 'MOVE_HOME', 0.1, d, 0x700e3, 50)
             else:
                 self.command(Culebron.KEYSYM_TO_KEYCODE_MAP[keysym])
-        elif char == '\r':
-            self.command('ENTER')
         # ALT-M
         elif keysym == 'm' and event.state == 24:
             if DEBUG_KEY:
                 print >> sys.stderr, "Sending MENU"
             self.command('MENU')
+        # OPTION-ENTER (mac)
+        elif keysym == 'Return' and event.state == 16:
+            if DEBUG_KEY:
+                print >> sys.stderr, "Sending DPAD_CENTER"
+            self.command('DPAD_CENTER')
+        elif char == '\r':
+            self.command('ENTER')
         elif char == '':
             # do nothing
             pass
