@@ -1122,6 +1122,14 @@ MOCK@412a9d08 mID=7,id/test drawing:mForeground=4,null padding:mForegroundPaddin
         self.assertNotEquals(None, list)
         self.assertNotEquals(0, len(list))
 
+    def testFindViewsWithArreibuteThatMatches(self):
+        device = MockDevice(version=28)
+        vc = ViewClient(device, device.serialno, adb=TRUE)
+        list = vc.findViewsWithAttributeThatMatches("text", re.compile(r"\S+"))
+        self.assertNotEquals(None, list)
+        self.assertEquals(6, len(list))
+
+
 if __name__ == "__main__":
     print >> sys.stderr, "ViewClient.__main__:"
     print >> sys.stderr, "argv=", sys.argv
