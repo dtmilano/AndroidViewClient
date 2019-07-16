@@ -4146,8 +4146,11 @@ On OSX install
    $ brew install homebrew/python/pillow
 ''')
 
-    def installPackage(self, apk):
-        return subprocess.check_call([self.adb, "-s", self.serialno, "install", "-r", apk], shell=False)
+    def installPackage(self, apk, allowTestApk=False):
+        if allowTestApk:
+            return subprocess.check_call([self.adb, "-s", self.serialno, "install", "-r", "-t", apk], shell=False)
+        else:
+            return subprocess.check_call([self.adb, "-s", self.serialno, "install", "-r", apk], shell=False)
 
     @staticmethod
     def writeViewImageToFileInDir(view):
