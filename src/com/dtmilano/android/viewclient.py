@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2018  Diego Torres Milano
+Copyright (C) 2012-2019  Diego Torres Milano
 Created on Feb 2, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.5.1'
+__version__ = '15.8.0'
 
 import sys
 import warnings
@@ -3579,9 +3579,8 @@ You should force ViewServer back-end.''')
         if root and attr in root.map and root.map[attr] == val:
             if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__()
             matchingViews.append(root)
-        else:
-            for ch in root.children:
-                matchingViews += self.__findViewsWithAttributeInTree(attr, val, ch)
+        for ch in root.children:
+            matchingViews += self.__findViewsWithAttributeInTree(attr, val, ch)
 
         return matchingViews
 
@@ -3665,18 +3664,33 @@ You should force ViewServer back-end.''')
         if root and attr in root.map and regex.match(root.map[attr]):
             if DEBUG: print >>sys.stderr, "__findViewWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__()
             return root
-            #print >>sys.stderr, "appending root=%s to rlist=%s" % (root.__smallStr__(), rlist)
-            #return rlist.append(root)
         else:
             for ch in root.children:
                 v = self.__findViewWithAttributeInTreeThatMatches(attr, regex, ch, rlist)
                 if v:
                     return v
-                    #print >>sys.stderr, "appending v=%s to rlist=%s" % (v.__smallStr__(), rlist)
-                    #return rlist.append(v)
 
         return None
-        #return rlist
+
+    def __findViewsWithAttributeInTreeThatMatches(self, attr, regex, root, rlist=[]):
+        # Note the plural in this method name
+        matchingViews = []
+        if not self.root:
+            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            return matchingViews
+
+        if type(root) == types.StringType and root == "ROOT":
+            root = self.root
+
+        if DEBUG: print >>sys.stderr, "__findViewsWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (root.__smallStr__(), attr, regex)
+
+        if root and attr in root.map and regex.match(root.map[attr]):
+            if DEBUG: print >>sys.stderr, "__findViewsWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__()
+            matchingViews.append(root)
+        for ch in root.children:
+            matchingViews += self.__findViewsWithAttributeInTreeThatMatches(attr, regex, ch)
+
+        return matchingViews
 
     def findViewWithAttribute(self, attr, val, root="ROOT"):
         '''
@@ -3703,6 +3717,14 @@ You should force ViewServer back-end.''')
         '''
 
         return self.__findViewsWithAttributeInTree(attr, val, root)
+
+    def findViewsWithAttributeThatMatches(self, attr, regex, root="ROOT"):
+        '''
+        Finds the Views with the specified attribute matching regex.
+        This allows you to see all items that match your criteria in the view hierarchy
+        '''
+
+        return self.__findViewsWithAttributeInTreeThatMatches(attr, regex, root)
 
     def findViewWithAttributeOrRaise(self, attr, val, root="ROOT"):
         '''
