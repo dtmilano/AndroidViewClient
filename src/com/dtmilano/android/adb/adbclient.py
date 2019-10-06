@@ -39,8 +39,6 @@ if sys.executable:
 import string
 import datetime
 import struct
-#import cStringIO as StringIO
-from io import StringIO
 from io import BytesIO
 import socket
 import time
@@ -503,22 +501,19 @@ class AdbClient:
         #
         # synchronized
         #
-        test=BytesIO()
         with self.lock:
             if _cmd:
                 self.__send('shell:%s' % _cmd, checkok=True, reconnect=False)
-                chunks = []
+                chunks=BytesIO()
                 while True:
                     chunk = None
                     try:
-                        message = self.socket.recv(4096).replace(b'\r\n',b'\n')
-                        test.write(message)
-                        chunk = message.decode('utf-8')
+                        chunk = self.socket.recv(4096)
                     except Exception as ex:
                         print("ERROR: "+str(ex),file=sys.stderr)
                     if not chunk:
                         break
-                    chunks.append(chunk)
+                    chunks.write(chunk)
                 if self.reconnect:
                     if DEBUG:
                         print("Reconnecting...",file=sys.stderr)
@@ -526,16 +521,8 @@ class AdbClient:
                     self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                     self.__setTransport()
                 if raw:
-                    image=None
-                    try:
-                        from PIL import Image
-                        image = Image.open(test)
-                        image.save('work-in-progress.bmp')
-                        #image.show()
-                    except:
-                        pass
-                    return image!=None
-                return ''.join(chunks)
+                    return chunks.getvalue().replace(b'\r\n',b'\n')
+                return chunks.getvalue().decode('utf-8')
             else:
                 self.__send('shell:')
                 # sin = self.socket.makefile("rw")
@@ -868,16 +855,9 @@ class AdbClient:
             received = self.shell('/system/bin/screencap -p',True)
             if not received:
                 raise RuntimeError('"/system/bin/screencap -p" result was empty')
-            #stream = StringIO(received)
-            #stream.flush() 
-            #stream = BytesIO(received.encode('utf-8'))
+            stream = BytesIO(received)
             try:
-                #fh=open('test3.png','wb')
-                #fh.write(received.encode('utf8'))
-                #fh.close()
-                #image = PIL.Image.open(stream)
-                #received.save('work-in-progress.bmp')
-                image = Image.open('work-in-progress.bmp')
+                image = Image.open(stream)
             except IOError as ex:
                 print(ex,file=sys.stderr)
                 #print(repr(stream),file=sys.stderr)
