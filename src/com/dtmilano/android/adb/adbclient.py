@@ -297,7 +297,7 @@ class AdbClient:
             self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
             self.__setTransport()
 
-    def __receive(self, nob=None, sock=None):
+    def __receive(self, nob=None, sock=None, raw=False):
         if DEBUG:
             print("__receive(nob=%s)" % nob,file=sys.stderr)
         if not sock:
@@ -325,6 +325,7 @@ class AdbClient:
             self.cancelTimer(timerId)
         if DEBUG:
             print("    __receive: returning len= "+str(len(recv)),file=sys.stderr)
+        if raw: return recv
         return str(recv.decode())
 
     def __checkOk(self, sock=None):
@@ -521,6 +522,7 @@ class AdbClient:
                     self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                     self.__setTransport()
                 if raw:
+                    print('Returning BytesIO Object: ' + str(raw))
                     return chunks.getvalue().replace(b'\r\n',b'\n')
                 return chunks.getvalue().decode('utf-8')
             else:
@@ -795,14 +797,14 @@ class AdbClient:
             # case 2: // version
             #           return 13; // bpp, colorSpace, size, width, height, 4*(length, offset)
             # let's assume version==1 and change later if it's not
-            received = self.__receive(1 * 4 + 12 * 4)
+            received = self.__receive(1 * 4 + 12 * 4, raw=True)
             (version, bpp, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset, alen) = \
                 struct.unpack('<' + 'L' * 13, received)
             if version == 2:
                 # receive one more
-                received += self.__receive(4)
+                received += self.__receive(4, raw=True)
                 (version, bpp, colorspace, size, width, height, roffset, rlen, boffset, blen, goffset, glen, aoffset,
-                 alen) = struct.unpack('<' + 'L' * 14, received)
+                 alen) = struct.unpack('<' + 'L' * 14, received.encode('utf-8'))
             if DEBUG:
                 if version == 1:
                     print("    takeSnapshot:", str([
@@ -842,7 +844,8 @@ class AdbClient:
             self.__send('\0', checkok=False, reconnect=False)
             if DEBUG:
                 print("    takeSnapshot: reading %d bytes" % size,file=sys.stderr)
-            received = self.__receive(size).encode('utf-8')
+            #received = self.__receive(size).encode('utf-8')
+            received = self.__receive(size, raw=True)
             if reconnect:
                 self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                 self.__setTransport()
@@ -852,9 +855,10 @@ class AdbClient:
             image = Image.frombuffer(mode, (width, height), received, 'raw', argMode, 0, 1)
         else:
             # ALTERNATIVE_METHOD: screencap
-            received = self.shell('/system/bin/screencap -p',True)
+            received = self.shell('/system/bin/screencap -p',raw=True)
             if not received:
                 raise RuntimeError('"/system/bin/screencap -p" result was empty')
+			
             stream = BytesIO(received)
             try:
                 image = Image.open(stream)
