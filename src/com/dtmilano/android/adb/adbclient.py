@@ -522,7 +522,6 @@ class AdbClient:
                     self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
                     self.__setTransport()
                 if raw:
-                    print('Returning BytesIO Object: ' + str(raw))
                     return chunks.getvalue().replace(b'\r\n',b'\n')
                 return chunks.getvalue().decode('utf-8')
             else:
