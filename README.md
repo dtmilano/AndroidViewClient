@@ -6,7 +6,7 @@ as a pure python tool that automates or simplifies test script creation.
 It is a test framework for Android applications that:
 <ul><ul>
     <li>Automates driving Android applications</li>
-    <li><b>Generates</b> re-usable scripts</li>
+    <li>Generates re-usable scripts</li>
     <li>Provides view-based <i>device independent</i> UI interaction</li>
     <li>Uses 'logical' screen comparison (UI Automator Hierarchy based) over image comparison (Avoiding extraneous 
     detail issues, such as time or data changes)</li>
@@ -16,10 +16,13 @@ It is a test framework for Android applications that:
     <li>Is written in python</li>
 </ul></ul>
 
+**🛎** |A new Kotlin backend is under development to provide more functionality and improve performance.<br>Take a look at [CulebraTester2](https://github.com/dtmilano/CulebraTester2-public) |
+---|----------------------------------------------------------------|
+
 [![Latest Version](https://img.shields.io/pypi/v/androidviewclient.svg)](https://pypi.python.org/pypi/androidviewclient/)
 
 
-:rage: **NOTE**: Pypi statistics are broken see [here](https://github.com/aclark4life/vanity/issues/22). The new statistics can be obtained from [BigQuery](https://bigquery.cloud.google.com/queries/culebra-tester).
+**NOTE**: Pypi statistics are broken see [here](https://github.com/aclark4life/vanity/issues/22). The new statistics can be obtained from [BigQuery](https://bigquery.cloud.google.com/queries/culebra-tester).
 
 As of June 2019 we have reached:
 
