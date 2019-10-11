@@ -3,7 +3,7 @@
 set -e
 eval $(grep version setup.py | sed 's/,$//')
 tag="v$version"
-git tag "$tag"
+git tag "$tag" || printf 'WARNING: tag "%s" already exists\n' "$tag"
 git push --tags
 python2.7 setup.py clean build --executable='/usr/bin/env python2.7' bdist_egg bdist_wheel --universal
 # let's use pyenv's twine, installed by pip
