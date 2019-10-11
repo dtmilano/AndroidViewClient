@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.8.0'
+__version__ = '15.8.1'
 
 import sys
 import warnings
@@ -3273,7 +3273,9 @@ class ViewClient:
                     else:
                         pathname = '/sdcard'
                     filename = 'window_dump.xml'
-                    cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
+                    cmd = 'cp /dev/null {pathname}/{filename} && uiautomator dump {compressed} {pathname}/{filename} >/dev/null && cat {pathname}/{filename}'.format(
+                        pathname = pathname, filename = filename,
+                        compressed = '--compressed' if self.compressedDump else '')
                 elif api == 23:
                     # In API 23 the process' stdout,in and err are connected to the socket not to the pts as in
                     # previous versions, so we can't redirect to /dev/tty
