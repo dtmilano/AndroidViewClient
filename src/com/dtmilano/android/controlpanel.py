@@ -18,11 +18,13 @@
     @author: Diego Torres Milano
     @author: Ahmed Kasem
     '''
+import platform
 
-__version__ = '15.5.1'
+__version__ = '15.8.1'
 
 import tkinter
 import tkinter.ttk
+import subprocess
 
 from com.dtmilano.android.culebron import Operation, Color
 
@@ -36,7 +38,12 @@ class Layout:
     BUTTON_WIDTH=13
     BUTTONS_NUMBER=9
 
+
 class ControlPanel(tkinter.Toplevel):
+    osName = platform.system()
+    ''' The OS name. We sometimes need specific behavior. '''
+    isDarwin = (osName == 'Darwin')
+    ''' Is it Mac OSX? '''
 
     def __init__(self, culebron, printOperation, **kwargs):
         self.culebron = culebron
@@ -53,57 +60,92 @@ class ControlPanel(tkinter.Toplevel):
         self.childWindow.resizable(width=tkinter.FALSE, height=tkinter.FALSE)
         self.childWindow.printOperation = printOperation
         self.childWindow.grid()
-        self.childWindow.column = self.childWindow.row = 0
+        self.childWindow.column = 0
+        self.childWindow.row = 0
+        if self.isDarwin:
+            out = subprocess.check_output(["defaults", "read", "-g", "AppleInterfaceStyle"])
+            self.isDarkMode = ('Dark' in out)
+        else:
+            self.isDarkMode = False
+        if self.isDarkMode:
+            self.fg = Color.DARK_GRAY
+            self.bg = Color.LIGHT_GRAY
+            self.highlightbackground = Color.LIGHT_GRAY
+        else:
+            self.fg = Color.DARK_GRAY
+            self.bg = Color.LIGHT_GRAY
+            self.highlightbackground = Color.DARK_GRAY
         self.createKeycodeTab()
         self.createKeyboardTab()
+        self.childWindow.update()
+        if self.isDarwin:
+            if platform.mac_ver()[0].startswith("10.14"):
+                self.childWindow.after(0, self.fix)
+
+    def fix(self):
+        """
+        Fix a problem with Tkinter Buttons in Mojave.
+        See https://stackoverflow.com/questions/52529403/button-text-of-tkinter-not-works-in-mojave
+        """
+        a = self.childWindow.winfo_geometry().split('+')[0]
+        b = a.split('x')
+        w = int(b[0])
+        h = int(b[1])
+        self.childWindow.geometry('%dx%d' % (w + 1, h + 1))
 
     def createKeycodeTab(self):
         ''' KEYCODE '''
-        self.keycodeList = [
-                             'KEYCODE_HOME', 'KEYCODE_DPAD_UP', 'KEYCODE_BACK', 'KEYCODE_SEARCH', 'KEYCODE_CHANNEL_UP', 'KEYCODE_TV', 
-                             'KEYCODE_MUSIC', 'KEYCODE_EXPLORER', 'KEYCODE_CAMERA', 'KEYCODE_POWER', 'KEYCODE_DPAD_LEFT','KEYCODE_DPAD_DOWN',
-                             'KEYCODE_DPAD_RIGHT', 'KEYCODE_PAGE_UP', 'KEYCODE_CHANNEL_DOWN', 'KEYCODE_VOLUME_UP', 'KEYCODE_MEDIA_PLAY',
-                             'KEYCODE_CONTACTS', 'KEYCODE_ZOOM_IN', 'SNAPSHOPT', 'KEYCODE_MENU', 'KEYCODE_DPAD_CENTER', 'KEYCODE_ENTER',
-                             'KEYCODE_PAGE_DOWN', 'KEYCODE_BRIGHTNESS_DOWN', 'KEYCODE_VOLUME_DOWN', 'KEYCODE_MEDIA_PAUSE', 'KEYCODE_BOOKMARK',
-                             'KEYCODE_ZOOM_OUT', 'REFRESH', 'KEYCODE_APP_SWITCH', 'KEYCODE_GOOGLE_NOW', 'KEYCODE_CALL', 'KEYCODE_ESCAPE',
-                             'KEYCODE_BRIGHTNESS_UP', 'KEYCODE_VOLUME_MUTE', 'KEYCODE_MEDIA_STOP', 'KEYCODE_CALCULATOR', 'KEYCODE_SETTINGS', 'QUIT'
-                            ]
-        for keycode in self.keycodeList:
-            self.keycode = ControlPanelButton(self.keycodeTab, self.culebron, self.printOperation, value=keycode, text=keycode[8:],
-                                              width=Layout.BUTTON_WIDTH, bg=Color.DARK_GRAY, fg=Color.LIGHT_GRAY,
-                                              highlightbackground=Color.DARK_GRAY)
+        _keycodeList = [
+            'KEYCODE_HOME', 'KEYCODE_DPAD_UP', 'KEYCODE_BACK', 'KEYCODE_SEARCH', 'KEYCODE_CHANNEL_UP', 'KEYCODE_TV',
+            'KEYCODE_MUSIC', 'KEYCODE_EXPLORER', 'KEYCODE_CAMERA', 'KEYCODE_POWER', 'KEYCODE_DPAD_LEFT',
+            'KEYCODE_DPAD_DOWN',
+            'KEYCODE_DPAD_RIGHT', 'KEYCODE_PAGE_UP', 'KEYCODE_CHANNEL_DOWN', 'KEYCODE_VOLUME_UP', 'KEYCODE_MEDIA_PLAY',
+            'KEYCODE_CONTACTS', 'KEYCODE_ZOOM_IN', 'SNAPSHOPT', 'KEYCODE_MENU', 'KEYCODE_DPAD_CENTER', 'KEYCODE_ENTER',
+            'KEYCODE_PAGE_DOWN', 'KEYCODE_BRIGHTNESS_DOWN', 'KEYCODE_VOLUME_DOWN', 'KEYCODE_MEDIA_PAUSE',
+            'KEYCODE_BOOKMARK',
+            'KEYCODE_ZOOM_OUT', 'REFRESH', 'KEYCODE_APP_SWITCH', 'KEYCODE_GOOGLE_NOW', 'KEYCODE_CALL', 'KEYCODE_ESCAPE',
+            'KEYCODE_BRIGHTNESS_UP', 'KEYCODE_VOLUME_MUTE', 'KEYCODE_MEDIA_STOP', 'KEYCODE_CALCULATOR',
+            'KEYCODE_SETTINGS', 'QUIT'
+        ]
+        for keycode in _keycodeList:
+            _cpb = ControlPanelButton(self.keycodeTab, self.culebron, self.printOperation, value=keycode,
+                                      text=keycode[8:],
+                                      width=Layout.BUTTON_WIDTH,
+                                      bg=self.bg, fg=self.fg,
+                                      highlightbackground=self.highlightbackground)
 
             if keycode == 'REFRESH':
-                self.keycode.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.keycode.refreshScreen)
-                self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
+                _cpb.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=_cpb.refreshScreen)
             elif keycode == 'SNAPSHOPT':
-                self.keycode.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.keycode.takeSnapshot)
-                self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
+                _cpb.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=_cpb.takeSnapshot)
             elif keycode == 'QUIT':
-                self.keycode.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.childWindow.destroy)
-                self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
+                _cpb.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.childWindow.destroy)
             else:
-                self.keycode.configure(command=self.keycode.command)
-                self.keycode.grid(column=self.childWindow.column, row=self.childWindow.row)
+                _cpb.configure(command=_cpb.command)
+            _cpb.grid(column=self.childWindow.column, row=self.childWindow.row)
             self.tabLayout()
 
     def createKeyboardTab(self):
         ''' KEYBOARD '''
-        self.keyboardList = [
-                              'KEYCODE_1', 'KEYCODE_2', 'KEYCODE_3', 'KEYCODE_4', 'KEYCODE_5', 'KEYCODE_6', 'KEYCODE_7', 'KEYCODE_8', 'KEYCODE_9', 'KEYCODE_0',
-                              'KEYCODE_Q', 'KEYCODE_W', 'KEYCODE_E', 'KEYCODE_R', 'KEYCODE_T', 'KEYCODE_Y', 'KEYCODE_U', 'KEYCODE_I', 'KEYCODE_O', 'KEYCODE_P',
-                              'KEYCODE_A', 'KEYCODE_S', 'KEYCODE_D', 'KEYCODE_F', 'KEYCODE_G', 'KEYCODE_H', 'KEYCODE_J', 'KEYCODE_K', 'KEYCODE_L',
-                              'KEYCODE_DEL', 'KEYCODE_Z', 'KEYCODE_X', 'KEYCODE_C', 'KEYCODE_V', 'KEYCODE_B', 'KEYCODE_N', 'KEYCODE_M',
-                              'KEYCODE_.', 'KEYCODE_SPACE', 'KEYCODE_GO'
-                             ]
+        _keyboardList = [
+            'KEYCODE_1', 'KEYCODE_2', 'KEYCODE_3', 'KEYCODE_4', 'KEYCODE_5', 'KEYCODE_6', 'KEYCODE_7', 'KEYCODE_8',
+            'KEYCODE_9', 'KEYCODE_0',
+            'KEYCODE_Q', 'KEYCODE_W', 'KEYCODE_E', 'KEYCODE_R', 'KEYCODE_T', 'KEYCODE_Y', 'KEYCODE_U', 'KEYCODE_I',
+            'KEYCODE_O', 'KEYCODE_P',
+            'KEYCODE_A', 'KEYCODE_S', 'KEYCODE_D', 'KEYCODE_F', 'KEYCODE_G', 'KEYCODE_H', 'KEYCODE_J', 'KEYCODE_K',
+            'KEYCODE_L',
+            'KEYCODE_DEL', 'KEYCODE_Z', 'KEYCODE_X', 'KEYCODE_C', 'KEYCODE_V', 'KEYCODE_B', 'KEYCODE_N', 'KEYCODE_M',
+            'KEYCODE_.', 'KEYCODE_SPACE', 'KEYCODE_GO'
+        ]
 
-        for keyboard in self.keyboardList:
-            self.keyboard = ControlPanelButton(self.keyboardTab, self.culebron, self.printOperation, value=keyboard, text=keyboard[8:],
-                                               width=Layout.BUTTON_WIDTH, bg=Color.DARK_GRAY, fg=Color.LIGHT_GRAY,
-                                               highlightbackground=Color.DARK_GRAY)
+        for keyboard in _keyboardList:
+            _cpb = ControlPanelButton(self.keyboardTab, self.culebron, self.printOperation, value=keyboard,
+                                      text=keyboard[8:],
+                                      width=Layout.BUTTON_WIDTH, bg=self.bg, fg=self.fg,
+                                      highlightbackground=self.highlightbackground)
 
-            self.keyboard.configure(command=self.keyboard.command)
-            self.keyboard.grid(column=self.childWindow.column, row=self.childWindow.row)
+            _cpb.configure(command=_cpb.command)
+            _cpb.grid(column=self.childWindow.column, row=self.childWindow.row)
             self.tabLayout()
 
     def tabLayout(self):

@@ -136,12 +136,16 @@ class AdbClientTest(unittest.TestCase):
         self.assertIs('', empty, "Expected empty output but found '%s'" % empty)
 
     def testGetProp_ro_serialno(self):
+        IPRE = re.compile('(\d+\.){3}\d+')
         serialno = self.adbClient.getProperty('ro.serialno')
         self.assertIsNotNone(serialno)
         if re.search('emulator-.*', self.androidSerial):
             self.assertEqual(serialno, '')
         elif re.search('VirtualBox', self.adbClient.getProperty('ro.product.model')):
             self.assertEqual(serialno, '')
+        elif IPRE.search(self.androidSerial):
+            # if we are connected over IP the serial number is the real one for the device
+            self.assertIsNotNone(serialno)
         else:
             self.assertEqual(serialno, self.androidSerial)
 

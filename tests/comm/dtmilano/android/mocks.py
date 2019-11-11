@@ -401,6 +401,56 @@ UIAUTOMATOR_DUMP = """<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 </hierarchy>
 """
 
+UIAUTOMATOR_DUMP_API27 = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<hierarchy rotation="0">
+  <node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1080,1794]">
+    <node index="0" text="" resource-id="" class="android.widget.LinearLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1080,1794]">
+      <node index="0" text="" resource-id="android:id/content" class="android.widget.FrameLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1080,1794]">
+        <node index="0" text="" resource-id="com.google.android.apps.nexuslauncher:id/launcher" class="android.widget.FrameLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1080,1794]">
+          <node index="0" text="" resource-id="com.google.android.apps.nexuslauncher:id/drag_layer" class="android.widget.FrameLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1080,1794]">
+            <node index="0" text="" resource-id="com.google.android.apps.nexuslauncher:id/workspace" class="com.android.launcher3.Workspace" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1080,1794]">
+              <node index="0" text="" resource-id="" class="android.view.ViewGroup" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="true" password="false" selected="false" bounds="[21,84][1059,1395]">
+                <node index="0" text="" resource-id="" class="android.view.ViewGroup" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[35,84][1045,1395]">
+                  <node index="0" text="" resource-id="com.google.android.apps.nexuslauncher:id/search_container_workspace" class="android.widget.FrameLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="true" password="false" selected="false" bounds="[35,84][1045,346]">
+                    <node index="0" text="" resource-id="com.google.android.apps.nexuslauncher:id/smartspace_content" class="android.widget.LinearLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[166,84][913,346]">
+                      <node index="0" text="Sunday, May 19" resource-id="com.google.android.apps.nexuslauncher:id/clock" class="android.widget.TextView" package="com.google.android.apps.nexuslauncher" content-desc="Sunday, May 19" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="true" password="false" selected="false" bounds="[166,84][655,346]"/>
+                      <node index="1" text="" resource-id="com.google.android.apps.nexuslauncher:id/title_sep" class="android.view.View" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[655,188][658,241]"/>
+                      <node index="2" text="" resource-id="com.google.android.apps.nexuslauncher:id/title_weather_content" class="android.widget.LinearLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="true" password="false" selected="false" bounds="[658,84][913,346]">
+                        <node index="0" text="" resource-id="com.google.android.apps.nexuslauncher:id/title_weather_icon" class="android.widget.ImageView" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[684,183][747,246]"/>
+                        <node index="1" text="56°F" resource-id="com.google.android.apps.nexuslauncher:id/title_weather_text" class="android.widget.TextView" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[758,172][887,257]"/>
+                      </node>
+                    </node>
+                  </node>
+                </node>
+                <node index="1" text="" resource-id="" class="android.view.View" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[35,84][268,377]"/>
+              </node>
+            </node>
+            <node index="1" text="" resource-id="com.google.android.apps.nexuslauncher:id/gradient_bg" class="android.view.View" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][1080,1794]"/>
+            <node index="2" text="" resource-id="com.google.android.apps.nexuslauncher:id/page_indicator" class="android.widget.FrameLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,1395][1080,1479]">
+              <node index="0" text="" resource-id="com.google.android.apps.nexuslauncher:id/all_apps_handle" class="android.widget.ImageView" package="com.google.android.apps.nexuslauncher" content-desc="Apps list" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[477,1395][603,1479]"/>
+            </node>
+            <node index="3" text="" resource-id="com.google.android.apps.nexuslauncher:id/hotseat" class="android.widget.FrameLayout" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,1479][1080,1794]">
+              <node index="0" text="" resource-id="com.google.android.apps.nexuslauncher:id/layout" class="android.view.ViewGroup" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="true" password="false" selected="false" bounds="[0,1479][1080,1794]">
+                <node index="0" text="" resource-id="" class="android.view.View" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[35,1479][268,1694]"/>
+                <node index="1" text="" resource-id="" class="android.view.ViewGroup" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[35,1479][1045,1663]">
+                  <node index="0" text="Phone" resource-id="" class="android.widget.TextView" package="com.google.android.apps.nexuslauncher" content-desc="Phone" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="true" password="false" selected="false" bounds="[35,1479][237,1663]"/>
+                  <node index="1" text="Messages" resource-id="" class="android.widget.TextView" package="com.google.android.apps.nexuslauncher" content-desc="Messages" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="true" password="false" selected="false" bounds="[237,1479][439,1663]"/>
+                  <node index="2" text="Play Store" resource-id="" class="android.widget.TextView" package="com.google.android.apps.nexuslauncher" content-desc="Play Store" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="true" password="false" selected="false" bounds="[439,1479][641,1663]"/>
+                  <node index="3" text="Chrome" resource-id="" class="android.widget.TextView" package="com.google.android.apps.nexuslauncher" content-desc="Chrome" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="true" password="false" selected="false" bounds="[641,1479][843,1663]"/>
+                </node>
+              </node>
+              <node index="1" text="" resource-id="com.google.android.apps.nexuslauncher:id/search_container_hotseat" class="android.widget.FrameLayout" package="com.google.android.apps.nexuslauncher" content-desc="Search" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[53,1664][1026,1794]">
+                <node index="0" text="" resource-id="com.google.android.apps.nexuslauncher:id/g_icon" class="android.widget.ImageView" package="com.google.android.apps.nexuslauncher" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[93,1695][178,1780]"/>
+              </node>
+            </node>
+          </node>
+        </node>
+      </node>
+    </node>
+  </node>
+</hierarchy>
+'''
+
 UIAUTOMATOR_DUMP_API17_CHINESE = '''<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\' ?>
 <hierarchy rotation="0">
     <node index="0" text="" class="android.widget.FrameLayout"
@@ -672,7 +722,6 @@ class MockDevice(object):
     Mocks an Android device
     '''
 
-
     def __init__(self, serialno="MOCK12345678", version=15, startviewserver=False, uiautomatorkilled=False, language='en'):
         '''
         Constructor
@@ -690,13 +739,11 @@ class MockDevice(object):
             self.viewServer = None
         self.uiAutomatorKilled = uiautomatorkilled
         self.language = language
-        self.uiAutomatorDump = {}
-        self.uiAutomatorDump['en'] = UIAUTOMATOR_DUMP
         # FIXME: MockDevice could not be API17
-        self.uiAutomatorDump['zh'] = UIAUTOMATOR_DUMP_API17_CHINESE
-
-#     def __del__(self):
-#         self.shutdownMockViewServer()
+        if version < 27:
+            self.uiAutomatorDump = {'en': UIAUTOMATOR_DUMP, 'zh': UIAUTOMATOR_DUMP_API17_CHINESE}
+        else:
+            self.uiAutomatorDump = {'en': UIAUTOMATOR_DUMP_API27}
 
     def shell(self, cmd):
         if cmd == 'service call window 3':

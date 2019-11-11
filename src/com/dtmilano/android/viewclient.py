@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2018  Diego Torres Milano
+Copyright (C) 2012-2019  Diego Torres Milano
 Created on Feb 2, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '15.5.1'
+__version__ = '15.8.1'
 
 import sys
 import warnings
@@ -3272,7 +3272,9 @@ class ViewClient:
                     else:
                         pathname = '/sdcard'
                     filename = 'window_dump.xml'
-                    cmd = 'uiautomator dump %s %s/%s >/dev/null && cat %s/%s' % ('--compressed' if self.compressedDump else '', pathname, filename, pathname, filename)
+                    cmd = 'cp /dev/null {pathname}/{filename} && uiautomator dump {compressed} {pathname}/{filename} >/dev/null && cat {pathname}/{filename}'.format(
+                        pathname = pathname, filename = filename,
+                        compressed = '--compressed' if self.compressedDump else '')
                 elif api == 23:
                     # In API 23 the process' stdout,in and err are connected to the socket not to the pts as in
                     # previous versions, so we can't redirect to /dev/tty
@@ -3577,9 +3579,8 @@ You should force ViewServer back-end.''')
         if root and attr in root.map and root.map[attr] == val:
             if DEBUG: print("__findViewWithAttributeInTree:  FOUND: %s" % root.__smallStr__(), file=sys.stderr)
             matchingViews.append(root)
-        else:
-            for ch in root.children:
-                matchingViews += self.__findViewsWithAttributeInTree(attr, val, ch)
+        for ch in root.children:
+            matchingViews += self.__findViewsWithAttributeInTree(attr, val, ch)
 
         return matchingViews
 
@@ -3663,18 +3664,33 @@ You should force ViewServer back-end.''')
         if root and attr in root.map and regex.match(root.map[attr]):
             if DEBUG: print("__findViewWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__(), file=sys.stderr)
             return root
-            #print >>sys.stderr, "appending root=%s to rlist=%s" % (root.__smallStr__(), rlist)
-            #return rlist.append(root)
         else:
             for ch in root.children:
                 v = self.__findViewWithAttributeInTreeThatMatches(attr, regex, ch, rlist)
                 if v:
                     return v
-                    #print >>sys.stderr, "appending v=%s to rlist=%s" % (v.__smallStr__(), rlist)
-                    #return rlist.append(v)
 
         return None
-        #return rlist
+
+    def __findViewsWithAttributeInTreeThatMatches(self, attr, regex, root, rlist=[]):
+        # Note the plural in this method name
+        matchingViews = []
+        if not self.root:
+            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            return matchingViews
+
+        if type(root) == types.StringType and root == "ROOT":
+            root = self.root
+
+        if DEBUG: print >>sys.stderr, "__findViewsWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (root.__smallStr__(), attr, regex)
+
+        if root and attr in root.map and regex.match(root.map[attr]):
+            if DEBUG: print >>sys.stderr, "__findViewsWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__()
+            matchingViews.append(root)
+        for ch in root.children:
+            matchingViews += self.__findViewsWithAttributeInTreeThatMatches(attr, regex, ch)
+
+        return matchingViews
 
     def findViewWithAttribute(self, attr, val, root="ROOT"):
         '''
@@ -3701,6 +3717,14 @@ You should force ViewServer back-end.''')
         '''
 
         return self.__findViewsWithAttributeInTree(attr, val, root)
+
+    def findViewsWithAttributeThatMatches(self, attr, regex, root="ROOT"):
+        '''
+        Finds the Views with the specified attribute matching regex.
+        This allows you to see all items that match your criteria in the view hierarchy
+        '''
+
+        return self.__findViewsWithAttributeInTreeThatMatches(attr, regex, root)
 
     def findViewWithAttributeOrRaise(self, attr, val, root="ROOT"):
         '''
@@ -4122,8 +4146,11 @@ On OSX install
    $ brew install homebrew/python/pillow
 ''')
 
-    def installPackage(self, apk):
-        return subprocess.check_call([self.adb, "-s", self.serialno, "install", "-r", apk], shell=False)
+    def installPackage(self, apk, allowTestApk=False):
+        if allowTestApk:
+            return subprocess.check_call([self.adb, "-s", self.serialno, "install", "-r", "-t", apk], shell=False)
+        else:
+            return subprocess.check_call([self.adb, "-s", self.serialno, "install", "-r", apk], shell=False)
 
     @staticmethod
     def writeViewImageToFileInDir(view):
