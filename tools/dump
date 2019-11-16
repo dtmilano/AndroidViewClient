@@ -6,6 +6,8 @@ Created on Feb 3, 2012
 @author: diego
 '''
 
+from __future__ import print_function
+
 __version__ = '15.8.1'
 
 import getopt
