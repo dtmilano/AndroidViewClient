@@ -68,7 +68,7 @@ class Descriptor:
 
 
 def fillAutoRegexpsRes():
-    are = {'clock': re.compile(u'[012]?\d\\\\:[0-5]\d')}
+    are = {'clock': re.compile('[012]?\d\\\\:[0-5]\d')}
     d = "("
     for i in range(7):
         d += calendar.day_abbr[i]
@@ -130,15 +130,15 @@ def shortAndLongOptions():
 
 
 def usage(exitVal=1):
-    print >> sys.stderr, USAGE % progname
-    print >> sys.stderr, "Try '%s --help' for more information." % progname
+    print(USAGE % progname, file=sys.stderr)
+    print("Try '%s --help' for more information." % progname, file=sys.stderr)
     sys.exit(exitVal)
 
 
 def help():
-    print >> sys.stderr, USAGE % progname
-    print >> sys.stderr
-    print >> sys.stderr, "Options:"
+    print(USAGE % progname, file=sys.stderr)
+    print(file=sys.stderr)
+    print("Options:", file=sys.stderr)
     for so, lo in shortAndLongOptions():
         o = '  -%c, --%s' % (so, lo)
         if lo[-1] == '=':
@@ -147,33 +147,33 @@ def help():
             o = '%-34s %-45s' % (o, CulebraOptions.OPTS_HELP[so])
         except:
             pass
-        print >> sys.stderr, o
+        print(o, file=sys.stderr)
     sys.exit(0)
 
 
 def version():
-    print progname, __version__
+    print(progname, __version__)
     sys.exit(0)
 
 
 def autoRegexpsHelp():
-    print >> sys.stderr, "Available %s options:" % CulebraOptions.AUTO_REGEXPS
-    print >> sys.stderr, "\thelp: prints this help"
-    print >> sys.stderr, "\tall: includes all the available regexps"
+    print("Available %s options:" % CulebraOptions.AUTO_REGEXPS, file=sys.stderr)
+    print("\thelp: prints this help", file=sys.stderr)
+    print("\tall: includes all the available regexps", file=sys.stderr)
     for r in CulebraOptions.AUTO_REGEXPS_RES:
-        print >> sys.stderr, "\t%s: %s" % (r, CulebraOptions.AUTO_REGEXPS_RES[r].pattern)
-    print >> sys.stderr
+        print("\t%s: %s" % (r, CulebraOptions.AUTO_REGEXPS_RES[r].pattern), file=sys.stderr)
+    print(file=sys.stderr)
     sys.exit(0)
 
 
 def concertinaConfigHelp():
-    print >> sys.stderr, "Default Concertina configuration:"
-    print >> sys.stderr, Concertina.getConcertinaConfigDefault()
+    print("Default Concertina configuration:", file=sys.stderr)
+    print(Concertina.getConcertinaConfigDefault(), file=sys.stderr)
     sys.exit(0)
 
 
 def error(msg, fatal=False):
-    print >> sys.stderr, "%s: ERROR: %s" % (progname, msg)
+    print("%s: ERROR: %s" % (progname, msg), file=sys.stderr)
     if fatal:
         sys.exit(1)
 
@@ -189,29 +189,29 @@ def printVerboseComments(view):
     Prints the verbose comments for view.
     """
 
-    print '\n%s# class=%s' % (indent, view.getClass()),
+    print('\n%s# class=%s' % (indent, view.getClass()), end=' ')
     try:
         text = view.getText()
         if text:
-            u = 'u' if isinstance(text, unicode) else ''
+            u = 'u' if isinstance(text, str) else ''
             if '\n' in text:
                 text = re.sub(r'\n(.)', r'\n#\1', text)
-            print " text=%c'%s'" % (u, text),
+            print(" text=%c'%s'" % (u, text), end=' ')
     except:
         pass
     try:
         contentDescription = view.getContentDescription()
         if contentDescription:
-            print u" cd='%s'" % contentDescription,
+            print(" cd='%s'" % contentDescription, end=' ')
     except:
         pass
     try:
         tag = view.getTag()
         if tag and tag != 'null':
-            print ' tag=%s' % tag,
+            print(' tag=%s' % tag, end=' ')
     except:
         pass
-    print
+    print()
 
 
 def variableNameFromIdOrKey(view):
@@ -256,7 +256,7 @@ def printFindViewWithText(view, useregexp, op=Operation.ASSIGN, arg=None):
     '''
 
     text = view.getText()
-    isUnicode = isinstance(text, unicode)
+    isUnicode = isinstance(text, str)
     if isUnicode and sys.stdout.encoding is None:
         warnings.warn('''\
 You are trying to print unicode characters to an unencoded stdout, it will probably fail.
@@ -267,7 +267,7 @@ You have to set PYTHONIOENCODING environment variable. For example:
     u = 'u' if isUnicode else ''
     if text:
         var = variableNameFromIdOrKey(view)
-        if text.find(u"\n") > 0 or text.find(u"'") > 0:
+        if text.find("\n") > 0 or text.find("'") > 0:
             # 2 quotes + 1 quote = 3 quotes
             text = "''%s''" % text
         if useregexp:
@@ -287,49 +287,49 @@ You have to set PYTHONIOENCODING environment variable. For example:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
-                logAction(u'finding view with text=%s' % text)
-                print u'%s%s = %svc.findViewWithTextOrRaise(%s)' % (indent, var, prefix, text)
+                logAction('finding view with text=%s' % text)
+                print('%s%s = %svc.findViewWithTextOrRaise(%s)' % (indent, var, prefix, text))
         elif op == Operation.LONG_TOUCH_VIEW:
             root = ', root=%svc.findViewByIdOrRaise(\'%s\')' % (prefix, arg.getUniqueId()) if arg else ''
             if options[CulebraOptions.MULTI_DEVICE]:
-                logAction(u'long touch view with text=%s on ${serialno}' % text)
-                print u'%s[_vc.findViewWithTextOrRaise(%s%s).longTouch() for _vc in %sallVcs()]' % (
-                    indent, text, root, prefix)
+                logAction('long touch view with text=%s on ${serialno}' % text)
+                print('%s[_vc.findViewWithTextOrRaise(%s%s).longTouch() for _vc in %sallVcs()]' % (
+                    indent, text, root, prefix))
             else:
-                logAction(u'long touch view with text=%s' % text)
-                print u'%s%svc.findViewWithTextOrRaise(%s%s).longTouch()' % (indent, prefix, text, root)
+                logAction('long touch view with text=%s' % text)
+                print('%s%svc.findViewWithTextOrRaise(%s%s).longTouch()' % (indent, prefix, text, root))
         elif op == Operation.TOUCH_VIEW:
             root = ', root=%svc.findViewByIdOrRaise(\'%s\')' % (prefix, arg.getUniqueId()) if arg else ''
             if options[CulebraOptions.MULTI_DEVICE]:
-                logAction(u'touching view with text=%s on ${serialno}' % text)
-                print u'%s[_vc.findViewWithTextOrRaise(%s%s).touch() for _vc in %sallVcs()]' % (
-                    indent, text, root, prefix)
+                logAction('touching view with text=%s on ${serialno}' % text)
+                print('%s[_vc.findViewWithTextOrRaise(%s%s).touch() for _vc in %sallVcs()]' % (
+                    indent, text, root, prefix))
             else:
-                logAction(u'touching view with text=%s' % text)
-                print u'%s%svc.findViewWithTextOrRaise(%s%s).touch()' % (indent, prefix, text, root)
+                logAction('touching view with text=%s' % text)
+                print('%s%svc.findViewWithTextOrRaise(%s%s).touch()' % (indent, prefix, text, root))
         elif op == Operation.TYPE:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
-                print '%s%svc.findViewWithTextOrRaise("%s").type(u"%s")' % (indent, prefix, text, arg)
+                print('%s%svc.findViewWithTextOrRaise("%s").type(u"%s")' % (indent, prefix, text, arg))
         elif op == Operation.SET_TEXT:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
-                print '%s%svc.findViewWithTextOrRaise(%s).setText(u"%s")' % (indent, prefix, text, arg)
+                print('%s%svc.findViewWithTextOrRaise(%s).setText(u"%s")' % (indent, prefix, text, arg))
         elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING,
                     Operation.FLING_TO_END]:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 commandName = Operation.toCommandName(op)
-                logAction(u'flinging view with text=%s %s' % (text, commandName))
-                print u'%s%svc.findViewWithTextOrRaise(%s).uiScrollable.%s()' % (indent, prefix, text, commandName)
+                logAction('flinging view with text=%s %s' % (text, commandName))
+                print('%s%svc.findViewWithTextOrRaise(%s).uiScrollable.%s()' % (indent, prefix, text, commandName))
         elif op == Operation.TEST:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
-                print '%s%sassertIsNotNone(%svc.findViewWithText(%s))' % (indent, prefix, prefix, text)
+                print('%s%sassertIsNotNone(%svc.findViewWithText(%s))' % (indent, prefix, prefix, text))
     elif kwargs1[CulebraOptions.VERBOSE]:
         warnings.warn('View with id=%s has no text' % view.getUniqueId())
 
@@ -360,55 +360,55 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
-                logAction(u'finding view with content-description=%s' % contentDescription)
-                print '%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (
-                    indent, var, prefix, contentDescription)
+                logAction('finding view with content-description=%s' % contentDescription)
+                print('%s%s = %svc.findViewWithContentDescriptionOrRaise(%s)' % (
+                    indent, var, prefix, contentDescription))
         elif op == Operation.LONG_TOUCH_VIEW:
             if options[CulebraOptions.MULTI_DEVICE]:
-                logAction(u'long touch view with content-description=%s on ${serialno}' % contentDescription)
+                logAction('long touch view with content-description=%s on ${serialno}' % contentDescription)
                 # print u'%s[_vc.findViewWithTextOrRaise(%s).touch() for _vc in %sallVcs()]' % (indent, text, root)
-                print u'%s[_vc.findViewWithContentDescriptionOrRaise(%s).longTouch() for _vc in %sallVcs()]' % (
-                    indent, contentDescription, prefix)
+                print('%s[_vc.findViewWithContentDescriptionOrRaise(%s).longTouch() for _vc in %sallVcs()]' % (
+                    indent, contentDescription, prefix))
             else:
-                logAction(u'long touch view with content-description=%s' % contentDescription)
-                print u'%s%svc.findViewWithContentDescriptionOrRaise(%s).longTouch()' % (
-                    indent, prefix, contentDescription)
+                logAction('long touch view with content-description=%s' % contentDescription)
+                print('%s%svc.findViewWithContentDescriptionOrRaise(%s).longTouch()' % (
+                    indent, prefix, contentDescription))
         elif op == Operation.TOUCH_VIEW:
             if options[CulebraOptions.MULTI_DEVICE]:
-                logAction(u'touching view with content-description=%s on ${serialno}' % contentDescription)
+                logAction('touching view with content-description=%s on ${serialno}' % contentDescription)
                 # print u'%s[_vc.findViewWithTextOrRaise(%s).touch() for _vc in %sallVcs()]' % (indent, text, root)
-                print u'%s[_vc.findViewWithContentDescriptionOrRaise(%s).touch() for _vc in %sallVcs()]' % (
-                    indent, contentDescription, prefix)
+                print('%s[_vc.findViewWithContentDescriptionOrRaise(%s).touch() for _vc in %sallVcs()]' % (
+                    indent, contentDescription, prefix))
             else:
-                logAction(u'touching view with content-description=%s' % contentDescription)
-                print u'%s%svc.findViewWithContentDescriptionOrRaise(%s).touch()' % (indent, prefix, contentDescription)
+                logAction('touching view with content-description=%s' % contentDescription)
+                print('%s%svc.findViewWithContentDescriptionOrRaise(%s).touch()' % (indent, prefix, contentDescription))
         elif op == Operation.TYPE:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
-                print '%s%svc.findViewWithContentDescriptionOrRaise(%s).type(u"%s")' % (
-                    indent, prefix, contentDescription, arg)
+                print('%s%svc.findViewWithContentDescriptionOrRaise(%s).type(u"%s")' % (
+                    indent, prefix, contentDescription, arg))
         elif op == Operation.SET_TEXT:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
-                print '%s%svc.findViewWithContentDescriptionOrRaise(%s).setText(u"%s")' % (
-                    indent, prefix, contentDescription, arg)
+                print('%s%svc.findViewWithContentDescriptionOrRaise(%s).setText(u"%s")' % (
+                    indent, prefix, contentDescription, arg))
         elif op == Operation.TEST:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
-                print '%s%sassertEquals(%svc.findViewWithContentDescriptionOrRaise(%s).getText(), u\'\'\'%s\'\'\')' % (
-                    indent, prefix, prefix, contentDescription, arg)
+                print('%s%sassertEquals(%svc.findViewWithContentDescriptionOrRaise(%s).getText(), u\'\'\'%s\'\'\')' % (
+                    indent, prefix, prefix, contentDescription, arg))
         elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING,
                     Operation.FLING_TO_END]:
             if options[CulebraOptions.MULTI_DEVICE]:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 commandName = Operation.toCommandName(op)
-                logAction(u'flinging view with content-description=%s %s' % (contentDescription, commandName))
-                print u'%s%svc.findViewWithContentDescriptionOrRaise(%s).uiScrollable.%s()' % (
-                    indent, prefix, contentDescription, commandName)
+                logAction('flinging view with content-description=%s %s' % (contentDescription, commandName))
+                print('%s%svc.findViewWithContentDescriptionOrRaise(%s).uiScrollable.%s()' % (
+                    indent, prefix, contentDescription, commandName))
         else:
             error("Invalid operation in %s: %s" % (sys._getframe().f_code.co_name), op)
 
@@ -429,50 +429,50 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
     if op == Operation.ASSIGN:
         if options[CulebraOptions.MULTI_DEVICE]:
             logAction('finding view with id=%s on ${serialno}' % _id)
-            print '%s%s = [_vc.findViewByIdOrRaise("%s") for _vc in %sallVcs()]' % (indent, var, _id, prefix)
+            print('%s%s = [_vc.findViewByIdOrRaise("%s") for _vc in %sallVcs()]' % (indent, var, _id, prefix))
         else:
             logAction('finding view with id=%s' % _id)
-            print '%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id)
+            print('%s%s = %svc.findViewByIdOrRaise("%s")' % (indent, var, prefix, _id))
     elif op == Operation.LONG_TOUCH_VIEW:
         if options[CulebraOptions.MULTI_DEVICE]:
-            logAction(u'long touch view with id=%s on ${serialno}' % _id)
-            print '%s[_vc.findViewByIdOrRaise("%s").longTouch() for _vc in %sallVcs()]' % (indent, _id, prefix)
+            logAction('long touch view with id=%s on ${serialno}' % _id)
+            print('%s[_vc.findViewByIdOrRaise("%s").longTouch() for _vc in %sallVcs()]' % (indent, _id, prefix))
         else:
-            logAction(u'long touch view with id=%s' % _id)
-            print '%s%svc.findViewByIdOrRaise("%s").longTouch()' % (indent, prefix, _id)
+            logAction('long touch view with id=%s' % _id)
+            print('%s%svc.findViewByIdOrRaise("%s").longTouch()' % (indent, prefix, _id))
     elif op == Operation.TOUCH_VIEW:
         if options[CulebraOptions.MULTI_DEVICE]:
-            logAction(u'touching view with id=%s on ${serialno}' % _id)
-            print '%s[_vc.findViewByIdOrRaise("%s").touch() for _vc in %sallVcs()]' % (indent, _id, prefix)
+            logAction('touching view with id=%s on ${serialno}' % _id)
+            print('%s[_vc.findViewByIdOrRaise("%s").touch() for _vc in %sallVcs()]' % (indent, _id, prefix))
         else:
-            logAction(u'touching view with id=%s' % _id)
-            print '%s%svc.findViewByIdOrRaise("%s").touch()' % (indent, prefix, _id)
+            logAction('touching view with id=%s' % _id)
+            print('%s%svc.findViewByIdOrRaise("%s").touch()' % (indent, prefix, _id))
     elif op == Operation.TYPE:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             logAction('typing "%s" on view with id=%s' % (arg, _id))
-            print '%s%svc.findViewByIdOrRaise("%s").type(u"%s")' % (indent, prefix, _id, arg)
+            print('%s%svc.findViewByIdOrRaise("%s").type(u"%s")' % (indent, prefix, _id, arg))
     elif op == Operation.SET_TEXT:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             logAction('setting text "%s" on view with id=%s' % (arg, _id))
-            print '%s%svc.findViewByIdOrRaise("%s").setText(u"%s")' % (indent, prefix, _id, arg)
+            print('%s%svc.findViewByIdOrRaise("%s").setText(u"%s")' % (indent, prefix, _id, arg))
     elif op == Operation.TEST:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%sassertEquals(%svc.findViewByIdOrRaise("%s").getText(), u\'\'\'%s\'\'\')' % (
-                indent, prefix, prefix, _id, arg)
+            print('%s%sassertEquals(%svc.findViewByIdOrRaise("%s").getText(), u\'\'\'%s\'\'\')' % (
+                indent, prefix, prefix, _id, arg))
     elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING,
                 Operation.FLING_TO_END]:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             commandName = Operation.toCommandName(op)
-            logAction(u'flinging view with id=%s %s' % (_id, commandName))
-            print u'%s%svc.findViewWithIdOrRaise(u"%s").uiScrollable.%s()' % (indent, prefix, _id, commandName)
+            logAction('flinging view with id=%s %s' % (_id, commandName))
+            print('%s%svc.findViewWithIdOrRaise(u"%s").uiScrollable.%s()' % (indent, prefix, _id, commandName))
     else:
         error("Invalid operation in %s: %s" % (sys._getframe().f_code.co_name, op))
 
@@ -487,13 +487,13 @@ def printTraverse(dump=None):
     @type dump: list
     '''
 
-    print
+    print()
     if dump:
         for view in dump:
             transform(view)
     else:
         vc.traverse(transform=transform)
-    print
+    print()
 
 
 def printDump(window, dump=None):
@@ -508,10 +508,10 @@ def printDump(window, dump=None):
 
     if options[CulebraOptions.MULTI_DEVICE]:
         logAction('dumping content of window=%s on ${serialno}' % window)
-        print '%s[_vc.dump(window=%s) for _vc in %sallVcs()]' % (indent, window, prefix)
+        print('%s[_vc.dump(window=%s) for _vc in %sallVcs()]' % (indent, window, prefix))
     else:
         logAction('dumping content of window=%s' % window)
-        print '%s%svc.dump(window=%s)' % (indent, prefix, window)
+        print('%s%svc.dump(window=%s)' % (indent, prefix, window))
 
     if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
         printTraverse(dump)
@@ -525,9 +525,9 @@ def printSleep(secs):
     '''
 
     if options[CulebraOptions.MULTI_DEVICE]:
-        print '%s[_vc.sleep(%s) for _vc in %sallVcs()]' % (indent, secs if secs != Operation.DEFAULT else '_s', prefix)
+        print('%s[_vc.sleep(%s) for _vc in %sallVcs()]' % (indent, secs if secs != Operation.DEFAULT else '_s', prefix))
     else:
-        print '%s%svc.sleep(%s)' % (indent, prefix, secs if secs != Operation.DEFAULT else '_s')
+        print('%s%svc.sleep(%s)' % (indent, prefix, secs if secs != Operation.DEFAULT else '_s'))
 
 
 def printWake():
@@ -538,16 +538,16 @@ def printWake():
     '''
 
     if options[CulebraOptions.MULTI_DEVICE]:
-        print '%s[_vc.device.wake() for _vc in %sallVcs()]' % (indent, prefix)
+        print('%s[_vc.device.wake() for _vc in %sallVcs()]' % (indent, prefix))
     else:
-        print '%s%svc.device.wake()' % (indent, prefix)
+        print('%s%svc.device.wake()' % (indent, prefix))
 
 
 def printSay(text):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        print '%sViewClient.sayText("%s")' % (indent, text)
+        print('%sViewClient.sayText("%s")' % (indent, text))
 
 
 def printPress(keycode):
@@ -556,11 +556,11 @@ def printPress(keycode):
     '''
 
     if options[CulebraOptions.MULTI_DEVICE]:
-        logAction(u'pressing key=%s on ${serialno}' % keycode)
-        print '%s[_d.press(\'%s\') for _d in %sallDevices()]' % (indent, keycode, prefix)
+        logAction('pressing key=%s on ${serialno}' % keycode)
+        print('%s[_d.press(\'%s\') for _d in %sallDevices()]' % (indent, keycode, prefix))
     else:
-        logAction(u'pressing key=%s' % keycode)
-        print '%s%sdevice.press(\'%s\')' % (indent, prefix, keycode)
+        logAction('pressing key=%s' % keycode)
+        print('%s%sdevice.press(\'%s\')' % (indent, prefix, keycode))
 
 
 def printDrag(start, end, duration, steps, unit, orientation):
@@ -572,12 +572,12 @@ def printDrag(start, end, duration, steps, unit, orientation):
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%sdevice.drag(%s, %s, %d, %d, %d)' % (indent, prefix, start, end, duration, steps, orientation)
+            print('%s%sdevice.drag(%s, %s, %d, %d, %d)' % (indent, prefix, start, end, duration, steps, orientation))
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%sdevice.dragDip(%s, %s, %d, %d, %d)' % (indent, prefix, start, end, duration, steps, orientation)
+            print('%s%sdevice.dragDip(%s, %s, %d, %d, %d)' % (indent, prefix, start, end, duration, steps, orientation))
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
 
@@ -591,14 +591,14 @@ def printTouch(x, y, unit, orientation):
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            logAction(u'touching point by PX @ (%s, %s) orientation=%s' % (x, y, orientation))
-            print '%s%sdevice.touch(%s, %s, %s)' % (indent, prefix, x, y, orientation)
+            logAction('touching point by PX @ (%s, %s) orientation=%s' % (x, y, orientation))
+            print('%s%sdevice.touch(%s, %s, %s)' % (indent, prefix, x, y, orientation))
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            logAction(u'touching point by DIP @ (%s, %s) orientation=%s' % (x, y, orientation))
-            print '%s%sdevice.touchDip(%s, %s, %s)' % (indent, prefix, x, y, orientation)
+            logAction('touching point by DIP @ (%s, %s) orientation=%s' % (x, y, orientation))
+            print('%s%sdevice.touchDip(%s, %s, %s)' % (indent, prefix, x, y, orientation))
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
 
@@ -613,15 +613,15 @@ def printLongTouch(x, y, duration, unit, orientation):
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             logAction(
-                u'long touching point by PX @ (%s, %s) duration=%s orientation=%s' % (x, y, duration, orientation))
-            print '%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation)
+                'long touching point by PX @ (%s, %s) duration=%s orientation=%s' % (x, y, duration, orientation))
+            print('%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation))
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
             logAction(
-                u'long touching point by DIP @ (%s, %s) duration=%s orientation=%s' % (x, y, duration, orientation))
-            print '%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation)
+                'long touching point by DIP @ (%s, %s) duration=%s orientation=%s' % (x, y, duration, orientation))
+            print('%s%sdevice.longTouch(%s, %s, %s, %s)' % (indent, prefix, x, y, duration, orientation))
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
 
@@ -643,7 +643,7 @@ def printSaveViewScreenshot(view, filename, _format):
     else:
         # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
-        print '%s%s.writeImageToFile(\'%s\', \'%s\')' % (indent, view.variableNameFromId(), filename, _format)
+        print('%s%s.writeImageToFile(\'%s\', \'%s\')' % (indent, view.variableNameFromId(), filename, _format))
 
 
 def printFlingBackward(view):
@@ -653,7 +653,7 @@ def printFlingBackward(view):
         # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
         logAction('flinging backward view with id=%s' % view.getId())
-        print '%s%s.uiScrollable.flingBackward()' % (indent, view.variableNameFromId())
+        print('%s%s.uiScrollable.flingBackward()' % (indent, view.variableNameFromId()))
 
 
 def printFlingForward(view):
@@ -663,7 +663,7 @@ def printFlingForward(view):
         # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
         logAction('flinging forward view with id=%s' % view.getId())
-        print '%s%s.uiScrollable.flingForward()' % (indent, view.variableNameFromId())
+        print('%s%s.uiScrollable.flingForward()' % (indent, view.variableNameFromId()))
 
 
 def printFlingToBeginning(view):
@@ -673,7 +673,7 @@ def printFlingToBeginning(view):
         # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
         logAction('flinging to beginning view with id=%s' % view.getId())
-        print '%s%s.uiScrollable.flingToBeginning()' % (indent, view.variableNameFromId())
+        print('%s%s.uiScrollable.flingToBeginning()' % (indent, view.variableNameFromId()))
 
 
 def printFlingToEnd(view):
@@ -683,7 +683,7 @@ def printFlingToEnd(view):
         # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
         logAction('flinging to end view with id=%s' % view.getId())
-        print '%s%s.uiScrollable.flingToEnd()' % (indent, view.variableNameFromId())
+        print('%s%s.uiScrollable.flingToEnd()' % (indent, view.variableNameFromId()))
 
 
 def printOpenNotification():
@@ -691,7 +691,7 @@ def printOpenNotification():
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction('opening Notification')
-        print '%s%svc.uiDevice.openNotification()' % (indent, prefix)
+        print('%s%svc.uiDevice.openNotification()' % (indent, prefix))
 
 
 def printOpenQuickSettings():
@@ -699,7 +699,7 @@ def printOpenQuickSettings():
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction('opening Quick Settings')
-        print '%s%svc.uiDevice.openQuickSettings()' % (indent, prefix)
+        print('%s%svc.uiDevice.openQuickSettings()' % (indent, prefix))
 
 
 def printChangeLanguage(code):
@@ -707,7 +707,7 @@ def printChangeLanguage(code):
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction('Changing language to %s' % code)
-        print '%s%svc.uiDevice.changeLanguage("%s")' % (indent, prefix, code)
+        print('%s%svc.uiDevice.changeLanguage("%s")' % (indent, prefix, code))
 
 
 def printTakeSnapshot(filename, _format, deviceart, dropshadow, screenglare):
@@ -718,11 +718,11 @@ def printTakeSnapshot(filename, _format, deviceart, dropshadow, screenglare):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        logAction(u'taking snapshot @ %s format=%s %s %s %s' % (filename, _format, deviceart, dropshadow, screenglare))
+        logAction('taking snapshot @ %s format=%s %s %s %s' % (filename, _format, deviceart, dropshadow, screenglare))
         if deviceart:
             deviceart = '\'%s\'' % deviceart
-        print '%s%svc.writeImageToFile(\'%s\', \'%s\', %s, %s, %s)' % (
-            indent, prefix, filename, _format, deviceart, dropshadow, screenglare)
+        print('%s%svc.writeImageToFile(\'%s\', \'%s\', %s, %s, %s)' % (
+            indent, prefix, filename, _format, deviceart, dropshadow, screenglare))
 
 
 def traverseAndPrint(view):
@@ -734,7 +734,7 @@ def traverseAndPrint(view):
     '''
 
     if DEBUG:
-        print >> sys.stderr, "traverseAndPrint(view=%s)" % view.getId()
+        print("traverseAndPrint(view=%s)" % view.getId(), file=sys.stderr)
     if options[CulebraOptions.VERBOSE_COMMENTS]:
         printVerboseComments(view)
     if options[CulebraOptions.FIND_VIEWS_BY_ID]:
@@ -760,8 +760,8 @@ def printStartActivity(component):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        logAction(u'starting activity=%s' % (component))
-        print '%s%sdevice.startActivity(\'%s\')' % (indent, prefix, component)
+        logAction('starting activity=%s' % (component))
+        print('%s%sdevice.startActivity(\'%s\')' % (indent, prefix, component))
     printSleep(3)
 
 
@@ -772,8 +772,8 @@ def printTouchViewUiAutomatorHelper(view, selector):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        logAction(u'touching View by selector=%s' % (selector))
-        print '%s%svc.touch(selector=\'%s\')' % (indent, prefix, selector)
+        logAction('touching View by selector=%s' % (selector))
+        print('%s%svc.touch(selector=\'%s\')' % (indent, prefix, selector))
 
 
 def printLongTouchViewUiAutomatorHelper(view, selector):
@@ -783,8 +783,8 @@ def printLongTouchViewUiAutomatorHelper(view, selector):
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        logAction(u'long-touching View by selector=%s' % (selector))
-        print '%s%svc.longTouch(selector=\'%s\')' % (indent, prefix, selector)
+        logAction('long-touching View by selector=%s' % (selector))
+        print('%s%svc.longTouch(selector=\'%s\')' % (indent, prefix, selector))
 
 
 def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, unit, orientation):
@@ -796,14 +796,14 @@ def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, unit, orienta
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (
-                indent, prefix, startX, startY, endX, endY, steps)
+            print('%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (
+                indent, prefix, startX, startY, endX, endY, steps))
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print '%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (
-                indent, prefix, startX, startY, endX, endY, steps)
+            print('%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (
+                indent, prefix, startX, startY, endX, endY, steps))
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
 
@@ -815,8 +815,8 @@ def printPressBackUiAutomatorHelper():
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        logAction(u'pressing BACK')
-        print '%s%svc.pressBack()' % (indent, prefix)
+        logAction('pressing BACK')
+        print('%s%svc.pressBack()' % (indent, prefix))
 
 
 def printPressHomeUiAutomatorHelper():
@@ -826,8 +826,8 @@ def printPressHomeUiAutomatorHelper():
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        logAction(u'pressing HOME')
-        print '%s%svc.pressHome()' % (indent, prefix)
+        logAction('pressing HOME')
+        print('%s%svc.pressHome()' % (indent, prefix))
 
 
 def printPressRecentAppsUiAutomatorHelper():
@@ -837,8 +837,8 @@ def printPressRecentAppsUiAutomatorHelper():
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        logAction(u'pressing RECENT APPS')
-        print '%s%svc.pressRecentApps()' % (indent, prefix)
+        logAction('pressing RECENT APPS')
+        print('%s%svc.pressRecentApps()' % (indent, prefix))
 
 
 def printLongPress(keycode, duration, dev, scancode, repeat):
@@ -847,13 +847,13 @@ def printLongPress(keycode, duration, dev, scancode, repeat):
     '''
 
     if options[CulebraOptions.MULTI_DEVICE]:
-        logAction(u'long pressing key=%s on ${serialno}' % keycode)
-        print '%s[_d.longPress(\'%s\', duration=%f, dev=\'%s\', scancode=%d, repeat=%d) for _d in %sallDevices()]' % (
-            indent, keycode, duration, dev, scancode, repeat, prefix)
+        logAction('long pressing key=%s on ${serialno}' % keycode)
+        print('%s[_d.longPress(\'%s\', duration=%f, dev=\'%s\', scancode=%d, repeat=%d) for _d in %sallDevices()]' % (
+            indent, keycode, duration, dev, scancode, repeat, prefix))
     else:
-        logAction(u'long pressing key=%s' % keycode)
-        print '%s%sdevice.longPress(\'%s\', duration=%f, dev=\'%s\', scancode=%d, repeat=%d)' % (
-            indent, prefix, keycode, duration, dev, scancode, repeat)
+        logAction('long pressing key=%s' % keycode)
+        print('%s%sdevice.longPress(\'%s\', duration=%f, dev=\'%s\', scancode=%d, repeat=%d)' % (
+            indent, prefix, keycode, duration, dev, scancode, repeat))
 
 
 def printOperation(view, op, *args):
@@ -866,15 +866,15 @@ def printOperation(view, op, *args):
         # replace it by one containing None
         args = (args[0], None)
     if DEBUG:
-        print >> sys.stderr, "printOperation(",
-        print >> sys.stderr, view.__str__(),
-        print >> sys.stderr, ",", op, ",",
+        print("printOperation(", end=' ', file=sys.stderr)
+        print(view.__str__(), end=' ', file=sys.stderr)
+        print(",", op, ",", end=' ', file=sys.stderr)
         for a in args:
-            if isinstance(a, unicode):
-                print >> sys.stderr, a.encode(encoding='ascii', errors='replace'), ", ",
+            if isinstance(a, str):
+                print(a.encode(encoding='ascii', errors='replace'), ", ", end=' ', file=sys.stderr)
             else:
-                print >> sys.stderr, a,
-        print >> sys.stderr, ")"
+                print(a, end=' ', file=sys.stderr)
+        print(")", file=sys.stderr)
     if op == Operation.SLEEP:
         printSleep(secs=args[0])
         return
@@ -1016,7 +1016,7 @@ def getWindowOption():
 
 
 def printScriptHeader():
-    print '''%s
+    print('''%s
 # -*- coding: utf-8 -*-
 """
 Copyright (C) 2013-2018  Diego Torres Milano
@@ -1036,40 +1036,40 @@ ___________________/  /__/  /__/  /__/  /________________________________
 import re
 import sys
 import os
-''' % (getShebangJar(), date.today(), __version__)
+''' % (getShebangJar(), date.today(), __version__))
 
 
 def printUnittestImport():
-    print '''
+    print('''
 import unittest
-'''
+''')
 
 
 def printAppendToSysPath():
-    print '''
+    print('''
 try:
     sys.path.append(os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
     pass
-'''
+''')
 
 
 def printPrependToSysPath():
-    print '''
+    print('''
 try:
     sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
 except:
     pass
-'''
+''')
 
 
 def printLogAction(action, priority='D'):
     # FIXME: This works only for CulebraTestCases
     # This relies on shortcut variables already set (i.e. _v)
     if options[CulebraOptions.MULTI_DEVICE]:
-        print u'%s[_d.Log.%s(TAG, "%s", _v) for _d in %sallDevices()]' % (indent, priority.lower(), action, prefix)
+        print('%s[_d.Log.%s(TAG, "%s", _v) for _d in %sallDevices()]' % (indent, priority.lower(), action, prefix))
     else:
-        print '%s%sdevice.Log.%s(TAG, "%s",  _v)' % (indent, prefix, priority.lower(), action)
+        print('%s%sdevice.Log.%s(TAG, "%s",  _v)' % (indent, prefix, priority.lower(), action))
 
 
 def logAction(action):
@@ -1092,15 +1092,15 @@ def runCulebron():
 
 def printShortcutVariables():
     if options[CulebraOptions.UNIT_TEST_CLASS] or options[CulebraOptions.UNIT_TEST_METHOD]:
-        print '''\
+        print('''\
         _s = CulebraTests.sleep
         _v = CulebraTests.verbose
-'''
+''')
     else:
-        print '''\
+        print('''\
 _s = 5
 _v = '--verbose' in sys.argv
-'''
+''')
 
 
 ################
@@ -1194,7 +1194,7 @@ for o, a in optlist:
             if r == 'help':
                 autoRegexpsHelp()
             if r == 'all':
-                options[CulebraOptions.AUTO_REGEXPS] = CulebraOptions.AUTO_REGEXPS_RES.keys()
+                options[CulebraOptions.AUTO_REGEXPS] = list(CulebraOptions.AUTO_REGEXPS_RES.keys())
                 break
             if r not in CulebraOptions.AUTO_REGEXPS_RES:
                 error("invalid auto regexp: %s\n" % r)
@@ -1291,14 +1291,14 @@ if options[CulebraOptions.PREPEND_TO_SYS_PATH]:
     printPrependToSysPath()
 
 if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
-    print '''\
+    print('''\
 from com.dtmilano.android.viewclient import ViewClient%s
 
 TAG = '%s'
-''' % (', CulebraTestCase' if options[CulebraOptions.UNIT_TEST_CLASS] else '', TAG)
+''' % (', CulebraTestCase' if options[CulebraOptions.UNIT_TEST_CLASS] else '', TAG))
 
 if options[CulebraOptions.UNIT_TEST_CLASS]:
-    print '''
+    print('''
 class CulebraTests(CulebraTestCase):
 
     @classmethod
@@ -1308,49 +1308,49 @@ class CulebraTests(CulebraTestCase):
         cls.options = %s
         cls.sleep = 5
 
-''' % (kwargs1, kwargs2, options),
+''' % (kwargs1, kwargs2, options), end=' ')
 
-    print '''\
+    print('''\
     def setUp(self):
         super(CulebraTests, self).setUp()
-'''
+''')
 
-    print '''\
+    print('''\
     def tearDown(self):
         super(CulebraTests, self).tearDown()
-'''
+''')
 
-    print '''\
+    print('''\
     def preconditions(self):
         if not super(CulebraTests, self).preconditions():
             return False
-''',
+''', end=' ')
 
     if options[CulebraOptions.INSTALL_APK]:
-        print '''\
+        print('''\
         if self.vc.installPackage(\"%s\") != 0:
             return False
-''' % (options[CulebraOptions.INSTALL_APK]),
+''' % (options[CulebraOptions.INSTALL_APK]), end=' ')
 
-    print '''\
+    print('''\
         return True
 
     def %s(self):
         if not self.preconditions():
             self.fail('Preconditions failed')
-''' % (options[CulebraOptions.UNIT_TEST_METHOD] if options[CulebraOptions.UNIT_TEST_METHOD] else 'testSomething')
+''' % (options[CulebraOptions.UNIT_TEST_METHOD] if options[CulebraOptions.UNIT_TEST_METHOD] else 'testSomething'))
 
     printShortcutVariables()
 
     if options[CulebraOptions.SAVE_SCREENSHOT]:
-        print '''\
+        print('''\
         self.vc.writeImageToFile('%s', 'PNG', %s, %s, %s)
         ''' % (options[CulebraOptions.SAVE_SCREENSHOT], options[CulebraOptions.DEVICE_ART],
-               options[CulebraOptions.DROP_SHADOW], options[CulebraOptions.SCREEN_GLARE])
+               options[CulebraOptions.DROP_SHADOW], options[CulebraOptions.SCREEN_GLARE]))
 
     if options[CulebraOptions.USE_DICTIONARY]:
-        print '''\
-        self.views = dict()'''
+        print('''\
+        self.views = dict()''')
 
     if not options[CulebraOptions.GUI]:
         vc.dump(window=options[CulebraOptions.WINDOW])
@@ -1369,48 +1369,48 @@ class CulebraTests(CulebraTestCase):
     elif not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
         printDump(getWindowOption())
     else:
-        print '''\
+        print('''\
         ## your test code here ##
-        '''
+        ''')
 
-    print '''
+    print('''
 
 if __name__ == '__main__':
     CulebraTests.main()
-'''
+''')
 else:
     # Not a unittest class, still could be a unittest method as we allow to generate methods separately from their classes
     if not options[CulebraOptions.UNIT_TEST_METHOD]:
         printShortcutVariables()
-        print '''
+        print('''
 kwargs1 = %s
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
-''' % kwargs1,
+''' % kwargs1, end=' ')
 
     if options[CulebraOptions.START_ACTIVITY] and not options[CulebraOptions.UNIT_TEST_METHOD]:
-        print '''\
-device.startActivity(component='%s')''' % options[CulebraOptions.START_ACTIVITY]
+        print('''\
+device.startActivity(component='%s')''' % options[CulebraOptions.START_ACTIVITY])
 
     if not options[CulebraOptions.UNIT_TEST_METHOD]:
-        print '''\
+        print('''\
 kwargs2 = %s
 vc = ViewClient(device, serialno, **kwargs2)
 #vc.dump(window=%s) # FIXME: seems not needed
-''' % (kwargs2, getWindowOption())
+''' % (kwargs2, getWindowOption()))
 
         if options[CulebraOptions.USE_DICTIONARY]:
-            print '''views = dict()'''
+            print('''views = dict()''')
 
         if options[CulebraOptions.SAVE_SCREENSHOT]:
-            print '''\
+            print('''\
 vc.writeImageToFile('%s', 'PNG', %s, %s, %s)
 ''' % (options[CulebraOptions.SAVE_SCREENSHOT], options[CulebraOptions.DEVICE_ART], options[CulebraOptions.DROP_SHADOW],
-       options[CulebraOptions.SCREEN_GLARE])
+       options[CulebraOptions.SCREEN_GLARE]))
 
     if vc:
         vc.dump(window=options[CulebraOptions.WINDOW])
     if options[CulebraOptions.UNIT_TEST_METHOD]:
-        print '''
+        print('''
     def %s(self):
         \'\'\'
         Test method.
@@ -1418,7 +1418,7 @@ vc.writeImageToFile('%s', 'PNG', %s, %s, %s)
 
         if not self.preconditions():
             self.fail('Preconditions failed')
-''' % (options[CulebraOptions.UNIT_TEST_METHOD])
+''' % (options[CulebraOptions.UNIT_TEST_METHOD]))
         indent = ' ' * 8
         prefix = 'self.'
         printShortcutVariables()
@@ -1444,11 +1444,11 @@ if options[CulebraOptions.INTERACTIVE]:
     s.sendall("RECORD EVENTS START\n")
     fin = open("/dev/tty")
     while True:
-        print >> sys.stderr, "Reading events..."
+        print("Reading events...", file=sys.stderr)
         data = s.recv(1024)
         code = ViewClient.excerpt(data)
-        exec code
-        resp = raw_input("Continue recording events? [Y/n]: ")
+        exec(code)
+        resp = input("Continue recording events? [Y/n]: ")
         if resp in ['N', 'n']:
             break
     s.sendall("RECORD EVENTS STOP\n")

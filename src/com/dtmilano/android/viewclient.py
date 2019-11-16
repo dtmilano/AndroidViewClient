@@ -1108,7 +1108,9 @@ class View:
         image.crop(box).save(filename, _format)
 
     def __smallStr__(self):
-        __str = str("View[", 'utf-8', 'replace')
+        #2to3
+        #__str = str("View[", 'utf-8', 'replace')
+        __str = "View["
         if "class" in self.map:
             __str += " class=" + self.map['class']
         __str += " id=%s" % self.getId()
@@ -1121,7 +1123,9 @@ class View:
         return __str
 
     def __tinyStr__(self):
-        __str = str("View[", 'utf-8', 'replace')
+        #2to3
+        #__str = str("View[", 'utf-8', 'replace')
+        __str = "View["
         if "class" in self.map:
             __str += " class=" + re.sub('.*\.', '', self.map['class'])
         __str += " id=%s" % self.getId()
@@ -1130,7 +1134,9 @@ class View:
         return __str
 
     def __microStr__(self):
-        __str = str('', 'utf-8', 'replace')
+        #2to3
+        #__str = str('', 'utf-8', 'replace')
+        __str = ''
         if "class" in self.map:
             __str += re.sub('.*\.', '', self.map['class'])
         _id = self.getId().replace('id/no_id/', '-')
@@ -1142,7 +1148,9 @@ class View:
         return __str
 
     def __str__(self):
-        __str = "View[" + 'utf-8' + 'replace'
+        #2to3
+        #__str = "View[" + 'utf-8' + 'replace'
+        __str = "View["
 
         if "class" in self.map:
             __str += " class=" + self.map["class"].__str__() + " "

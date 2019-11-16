@@ -149,7 +149,7 @@ class Operation:
 class Culebron:
     APPLICATION_NAME = "Culebra"
 
-    UPPERCASE_CHARS = string.uppercase[:26]
+    UPPERCASE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     KEYSYM_TO_KEYCODE_MAP = {
         'Home': 'HOME',
