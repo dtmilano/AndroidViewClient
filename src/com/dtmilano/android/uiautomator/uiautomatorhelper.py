@@ -18,6 +18,8 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
+from __future__ import print_function
+
 __version__ = '20.0.0'
 
 import json

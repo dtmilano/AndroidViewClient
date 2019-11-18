@@ -17,6 +17,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
+from __future__ import print_function
 
 import re
 import sys

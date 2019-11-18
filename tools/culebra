@@ -20,6 +20,8 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 '''
 
+from __future__ import print_function
+
 __version__ = '20.0.0'
 
 import calendar
@@ -122,7 +124,7 @@ def shortAndLongOptions():
         raise Exception('There is a mismatch between short and long options: short=%d, long=%d\n%s' %
                         (len(short_opts), len(CulebraOptions.LONG_OPTS), s))
     t = tuple(short_opts) + tuple(CulebraOptions.LONG_OPTS)
-    l2 = len(t) / 2
+    l2 = int(len(t) / 2)
     sl = []
     for i in range(l2):
         sl.append((t[i], t[i + l2]))

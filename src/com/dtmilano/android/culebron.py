@@ -18,6 +18,8 @@ limitations under the License.
 @author: Diego Torres Milano
 
 '''
+from __future__ import print_function
+
 import io
 import random
 import re
@@ -60,7 +62,18 @@ try:
 
     TKINTER_AVAILABLE = True
 except:
-    TKINTER_AVAILABLE = False
+    try:
+        import Tkinter as tkinter
+        import tkSimpleDialog
+        import tkFileDialog
+        import tkFont
+        import ScrolledText
+        import ttk
+        from Tkconstants import DISABLED, NORMAL
+
+        TKINTER_AVAILABLE = True
+    except:
+        TKINTER_AVAILABLE = False
 
 from ast import literal_eval as make_tuple
 
@@ -432,7 +445,10 @@ This is usually installed by python package. Check your distribution details.
             print("createVignette(%d, %d)" % (width, height), file=sys.stderr)
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
                                                        stipple='gray50')
-        font = tkinter.font.Font(family='Helvetica', size=int(144 * self.scale))
+        if sys.version_info > (3,0):
+            font = tkinter.font.Font(family='Helvetica', size=int(144 * self.scale))
+        else:
+            font = tkFont.Font(family='Helvetica', size=int(144 * self.scale))
         msg = "Please\nwait..."
         self.waitMessageShadowId = self.canvas.create_text(width / 2 + 2, height / 2 + 2, text=msg,
                                                            fill=Color.DARK_GRAY, font=font)
@@ -1765,11 +1781,17 @@ if TKINTER_AVAILABLE:
     class ViewTree(tkinter.Frame):
         def __init__(self, parent):
             tkinter.Frame.__init__(self, parent)
-            self.viewTree = tkinter.ttk.Treeview(self, columns=['T'], height=35)
+            if sys.version_info > (3,0):
+                self.viewTree = tkinter.ttk.Treeview(self, columns=['T'], height=35)
+            else:
+                self.viewTree = ttk.Treeview(self, columns=['T'], height=35)
             self.viewTree.column(0, width=20)
             self.viewTree.heading('#0', None, text='View', anchor=tkinter.W)
             self.viewTree.heading(0, None, text='T', anchor=tkinter.W)
-            self.scrollbar = tkinter.ttk.Scrollbar(self, orient=tkinter.HORIZONTAL, command=self.__xscroll)
+            if sys.version_info > (3,0):
+                self.scrollbar = tkinter.ttk.Scrollbar(self, orient=tkinter.HORIZONTAL, command=self.__xscroll)
+            else:
+                self.scrollbar = ttk.Scrollbar(self, orient=tkinter.HORIZONTAL, command=self.__xscroll)
             self.viewTree.grid(row=1, rowspan=1, column=1, sticky=tkinter.N + tkinter.S)
             self.scrollbar.grid(row=2, rowspan=1, column=1, sticky=tkinter.E + tkinter.W)
             self.viewTree.configure(xscrollcommand=self.scrollbar.set)
