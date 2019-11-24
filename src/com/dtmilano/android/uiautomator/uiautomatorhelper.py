@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2018  Diego Torres Milano
+Copyright (C) 2012-2019  Diego Torres Milano
 Created on Feb 2, 2015
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,15 +30,10 @@ import subprocess
 import sys
 import threading
 
-try:
-    import requests
-
-    REQUESTS_AVAILABLE = True
-except:
-    REQUESTS_AVAILABLE = False
 import time
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
+import culebratester_client
 
 __author__ = 'diego'
 
@@ -96,27 +91,15 @@ class UiAutomatorHelper:
     TEST_RUNNER = 'com.dtmilano.android.uiautomatorhelper.UiAutomatorHelperTestRunner'
 
     def __init__(self, adbclient, adb=None, localport=9999, remoteport=9999, hostname='localhost'):
-        if not REQUESTS_AVAILABLE:
-            raise Exception('''Python Requests is needed for UiAutomatorHelper to work.
-
-On Ubuntu install
-
-   $ sudo apt-get install python-requests
-
-On OSX install
-
-   $ easy_install requests
-''')
-
         self.adbClient = adbclient
         ''' The adb client (a.k.a. device) '''
-        instrumentation = self.adbClient.shell('pm list instrumentation %s' % self.PACKAGE)
-        if not instrumentation:
-            raise RuntimeError('The target device does not contain the instrumentation for %s' % self.PACKAGE)
-        if not re.match('instrumentation:%s/%s \(target=%s\)' % (self.TEST_CLASS, self.TEST_RUNNER, self.PACKAGE),
-                        instrumentation):
-            raise RuntimeError('The instrumentation found for %s does not match the expected %s/%s' % (
-            self.PACKAGE, self.TEST_CLASS, self.TEST_RUNNER))
+        #instrumentation = self.adbClient.shell('pm list instrumentation %s' % self.PACKAGE)
+        #if not instrumentation:
+        #    raise RuntimeError('The target device does not contain the instrumentation for %s' % self.PACKAGE)
+        #if not re.match('instrumentation:%s/%s \(target=%s\)' % (self.TEST_CLASS, self.TEST_RUNNER, self.PACKAGE),
+        #                instrumentation):
+        #    raise RuntimeError('The instrumentation found for %s does not match the expected %s/%s' % (
+        #    self.PACKAGE, self.TEST_CLASS, self.TEST_RUNNER))
         self.adb = self.__whichAdb(adb)
         ''' The adb command '''
         self.osName = platform.system()
@@ -125,15 +108,17 @@ On OSX install
         ''' Is it Mac OSX? '''
         self.hostname = hostname
         ''' The hostname we are connecting to. '''
-        if hostname in ['localhost', '127.0.0.1']:
-            self.__redirectPort(localport, remoteport)
-        self.__runTests()
-        self.baseUrl = 'http://%s:%d' % (hostname, localport)
-        try:
-            self.session = self.__connectSession()
-        except RuntimeError as ex:
-            self.thread.forceStop()
-            raise ex
+        #if hostname in ['localhost', '127.0.0.1']:
+        #    self.__redirectPort(localport, remoteport)
+        #self.__runTests()
+        #self.baseUrl = 'http://%s:%d' % (hostname, localport)
+        #try:
+        #    self.session = self.__connectSession()
+        #except RuntimeError as ex:
+        #    self.thread.forceStop()
+        #    raise ex
+        print('⚠️ CulebraTester2 server should have been started and port redirected.', file=sys.stderr)
+        self.api_instance = culebratester_client.DefaultApi(culebratester_client.ApiClient())
 
     def __connectSession(self):
         if DEBUG:
@@ -195,16 +180,7 @@ On OSX install
             print("__runTests: end", file=sys.stderr)
 
     def __httpCommand(self, url, params=None, method='GET'):
-        if method == 'GET':
-            if params:
-                response = self.session.get(self.baseUrl + url, params=params)
-            else:
-                response = self.session.get(self.baseUrl + url)
-        elif method == 'PUT':
-            response = self.session.put(self.baseUrl + url, params=params)
-        else:
-            raise RuntimeError("method not supported: " + method)
-        return response.content
+        raise RuntimeError("this method should not be used")
 
     #
     # Device
@@ -216,11 +192,12 @@ On OSX install
     # UiAutomatorHelper internal commands
     #
     def quit(self):
-        try:
-            self.__httpCommand('/UiAutomatorHelper/quit')
-        except:
-            pass
-        self.session.close()
+        # try:
+        #     self.__httpCommand('/UiAutomatorHelper/quit')
+        # except:
+        #     pass
+        # self.session.close()
+        pass
 
     #
     # UiDevice
@@ -235,31 +212,10 @@ On OSX install
             return self.__httpCommand('/UiDevice/click', params)
 
     def dumpWindowHierarchy(self):
-        dump = self.__httpCommand('/UiDevice/dumpWindowHierarchy').decode(encoding='UTF-8', errors='replace')
-        if DEBUG:
-            print("DUMP: ", dump, file=sys.stderr)
-        return dump
+        return self.api_instance.ui_device_dump_window_hierarchy_get(format='JSON')
 
     def findObject(self, **kwargs):
-        params = kwargs
-        if not ('resourceId' in params or 'bySelector' in params):
-            raise RuntimeError('findObject: resourceId or bySelector must have a value')
-        response = self.__httpCommand('/UiDevice/findObject', params)
-        # { "status": "OK", "oid": 1, "className": "android.view.View"}
-        if DEBUG:
-            print("UiAutomatorHelper: findObject: response=", response, file=sys.stderr)
-        r = json.loads(response)
-        if r['status'] == 'OK':
-            if DEBUG:
-                print("UiAutomatorHelper: findObject: returning", int(r['oid']), file=sys.stderr)
-            return UiObject2(self, int(r['oid']))
-        elif r['status'] == 'ERROR':
-            if DEBUG:
-                print("UiAutomatorHelper: findObject: returning", int(r['oid']), file=sys.stderr)
-            if r['statusCode'] == -1:
-                # Object not found
-                return None
-        raise RuntimeError("Error: " + response)
+        return self.api_instance.ui_device_find_object_get(**kwargs)
 
     def longClick(self, **kwargs):
         params = kwargs
@@ -277,14 +233,13 @@ On OSX install
         return self.__httpCommand('/UiDevice/openQuickSettings')
 
     def pressBack(self):
-        return self.__httpCommand('/UiDevice/pressBack')
+        return self.api_instance.ui_device_press_back_get()
 
     def pressHome(self):
-        return self.__httpCommand('/UiDevice/pressHome')
+        return self.api_instance.ui_device_press_home_get()
 
     def pressKeyCode(self, keyCode, metaState=0):
-        params = {'keyCode': keyCode, 'metaState': metaState}
-        return self.__httpCommand('/UiDevice/pressKeyCode', params)
+        return self.api_instance.ui_device_press_key_code_get(key_code=keyCode, meta_state=metaState)
 
     def pressRecentApps(self):
         return self.__httpCommand('/UiDevice/pressRecentApps')
@@ -300,8 +255,7 @@ On OSX install
         return self.__httpCommand('/UiDevice/swipe', params)
 
     def takeScreenshot(self, scale=1.0, quality=90):
-        params = {'scale': scale, 'quality': quality}
-        return self.__httpCommand('/UiDevice/takeScreenshot', params)
+        return self.api_instance.ui_device_screenshot_get(scale=scale, quality=quality)
 
     def waitForIdle(self, timeout):
         params = {'timeout': timeout}

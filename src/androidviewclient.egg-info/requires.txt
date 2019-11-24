@@ -2,3 +2,4 @@ setuptools
 requests
 numpy
 matplotlib
+culebratester-client
