@@ -1332,7 +1332,8 @@ class AdbClient:
 
     def substituteDeviceTemplate(self, template):
         serialno = self.serialno.replace('.', '_').replace(':', '-')
-        focusedWindowName = self.getFocusedWindowName().replace('/', '-').replace('.', '_')
+        window_name = self.getFocusedWindowName() or 'no_name'
+        focusedWindowName = window_name.replace('/', '-').replace('.', '_')
         timestamp = datetime.datetime.now().isoformat()
         osName = platform.system()
         if osName.startswith('Windows'):  # ':' not supported in filenames
