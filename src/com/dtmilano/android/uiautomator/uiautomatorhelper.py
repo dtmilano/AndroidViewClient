@@ -93,10 +93,10 @@ class UiAutomatorHelper:
     def __init__(self, adbclient, adb=None, localport=9999, remoteport=9999, hostname='localhost'):
         self.adbClient = adbclient
         ''' The adb client (a.k.a. device) '''
-        #instrumentation = self.adbClient.shell('pm list instrumentation %s' % self.PACKAGE)
-        #if not instrumentation:
+        # instrumentation = self.adbClient.shell('pm list instrumentation %s' % self.PACKAGE)
+        # if not instrumentation:
         #    raise RuntimeError('The target device does not contain the instrumentation for %s' % self.PACKAGE)
-        #if not re.match('instrumentation:%s/%s \(target=%s\)' % (self.TEST_CLASS, self.TEST_RUNNER, self.PACKAGE),
+        # if not re.match('instrumentation:%s/%s \(target=%s\)' % (self.TEST_CLASS, self.TEST_RUNNER, self.PACKAGE),
         #                instrumentation):
         #    raise RuntimeError('The instrumentation found for %s does not match the expected %s/%s' % (
         #    self.PACKAGE, self.TEST_CLASS, self.TEST_RUNNER))
@@ -108,13 +108,13 @@ class UiAutomatorHelper:
         ''' Is it Mac OSX? '''
         self.hostname = hostname
         ''' The hostname we are connecting to. '''
-        #if hostname in ['localhost', '127.0.0.1']:
+        # if hostname in ['localhost', '127.0.0.1']:
         #    self.__redirectPort(localport, remoteport)
-        #self.__runTests()
-        #self.baseUrl = 'http://%s:%d' % (hostname, localport)
-        #try:
+        # self.__runTests()
+        # self.baseUrl = 'http://%s:%d' % (hostname, localport)
+        # try:
         #    self.session = self.__connectSession()
-        #except RuntimeError as ex:
+        # except RuntimeError as ex:
         #    self.thread.forceStop()
         #    raise ex
         print('⚠️ CulebraTester2 server should have been started and port redirected.', file=sys.stderr)
@@ -134,7 +134,8 @@ class UiAutomatorHelper:
         while tries > 0:
             time.sleep(0.5)
             if DEBUG:
-                print("UiAutomatorHelper: Attempting to connect to", self.baseUrl, '(tries=%s)' % tries, file=sys.stderr)
+                print("UiAutomatorHelper: Attempting to connect to", self.baseUrl, '(tries=%s)' % tries,
+                      file=sys.stderr)
             try:
                 response = session.head(self.baseUrl)
                 if response.status_code == 200:

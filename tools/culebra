@@ -757,7 +757,8 @@ def traverseAndPrint(view):
     if options[CulebraOptions.SAVE_VIEW_SCREENSHOTS]:
         _format = 'PNG'
         filename = options[
-                       CulebraOptions.SAVE_VIEW_SCREENSHOTS] + os.sep + View.variableNameFromId(view) + '.' + _format.lower()
+                       CulebraOptions.SAVE_VIEW_SCREENSHOTS] + os.sep + View.variableNameFromId(
+            view) + '.' + _format.lower()
         printSaveViewScreenshot(view, filename, _format)
 
 

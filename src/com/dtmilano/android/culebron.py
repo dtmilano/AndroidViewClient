@@ -450,7 +450,7 @@ This is usually installed by python package. Check your distribution details.
             print("createVignette(%d, %d)" % (width, height), file=sys.stderr)
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
                                                        stipple='gray50')
-        if sys.version_info > (3,0):
+        if sys.version_info > (3, 0):
             font = tkinter.font.Font(family='Helvetica', size=int(144 * self.scale))
         else:
             font = tkFont.Font(family='Helvetica', size=int(144 * self.scale))
@@ -942,7 +942,8 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG_KEY:
             print("onKeyPressed(", repr(event), ")", file=sys.stderr)
             print("    event", type(event.char), len(event.char), repr(
-                event.char), "keysym=", event.keysym, "keycode=", event.keycode, event.type, "state=", event.state, file=sys.stderr)
+                event.char), "keysym=", event.keysym, "keycode=", event.keycode, event.type, "state=", event.state,
+                  file=sys.stderr)
             print("    events disabled:", self.areEventsDisabled, file=sys.stderr)
         if self.areEventsDisabled:
             if DEBUG_KEY:
@@ -1205,7 +1206,7 @@ This is usually installed by python package. Check your distribution details.
 
     def showSleepDialog(self):
         seconds = tkinter.simpledialog.askfloat('Sleep Interval', 'Value in seconds:', initialvalue=1, minvalue=0,
-                                          parent=self.window)
+                                                parent=self.window)
         if seconds is not None:
             self.printOperation(None, Operation.SLEEP, seconds)
         self.canvas.focus_set()
@@ -1468,7 +1469,8 @@ This is usually installed by python package. Check your distribution details.
         if not dontinteract:
             if DEBUG_CONCERTINA:
                 if len(self.targetViews) > 0:
-                    print("CONCERTINA: should select one of these {} targets:".format(len(self.targetViews)), file=sys.stderr)
+                    print("CONCERTINA: should select one of these {} targets:".format(len(self.targetViews)),
+                          file=sys.stderr)
                     for v in self.targetViews:
                         print("    ", str(v.__tinyStr__()), v.getContentDescription(), file=sys.stderr)
                 else:
@@ -1517,7 +1519,7 @@ This is usually installed by python package. Check your distribution details.
                             print("CONCERTINA: filtered views", file=sys.stderr)
                             for _i in _tvli:
                                 print("CONCERTINA:    view class", self.targetViews[_i].getClass(), \
-                                    self.targetViews[_i].getContentDescription(), file=sys.stderr)
+                                      self.targetViews[_i].getContentDescription(), file=sys.stderr)
                             for _v in self.targetViews:
                                 print("CONCERTINA: view class", _v.getClass(), file=sys.stderr)
                         _id = self.markTarget(*box)
@@ -1786,14 +1788,14 @@ if TKINTER_AVAILABLE:
     class ViewTree(tkinter.Frame):
         def __init__(self, parent):
             tkinter.Frame.__init__(self, parent)
-            if sys.version_info > (3,0):
+            if sys.version_info > (3, 0):
                 self.viewTree = tkinter.ttk.Treeview(self, columns=['T'], height=35)
             else:
                 self.viewTree = ttk.Treeview(self, columns=['T'], height=35)
             self.viewTree.column(0, width=20)
             self.viewTree.heading('#0', None, text='View', anchor=tkinter.W)
             self.viewTree.heading(0, None, text='T', anchor=tkinter.W)
-            if sys.version_info > (3,0):
+            if sys.version_info > (3, 0):
                 self.scrollbar = tkinter.ttk.Scrollbar(self, orient=tkinter.HORIZONTAL, command=self.__xscroll)
             else:
                 self.scrollbar = ttk.Scrollbar(self, orient=tkinter.HORIZONTAL, command=self.__xscroll)
@@ -2278,5 +2280,5 @@ if TKINTER_AVAILABLE:
 
         def askSaveAsFilename(self):
             return tkinter.filedialog.asksaveasfilename(parent=self.parent, filetypes=self.fileTypes,
-                                                  defaultextension=self.ext, initialdir=self.dirname,
-                                                  initialfile=self.basename)
+                                                        defaultextension=self.ext, initialdir=self.dirname,
+                                                        initialfile=self.basename)
