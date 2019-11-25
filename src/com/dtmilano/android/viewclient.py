@@ -20,6 +20,10 @@ limitations under the License.
 
 from __future__ import print_function
 
+import json
+
+from culebratester_client import WindowHierarchyChild, WindowHierarchy
+
 __version__ = '20.0.0'
 
 import sys
@@ -50,6 +54,7 @@ from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy,\
 from com.dtmilano.android.window import Window
 from com.dtmilano.android.adb import adbclient
 from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper
+import pprint
 
 DEBUG = False
 DEBUG_DEVICE = DEBUG and False
@@ -242,12 +247,15 @@ class View:
         '''
 
         if DEBUG_VIEW:
-            print("View.__init__(%s, %s, %s, %s)" % ("map" if _map is not None else None, device, version, forceviewserveruse), file=sys.stderr)
+            print("☣️ View.__init__(%s, %s, %s, %s)" % ("map" if _map is not None else None, device, version, forceviewserveruse), file=sys.stderr)
             if _map:
                 print("    map:", type(_map), file=sys.stderr)
                 for attr, val in _map.items():
-                    if len(val) > 50:
-                        val = val[:50] + "..."
+                    try:
+                        if val and len(val) > 50:
+                            val = val[:50] + "..."
+                    except TypeError:
+                        pass
                     print("        %s=%s" % (attr, val), file=sys.stderr)
         self.map = _map
         ''' The map that contains the C{attr},C{value} pairs '''
@@ -381,6 +389,7 @@ class View:
     def __getattr__(self, name):
         if DEBUG_GETATTR:
             print("__getattr__(%s)    version: %d" % (name, self.build[VERSION_SDK_PROPERTY]), file=sys.stderr)
+            print("__getattr__: map = %s" % self.map, file=sys.stderr)
 
         # NOTE:
         # I should try to see if 'name' is a defined method
@@ -391,6 +400,32 @@ class View:
         elif name + '()' in self.map:
             # the method names are stored in the map with their trailing '()'
             r = self.map[name + '()']
+        elif name in ['getResourceId', 'resource_id', 'id']:
+            if DEBUG_GETATTR:
+                print("    __getattr__: getResourceId", file=sys.stderr)
+            if 'resource-id' in self.map:
+                r = self.map['resource-id']
+            else:
+                # Default behavior
+                raise AttributeError(name)
+        elif name == 'unique_id':
+            if 'uniqueId' in self.map:
+                r = self.map['uniqueId']
+            elif 'unique-id' in self.map:
+                r = self.map['unique_id']
+            elif 'unique_id' in self.map:
+                r = self.map['unique_id']
+            else:
+                # Default behavior
+                raise AttributeError(name)
+        elif name == 'content_description':
+            if 'content_description' in self.map:
+                r = self.map['content_description']
+            elif 'content-desc' in self.map:
+                r = self.map['content-desc']
+            else:
+                # Default behavior
+                raise AttributeError(name)
         elif name.count("_") > 0:
             mangledList = self.allPossibleNamesWithColon(name)
             mangledName = self.intersection(mangledList, list(self.map.keys()))
@@ -416,14 +451,6 @@ class View:
             suffix = name[3:].lower()
             if suffix in self.map:
                 r = self.map[suffix]
-            else:
-                # Default behavior
-                raise AttributeError(name)
-        elif name == 'getResourceId':
-            if DEBUG_GETATTR:
-                print("    __getattr__: getResourceId", file=sys.stderr)
-            if 'resource-id' in self.map:
-                r = self.map['resource-id']
             else:
                 # Default behavior
                 raise AttributeError(name)
@@ -950,11 +977,11 @@ class View:
                 selector = self.obtainSelectorForView()
                 if selector:
                     try:
-                        oid = self.uiAutomatorHelper.findObject(bySelector=selector)
+                        oid = self.uiAutomatorHelper.findObject(by_selector=selector)
                         if DEBUG_UI_AUTOMATOR_HELPER:
                             print("oid=", oid, file=sys.stderr)
                             print("ignoring click delta to click View as UiObject", file=sys.stderr)
-                        oid.click();
+                        oid.click()
                     except RuntimeError as e:
                         print(e.message, file=sys.stderr)
                         print("UiObject click failed, using co-ordinates", file=sys.stderr)
@@ -1040,18 +1067,24 @@ class View:
         except Exception:
             return False
 
-    def variableNameFromId(self):
-        _id = self.getId()
+    @staticmethod
+    def variableNameFromId(obj):
+        var = None
+        _id = obj.resource_id
+        if callable(_id):
+            _id = _id()
         if _id:
             var = _id.replace('.', '_').replace(':', '___').replace('/', '_')
         else:
-            _id = self.getUniqueId()
+            _id = obj.unique_id
+            if callable(_id):
+                _id = _id()
             m = ID_RE.match(_id)
             if m:
                 var = m.group(1)
                 if m.group(3):
                     var += m.group(3)
-                if re.match('^\d', var):
+                if re.match(r'^\d', var):
                     var = 'id_' + var
         return var
 
@@ -1150,28 +1183,35 @@ class View:
         return __str
 
     def __str__(self):
-        #2to3
-        #__str = "View[" + 'utf-8' + 'replace'
-        __str = "View["
+        if type(self) == WindowHierarchyChild:
+            raise RuntimeError('⛔️ This method should not be invoked with a WindowHierarchyChild')
 
-        if "class" in self.map:
-            __str += " class=" + self.map["class"].__str__() + " "
-        for a in self.map:
-            __str += a + "="
-            # decode() works only on python's 8-bit strings
-            if isinstance(self.map[a], str):
-                __str += self.map[a]
+        if type(self) == WindowHierarchy:
+            return json.dumps(self.to_dict())
+
+        __str = ''
+        try:
+            __str = "View["
+            if "class" in self.map:
+                __str += " class=" + self.map["class"].__str__() + " "
+            for a in self.map:
+                __str += a + "="
+                # decode() works only on python's 8-bit strings
+                if isinstance(self.map[a], str):
+                    __str += self.map[a]
+                else:
+                    __str += str(self.map[a]).encode('utf-8', errors='replace').decode('utf-8')
+                __str += " "
+            __str += "]   parent="
+            if self.parent:
+                if "class" in self.parent.map:
+                    __str += "%s" % self.parent.map["class"]
+                else:
+                    __str += self.parent.getId().__str__()
             else:
-                __str += str(self.map[a]).encode('utf-8', errors='replace').decode('utf-8')
-            __str += " "
-        __str += "]   parent="
-        if self.parent:
-            if "class" in self.parent.map:
-                __str += "%s" % self.parent.map["class"]
-            else:
-                __str += self.parent.getId().__str__()
-        else:
-            __str += "None"
+                __str += "None"
+        except AttributeError as ex:
+            print(f'⛔️ self={self.__class__.__name__}: {ex}', file=sys.stderr)
 
         return __str
 
@@ -2788,17 +2828,29 @@ class ViewClient:
                 eis = ' {0}'.format(eis)
             if extraAction:
                 extraAction(view)
-            _str = str(view.getClass())
-            _str += ' '
-            _str += '%s' % view.getId()
-            _str += ' '
-            _str += view.getText() if view.getText() else ''
+            try:
+                _str = str(view.getClass())
+                _str += ' '
+                _str += '%s' % view.getId()
+                _str += ' '
+                _str += view.getText() if view.getText() else ''
+            except AttributeError:
+                _str = view.clazz
+                _str += ' '
+                _str += '%s' % view.id
+                _str += ' '
+                _str += view.text
             if eis:
                 _str += eis
             return _str
         except Exception as e:
             import traceback
-            return 'Exception in view=%s: %s:%s\n%s' % (view.__smallStr__(), sys.exc_info()[0].__name__, e, traceback.format_exc())
+            small_str = ''
+            try:
+                small_str = view.__smallStr__()
+            except AttributeError:
+                small_str = str(view)
+            return '⛔️ Exception in view=%s: %s:%s\n%s' % (small_str, sys.exc_info()[0].__name__, e, traceback.format_exc())
 
     @staticmethod
     def traverseShowClassIdTextAndUniqueId(view):
@@ -2990,10 +3042,12 @@ class ViewClient:
             raise ValueError("received is empty")
         self.views = []
         ''' The list of Views represented as C{str} obtained after splitting it into lines after being received from the server. Done by L{self.setViews()}. '''
-        self.__parseTreeFromUiAutomatorDump(received)
+        if self.uiAutomatorHelper:
+            self.__treeFromWindowHierarchy(received)
+        else:
+            self.__parseTreeFromUiAutomatorDump(received)
         if DEBUG:
             print("there are %d views in this dump" % len(self.views), file=sys.stderr)
-
 
     def __splitAttrs(self, strArgs):
         '''
@@ -3164,6 +3218,33 @@ class ViewClient:
             self.navHome = None
             self.navRecentApps = None
 
+    def __treeFromWindowHierarchy(self, windowHierarchy):
+        # FIXME: idCount should be a class field
+        idCount = 1
+        version = self.build[VERSION_SDK_PROPERTY]
+        self.root = windowHierarchy
+        self.__processWindowHierarchyChild(self.root, idCount, version)
+
+    @staticmethod
+    def __attributesFromWindowHierarchyChild(unique_id, child: WindowHierarchyChild):
+        bounds = ((int(child.bounds[0]), int(child.bounds[1])), (int(child.bounds[2]), int(child.bounds[3])))
+        return {'index': child.index, 'text': child.text, 'resource-id': child.resource_id, 'class': child.clazz,
+                'package': child.package, 'content-desc': child.content_description, 'checkable': child.checkable,
+                'checked': None, 'clickable': child.clickable, 'enabled': child.enabled, 'focusable': child.focusable,
+                'focused': None, 'scrollable': child.scrollable, 'long-clickable': child.long_clickable,
+                'password': child.password, 'selected': child.selected, 'bounds': bounds,
+                'uniqueId': unique_id}
+
+    def __processWindowHierarchyChild(self, node, idCount, version):
+        if node.id != 'hierarchy':
+            node.unique_id = f'id/no_id/{idCount}'
+            attributes = ViewClient.__attributesFromWindowHierarchyChild(f'id/no_id/{idCount}', node)
+            view = View.factory(attributes, self.device, version=version, uiAutomatorHelper=self.uiAutomatorHelper)
+            self.views.append(view)
+            idCount += 1
+        for ch in node.children:
+            self.__processWindowHierarchyChild(ch, idCount, version)
+
     def __parseTreeFromUiAutomatorDump(self, receivedXml):
         if DEBUG:
             print("__parseTreeFromUiAutomatorDump(", receivedXml[:40], "...)", file=sys.stderr)
@@ -3208,6 +3289,7 @@ class ViewClient:
         @param indent: the indentation string to use to print the nodes
         @type transform: method
         @param transform: a method to use to transform the node before is printed
+        @param stream: the output stream
         '''
 
         if transform is None:
@@ -3237,8 +3319,13 @@ class ViewClient:
 
         s = transform(root)
         if stream and s:
-            ius = "%s%s" % (indent, s if isinstance(s, str) else str(s, 'utf-8', 'replace'))
-            print(ius.encode('utf-8', 'replace').decode('utf-8'), file=stream)
+            if type(root) == WindowHierarchy:
+                if transform == View.__str__:
+                    print(s, file=stream)
+                    return
+            else:
+                ius = "%s%s" % (indent, s if isinstance(s, str) else str(s, 'utf-8', 'replace'))
+                print(ius.encode('utf-8', 'replace').decode('utf-8'), file=stream)
 
         for ch in root.children:
             ViewClient.__traverse(ch, indent=indent+"   ", transform=transform, stream=stream)
@@ -3306,49 +3393,65 @@ class ViewClient:
                 if DEBUG_UI_AUTOMATOR:
                     print("executing '%s'" % cmd, file=sys.stderr)
                 received = self.device.shell(cmd)
+
             if not received:
                 raise RuntimeError('ERROR: Empty UiAutomator dump was received')
             if DEBUG:
                 self.received = received
             if DEBUG_RECEIVED:
-                print("received %d chars" % len(received), file=sys.stderr)
-                print(file=sys.stderr)
-                print(repr(received), file=sys.stderr)
-                print(file=sys.stderr)
-            onlyKilledRE = re.compile('Killed$')
-            if onlyKilledRE.search(received):
-                MONKEY = 'com.android.commands.monkey'
-                extraInfo = ''
-                if self.device.shell('ps | grep "%s"' % MONKEY):
-                    extraInfo = "\nIt is know that '%s' conflicts with 'uiautomator'. Please kill it and try again." % MONKEY
-                raise RuntimeError('''ERROR: UiAutomator output contains no valid information. UiAutomator was killed, no reason given.''' + extraInfo)
-            if self.ignoreUiAutomatorKilled:
-                if DEBUG_RECEIVED:
-                    print("ignoring UiAutomator Killed", file=sys.stderr)
-                killedRE = re.compile('</hierarchy>[\n\S]*Killed', re.MULTILINE)
-                if killedRE.search(received):
-                    received = re.sub(killedRE, '</hierarchy>', received)
-                elif DEBUG_RECEIVED:
-                    print("UiAutomator Killed: NOT FOUND!")
-                # It seems that API18 uiautomator spits this message to stdout
-                dumpedToDevTtyRE = re.compile('</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
-                if dumpedToDevTtyRE.search(received):
-                    received = re.sub(dumpedToDevTtyRE, '</hierarchy>', received)
-                if DEBUG_RECEIVED:
-                    print("received=", received, file=sys.stderr)
-            # API19 seems to send this warning as part of the XML.
-            # Let's remove it if present
-            received = received.replace('WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.\r\n', '')
-            if re.search('\[: not found', received):
-                raise RuntimeError('''ERROR: Some emulator images (i.e. android 4.1.2 API 16 generic_x86) does not include the '[' command.
-While UiAutomator back-end might be supported 'uiautomator' command fails.
-You should force ViewServer back-end.''')
+                try:
+                    pprint.pprint(received)
+                except:
+                    pass
+                try:
+                    print("received %d chars" % len(received), file=sys.stderr)
+                    print(file=sys.stderr)
+                except:
+                    pass
+                try:
+                    print(repr(received), file=sys.stderr)
+                    print(file=sys.stderr)
+                except:
+                    pass
+            if not self.uiAutomatorHelper:
+                onlyKilledRE = re.compile('Killed$')
+                try:
+                    if onlyKilledRE.search(received):
+                        MONKEY = 'com.android.commands.monkey'
+                        extraInfo = ''
+                        if self.device.shell('ps | grep "%s"' % MONKEY):
+                            extraInfo = "\nIt is know that '%s' conflicts with 'uiautomator'. Please kill it and try again." % MONKEY
+                        raise RuntimeError('''ERROR: UiAutomator output contains no valid information. UiAutomator was killed, no reason given.''' + extraInfo)
+                except:
+                    pass
+                if self.ignoreUiAutomatorKilled:
+                    if DEBUG_RECEIVED:
+                        print("ignoring UiAutomator Killed", file=sys.stderr)
+                    killedRE = re.compile('</hierarchy>[\n\S]*Killed', re.MULTILINE)
+                    if killedRE.search(received):
+                        received = re.sub(killedRE, '</hierarchy>', received)
+                    elif DEBUG_RECEIVED:
+                        print("UiAutomator Killed: NOT FOUND!")
+                    # It seems that API18 uiautomator spits this message to stdout
+                    dumpedToDevTtyRE = re.compile('</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
+                    if dumpedToDevTtyRE.search(received):
+                        received = re.sub(dumpedToDevTtyRE, '</hierarchy>', received)
+                    if DEBUG_RECEIVED:
+                        print("received=", received, file=sys.stderr)
+                # API19 seems to send this warning as part of the XML.
+                # Let's remove it if present
+                received = received.replace('WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.\r\n', '')
+                if re.search('\[: not found', received):
+                    raise RuntimeError('''ERROR: Some emulator images (i.e. android 4.1.2 API 16 generic_x86) does not include the '[' command.
+    While UiAutomator back-end might be supported 'uiautomator' command fails.
+    You should force ViewServer back-end.''')
 
-            if received.startswith('ERROR: could not get idle state.'):
-                # See https://android.googlesource.com/platform/frameworks/testing/+/jb-mr2-release/uiautomator/cmds/uiautomator/src/com/android/commands/uiautomator/DumpCommand.java
-                raise RuntimeError('''The views are being refreshed too frequently to dump.''')
-            if received.find('Only ROTATION_0 supported') != -1:
-                raise RuntimeError('''UiAutomatorHelper backend with support for only ROTATION_0 found.''')
+                if received.startswith('ERROR: could not get idle state.'):
+                    # See https://android.googlesource.com/platform/frameworks/testing/+/jb-mr2-release/uiautomator/cmds/uiautomator/src/com/android/commands/uiautomator/DumpCommand.java
+                    raise RuntimeError('''The views are being refreshed too frequently to dump.''')
+                if received.find('Only ROTATION_0 supported') != -1:
+                    raise RuntimeError('''UiAutomatorHelper backend with support for only ROTATION_0 found.''')
+
             self.setViewsFromUiAutomatorDump(received)
         else:
             if isinstance(window, str):
@@ -3686,16 +3789,18 @@ You should force ViewServer back-end.''')
         # Note the plural in this method name
         matchingViews = []
         if not self.root:
-            print >>sys.stderr, "ERROR: no root, did you forget to call dump()?"
+            print("ERROR: no root, did you forget to call dump()?", file=sys.stderr)
             return matchingViews
 
         if type(root) == types.StringType and root == "ROOT":
             root = self.root
 
-        if DEBUG: print >>sys.stderr, "__findViewsWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (root.__smallStr__(), attr, regex)
+        if DEBUG:
+            print("__findViewsWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (root.__smallStr__(), attr, regex), file=sys.stderr)
 
         if root and attr in root.map and regex.match(root.map[attr]):
-            if DEBUG: print >>sys.stderr, "__findViewsWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__()
+            if DEBUG:
+                print("__findViewsWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__(), file=sys.stderr)
             matchingViews.append(root)
         for ch in root.children:
             matchingViews += self.__findViewsWithAttributeInTreeThatMatches(attr, regex, ch)
@@ -3823,7 +3928,7 @@ You should force ViewServer back-end.''')
     def findObject(self, **kwargs):
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print("Finding object with %s through UiAutomatorHelper" % (kwargs), file=sys.stderr)
+                print("Finding object with %s through UiAutomatorHelper" % kwargs, file=sys.stderr)
             return self.uiAutomatorHelper.findObject(**kwargs)
         else:
             warnings.warn("findObject only implemented using UiAutomatorHelper. Use ViewClient.findView...() instead.")
