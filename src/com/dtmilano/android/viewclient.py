@@ -1217,7 +1217,13 @@ class View:
                 if isinstance(self.map[a], str):
                     __str += self.map[a]
                 else:
-                    __str += str(self.map[a]).encode('utf-8', errors='replace').decode('utf-8')
+                    if sys.version_info[0] < 3:
+                        if type(self.map[a]) == unicode:
+                            __str += self.map[a].encode('utf-8', errors='replace').decode('utf-8')
+                        else:
+                            __str += str(self.map[a])
+                    else:
+                        __str += str(self.map[a]).encode('utf-8', errors='replace').decode('utf-8')
                 __str += " "
             __str += "]   parent="
             if self.parent:
@@ -1228,7 +1234,7 @@ class View:
             else:
                 __str += "None"
         except AttributeError as ex:
-            print(f'⛔️ self={self.__class__.__name__}: {ex}', file=sys.stderr)
+            print('⛔️ self=%s: %s' % (self.__class__.__name__, ex), file=sys.stderr)
 
         return __str
 
@@ -3260,7 +3266,9 @@ class ViewClient:
         self.__processWindowHierarchyChild(self.root, idCount, version)
 
     @staticmethod
-    def __attributesFromWindowHierarchyChild(unique_id, child: WindowHierarchyChild):
+    # python 3
+    # def __attributesFromWindowHierarchyChild(unique_id, child: WindowHierarchyChild):
+    def __attributesFromWindowHierarchyChild(unique_id, child):
         bounds = ((int(child.bounds[0]), int(child.bounds[1])), (int(child.bounds[2]), int(child.bounds[3])))
         return {'index': child.index, 'text': child.text, 'resource-id': child.resource_id, 'class': child.clazz,
                 'package': child.package, 'content-desc': child.content_description, 'checkable': child.checkable,
@@ -3271,8 +3279,9 @@ class ViewClient:
 
     def __processWindowHierarchyChild(self, node, idCount, version):
         if node.id != 'hierarchy':
-            node.unique_id = f'id/no_id/{idCount}'
-            attributes = ViewClient.__attributesFromWindowHierarchyChild(f'id/no_id/{idCount}', node)
+            node.unique_id = 'id/no_id/%d' % idCount
+            # FIXME: unique_id is not needed as a param
+            attributes = ViewClient.__attributesFromWindowHierarchyChild(node.unique_id, node)
             view = View.factory(attributes, self.device, version=version, uiAutomatorHelper=self.uiAutomatorHelper)
             self.views.append(view)
             idCount += 1
@@ -3359,7 +3368,10 @@ class ViewClient:
                     print(s, file=stream)
                     return
             else:
-                ius = "%s%s" % (indent, s if isinstance(s, str) else str(s, 'utf-8', 'replace'))
+                if sys.version_info[0] < 3:
+                    ius = "%s%s" % (indent, s if isinstance(s, unicode) else unicode(s, 'utf-8', 'replace'))
+                else:
+                    ius = "%s%s" % (indent, s if isinstance(s, str) else str(s, 'utf-8', 'replace'))
                 print(ius.encode('utf-8', 'replace').decode('utf-8'), file=stream)
 
         for ch in root.children:
