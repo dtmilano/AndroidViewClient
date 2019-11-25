@@ -38,7 +38,6 @@ import sys
 import threading
 import warnings
 import copy
-import string
 import os
 import platform
 from pkg_resources import Requirement, resource_filename
@@ -336,7 +335,10 @@ This is usually installed by python package. Check your distribution details.
             print("takeScreenshotAndShowItOnWindow()", file=sys.stderr)
         if self.vc and self.vc.uiAutomatorHelper:
             received = self.vc.uiAutomatorHelper.takeScreenshot()
-            stream = io.StringIO(received)
+            if sys.version_info[0] < 3:
+                stream = io.StringIO(received)
+            else:
+                stream = io.BytesIO(received.data)
             self.unscaledScreenshot = Image.open(stream)
         else:
             self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
@@ -388,8 +390,11 @@ This is usually installed by python package. Check your distribution details.
             self.canvas.grid(row=1, column=1, rowspan=4)
         if not gridInfo:
             self.canvas.grid(row=1, column=1, rowspan=4)
-        self.findTargets()
-        self.hideVignette()
+        try:
+            self.findTargets()
+            self.hideVignette()
+        except Exception as ex:
+            print(ex, file=sys.stderr)
         if DEBUG:
             try:
                 self.printGridInfo()
