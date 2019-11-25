@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2013-2018  Diego Torres Milano
+Copyright (C) 2013-2019  Diego Torres Milano
 Created on Mar 28, 2013
 
 Culebra helps you create AndroidViewClient scripts generating a working template that can be
@@ -21,6 +21,8 @@ ___________________/  /__/  /__/  /__/  /________________________________
 '''
 
 from __future__ import print_function
+
+from culebratester_client import WindowHierarchy
 
 __version__ = '20.0.0'
 
@@ -226,7 +228,7 @@ def variableNameFromIdOrKey(view):
     @return: the variable name from the id
     '''
 
-    var = view.variableNameFromId()
+    var = View.variableNameFromId(view)
     if options[CulebraOptions.USE_DICTIONARY]:
         return '%sviews[\'%s\']' % (
             prefix, notNull(dictionaryKeyFrom(options[CulebraOptions.DICTIONARY_KEYS_FROM], view), var))
@@ -257,7 +259,9 @@ def printFindViewWithText(view, useregexp, op=Operation.ASSIGN, arg=None):
     @param view: the View
     '''
 
-    text = view.getText()
+    text = view.text
+    if callable(text):
+        text = text()
     isUnicode = isinstance(text, str)
     if isUnicode and sys.stdout.encoding is None:
         warnings.warn('''\
@@ -344,7 +348,7 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
     @param view: the View
     '''
 
-    contentDescription = view.getContentDescription()
+    contentDescription = view.content_description
     if contentDescription:
         var = variableNameFromIdOrKey(view)
         if useregexp:
@@ -427,7 +431,7 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
     '''
 
     var = variableNameFromIdOrKey(view)
-    _id = view.getId() if view.getId() else view.getUniqueId()
+    _id = view.id if view.id else view.unique_id
     if op == Operation.ASSIGN:
         if options[CulebraOptions.MULTI_DEVICE]:
             logAction('finding view with id=%s on ${serialno}' % _id)
@@ -516,6 +520,8 @@ def printDump(window, dump=None):
         print('%s%svc.dump(window=%s)' % (indent, prefix, window))
 
     if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
+        if DEBUG:
+            print('printing dump: %s' % dump.__class__.__name__)
         printTraverse(dump)
 
 
@@ -736,7 +742,10 @@ def traverseAndPrint(view):
     '''
 
     if DEBUG:
-        print("traverseAndPrint(view=%s)" % view.getId(), file=sys.stderr)
+        print("🐞 traverseAndPrint(view=%s)" % view.id, file=sys.stderr)
+    if type(view) == WindowHierarchy:
+        # The root element is a WindowHierarchy (id=hierarchy)
+        return
     if options[CulebraOptions.VERBOSE_COMMENTS]:
         printVerboseComments(view)
     if options[CulebraOptions.FIND_VIEWS_BY_ID]:
@@ -748,7 +757,7 @@ def traverseAndPrint(view):
     if options[CulebraOptions.SAVE_VIEW_SCREENSHOTS]:
         _format = 'PNG'
         filename = options[
-                       CulebraOptions.SAVE_VIEW_SCREENSHOTS] + os.sep + view.variableNameFromId() + '.' + _format.lower()
+                       CulebraOptions.SAVE_VIEW_SCREENSHOTS] + os.sep + View.variableNameFromId(view) + '.' + _format.lower()
         printSaveViewScreenshot(view, filename, _format)
 
 
@@ -1021,7 +1030,7 @@ def printScriptHeader():
     print('''%s
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2013-2018  Diego Torres Milano
+Copyright (C) 2013-2019  Diego Torres Milano
 Created on %s by Culebra v%s
                       __    __    __    __
                      /  \  /  \  /  \  /  \ 
