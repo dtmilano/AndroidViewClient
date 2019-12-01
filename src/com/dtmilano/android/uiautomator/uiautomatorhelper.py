@@ -90,7 +90,7 @@ class UiAutomatorHelper:
     TEST_CLASS = PACKAGE + '.test'
     TEST_RUNNER = 'com.dtmilano.android.uiautomatorhelper.UiAutomatorHelperTestRunner'
 
-    def __init__(self, adbclient, adb=None, localport=9999, remoteport=9999, hostname='localhost'):
+    def __init__(self, adbclient, adb=None, localport=9987, remoteport=9987, hostname='localhost'):
         self.adbClient = adbclient
         ''' The adb client (a.k.a. device) '''
         # instrumentation = self.adbClient.shell('pm list instrumentation %s' % self.PACKAGE)
@@ -118,6 +118,7 @@ class UiAutomatorHelper:
         #    self.thread.forceStop()
         #    raise ex
         print('⚠️ CulebraTester2 server should have been started and port redirected.', file=sys.stderr)
+        # TODO: localport should be in ApiClient configuration
         self.api_instance = culebratester_client.DefaultApi(culebratester_client.ApiClient())
 
     def __connectSession(self):
@@ -187,7 +188,7 @@ class UiAutomatorHelper:
     # Device
     #
     def getDisplayRealSize(self):
-        return self.__httpCommand('/Device/getDisplayRealSize')
+        return self.api_instance.device_display_real_size_get()
 
     #
     # UiAutomatorHelper internal commands
@@ -208,9 +209,12 @@ class UiAutomatorHelper:
         if not (('x' in params and 'y' in params) or 'oid' in params):
             raise RuntimeError('click: (x, y) or oid must have a value')
         if 'oid' in params:
-            return self.__httpCommand('/UiObject2/%d/click' % params['oid'])
+            oid = int(params['oid'])
+            return self.api_instance.ui_object2_oid_click_get(oid)
         else:
-            return self.__httpCommand('/UiDevice/click', params)
+            x = int(params['x'])
+            y = int(params['y'])
+            return self.api_instance.ui_device_click_get(x=x, y=y)
 
     def dumpWindowHierarchy(self):
         return self.api_instance.ui_device_dump_window_hierarchy_get(format='JSON')
@@ -260,21 +264,15 @@ class UiAutomatorHelper:
 
     def waitForIdle(self, timeout):
         params = {'timeout': timeout}
-        return self.__httpCommand('/UiDevice/waitForIdle')
-
-    #
-    # UiObject
-    #
-    def setText(self, uiObject, text):
-        # NOTICE: uiObject can receive UiObject or UiObject2
-        element = uiObject.__class__.__name__
-        _f = {'UiObject': '0x%x', 'UiObject2': '%d'}[element]
-        params = {'text': text}
-        return self.__httpCommand(('/%s/' + _f + '/setText') % (element, uiObject.oid), params)
+        return self.api_instance.ui_device_wait_for_idle_get(**params)
 
     #
     # UiObject2
     #
+    def setText(self, oid, text):
+        body = {'text': text}
+        return self.api_instance.ui_object2_oid_set_text_post(body, oid)
+
     def clickAndWait(self, uiObject2, eventCondition, timeout):
         params = {'eventCondition': eventCondition, 'timeout': timeout}
         return self.__httpCommand('/UiObject2/%d/clickAndWait' % uiObject2.oid, params)

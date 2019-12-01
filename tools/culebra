@@ -1322,29 +1322,29 @@ class CulebraTests(CulebraTestCase):
 
 ''' % (kwargs1, kwargs2, options), end=' ')
 
-    print('''\
+    print('''
     def setUp(self):
         super(CulebraTests, self).setUp()
 ''')
 
-    print('''\
+    print('''
     def tearDown(self):
         super(CulebraTests, self).tearDown()
 ''')
 
-    print('''\
+    print('''
     def preconditions(self):
         if not super(CulebraTests, self).preconditions():
             return False
 ''', end=' ')
 
     if options[CulebraOptions.INSTALL_APK]:
-        print('''\
+        print('''
         if self.vc.installPackage(\"%s\") != 0:
             return False
 ''' % (options[CulebraOptions.INSTALL_APK]), end=' ')
 
-    print('''\
+    print('''
         return True
 
     def %s(self):

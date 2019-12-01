@@ -1177,7 +1177,7 @@ class AdbClient:
             if attr in ['v', 'd', 'i', 'w', 'e']:
                 return lambda tag, message, verbose: self.adbClient.log(tag, message, priority=attr.upper(),
                                                                         verbose=verbose)
-            raise AttributeError(self.__class__.__name__ + ' has no attribute "%s"' % attr)
+            raise AttributeError('__Log: %s has not attribute "%s"' % (self.__class__.__name__, attr))
 
     def getSystemService(self, name):
         if name == WIFI_SERVICE:

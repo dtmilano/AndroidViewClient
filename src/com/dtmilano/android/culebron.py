@@ -26,6 +26,7 @@ import re
 import time
 
 import numpy
+from culebratester_client import WindowHierarchy
 
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
@@ -350,16 +351,21 @@ This is usually installed by python package. Check your distribution details.
             self.image = self.image.resize((scaledWidth, scaledHeight), PIL.Image.ANTIALIAS)
             (width, height) = self.image.size
             if self.isDarwin and 14 < self.sdkVersion < 23:
-                stream = io.StringIO()
+                if sys.version_info[0] < 3:
+                    stream = io.StringIO()
+                else:
+                    stream = io.BytesIO()
                 self.image.save(stream, 'GIF')
                 import base64
                 gif = base64.b64encode(stream.getvalue())
                 stream.close()
         if self.canvas is None:
             if DEBUG:
-                print("Creating canvas", width, 'x', height, file=sys.stderr)
+                print("⬜️ Creating canvas", width, 'x', height, file=sys.stderr)
             self.placeholder.grid_forget()
             self.canvas = tkinter.Canvas(self.mainFrame, width=width, height=height)
+            if DEBUG:
+                print("⬜️ canvas", self.canvas, file=sys.stderr)
             self.canvas.focus_set()
             self.enableEvents()
             self.createMessageArea(width, height)
@@ -375,18 +381,18 @@ This is usually installed by python package. Check your distribution details.
             self.screenshot = ImageTk.PhotoImage(self.image)
         if self.imageId is not None:
             self.canvas.delete(self.imageId)
-        self.imageId = self.canvas.create_image(0, 0, anchor=tkinter.NW, image=self.screenshot)
+        self.imageId = self.canvas.create_image(0, 0, anchor=tkinter.NW, image=self.screenshot, tag="screenshot")
         if DEBUG:
             try:
-                print("Grid info", self.canvas.grid_info(), file=sys.stderr)
+                print("⬜️ Grid info", self.canvas.grid_info(), file=sys.stderr)
             except:
-                print("Exception getting grid info", file=sys.stderr)
+                print("⬜️ Exception getting grid info", file=sys.stderr)
         gridInfo = None
         try:
             gridInfo = self.canvas.grid_info()
         except:
             if DEBUG:
-                print("Adding canvas to grid (1,1)", file=sys.stderr)
+                print("⬜️ Adding canvas to grid (1,1)", file=sys.stderr)
             self.canvas.grid(row=1, column=1, rowspan=4)
         if not gridInfo:
             self.canvas.grid(row=1, column=1, rowspan=4)
@@ -394,7 +400,7 @@ This is usually installed by python package. Check your distribution details.
             self.findTargets()
             self.hideVignette()
         except Exception as ex:
-            print(ex, file=sys.stderr)
+            print("⛔️ %s" % ex, file=sys.stderr)
         if DEBUG:
             try:
                 self.printGridInfo()
@@ -447,7 +453,7 @@ This is usually installed by python package. Check your distribution details.
 
     def createVignette(self, width, height):
         if DEBUG:
-            print("createVignette(%d, %d)" % (width, height), file=sys.stderr)
+            print("🟪 createVignette(%d, %d)" % (width, height), file=sys.stderr)
         self.vignetteId = self.canvas.create_rectangle(0, 0, width, height, fill=Color.MAGENTA,
                                                        stipple='gray50')
         if sys.version_info > (3, 0):
@@ -463,14 +469,15 @@ This is usually installed by python package. Check your distribution details.
 
     def showVignette(self):
         if DEBUG:
-            print("showVignette()", file=sys.stderr)
+            print("🟪 showVignette()", file=sys.stderr)
         if self.canvas is None:
             return
         if self.vignetteId:
             if DEBUG:
-                print("    showing vignette", file=sys.stderr)
+                print("🟪     showing vignette id=%d" % self.vignetteId, file=sys.stderr)
             # disable events while we are processing one
             self.disableEvents()
+            self.canvas.tag_lower('screenshot')
             self.canvas.lift(self.vignetteId)
             self.canvas.lift(self.waitMessageShadowId)
             self.canvas.lift(self.waitMessageId)
@@ -478,17 +485,24 @@ This is usually installed by python package. Check your distribution details.
 
     def hideVignette(self):
         if DEBUG:
-            print("hideVignette()", file=sys.stderr)
+            print("🟪 hideVignette()", file=sys.stderr)
         if self.canvas is None:
             return
         if self.vignetteId:
             if DEBUG:
-                print("    hiding vignette", file=sys.stderr)
-            self.canvas.lift(self.imageId)
+                print("🟪     hiding vignette", file=sys.stderr)
+            try:
+                self.canvas.tag_lift('screenshot')
+            except Exception as ex:
+                if DEBUG:
+                    print("🟪     exception=%s" % ex, file=sys.stderr)
+                self.canvas.lift(self.imageId)
             self.canvas.update_idletasks()
             self.enableEvents()
 
     def deleteVignette(self):
+        if DEBUG:
+            print("🟪 deleteVignette()", file=sys.stderr)
         if self.canvas is not None:
             self.canvas.delete(self.vignetteId)
             self.vignetteId = None
@@ -571,13 +585,38 @@ This is usually installed by python package. Check your distribution details.
         Populates the View tree.
         '''
 
-        vuid = view.getUniqueId()
-        text = view.__smallStr__()
-        if view.getParent() is None:
+        print('culebron.populateViewTree: getting unique id for %s' % view.__class__.__name__, file=sys.stderr)
+        if type(view) == WindowHierarchy:
+            print('culebron.populateViewTree: skipping HierarchyView', file=sys.stderr)
+            return
+        else:
+            print('culebron.populateViewTree: %s' % type(view), file=sys.stderr)
+
+        parent_unique_id = ''
+        try:
+            vuid = view.getUniqueId()
+            text = view.__smallStr__()
+            parent = view.getParent()
+            is_target = view.isTarget()
+            if parent:
+                parent_unique_id = parent.getUniqueId()
+        except AttributeError:
+            vuid = view.unique_id
+            #FIXME
+            #is_target = view.is_target
+            is_target = False
+            text = view.text
+            parent = view.parent
+            if parent:
+                #FIXME:
+                # parent is an int
+                #parent_unique_id = parent.unique_id
+                parent_unique_id = 0
+        if parent is None:
             self.viewTree.insert('', tkinter.END, vuid, text=text)
         else:
-            self.viewTree.insert(view.getParent().getUniqueId(), tkinter.END, vuid, text=text, tags=('ttk'))
-            self.viewTree.set(vuid, 'T', '*' if view.isTarget() else ' ')
+            self.viewTree.insert(parent_unique_id, tkinter.END, vuid, text=text, tags=('ttk'))
+            self.viewTree.set(vuid, 'T', '*' if is_target else ' ')
             self.viewTree.tag_bind('ttk', '<1>', self.viewTreeItemClicked)
 
     def findTargets(self):
@@ -632,8 +671,10 @@ This is usually installed by python package. Check your distribution details.
             else:
                 target = False
 
-        if self.vc:
-            self.vc.traverse(transform=self.populateViewTree)
+        # FIXME: we are not populating the view tree now
+        # there are some problems with culebratester2
+        #if self.vc:
+        #    self.vc.traverse(transform=self.populateViewTree)
 
     def getViewContainingPointAndGenerateTestCondition(self, x, y):
         if DEBUG:

@@ -993,13 +993,15 @@ class View:
         else:
             if self.uiAutomatorHelper:
                 selector = self.obtainSelectorForView()
+                if DEBUG_UI_AUTOMATOR_HELPER:
+                    print('using selector="%s"' % selector, file=sys.stderr)
                 if selector:
                     try:
-                        oid = self.uiAutomatorHelper.findObject(by_selector=selector)
+                        object_ref = self.uiAutomatorHelper.findObject(by_selector=selector)
                         if DEBUG_UI_AUTOMATOR_HELPER:
-                            print("oid=", oid, file=sys.stderr)
+                            print("oid=%d" % object_ref.oid, file=sys.stderr)
                             print("ignoring click delta to click View as UiObject", file=sys.stderr)
-                        oid.click()
+                        self.uiAutomatorHelper.click(oid=object_ref.oid)
                     except RuntimeError as e:
                         print(e.message, file=sys.stderr)
                         print("UiObject click failed, using co-ordinates", file=sys.stderr)
@@ -3268,20 +3270,22 @@ class ViewClient:
     @staticmethod
     # python 3
     # def __attributesFromWindowHierarchyChild(unique_id, child: WindowHierarchyChild):
-    def __attributesFromWindowHierarchyChild(unique_id, child):
+    def __attributesFromWindowHierarchyChild(child):
         bounds = ((int(child.bounds[0]), int(child.bounds[1])), (int(child.bounds[2]), int(child.bounds[3])))
         return {'index': child.index, 'text': child.text, 'resource-id': child.resource_id, 'class': child.clazz,
                 'package': child.package, 'content-desc': child.content_description, 'checkable': child.checkable,
-                'checked': None, 'clickable': child.clickable, 'enabled': child.enabled, 'focusable': child.focusable,
-                'focused': None, 'scrollable': child.scrollable, 'long-clickable': child.long_clickable,
+                'checked': False, # FIXME
+                'clickable': child.clickable, 'enabled': child.enabled, 'focusable': child.focusable,
+                'focused': False, # FIXME
+                'scrollable': child.scrollable, 'long-clickable': child.long_clickable,
                 'password': child.password, 'selected': child.selected, 'bounds': bounds,
-                'uniqueId': unique_id}
+                'uniqueId': child.unique_id}
 
     def __processWindowHierarchyChild(self, node, idCount, version):
         if node.id != 'hierarchy':
+            # NOTE: we are extending WindowHierarchyChild adding unique_id
             node.unique_id = 'id/no_id/%d' % idCount
-            # FIXME: unique_id is not needed as a param
-            attributes = ViewClient.__attributesFromWindowHierarchyChild(node.unique_id, node)
+            attributes = ViewClient.__attributesFromWindowHierarchyChild(node)
             view = View.factory(attributes, self.device, version=version, uiAutomatorHelper=self.uiAutomatorHelper)
             self.views.append(view)
             idCount += 1
@@ -3345,16 +3349,6 @@ class ViewClient:
             root = self.root
 
         return ViewClient.__traverse(root, indent, transform, stream)
-
-    #         if not root:
-    #             return
-    #
-    #         s = transform(root)
-    #         if s:
-    #             print >>stream, "%s%s" % (indent, s)
-    #
-    #         for ch in root.children:
-    #             self.traverse(ch, indent=indent+"   ", transform=transform, stream=stream)
 
     @staticmethod
     def __traverse(root, indent="", transform=View.__str__, stream=sys.stdout):
@@ -4007,9 +4001,12 @@ class ViewClient:
         if self.uiAutomatorHelper:
             if selector:
                 if DEBUG_UI_AUTOMATOR_HELPER:
-                    print("Touching View by selector=%s through UiAutomatorHelper" % (selector), file=sys.stderr)
+                    print("Touching View by selector=%s through UiAutomatorHelper" % selector, file=sys.stderr)
                 # FIXME: is `selector` a `bySlector`?
-                self.uiAutomatorHelper.findObject(bySelector=selector).click()
+                object_ref = self.uiAutomatorHelper.findObject(by_selector=selector)
+                if DEBUG_UI_AUTOMATOR_HELPER:
+                    print("♦️ object_ref=%s" % object_ref, file=sys.stderr)
+                self.uiAutomatorHelper.click(oid=object_ref.oid)
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print("Touching (%d, %d) through UiAutomatorHelper" % (x, y), file=sys.stderr)
@@ -4886,7 +4883,10 @@ class CulebraTestCase(unittest.TestCase):
         ser = ['-s', '--serialno']
         old = '%(failfast)'
         new = '  %s s The serial number[s] to connect to or \'all\'\n%s' % (', '.join(ser), old)
-        unittest.TestProgram.USAGE = unittest.TestProgram.USAGE.replace(old, new)
+        try:
+            unittest.TestProgram.USAGE = unittest.TestProgram.USAGE.replace(old, new)
+        except AttributeError as ex:
+            print(ex, file=sys.stderr)
         argsToRemove = []
         i = 0
         while i < len(sys.argv):
