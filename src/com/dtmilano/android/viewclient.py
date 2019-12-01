@@ -787,7 +787,7 @@ class View:
         if DEBUG_COORDS:
             print("getCoords(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId()), file=sys.stderr)
 
-        (x, y) = self.getXY();
+        (x, y) = self.getXY()
         w = self.getWidth()
         h = self.getHeight()
         return ((x, y), (x + w, y + h))
@@ -999,7 +999,7 @@ class View:
                     try:
                         object_ref = self.uiAutomatorHelper.findObject(by_selector=selector)
                         if DEBUG_UI_AUTOMATOR_HELPER:
-                            print("oid=%d" % object_ref.oid, file=sys.stderr)
+                            print("id=%d" % object_ref.oid, file=sys.stderr)
                             print("ignoring click delta to click View as UiObject", file=sys.stderr)
                         self.uiAutomatorHelper.click(oid=object_ref.oid)
                     except RuntimeError as e:
