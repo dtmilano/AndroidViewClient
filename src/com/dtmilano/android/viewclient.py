@@ -3274,9 +3274,9 @@ class ViewClient:
         bounds = ((int(child.bounds[0]), int(child.bounds[1])), (int(child.bounds[2]), int(child.bounds[3])))
         return {'index': child.index, 'text': child.text, 'resource-id': child.resource_id, 'class': child.clazz,
                 'package': child.package, 'content-desc': child.content_description, 'checkable': child.checkable,
-                'checked': False, # FIXME
+                'checked': child.checked,
                 'clickable': child.clickable, 'enabled': child.enabled, 'focusable': child.focusable,
-                'focused': False, # FIXME
+                'focused': child.focused,
                 'scrollable': child.scrollable, 'long-clickable': child.long_clickable,
                 'password': child.password, 'selected': child.selected, 'bounds': bounds,
                 'uniqueId': child.unique_id}
