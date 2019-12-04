@@ -167,24 +167,50 @@ class Timer:
         pass
 
 
+def connect(hostname, port, timeout=TIMEOUT):
+    """
+    Connect to ADB server.
+    :param hostname: the hostname
+    :param port: the port
+    :param timeout: the timeout in seconds
+    :return:
+    """
+
+    if DEBUG:
+        print("AdbClient.connect(%s, %s, %s)" % (hostname, port, timeout), file=sys.stderr)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # SO_LINGER: Idea proposed by kysersozelee (#173)
+    l_onoff = 1
+    l_linger = 0
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER,
+                 struct.pack('ii', l_onoff, l_linger))
+    s.settimeout(timeout)
+    try:
+        s.connect((hostname, port))
+    except socket.error as ex:
+        raise RuntimeError("ERROR: Connecting to %s:%d: %s.\nIs adb running on your computer?" % (s, port, ex))
+    return s
+
+
 class AdbClient:
     UP = UP
     DOWN = DOWN
     DOWN_AND_UP = DOWN_AND_UP
 
     def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True,
-                 ignoreversioncheck=False, timeout=TIMEOUT):
+                 ignoreversioncheck=False, timeout=TIMEOUT, connect=connect):
         self.Log = AdbClient.__Log(self)
 
         self.serialno = serialno
         self.hostname = hostname
         self.port = port
         self.timeout = timeout
+        self.__connect = connect
         self.timerId = -1
         self.timers = {}
 
         self.reconnect = reconnect
-        self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
+        self.socket = connect(self.hostname, self.port, self.timeout)
 
         self.lock = threading.RLock()
 
@@ -247,23 +273,6 @@ class AdbClient:
     def setReconnect(self, val):
         self.reconnect = val
 
-    @staticmethod
-    def connect(hostname, port, timeout=TIMEOUT):
-        if DEBUG:
-            print("AdbClient.connect(%s, %s, %s)" % (hostname, port, timeout), file=sys.stderr)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # SO_LINGER: Idea proposed by kysersozelee (#173)
-        l_onoff = 1
-        l_linger = 0
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER,
-                     struct.pack('ii', l_onoff, l_linger))
-        s.settimeout(timeout)
-        try:
-            s.connect((hostname, port))
-        except socket.error as ex:
-            raise RuntimeError("ERROR: Connecting to %s:%d: %s.\nIs adb running on your computer?" % (s, port, ex))
-        return s
-
     def close(self):
         if DEBUG:
             print("Closing socket...", self.socket, file=sys.stderr)
@@ -300,7 +309,7 @@ class AdbClient:
         if reconnect:
             if DEBUG:
                 print("    __send: reconnecting", file=sys.stderr)
-            self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
+            self.socket = self.__connect(self.hostname, self.port, self.timeout)
             self.__setTransport()
 
     def __receive(self, nob=None, sock=None):
@@ -389,7 +398,7 @@ class AdbClient:
             raise RuntimeError(
                 "ERROR: Incorrect ADB server version %s (expecting one of %s)" % (version, VALID_ADB_VERSIONS))
         if reconnect:
-            self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
+            self.socket = self.__connect(self.hostname, self.port, self.timeout)
 
     def __setTransport(self, timeout=60):
         if DEBUG:
@@ -403,7 +412,7 @@ class AdbClient:
         if len(devices) == 0 and timeout > 0:
             print("Empty device list, will wait %s secs for devices to appear" % self.timeout, file=sys.stderr)
             # Sets the timeout to 5 to be able to loop while trying to receive new devices being added
-            _s = AdbClient.connect(self.hostname, self.port, timeout=5)
+            _s = self.__connect(self.hostname, self.port, timeout=5)
             msg = 'host:track-devices'
             b = bytearray(msg, 'utf-8')
             timerId = self.setTimer(timeout=timeout, description="setTransport")
@@ -500,7 +509,7 @@ class AdbClient:
         devices = []
         for line in self.__receive().splitlines():
             devices.append(Device.factory(line))
-        self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
+        self.socket = self.__connect(self.hostname, self.port, self.timeout)
         return devices
 
     def shell(self, _cmd=None, _convertOutputToString=True):
@@ -527,7 +536,7 @@ class AdbClient:
                     if DEBUG:
                         print("Reconnecting...", file=sys.stderr)
                     self.close()
-                    self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
+                    self.socket = self.__connect(self.hostname, self.port, self.timeout)
                     self.__setTransport()
                 if _convertOutputToString:
                     return b''.join(chunks).decode('utf-8')
@@ -853,7 +862,7 @@ class AdbClient:
                 print("    takeSnapshot: reading %d bytes" % size, file=sys.stderr)
             received = self.__receive(size)
             if reconnect:
-                self.socket = AdbClient.connect(self.hostname, self.port, self.timeout)
+                self.socket = self.__connect(self.hostname, self.port, self.timeout)
                 self.__setTransport()
             if DEBUG:
                 print("    takeSnapshot: Image.frombuffer(%s, %s, %s, %s, %s, %s, %s)" % (
