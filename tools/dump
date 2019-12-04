@@ -121,7 +121,7 @@ def usage(exitVal=1):
     sys.exit(exitVal)
 
 
-def help():
+def _help():
     print(USAGE % progname, file=sys.stderr)
     print(file=sys.stderr)
     print("Options:", file=sys.stderr)
@@ -164,7 +164,7 @@ transform = ViewClient.TRAVERSE_CIT
 for o, a in opts:
     o = o.strip('-')
     if o in ['H', HELP]:
-        help()
+        _help()
     elif o in ['V', VERBOSE]:
         kwargs1[VERBOSE] = True
     elif o in ['v', VERSION]:

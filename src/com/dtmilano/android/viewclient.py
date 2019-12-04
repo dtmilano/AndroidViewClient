@@ -2758,8 +2758,8 @@ class ViewClient:
 
     @staticmethod
     def connectToDeviceOrExit(timeout=60, verbose=False, ignoresecuredevice=False, ignoreversioncheck=False,
-                              serialno=None):
-        '''
+                              serialno=None, connect=adbclient.connect):
+        """
         Connects to a device which serial number is obtained from the script arguments if available
         or using the default regex C{.*}.
 
@@ -2782,9 +2782,11 @@ class ViewClient:
         @param ignoreversioncheck: Ignores the check for a supported ADB version
         @type serialno: str
         @param serialno: The device or emulator serial number
+        @type connect: function
+        @param connect: Connect method to use to connect to ADB
 
         @return: the device and serialno used for the connection
-        '''
+        """
         progname = os.path.basename(sys.argv[0])
         if serialno is None:
             # eat all the extra options the invoking script may have added
@@ -2803,7 +2805,7 @@ class ViewClient:
         ViewClient.setAlarm(timeout + 5)
         # NOTE: timeout is used for 2 different timeouts, the one to set the alarm to timeout the connection with
         # adb and the timeout used by adb (once connected) for the sockets
-        device = adbclient.AdbClient(serialno, ignoreversioncheck=ignoreversioncheck, timeout=timeout)
+        device = adbclient.AdbClient(serialno, ignoreversioncheck=ignoreversioncheck, timeout=timeout, connect=connect)
         ViewClient.setAlarm(0)
         if verbose:
             print('Connected to device with serialno=%s' % serialno, file=sys.stderr)
@@ -3283,6 +3285,7 @@ class ViewClient:
 
     def __processWindowHierarchyChild(self, node, idCount, version):
         if node.id != 'hierarchy':
+            # FIXME: as WindowHierarchyChild is generated we may need a descendant
             # NOTE: we are extending WindowHierarchyChild adding unique_id
             node.unique_id = 'id/no_id/%d' % idCount
             attributes = ViewClient.__attributesFromWindowHierarchyChild(node)
@@ -3656,7 +3659,12 @@ class ViewClient:
         if root == "ROOT":
             return self.findViewById(viewId, self.root, viewFilter)
 
-        if root.getId() == viewId:
+        try:
+            rootId = root.getId()
+        except AttributeError as ex:
+            rootId = root.id
+
+        if rootId == viewId:
             if viewFilter:
                 if viewFilter(root):
                     return root
@@ -3664,7 +3672,15 @@ class ViewClient:
                 return root
 
         if re.match('^id/no_id', viewId) or re.match('^id/.+/.+', viewId):
-            if root.getUniqueId() == viewId:
+            try:
+                unique_id = root.getUniqueId()
+            except AttributeError as ex:
+                try:
+                    unique_id = root.unique_id
+                except AttributeError as ex:
+                    unique_id = -1
+
+            if unique_id == viewId:
                 if viewFilter:
                     if viewFilter(root):
                         return root;

@@ -110,7 +110,7 @@ def shortAndLongOptions():
 
     short_opts = CulebraOptions.SHORT_OPTS.replace(':', '')
     if len(short_opts) != len(CulebraOptions.LONG_OPTS):
-        s = ""
+        _s = ""
         for i in range(max(len(short_opts), len(CulebraOptions.LONG_OPTS))):
             l = ''
             try:
@@ -122,9 +122,9 @@ def shortAndLongOptions():
                 L = CulebraOptions.LONG_OPTS[i]
             except IndexError:
                 pass
-            s += "%3s - %s\n" % (l, L)
+            _s += "%3s - %s\n" % (l, L)
         raise Exception('There is a mismatch between short and long options: short=%d, long=%d\n%s' %
-                        (len(short_opts), len(CulebraOptions.LONG_OPTS), s))
+                        (len(short_opts), len(CulebraOptions.LONG_OPTS), _s))
     t = tuple(short_opts) + tuple(CulebraOptions.LONG_OPTS)
     l2 = int(len(t) / 2)
     sl = []
@@ -259,9 +259,11 @@ def printFindViewWithText(view, useregexp, op=Operation.ASSIGN, arg=None):
     @param view: the View
     '''
 
-    text = view.text
-    if callable(text):
-        text = text()
+    if isinstance(view, View):
+        text = view.getText()
+    else:
+        text = view.text
+
     isUnicode = isinstance(text, str)
     if isUnicode and sys.stdout.encoding is None:
         warnings.warn('''\
@@ -348,7 +350,11 @@ def printFindViewWithContentDescription(view, useregexp, op=Operation.ASSIGN, ar
     @param view: the View
     '''
 
-    contentDescription = view.content_description
+    if isinstance(view, View):
+        contentDescription = view.getContentDescription()
+    else:
+        contentDescription = view.content_description
+
     if contentDescription:
         var = variableNameFromIdOrKey(view)
         if useregexp:
@@ -430,8 +436,12 @@ def printFindViewById(view, op=Operation.ASSIGN, arg=None):
     @param view: the View
     '''
 
+    if isinstance(view, View):
+        _id = view.getId() or view.getUniqueId()
+    else:
+        _id = view.resource_id or view.unique_id
+
     var = variableNameFromIdOrKey(view)
-    _id = view.id if view.id else view.unique_id
     if op == Operation.ASSIGN:
         if options[CulebraOptions.MULTI_DEVICE]:
             logAction('finding view with id=%s on ${serialno}' % _id)
@@ -1397,25 +1407,21 @@ else:
         print('''
 kwargs1 = %s
 device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
-''' % kwargs1, end=' ')
+''' % kwargs1)
 
     if options[CulebraOptions.START_ACTIVITY] and not options[CulebraOptions.UNIT_TEST_METHOD]:
-        print('''\
-device.startActivity(component='%s')''' % options[CulebraOptions.START_ACTIVITY])
+        print('''device.startActivity(component='%s')''' % options[CulebraOptions.START_ACTIVITY])
 
     if not options[CulebraOptions.UNIT_TEST_METHOD]:
-        print('''\
-kwargs2 = %s
+        print('''kwargs2 = %s
 vc = ViewClient(device, serialno, **kwargs2)
-#vc.dump(window=%s) # FIXME: seems not needed
-''' % (kwargs2, getWindowOption()))
+''' % (kwargs2))
 
         if options[CulebraOptions.USE_DICTIONARY]:
             print('''views = dict()''')
 
         if options[CulebraOptions.SAVE_SCREENSHOT]:
-            print('''\
-vc.writeImageToFile('%s', 'PNG', %s, %s, %s)
+            print('''vc.writeImageToFile('%s', 'PNG', %s, %s, %s)
 ''' % (options[CulebraOptions.SAVE_SCREENSHOT], options[CulebraOptions.DEVICE_ART], options[CulebraOptions.DROP_SHADOW],
        options[CulebraOptions.SCREEN_GLARE]))
 
