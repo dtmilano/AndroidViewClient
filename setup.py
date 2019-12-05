@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='androidviewclient',
-      version='20.0.0',
+      version='20.0.0b1',
       description='''AndroidViewClient is a 100% pure python library and tools
         that simplifies test script creation providing higher level
         operations and the ability of obtaining the tree of Views present at
@@ -19,7 +19,7 @@ setup(name='androidviewclient',
       package_data={'':['*.png']},
       include_package_data=True,
       scripts=['tools/culebra', 'tools/dump'],
-      classifiers=['Development Status :: 5 - Production/Stable',
+      classifiers=['Development Status :: 4 - Beta'
                  'Intended Audience :: Developers',
                  'License :: OSI Approved :: Apache Software License'],
       install_requires=['setuptools', 'requests', 'numpy', 'matplotlib', 'culebratester-client'],

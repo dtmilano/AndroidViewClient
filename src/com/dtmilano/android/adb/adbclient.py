@@ -26,7 +26,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '20.0.0'
+__version__ = '20.0.0b1'
 
 import sys
 import warnings
@@ -314,7 +314,7 @@ class AdbClient:
 
     def __receive(self, nob=None, sock=None):
         if DEBUG:
-            print("__receive(nob=%s)" % nob, file=sys.stderr)
+            print("🟨 __receive(nob=%s)" % nob, file=sys.stderr)
         if not sock:
             sock = self.socket
         self.checkConnected(sock)
@@ -323,23 +323,25 @@ class AdbClient:
             if nob is None:
                 nob = int(sock.recv(4), 16)
             if DEBUG:
-                print("    __receive: receiving", nob, "bytes", file=sys.stderr)
+                print("🟨    __receive: receiving", nob, "bytes", file=sys.stderr)
             recv = bytearray(nob)
-            view = memoryview(recv)
+            mview = memoryview(recv)
             nr = 0
             while nr < nob:
-                l = sock.recv_into(view, len(view))
+                l = sock.recv_into(mview, len(mview))
                 if DEBUG:
-                    print("l=", l, "nr=", nr, file=sys.stderr)
-                    print("timer=", self.timers[timerId], file=sys.stderr)
-                view = view[l:]
+                    print("🟨    __receive: recv_into(mview, %d):" % len(mview), file=sys.stderr)
+                    print("🟨    __receive: l=", l, "nr=", nr, file=sys.stderr)
+                    print("🟨    __receive: timer=", self.timers[timerId], file=sys.stderr)
+                mview = mview[l:]
                 nr += l
                 if self.timers[timerId] == 'EXPIRED':
                     raise Timer.TimeoutException('%d EXPIRED' % timerId)
         finally:
             self.cancelTimer(timerId)
         if DEBUG:
-            print("    __receive: returning len=", len(recv), file=sys.stderr)
+            print("🟨    __receive: returning len=", len(recv), file=sys.stderr)
+            print("🟨    __receive: '%s'" % repr(recv), file=sys.stderr)
         return recv
 
     def __checkOk(self, sock=None):
@@ -356,7 +358,7 @@ class AdbClient:
             self.cancelTimer(timerId)
 
         if DEBUG:
-            print("    __checkOk: recv=", repr(recv), file=sys.stderr)
+            print("    __checkOk: recv(4)=", repr(recv), file=sys.stderr)
 
         timerId = self.setTimer(timeout=self.timeout, description="checkOK")
         try:
@@ -527,6 +529,7 @@ class AdbClient:
                     chunk = None
                     try:
                         chunk = self.socket.recv(4096)
+                        print('🟣 chunk=%s' % chunk)
                     except Exception as ex:
                         print("ERROR:", ex, file=sys.stderr)
                     if not chunk:
