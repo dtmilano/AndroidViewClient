@@ -5,15 +5,16 @@ eval $(grep version setup.py | sed 's/,$//')
 tag="v$version"
 git tag "$tag" || printf 'WARNING: tag "%s" already exists\n' "$tag"
 git push --tags
-#python2.7 setup.py clean build --executable='/usr/bin/env python2.7' bdist_egg bdist_wheel --universal
-python setup.py clean build --executable='/usr/bin/env python' bdist_egg bdist_wheel --universal
-# let's use pyenv's twine, installed by pip
-twine=~/.pyenv/shims/twine
-set -x
-version_info=( $($twine --version 2>&1) )
-if [[ "${version_info[2]}" < "1.11" ]]
-then
-    printf '%s: ERROR: twine version > 1.11 required\n' "$(basename $0)"
-    exit 1
-fi
-$twine upload dist/androidviewclient-${version}-*
+printf 'Now Github Actions should follow\n'
+##python2.7 setup.py clean build --executable='/usr/bin/env python2.7' bdist_egg bdist_wheel --universal
+#python setup.py clean build --executable='/usr/bin/env python' bdist_egg bdist_wheel --universal
+## let's use pyenv's twine, installed by pip
+#twine=~/.pyenv/shims/twine
+#set -x
+#version_info=( $($twine --version 2>&1) )
+#if [[ "${version_info[2]}" < "1.11" ]]
+#then
+#    printf '%s: ERROR: twine version > 1.11 required\n' "$(basename $0)"
+#    exit 1
+#fi
+#$twine upload dist/androidviewclient-${version}-*
