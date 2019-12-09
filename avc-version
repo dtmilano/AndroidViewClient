@@ -50,11 +50,11 @@ case "$1" in
             echo "<<< $f >>>"
             case "$(uname)" in
                 Darwin)
-                    sed -E -i '' -e "s@$version_str \'[0-9r.]+\'@$version_str \'$version\'@" $f
+                    sed -E -i '' -e "s@$version_str \'[0-9abr.]+\'@$version_str \'$version\'@" $f
                     ;;
 
                 Linux)
-                    sed -E -i -e "s@$version_str '[0-9r.]+'@$version_str '$version'@" $f
+                    sed -E -i -e "s@$version_str '[0-9abr.]+'@$version_str '$version'@" $f
                     ;;
             esac
         done
@@ -62,11 +62,11 @@ case "$1" in
         echo "<<< setup.py >>>"
         case "$(uname)" in
             Darwin)
-                sed -E -i '' -e "s@version='[0-9r.]+'@version='$version'@" setup.py
+                sed -E -i '' -e "s@version='[0-9abr.]+'@version='$version'@" setup.py
                 ;;
 
             Linux)
-                sed -E -i -e "s@version='[0-9r.]+'@version='$version'@" setup.py
+                sed -E -i -e "s@version='[0-9abr.]+'@version='$version'@" setup.py
                 ;;
         esac
         ;;

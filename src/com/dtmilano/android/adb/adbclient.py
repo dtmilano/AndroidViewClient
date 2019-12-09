@@ -26,7 +26,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '20.0.0b1'
+__version__ = '20.0.0b2'
 
 import sys
 import warnings
@@ -529,7 +529,8 @@ class AdbClient:
                     chunk = None
                     try:
                         chunk = self.socket.recv(4096)
-                        print('🟣 chunk=%s' % chunk)
+                        if DEBUG:
+                            print('🟣 chunk=%s' % chunk)
                     except Exception as ex:
                         print("ERROR:", ex, file=sys.stderr)
                     if not chunk:

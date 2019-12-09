@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.0.0b1'
+__version__ = '20.0.0b2'
 
 import json
 import os
@@ -227,7 +227,8 @@ class UiAutomatorHelper:
         if not (('x' in params and 'y' in params) or 'oid' in params):
             raise RuntimeError('longClick: (x, y) or oid must have a value')
         if 'oid' in params:
-            return self.__httpCommand('/UiObject2/%d/longClick' % params['oid'])
+            oid = int(params['oid'])
+            return self.api_instance.ui_object2_oid_long_click_get(oid)
         else:
             return self.__httpCommand('/UiDevice/longClick', params)
 

@@ -24,7 +24,7 @@ import json
 
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '20.0.0b1'
+__version__ = '20.0.0b2'
 
 import sys
 import warnings
@@ -1039,12 +1039,17 @@ class View:
         @param duration: duration in ms
         '''
 
-        (x, y) = self.getCenter()
         if self.uiAutomatorHelper:
-            self.uiAutomatorHelper.swipe(startX=x, startY=y, endX=x, endY=y, steps=200)
+            # FIXME: is `selector` a `bySlector`?
+            object_ref = self.uiAutomatorHelper.findObject(by_selector=self.obtainSelectorForView())
+            if DEBUG_UI_AUTOMATOR_HELPER:
+                print("♦️ object_ref=%s" % object_ref, file=sys.stderr)
+            self.uiAutomatorHelper.longClick(oid=object_ref.oid)
         else:
             # FIXME: get orientation
+            (x, y) = self.getCenter()
             self.device.longTouch(x, y, duration, orientation=-1)
+
 
     def allPossibleNamesWithColon(self, name):
         l = []
