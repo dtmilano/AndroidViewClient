@@ -16,8 +16,8 @@ It is a test framework for Android applications that:
     <li>Is written in python</li>
 </ul></ul>
 
-**🛎** |A new Kotlin backend is under development to provide more functionality and improve performance.<br>Take a look at [CulebraTester2](https://github.com/dtmilano/CulebraTester2-public) |
----|----------------------------------------------------------------|
+**🛎** |A new Kotlin backend is under development to provide more functionality and improve performance.<br>Take a look at [CulebraTester2](https://github.com/dtmilano/CulebraTester2-public) and 20.x.y-series prerelease. |
+---|----------------------------------------------------------------------------------------------|
 
 [![Latest Version](https://img.shields.io/pypi/v/androidviewclient.svg)](https://pypi.python.org/pypi/androidviewclient/)
 ![Pre-release](https://img.shields.io/github/v/release/dtmilano/AndroidViewClient?include_prereleases&label=prerelease)
