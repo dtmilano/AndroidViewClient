@@ -13,7 +13,7 @@ It is a test framework for Android applications that:
     <li>Supports running on multiple devices</li>
     <li>Provides simple control for high level operations like language change and activity start</li>
     <li>Supports all Android APIs</li>
-    <li>Is written in python</li>
+    <li>Is written in python (python 2.7 and python 3.6+ support in 20.x.y)</li>
 </ul></ul>
 
 **🛎** |A new Kotlin backend is under development to provide more functionality and improve performance.<br>Take a look at [CulebraTester2](https://github.com/dtmilano/CulebraTester2-public) and 20.x.y-series prerelease. |
