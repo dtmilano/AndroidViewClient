@@ -17,4 +17,4 @@ if len(sys.argv) < 2:
 
 filename = sys.argv.pop(1)
 device, serialno = ViewClient.connectToDeviceOrExit(verbose=False)
-device.takeSnapshot().save(filename, 'PNG')
+device.takeSnapshot(reconnect=True).save(filename, 'PNG')
