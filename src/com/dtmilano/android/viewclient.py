@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2019  Diego Torres Milano
+Copyright (C) 2012-2020  Diego Torres Milano
 Created on Feb 2, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ import json
 
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '20.0.0b3'
+__version__ = '20.0.0b4'
 
 import sys
 import warnings
@@ -143,6 +143,8 @@ IP_DOMAIN_NAME_PORT_REGEX = r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[
                             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' \
                             r'(?::\d+)?' \
                             r'(?:/?|[/?]\S+)$'
+IPV6_RE = re.compile('^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$', re.IGNORECASE)
+IPV6_PORT_RE = re.compile(r'^\[(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}\]:\d+$', re.IGNORECASE)
 
 
 class ViewNotFoundException(Exception):
@@ -2710,6 +2712,15 @@ class ViewClient:
         ipPortRE = re.compile(IP_DOMAIN_NAME_PORT_REGEX, re.IGNORECASE)
 
         if ipPortRE.match(serialno):
+            # nothing to map
+            return serialno
+
+        if IPV6_RE.match(serialno):
+            if DEBUG_DEVICE: print("ViewClient: adding default port to serialno", serialno, ADB_DEFAULT_PORT,
+                                   file=sys.stderr)
+            return '[' + serialno + ']:%d' % ADB_DEFAULT_PORT
+
+        if IPV6_PORT_RE.match(serialno):
             # nothing to map
             return serialno
 

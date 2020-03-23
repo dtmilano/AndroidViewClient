@@ -222,6 +222,9 @@ class UiAutomatorHelper:
     def findObject(self, **kwargs):
         return self.api_instance.ui_device_find_object_get(**kwargs)
 
+    def findObjects(self, **kwargs):
+        return self.api_instance.ui_device_find_objects_get(**kwargs)
+
     def longClick(self, **kwargs):
         params = kwargs
         if not (('x' in params and 'y' in params) or 'oid' in params):
@@ -278,21 +281,8 @@ class UiAutomatorHelper:
         params = {'eventCondition': eventCondition, 'timeout': timeout}
         return self.__httpCommand('/UiObject2/%d/clickAndWait' % uiObject2.oid, params)
 
-    def getText(self, uiObject=None):
-        # NOTICE: uiObject can receive UiObject or UiObject2
-        element = uiObject.__class__.__name__
-        _f = {'UiObject': '0x%x', 'UiObject2': '%d'}[element]
-        if uiObject:
-            path = ('/%s/' + _f + '/getText') % (element, uiObject.oid)
-        else:
-            raise ValueError("No uiObject or uiObject2 specified")
-        response = self.__httpCommand(path, None)
-        r = json.loads(response)
-        if r['status'] == 'OK':
-            if DEBUG:
-                print("UiAutomatorHelper: getText: returning", r['text'], file=sys.stderr)
-            return r['text']
-        raise RuntimeError("Error: " + response)
+    def getText(self, oid):
+        return self.api_instance.ui_object2_oid_get_text_get(oid)
 
     def isChecked(self, uiObject=None):
         # This path works for UiObject and UiObject2, so there's no need to handle both cases differently
