@@ -1044,10 +1044,19 @@ class AdbClient:
         """
 
         self.__checkTransport()
-        screenOnRE = re.compile('mScreenOnFully=(true|false)')
-        m = screenOnRE.search(self.shell('dumpsys window policy'))
+        window_policy = self.shell('dumpsys window policy')
+        
+        screenOnRE = re.compile('mScreenOnFully=(true|false)')  # Removed in Android 10 API 29
+        m = screenOnRE.search(window_policy)
         if m:
             return m.group(1) == 'true'
+
+        # Re-introduced in Android 9 API 28 (previously was '0' for off '2' for on)
+        screenStateRE = re.compile('screenState=(SCREEN_STATE_OFF|SCREEN_STATE_ON)')
+        m = screenStateRE.search(window_policy)
+        if m:
+            return m.group(1) == 'SCREEN_STATE_ON'
+
         raise RuntimeError("Couldn't determine screen ON state")
 
     def unlock(self):
