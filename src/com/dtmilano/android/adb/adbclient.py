@@ -1045,17 +1045,18 @@ class AdbClient:
 
         self.__checkTransport()
         window_policy = self.shell('dumpsys window policy')
-        
-        screenOnRE = re.compile('mScreenOnFully=(true|false)')  # Removed in Android 10 API 29
+              
+        # Deprecated in API 20, removed in API 29
+        screenOnRE = re.compile('mScreenOnFully=(true|false)')
         m = screenOnRE.search(window_policy)
         if m:
             return m.group(1) == 'true'
 
-        # Re-introduced in Android 9 API 28 (previously was '0' for off '2' for on)
-        screenStateRE = re.compile('screenState=(SCREEN_STATE_OFF|SCREEN_STATE_ON)')
+        # Added in API 20
+        screenStateRE = re.compile('interactiveState=(INTERACTIVE_STATE_AWAKE|INTERACTIVE_STATE_SLEEP)')
         m = screenStateRE.search(window_policy)
         if m:
-            return m.group(1) == 'SCREEN_STATE_ON'
+            return m.group(1) == 'INTERACTIVE_STATE_AWAKE'
 
         raise RuntimeError("Couldn't determine screen ON state")
 
