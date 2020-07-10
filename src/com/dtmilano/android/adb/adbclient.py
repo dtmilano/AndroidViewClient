@@ -1044,10 +1044,20 @@ class AdbClient:
         """
 
         self.__checkTransport()
+        window_policy = self.shell('dumpsys window policy')
+              
+        # Deprecated in API 20, removed in API 29
         screenOnRE = re.compile('mScreenOnFully=(true|false)')
-        m = screenOnRE.search(self.shell('dumpsys window policy'))
+        m = screenOnRE.search(window_policy)
         if m:
             return m.group(1) == 'true'
+
+        # Added in API 20
+        screenStateRE = re.compile('interactiveState=(INTERACTIVE_STATE_AWAKE|INTERACTIVE_STATE_SLEEP)')
+        m = screenStateRE.search(window_policy)
+        if m:
+            return m.group(1) == 'INTERACTIVE_STATE_AWAKE'
+
         raise RuntimeError("Couldn't determine screen ON state")
 
     def unlock(self):
