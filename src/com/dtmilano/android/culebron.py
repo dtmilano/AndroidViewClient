@@ -1086,9 +1086,6 @@ This is usually installed by python package. Check your distribution details.
                 changed = True
                 break
         if changed:
-            self.window.geometry('%dx%d' % (self.device.display['width'] * self.scale,
-                                            self.device.display['height'] * self.scale + int(
-                                                self.statusBar.winfo_height())))
             self.deleteVignette()
             self.canvas.destroy()
             self.canvas = None
