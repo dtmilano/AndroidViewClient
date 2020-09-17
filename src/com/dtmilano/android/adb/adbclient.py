@@ -1337,13 +1337,12 @@ class AdbClient:
 
     def getTopActivityNameAndPid(self):
         dat = self.shell('dumpsys activity top')
-        lines = dat.splitlines()
         activityRE = re.compile('\s*ACTIVITY ([A-Za-z0-9_.]+)/([A-Za-z0-9_.\$]+) \w+ pid=(\d+)')
-        m = activityRE.search(lines[1])
-        if m:
-            return m.group(1), m.group(2), m.group(3)
+        m = activityRE.findall(dat)
+        if len(m) > 0:
+            return m[-1]
         else:
-            warnings.warn("NO MATCH:" + lines[1])
+            warnings.warn("NO MATCH:" + dat)
             return None
 
     def getTopActivityName(self):
