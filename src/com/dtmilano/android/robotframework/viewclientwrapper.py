@@ -18,7 +18,7 @@ limitations under the License.
 @author: Diego Torres Milano
 '''
 
-__version__ = '20.0.0b4'
+__version__ = '20.0.0b5'
 __author__ = 'diego'
 
 import sys
