@@ -3316,7 +3316,7 @@ class ViewClient:
             print("__parseTreeFromUiAutomatorDump(", receivedXml[:40], "...)", file=sys.stderr)
         parser = UiAutomator2AndroidViewClient(self.device, self.build[VERSION_SDK_PROPERTY], self.uiAutomatorHelper)
         try:
-            start_xml_index = receivedXml.index("<")
+            start_xml_index = receivedXml.index("<?xml")
             end_xml_index = receivedXml.rindex(">")
         except ValueError:
             raise ValueError("received does not contain valid XML: " + receivedXml)
