@@ -4362,6 +4362,9 @@ On OSX install
         else:
             return subprocess.check_call([self.adb, "-s", self.serialno, "install", "-r", apk], shell=False)
 
+    def uninstallPackage(self, package):
+        return subprocess.check_call([self.adb, "-s", self.serialno, "uninstall", package], shell=False)
+
     @staticmethod
     def writeViewImageToFileInDir(view):
         '''
