@@ -775,6 +775,10 @@ class MockDevice(object):
         if m:
             return self.uiAutomatorDump[self.language]
 
+        m = re.match('^cp /dev/null /sdcard/window_dump.xml.', cmd)
+        if m:
+            return self.uiAutomatorDump[self.language]
+
     def getProperty(self, property):
         if property == 'ro.serialno':
             return self.serialno

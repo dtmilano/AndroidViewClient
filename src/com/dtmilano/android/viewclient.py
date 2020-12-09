@@ -41,7 +41,6 @@ import subprocess
 import re
 import socket
 import os
-import types
 import time
 import signal
 import copy
@@ -3874,7 +3873,7 @@ class ViewClient:
             print("ERROR: no root, did you forget to call dump()?", file=sys.stderr)
             return matchingViews
 
-        if type(root) == types.StringType and root == "ROOT":
+        if isinstance(root, str) and root == "ROOT":
             root = self.root
 
         if DEBUG:
