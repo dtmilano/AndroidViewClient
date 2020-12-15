@@ -2773,7 +2773,8 @@ class ViewClient:
 
     @staticmethod
     def connectToDeviceOrExit(timeout=60, verbose=False, ignoresecuredevice=False, ignoreversioncheck=False,
-                              serialno=None, connect=adbclient.connect):
+                              serialno=None, adbhostname=adbclient.HOSTNAME, adbport=adbclient.PORT,
+                              connect=adbclient.connect):
         """
         Connects to a device which serial number is obtained from the script arguments if available
         or using the default regex C{.*}.
@@ -2820,7 +2821,13 @@ class ViewClient:
         ViewClient.setAlarm(timeout + 5)
         # NOTE: timeout is used for 2 different timeouts, the one to set the alarm to timeout the connection with
         # adb and the timeout used by adb (once connected) for the sockets
-        device = adbclient.AdbClient(serialno, ignoreversioncheck=ignoreversioncheck, timeout=timeout, connect=connect)
+        device = adbclient.AdbClient(
+            serialno,
+            hostname=adbhostname,
+            port=adbport,
+            ignoreversioncheck=ignoreversioncheck,
+            timeout=timeout,
+            connect=connect)
         ViewClient.setAlarm(0)
         if verbose:
             print('Connected to device with serialno=%s' % serialno, file=sys.stderr)
