@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2013-2019  Diego Torres Milano
+Copyright (C) 2013-2021  Diego Torres Milano
 Created on Mar 28, 2013
 
 Culebra helps you create AndroidViewClient scripts generating a working template that can be
