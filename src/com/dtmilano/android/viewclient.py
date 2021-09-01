@@ -4219,7 +4219,7 @@ class ViewClient:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print("Taking screenshot using UiAutomatorHelper", file=sys.stderr)
             received = self.uiAutomatorHelper.takeScreenshot()
-            stream = io.StringIO(received)
+            stream = io.BytesIO(received.read())
             try:
                 from PIL import Image
                 image = Image.open(stream)
