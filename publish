@@ -1,17 +1,22 @@
 #! /bin/bash
 
 set -e
+blue=$(tput setaf 32)
+sgr0=$(tput sgr0)
 eval $(grep version setup.py | sed 's/,$//')
 tag="v$version"
 git tag "$tag" || printf 'WARNING: tag "%s" already exists\n' "$tag"
 git push --tags
 printf 'Next steps:\n'
 printf '1. Create new release on Github using tag=%s title=%s\n' "v$version" "v$version"
+printf '    url: %s%s%s\n' "${blue}" 'https://github.com/dtmilano/AndroidViewClient/releases/new' "${sgr0}"
+printf '\n'
 OLDIFS="$IFS"
 IFS=$'\n' changelog=( $(git-log-from-last-tag) )
 IFS="$OLDIFS"
 for l in "${changelog[@]}"
 do
-    printf '\t%s\n' "$l"
+    printf '%s\n' "$l"
 done
+printf '\n'
 printf '2. Github Actions kicks off automatically to release new version\n'
