@@ -774,9 +774,30 @@ class AdbClient:
         else:
             raise RuntimeError("longpress: not supported for API < 19 (version=%d)" % version)
 
-    def startActivity(self, component=None, flags=None, uri=None):
+    def resolveActivity(self, package):
+        version = self.getSdkVersion()
+        if version < 24:
+            raise RuntimeError(f'resolve-activity: not supported for API < 24 (version={version})')
+        cmd = f'cmd package resolve-activity --brief {package}'
+        lines = self.shell(cmd).splitlines()
+        if len(lines) != 2:
+            raise RuntimeError(f'resolve-activity: cannot resolve activity for package {package}')
+        return lines[1]
+
+    def startActivity(self, component=None, flags=None, uri=None, package=None):
+        """
+        Starts an Activity.
+        If package is specified instead of component the corresponding MAIN activity for the package
+        will be resolved and used.
+        """
         self.__checkTransport()
         cmd = 'am start'
+        if package and not component:
+            version = self.getSdkVersion()
+            if version >= 24:
+                component = self.resolveActivity(package)
+            else:
+                component = self.dumpsys(Dumpsys.PACKAGE, package).package['main-activity']
         if component:
             cmd += ' -n %s' % component
         if flags:
@@ -1367,8 +1388,8 @@ class AdbClient:
         }
         return string.Template(template).substitute(_map)
 
-    def dumpsys(self, subcommand, args):
-        return Dumpsys(self, subcommand, args)
+    def dumpsys(self, subcommand, *args):
+        return Dumpsys(self, subcommand, *args)
 
 
 if __name__ == '__main__':

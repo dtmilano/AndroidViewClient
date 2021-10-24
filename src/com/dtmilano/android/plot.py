@@ -161,6 +161,7 @@ class Plot:
                 raise RuntimeError("No values to plot")
         elif _type == Dumpsys.FRAMESTATS:
             if DEBUG:
+                print("    plot: numpy version {} (should be > 1.8)".format(np.__version__), file=sys.stderr)
                 print("    plot: histogram {}".format(self.aava[Dumpsys.FRAMESTATS]), file=sys.stderr)
             n, bins, patches = plt.hist(self.aava[Dumpsys.FRAMESTATS])
             ymax = np.amax(n)

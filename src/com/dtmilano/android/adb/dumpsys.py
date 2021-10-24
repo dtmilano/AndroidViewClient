@@ -1,12 +1,12 @@
-'''
-Copyright (C) 2012-2018  Diego Torres Milano
+"""
+Copyright (C) 2012-2021  Diego Torres Milano
 Created on Dec 1, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+       https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Diego Torres Milano
-'''
+"""
 
 from __future__ import print_function
 
@@ -34,7 +34,8 @@ class Dumpsys:
     MEMINFO = 'meminfo'
     RESET = 'reset'
 
-    ACTIVITIES = 'activities'
+    ACTIVITY = 'activity'
+    PACKAGE = 'package'
     TOTAL = 'total'
     VIEW_ROOT_IMPL = 'viewRootImpl'
     VIEWS = 'views'
@@ -44,11 +45,13 @@ class Dumpsys:
     FRAME_COMPLETED = 13
 
     def __init__(self, adbclient, subcommand, *args):
+        self.out = None
         self.nativeHeap = -1
         self.dalvikHeap = -1
         self.total = 0
         self.views = -1
-        self.activities = -1
+        self.activity = -1
+        self.package = dict()
         self.appContexts = -1
         self.viewRootImpl = -1
         self.gfxProfileData = []
@@ -85,37 +88,57 @@ class Dumpsys:
                 self.parseGfxinfoFramestats(out)
             else:
                 self.parseGfxinfo(out)
-        elif '-l':
+        elif subcommand == Dumpsys.ACTIVITY:
+            self.activity = out
+        elif subcommand == Dumpsys.PACKAGE:
+            if len(args) > 0 and Dumpsys.isPackageName(args[0]):
+                self.parsePackage(out)
+            else:
+                self.package['out'] = out
+        elif subcommand == '-l':
             # list dumpsys subcommands
-            return out
+            self.out = out
         else:
-            pass
+            self.out = out
+
+    @staticmethod
+    def isPackageName(name):
+        return re.search(r'\S+\.\S+.*', name)
+
+    def parsePackage(self, out):
+        lines = out.splitlines()
+        for i in range(len(lines)):
+            if re.match(r'\s*Non-Data Actions:', lines[i]):
+                if re.match(r'\s*android.intent.action.MAIN:', lines[i + 1]):
+                    a = lines[i + 2].split()
+                    if len(a) >= 4:
+                        self.package['main-activity'] = a[1]
 
     def parseMeminfo(self, out):
-        m = re.search('Native Heap[ \t]*(\d+)', out, re.MULTILINE)
+        m = re.search(r'Native Heap[ \t]*(\d+)', out, re.MULTILINE)
         if m:
             self.nativeHeap = int(m.group(1))
-        m = re.search('Dalvik Heap[ \t]*(\d+)', out, re.MULTILINE)
+        m = re.search(r'Dalvik Heap[ \t]*(\d+)', out, re.MULTILINE)
         if m:
             self.dalvikHeap = int(m.group(1))
-        m = re.search('Views:[ \t]*(\d+)', out, re.MULTILINE)
+        m = re.search(r'Views:[ \t]*(\d+)', out, re.MULTILINE)
         if m:
             self.views = int(m.group(1))
-        m = re.search('Activities:[ \t]*(\d+)', out, re.MULTILINE)
+        m = re.search(r'Activities:[ \t]*(\d+)', out, re.MULTILINE)
         if m:
-            self.activities = int(m.group(1))
-        m = re.search('AppContexts:[ \t]*(\d+)', out, re.MULTILINE)
+            self.activity = int(m.group(1))
+        m = re.search(r'AppContexts:[ \t]*(\d+)', out, re.MULTILINE)
         if m:
             self.appContexts = int(m.group(1))
-        m = re.search('ViewRootImpl:[ \t]*(\d+)', out, re.MULTILINE)
+        m = re.search(r'ViewRootImpl:[ \t]*(\d+)', out, re.MULTILINE)
         if m:
             self.viewRootImpl = int(m.group(1))
 
-        m = re.search('TOTAL[ \t]*(\d+)', out, re.MULTILINE)
+        m = re.search(r'TOTAL[ \t]*(\d+)', out, re.MULTILINE)
         if m:
             self.total = int(m.group(1))
         else:
-            raise RuntimeError('Cannot find TOTAL in "' + out + '"')
+            raise RuntimeError(f'Cannot find TOTAL in "{out}"')
 
     def parseGfxinfo(self, out):
         pass
@@ -134,8 +157,8 @@ class Dumpsys:
                         continue
                     pda = s.split(',')
                     if pda[Dumpsys.FLAGS] == 'Flags':
-                        if pda[Dumpsys.INTENDED_VSYNC] != 'IntendedVsync' and pda[
-                                Dumpsys.FRAME_COMPLETED] != 'FrameCompleted':
+                        if pda[Dumpsys.INTENDED_VSYNC] != 'IntendedVsync' and \
+                                pda[Dumpsys.FRAME_COMPLETED] != 'FrameCompleted':
                             raise RuntimeError('Unsupported gfxinfo version')
                         continue
                     if pda[Dumpsys.FLAGS] == '0':
