@@ -29,6 +29,8 @@ __version__ = '20.2.0'
 import sys
 import warnings
 
+from com.dtmilano.android.adb.adbclient import AdbClient
+
 if sys.executable:
     if 'monkeyrunner' in sys.executable:
         warnings.warn(
@@ -50,7 +52,7 @@ import xml.parsers.expat
 import unittest
 import io
 from com.dtmilano.android.common import _nd, _nh, _ns, obtainPxPy, obtainVxVy, \
-    obtainVwVh, obtainAdbPath
+    obtainVwVh, obtainAdbPath, substituteDeviceTemplate
 from com.dtmilano.android.window import Window
 from com.dtmilano.android.adb import adbclient
 from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper
@@ -800,7 +802,7 @@ class View:
         @return: A tuple containing the View's coordinates (X, Y, W, H)
         '''
 
-        (x, y) = self.getXY();
+        (x, y) = self.getXY()
         w = self.getWidth()
         h = self.getHeight()
         return (x, y, w, h)
@@ -810,6 +812,8 @@ class View:
         Gets the View bounds
         '''
 
+        if isinstance(self, WindowHierarchyChild):
+            return self.bounds
         if 'bounds' in self.map:
             return self.map['bounds']
         else:
@@ -1135,7 +1139,7 @@ class View:
         if not os.path.isabs(filename):
             raise ValueError("writeImageToFile expects an absolute path (fielname='%s')" % filename)
         if os.path.isdir(filename):
-            filename = os.path.join(filename, self.variableNameFromId() + '.' + _format.lower())
+            filename = os.path.join(filename, View.variableNameFromId(self) + '.' + _format.lower())
         if DEBUG:
             print("writeImageToFile: saving image to '%s' in %s format" % (filename, _format), file=sys.stderr)
         # self.device.takeSnapshot().getSubImage(self.getPositionAndSize()).writeToFile(filename, _format)
@@ -1147,13 +1151,15 @@ class View:
         box = (l, t, r, b)
         if DEBUG:
             print("writeImageToFile: cropping", box, "    reconnect=", self.device.reconnect, file=sys.stderr)
+        if box == (0, 0, 0, 0):
+            return
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print("Taking screenshot using UiAutomatorHelper", file=sys.stderr)
             received = self.uiAutomatorHelper.takeScreenshot()
             stream = io.StringIO(received)
             try:
-                from PIL import Image
+                from pillow import Image
                 image = Image.open(stream)
             except ImportError as ex:
                 # FIXME: this method should be global
@@ -2541,11 +2547,19 @@ class ViewClient:
         self.uiAutomatorHelper = None
         ''' The UiAutomatorHelper '''
 
+        if useuiautomatorhelper:
+            self.useUiAutomator = True
+            self.uiAutomatorHelper = UiAutomatorHelper(device)
+            # we might return here if all the dependencies to `adb` commands were removed when uiAutomatorHelper is used
+            #return
+
         self.debug = debug
         if debug:
             if 'DEVICE' in debug:
                 global DEBUG_DEVICE
                 DEBUG_DEVICE = debug['DEVICE']
+                if DEBUG_DEVICE:
+                    print("ViewClient: using device with serialno", self.serialno, file=sys.stderr)
             if 'RECEIVED' in debug:
                 global DEBUG_RECEIVED
                 DEBUG_RECEIVED = debug['RECEIVED']
@@ -2555,8 +2569,6 @@ class ViewClient:
             if 'UI_AUTOMATOR_HELPER' in debug:
                 global DEBUG_UI_AUTOMATOR_HELPER
                 DEBUG_UI_AUTOMATOR_HELPER = debug['UI_AUTOMATOR_HELPER']
-
-        if DEBUG_DEVICE: print("ViewClient: using device with serialno", self.serialno, file=sys.stderr)
 
         if adb:
             if not os.access(adb, os.X_OK):
@@ -2666,12 +2678,10 @@ class ViewClient:
 
         # FIXME: may not be true, one may want UiAutomator but without UiAutomatorHelper
         if self.useUiAutomator:
-            if useuiautomatorhelper:
-                self.uiAutomatorHelper = UiAutomatorHelper(device)
-            else:
+            if not useuiautomatorhelper:
                 # culebratester Intrumentation running prevents `uiautomator dump` from working correctly, then if we are not
                 # using UiAutomatorHelper let's kill it, just in case
-                self.device.shell('am force-stop com.dtmilano.android.culebratester')
+                self.device.shell('am force-stop com.dtmilano.android.culebratester2')
 
         self.uiDevice = UiDevice(self)
         ''' The L{UiDevice} '''
@@ -4207,7 +4217,11 @@ class ViewClient:
         @param _format: Image format (default format is PNG)
         '''
 
-        filename = self.device.substituteDeviceTemplate(filename)
+        # FIXME: if we try to use uiAutomatorHelper only we don't have device
+        if isinstance(self.device, AdbClient):
+            filename = self.device.substituteDeviceTemplate(filename)
+        else:
+            filename = substituteDeviceTemplate(filename)
         if not os.path.isabs(filename):
             raise ValueError("writeImageToFile expects an absolute path (filename='%s')" % filename)
         if os.path.isdir(filename):
@@ -4814,6 +4828,12 @@ class CulebraTestCase(unittest.TestCase):
                 sys.argv.remove(otherarg)
             except:
                 pass
+
+        if self.kwargs2.get('useuiautomatorhelper'):
+            # FIXME: we could find better alternatives for device and serialno when UiAutomatorHelper is used
+            # Searialno could be obtained form UiAutomatorHelper too.
+            self.vc = ViewClient("UI_AUTOMATOR_HELPER_DEVICE", "UI_AUTOMATOR_HELPER_SERIALNO", **self.kwargs2)
+            return
 
         if self.serialno:
             # serialno can be 1 serialno, multiple serialnos, 'all' or 'default'

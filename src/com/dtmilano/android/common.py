@@ -205,3 +205,9 @@ def debugArgsToDict(a):
     s = s.replace('=', ':')
     s = re.sub(r'([A-Z][A-Z_]+)', r"'\1'", s)
     return ast.literal_eval('{ ' + s + ' }')
+
+
+def substituteDeviceTemplate(filename):
+    # FIXME: do replacement as ViewClient.substituteDeviceTemplate but not depending on AdbClient as it is used by
+    # UiAutomatorHelper
+    return filename

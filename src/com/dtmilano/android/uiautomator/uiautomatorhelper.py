@@ -260,11 +260,12 @@ class UiAutomatorHelper:
             params = {'segments': ','.join(str(p) for p in segments), "segmentSteps": segmentSteps}
         else:
             raise RuntimeError(
-                "Cannot determine method invocation from provided parameters. startX and startY or segments must be provided.")
+                "Cannot determine method invocation from provided parameters. startX and startY or segments must be "
+                "provided.")
         return self.__httpCommand('/UiDevice/swipe', params)
 
-    def takeScreenshot(self, scale=1.0, quality=90):
-        return self.api_instance.ui_device_screenshot_get(scale=scale, quality=quality)
+    def takeScreenshot(self, scale=1.0, quality=90, **kwargs):
+        return self.api_instance.ui_device_screenshot_get(scale=scale, quality=quality, **kwargs)
 
     def waitForIdle(self, timeout):
         params = {'timeout': timeout}
