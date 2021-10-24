@@ -1,22 +1,46 @@
 #! /bin/bash
 
+set -u
 set -e
+
+dry_run=
+if [[ "$1" == '-n' || "$1" == '--dry-run' ]]
+then
+    dry_run=echo
+fi
+
+generate_release_notes() {
+    OLDIFS="$IFS"
+    IFS=$'\n' changelog=( $(git-log-from-last-tag) )
+    IFS="$OLDIFS"
+    for l in "${changelog[@]}"
+    do
+        [[ "$l" == 'Bump' ]] && continue
+        printf '%s\n' "$l"
+    done
+}
+
 blue=$(tput setaf 32)
 sgr0=$(tput sgr0)
 eval $(grep version setup.py | sed 's/,$//')
 tag="v$version"
-git tag "$tag" || printf 'WARNING: tag "%s" already exists\n' "$tag"
-git push --tags
-printf 'Next steps:\n'
-printf '1. Create new release on Github using tag=%s title=%s\n' "v$version" "v$version"
-printf '    url: %s%s%s\n' "${blue}" 'https://github.com/dtmilano/AndroidViewClient/releases/new' "${sgr0}"
-printf '\n'
-OLDIFS="$IFS"
-IFS=$'\n' changelog=( $(git-log-from-last-tag) )
-IFS="$OLDIFS"
-for l in "${changelog[@]}"
-do
-    printf '%s\n' "$l"
-done
-printf '\n'
-printf '2. Github Actions kicks off automatically to release new version\n'
+title="v$version"
+$dry_run git tag "$tag" || printf 'WARNING: tag "%s" already exists\n' "$tag"
+$dry_run git push --tags
+if which -s gh
+then
+    release_notes=$(mktemp)
+    generate_release_notes > "$release_notes"
+    $dry_run gh release create --title "$title" --notes-file "$release_notes" "$tag"
+    printf '\nNext steps:\n'
+    step=1
+else
+    printf '\nNext steps:\n'
+    printf '1. Create new release on Github using tag=%s title=%s\n' "$tag" "$title"
+    printf '    url: %s%s%s\n' "${blue}" 'https://github.com/dtmilano/AndroidViewClient/releases/new' "${sgr0}"
+    printf '\n'
+    generate_release_notes
+    step=2
+fi
+
+printf '%d. Github Actions kicks off automatically to release new version\n' "$step"
