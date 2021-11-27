@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.4.0'
+__version__ = '20.4.1'
 
 import json
 import os
@@ -231,12 +231,12 @@ class UiAutomatorHelper:
         def __init__(self, uiAutomatorHelper) -> None:
             super().__init__(uiAutomatorHelper)
 
-        def get_display_real_size(self):
+        def display_real_size(self):
             """
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
             :return: the display real size
             """
-            return self.uiAutomatorHelper.api_instance.device_display_real_size()
+            return self.uiAutomatorHelper.api_instance.device_display_real_size_get()
 
     def getDisplayRealSize(self):
         """
