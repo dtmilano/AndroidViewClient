@@ -24,7 +24,7 @@ import json
 
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '20.3.0'
+__version__ = '20.4.0'
 
 import sys
 import warnings
