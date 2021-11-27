@@ -4,7 +4,7 @@ set -u
 set -e
 
 dry_run=
-if [[ "$1" == '-n' || "$1" == '--dry-run' ]]
+if [[ "${1:-}" == '-n' || "${1:-}" == '--dry-run' ]]
 then
     dry_run=echo
 fi
