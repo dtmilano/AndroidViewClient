@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-'''
-Copyright (C) 2012-2019  Diego Torres Milano
+"""
+Copyright (C) 2012-2021  Diego Torres Milano
 Created on Feb 2, 2015
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Diego Torres Milano
-'''
+"""
 
 from __future__ import print_function
 
@@ -31,6 +31,8 @@ import sys
 import threading
 
 import time
+from abc import ABC
+
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
 import culebratester_client
@@ -53,7 +55,7 @@ class RunTestsThread(threading.Thread):
         self.adbClient = adbClient
         self.testClass = testClass
         self.testRunner = testRunner
-        self.pkg = re.sub('\.test$', '', self.testClass)
+        self.pkg = re.sub('\\.test$', '', self.testClass)
 
     def run(self):
         if DEBUG:
@@ -71,7 +73,7 @@ class RunTestsThread(threading.Thread):
         if DEBUG:
             print("\nFinished test.", file=sys.stderr)
         errmsg = out.splitlines()[-1]
-        m = re.match('ERROR: (\d+)', errmsg)
+        m = re.match('ERROR: (\\d+)', errmsg)
         if m:
             exitval = int(m.group(1))
             if exitval != 0:
@@ -120,6 +122,10 @@ class UiAutomatorHelper:
         print('⚠️ CulebraTester2 server should have been started and port redirected.', file=sys.stderr)
         # TODO: localport should be in ApiClient configuration
         self.api_instance = culebratester_client.DefaultApi(culebratester_client.ApiClient())
+        self.device = UiAutomatorHelper.Device(self)
+        self.target_context = UiAutomatorHelper.TargetContext(self)
+        self.object_store = UiAutomatorHelper.ObjectStore(self)
+        self.ui_device = UiAutomatorHelper.UiDevice(self)
 
     def __connectSession(self):
         if DEBUG:
@@ -128,7 +134,7 @@ class UiAutomatorHelper:
         if DEBUG:
             print("UiAutomatorHelper: Lock acquired", file=sys.stderr)
             print("UiAutomatorHelper: Connecting session", file=sys.stderr)
-        session = requests.Session()
+        session = None  # requests.Session()
         if not session:
             raise RuntimeError("Cannot create session")
         tries = 10
@@ -141,7 +147,7 @@ class UiAutomatorHelper:
                 response = session.head(self.baseUrl)
                 if response.status_code == 200:
                     break
-            except requests.exceptions.ConnectionError as ex:
+            except:  # requests.exceptions.ConnectionError as ex:
                 tries -= 1
         lock.release()
         if tries == 0:
@@ -185,12 +191,6 @@ class UiAutomatorHelper:
         raise RuntimeError("this method should not be used")
 
     #
-    # Device
-    #
-    def getDisplayRealSize(self):
-        return self.api_instance.device_display_real_size_get()
-
-    #
     # UiAutomatorHelper internal commands
     #
     def quit(self):
@@ -202,9 +202,220 @@ class UiAutomatorHelper:
         pass
 
     #
+    # API Base
+    #
+    class ApiBase(ABC):
+
+        def __init__(self, uiAutomatorHelper) -> None:
+            super().__init__()
+            self.uiAutomatorHelper = uiAutomatorHelper
+
+        def intersection(self, l1, l2):
+            return list(set(l1) & set(l2))
+
+        def some(self, l1, l2):
+            return len(self.intersection(l1, l2)) > 0
+
+        def all(self, l1, l2):
+            li = len(self.intersection(l1, l2))
+            return li == len(l1) and li == len(l2)
+
+    #
+    # Device
+    #
+    class Device(ApiBase):
+        """
+        Device
+        """
+
+        def __init__(self, uiAutomatorHelper) -> None:
+            super().__init__(uiAutomatorHelper)
+
+        def get_display_real_size(self):
+            """
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return: the display real size
+            """
+            return self.uiAutomatorHelper.api_instance.device_display_real_size()
+
+    def getDisplayRealSize(self):
+        """
+        :deprecated: use uiAutomatorHelper.device.get_display_real_size()
+        :return: the display real size
+        """
+        return self.api_instance.device_display_real_size_get()
+
+    #
+    # TargetContext
+    #
+    class TargetContext(ApiBase):
+        """
+        Target Context.
+        """
+
+        def __init__(self, uiAutomatorHelper) -> None:
+            super().__init__(uiAutomatorHelper)
+
+        def start_activity(self, pkg, cls):
+            """
+            Starts an activity.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param pkg: the package
+            :param cls: the Activity class
+            :return: the api response
+            """
+            return self.uiAutomatorHelper.api_instance.target_context_start_activity_get(pkg, cls)
+
+    #
+    # ObjectStore
+    #
+    class ObjectStore(ApiBase):
+        """
+        Object Store.
+        """
+
+        def __init__(self, uiAutomatorHelper) -> None:
+            super().__init__(uiAutomatorHelper)
+
+        def list(self):
+            """
+            List the objects.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return: the list of objects
+            """
+            return self.uiAutomatorHelper.api_instance.object_store_list_get()
+
+    #
     # UiDevice
     #
+    class UiDevice(ApiBase):
+        """
+        UI Device.
+        """
+
+        def __init__(self, uiAutomatorHelper) -> None:
+            super().__init__(uiAutomatorHelper)
+
+        def click(self, **kwargs):
+            """
+            Clicks.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param kwargs:
+            :return:
+            """
+            if self.all(['x', 'y'], kwargs):
+                x = int(kwargs['x'])
+                y = int(kwargs['y'])
+                return self.uiAutomatorHelper.api_instance.ui_device_click_get(x=x, y=y)
+            else:
+                raise ValueError('click: (x, y) must have a value')
+
+        def dump_window_hierarchy(self, _format='JSON'):
+            """
+            Dumps the window hierarchy.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param _format:
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_dump_window_hierarchy_get(format=_format)
+
+        def find_object(self, **kwargs):
+            """
+            Finds an object.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param kwargs:
+            :return:
+            """
+            if self.some(['resource_id', 'ui_selector', 'by_selector'], kwargs):
+                return self.uiAutomatorHelper.api_instance.ui_device_find_object_get(**kwargs)
+            body = culebratester_client.Selector(**kwargs)
+            return self.uiAutomatorHelper.api_instance.ui_device_find_object_post(body)
+
+        def find_objects(self, **kwargs):
+            """
+            Finds objects.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param kwargs:
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_find_objects_get(**kwargs)
+
+        def press_back(self):
+            """
+            Presses BACK.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_press_back_get()
+
+        def press_home(self):
+            """
+            Presses HOME.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_press_home_get()
+
+        def press_key_code(self, key_code, meta_state=0):
+            """
+            Presses a key code.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param key_code:
+            :param meta_state:
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_press_key_code_get(key_code=key_code,
+                                                                                    meta_state=meta_state)
+
+        def swipe(self, **kwargs):
+            """
+            Swipes.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param kwargs:
+            :return:
+            """
+            if self.all(['start_x', 'start_y', 'end_x', 'end_y', 'steps'], kwargs):
+                return self.uiAutomatorHelper.api_instance.ui_device_swipe_get(**kwargs)
+            body = culebratester_client.Body(**kwargs)
+            return self.uiAutomatorHelper.api_instance.ui_device_swipe_post(body)
+
+        def take_screenshot(self, scale=1.0, quality=90, **kwargs):
+            """
+            Takes screenshot.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param scale:
+            :param quality:
+            :param kwargs:
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_screenshot_get(scale=scale, quality=quality, **kwargs)
+
+        def wait_for_idle(self, **kwargs):
+            """
+            Waits for idle.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param kwargs:
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_wait_for_idle_get(**kwargs)
+
     def click(self, **kwargs):
+        """
+        :deprecated:
+        :param kwargs:
+        :return:
+        """
         params = kwargs
         if not (('x' in params and 'y' in params) or 'oid' in params):
             raise RuntimeError('click: (x, y) or oid must have a value')
@@ -217,15 +428,27 @@ class UiAutomatorHelper:
             return self.api_instance.ui_device_click_get(x=x, y=y)
 
     def dumpWindowHierarchy(self):
+        """
+        :deprecated:
+        """
         return self.api_instance.ui_device_dump_window_hierarchy_get(format='JSON')
 
     def findObject(self, **kwargs):
+        """
+        :deprecated:
+        """
         return self.api_instance.ui_device_find_object_get(**kwargs)
 
     def findObjects(self, **kwargs):
+        """
+        :deprecated:
+        """
         return self.api_instance.ui_device_find_objects_get(**kwargs)
 
     def longClick(self, **kwargs):
+        """
+        :deprecated:
+        """
         params = kwargs
         if not (('x' in params and 'y' in params) or 'oid' in params):
             raise RuntimeError('longClick: (x, y) or oid must have a value')
@@ -236,24 +459,45 @@ class UiAutomatorHelper:
             return self.__httpCommand('/UiDevice/longClick', params)
 
     def openNotification(self):
+        """
+        :deprecated:
+        """
         return self.__httpCommand('/UiDevice/openNotification')
 
     def openQuickSettings(self):
+        """
+        :deprecated:
+        """
         return self.__httpCommand('/UiDevice/openQuickSettings')
 
     def pressBack(self):
+        """
+        :deprecated:
+        """
         return self.api_instance.ui_device_press_back_get()
 
     def pressHome(self):
+        """
+        :deprecated:
+        """
         return self.api_instance.ui_device_press_home_get()
 
     def pressKeyCode(self, keyCode, metaState=0):
+        """
+        :deprecated:
+        """
         return self.api_instance.ui_device_press_key_code_get(key_code=keyCode, meta_state=metaState)
 
     def pressRecentApps(self):
+        """
+        :deprecated:
+        """
         return self.__httpCommand('/UiDevice/pressRecentApps')
 
     def swipe(self, startX=-1, startY=-1, endX=-1, endY=-1, steps=10, segments=[], segmentSteps=5):
+        """
+        :deprecated:
+        """
         if startX != -1 and startY != -1:
             params = {'startX': startX, 'startY': startY, 'endX': endX, 'endY': endY, 'steps': steps}
         elif segments:
@@ -265,9 +509,15 @@ class UiAutomatorHelper:
         return self.__httpCommand('/UiDevice/swipe', params)
 
     def takeScreenshot(self, scale=1.0, quality=90, **kwargs):
+        """
+        :deprecated:
+        """
         return self.api_instance.ui_device_screenshot_get(scale=scale, quality=quality, **kwargs)
 
     def waitForIdle(self, timeout):
+        """
+        :deprecated:
+        """
         params = {'timeout': timeout}
         return self.api_instance.ui_device_wait_for_idle_get(**params)
 
