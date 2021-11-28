@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.4.1'
+__version__ = '20.4.2'
 
 import json
 import os
@@ -333,7 +333,7 @@ class UiAutomatorHelper:
             if self.some(['resource_id', 'ui_selector', 'by_selector'], kwargs):
                 return self.uiAutomatorHelper.api_instance.ui_device_find_object_get(**kwargs)
             body = culebratester_client.Selector(**kwargs)
-            return self.uiAutomatorHelper.api_instance.ui_device_find_object_post(body)
+            return self.uiAutomatorHelper.api_instance.ui_device_find_object_post(body=body)
 
         def find_objects(self, **kwargs):
             """
@@ -386,7 +386,7 @@ class UiAutomatorHelper:
             if self.all(['start_x', 'start_y', 'end_x', 'end_y', 'steps'], kwargs):
                 return self.uiAutomatorHelper.api_instance.ui_device_swipe_get(**kwargs)
             body = culebratester_client.Body(**kwargs)
-            return self.uiAutomatorHelper.api_instance.ui_device_swipe_post(body)
+            return self.uiAutomatorHelper.api_instance.ui_device_swipe_post(body=body)
 
         def take_screenshot(self, scale=1.0, quality=90, **kwargs):
             """
