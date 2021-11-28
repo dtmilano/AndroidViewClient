@@ -25,6 +25,10 @@ sgr0=$(tput sgr0)
 eval $(grep version setup.py | sed 's/,$//')
 tag="v$version"
 title="v$version"
+if which -s gh-token
+then
+    gh-token
+fi
 $dry_run git tag "$tag" || printf 'WARNING: tag "%s" already exists\n' "$tag"
 $dry_run git push --tags
 if which -s gh
