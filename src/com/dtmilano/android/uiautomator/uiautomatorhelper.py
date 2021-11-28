@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.4.2'
+__version__ = '20.4.3'
 
 import json
 import os
@@ -385,7 +385,7 @@ class UiAutomatorHelper:
             """
             if self.all(['start_x', 'start_y', 'end_x', 'end_y', 'steps'], kwargs):
                 return self.uiAutomatorHelper.api_instance.ui_device_swipe_get(**kwargs)
-            body = culebratester_client.Body(**kwargs)
+            body = culebratester_client.SwipeBody(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_swipe_post(body=body)
 
         def take_screenshot(self, scale=1.0, quality=90, **kwargs):
@@ -398,7 +398,7 @@ class UiAutomatorHelper:
             :param kwargs:
             :return:
             """
-            return self.uiAutomatorHelper.api_instance.ui_device_screenshot_get(scale=scale, quality=quality, **kwargs)
+            return self.uiAutomatorHelper.api_instance.ui_device_screenshot_get(scale=scale, quality=quality, _preload_content=False, **kwargs)
 
         def wait_for_idle(self, **kwargs):
             """

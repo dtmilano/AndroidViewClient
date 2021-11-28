@@ -22,5 +22,5 @@ setup(name='androidviewclient',
       classifiers=['Development Status :: 4 - Beta',
                  'Intended Audience :: Developers',
                  'License :: OSI Approved :: Apache Software License'],
-      install_requires=['setuptools', 'requests', 'numpy', 'matplotlib', 'culebratester-client >= 2.0.6'],
+      install_requires=['setuptools', 'requests', 'numpy', 'matplotlib', 'culebratester-client >= 2.0.12'],
       )
