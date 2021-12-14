@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.4.3'
+__version__ = '20.4.4'
 
 import json
 import os
@@ -29,13 +29,14 @@ import re
 import subprocess
 import sys
 import threading
-
 import time
 from abc import ABC
 
+import culebratester_client
+from culebratester_client import Text
+
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
-import culebratester_client
 
 __author__ = 'diego'
 
@@ -122,10 +123,11 @@ class UiAutomatorHelper:
         print('⚠️ CulebraTester2 server should have been started and port redirected.', file=sys.stderr)
         # TODO: localport should be in ApiClient configuration
         self.api_instance = culebratester_client.DefaultApi(culebratester_client.ApiClient())
-        self.device = UiAutomatorHelper.Device(self)
-        self.target_context = UiAutomatorHelper.TargetContext(self)
-        self.object_store = UiAutomatorHelper.ObjectStore(self)
-        self.ui_device = UiAutomatorHelper.UiDevice(self)
+        self.device: UiAutomatorHelper.Device = UiAutomatorHelper.Device(self)
+        self.target_context: UiAutomatorHelper.TargetContext = UiAutomatorHelper.TargetContext(self)
+        self.object_store: UiAutomatorHelper.ObjectStore = UiAutomatorHelper.ObjectStore(self)
+        self.ui_device: UiAutomatorHelper.UiDevice = UiAutomatorHelper.UiDevice(self)
+        self.ui_object2: UiAutomatorHelper.UiObject2 = UiAutomatorHelper.UiObject2(self)
 
     def __connectSession(self):
         if DEBUG:
@@ -158,7 +160,8 @@ class UiAutomatorHelper:
         # lock.release()
         return session
 
-    def __whichAdb(self, adb):
+    @staticmethod
+    def __whichAdb(adb):
         if adb:
             if not os.access(adb, os.X_OK):
                 raise Exception('adb="%s" is not executable' % adb)
@@ -210,7 +213,8 @@ class UiAutomatorHelper:
             super().__init__()
             self.uiAutomatorHelper = uiAutomatorHelper
 
-        def intersection(self, l1, l2):
+        @staticmethod
+        def intersection(l1, l2):
             return list(set(l1) & set(l2))
 
         def some(self, l1, l2):
@@ -240,7 +244,7 @@ class UiAutomatorHelper:
 
     def getDisplayRealSize(self):
         """
-        :deprecated: use uiAutomatorHelper.device.get_display_real_size()
+        :deprecated: use uiAutomatorHelper.device.display_real_size()
         :return: the display real size
         """
         return self.api_instance.device_display_real_size_get()
@@ -278,6 +282,14 @@ class UiAutomatorHelper:
         def __init__(self, uiAutomatorHelper) -> None:
             super().__init__(uiAutomatorHelper)
 
+        def clear(self):
+            """
+            Clears all the objects.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return: the status
+            """
+            return self.uiAutomatorHelper.api_instance.object_store_clear_get()
+
         def list(self):
             """
             List the objects.
@@ -285,6 +297,14 @@ class UiAutomatorHelper:
             :return: the list of objects
             """
             return self.uiAutomatorHelper.api_instance.object_store_list_get()
+
+        def remove(self, oid: int):
+            """
+            Removes an object.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return: the status
+            """
+            return self.uiAutomatorHelper.api_instance.object_store_remove_get(oid)
 
     #
     # UiDevice
@@ -398,7 +418,8 @@ class UiAutomatorHelper:
             :param kwargs:
             :return:
             """
-            return self.uiAutomatorHelper.api_instance.ui_device_screenshot_get(scale=scale, quality=quality, _preload_content=False, **kwargs)
+            return self.uiAutomatorHelper.api_instance.ui_device_screenshot_get(scale=scale, quality=quality,
+                                                                                _preload_content=False, **kwargs)
 
         def wait_for_idle(self, **kwargs):
             """
@@ -409,6 +430,74 @@ class UiAutomatorHelper:
             :return:
             """
             return self.uiAutomatorHelper.api_instance.ui_device_wait_for_idle_get(**kwargs)
+
+    #
+    # UiObject2
+    #
+    class UiObject2(ApiBase):
+        """
+        Inner UiObject2 class.
+
+        Notice that this class does not require an OID in its constructor.
+        """
+
+        def __init__(self, uiAutomatorHelper) -> None:
+            super().__init__(uiAutomatorHelper)
+
+        def clear(self, oid):
+            """
+            Clears the text content if this object is an editable field.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :return: the result of the operation
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object2_clear_get(oid=oid)
+
+        def click(self, oid):
+            """
+            Clicks on this object.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :return: the result of the operation
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object2_click_get(oid=oid)
+
+        def dump(self, oid):
+            """
+            Dumps the content of an object.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :return: the content
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object2_dump_get(oid=oid)
+
+        def get_text(self, oid):
+            """
+            Returns the text value for this object.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :return: the text
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object2_get_text_get(oid=oid)
+
+        def long_click(self, oid):
+            """
+            Performs a long click on this object.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :return: the result of the operation
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object2_long_click_get(oid=oid)
+
+        def set_text(self, oid, text):
+            """
+            Sets the text content if this object is an editable field.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :param text: the text
+            :return: the result of the operation
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object2_set_text_post(oid=oid, body=Text(text))
 
     def click(self, **kwargs):
         """
@@ -494,10 +583,12 @@ class UiAutomatorHelper:
         """
         return self.__httpCommand('/UiDevice/pressRecentApps')
 
-    def swipe(self, startX=-1, startY=-1, endX=-1, endY=-1, steps=10, segments=[], segmentSteps=5):
+    def swipe(self, startX=-1, startY=-1, endX=-1, endY=-1, steps=10, segments=None, segmentSteps=5):
         """
         :deprecated:
         """
+        if segments is None:
+            segments = []
         if startX != -1 and startY != -1:
             params = {'startX': startX, 'startY': startY, 'endX': endX, 'endY': endY, 'steps': steps}
         elif segments:
@@ -525,10 +616,21 @@ class UiAutomatorHelper:
     # UiObject2
     #
     def setText(self, oid, text):
+        """
+        :deprecated:
+        """
         body = {'text': text}
         return self.api_instance.ui_object2_oid_set_text_post(body, oid)
 
     def clickAndWait(self, uiObject2, eventCondition, timeout):
+        """
+
+        :deprecated:
+        :param uiObject2:
+        :param eventCondition:
+        :param timeout:
+        :return:
+        """
         params = {'eventCondition': eventCondition, 'timeout': timeout}
         return self.__httpCommand('/UiObject2/%d/clickAndWait' % uiObject2.oid, params)
 
@@ -536,8 +638,14 @@ class UiAutomatorHelper:
         return self.api_instance.ui_object2_oid_get_text_get(oid)
 
     def isChecked(self, uiObject=None):
+        """
+
+        :deprecated:
+        :param uiObject:
+        :return:
+        """
         # This path works for UiObject and UiObject2, so there's no need to handle both cases differently
-        path = '/UiObject/%d/isChecked' % (uiObject.oid)
+        path = '/UiObject/%d/isChecked' % uiObject.oid
         response = self.__httpCommand(path, None)
         r = json.loads(response)
         if r['status'] == 'OK':
@@ -571,6 +679,9 @@ class UiAutomatorHelper:
 
 
 class UiObject:
+    """
+    A UiObject is a representation of a view.
+    """
     def __init__(self, uiAutomatorHelper, oid, response):
         self.uiAutomatorHelper = uiAutomatorHelper
         self.oid = oid
@@ -596,32 +707,106 @@ class UiObject:
 
 
 class UiObject2:
-    def __init__(self, uiAutomatorHelper, oid):
+    """
+    A UiObject2 represents a UI element. Unlike UiObject, it is bound to a particular view instance and can become
+    stale.
+    """
+
+    def __init__(self, uiAutomatorHelper: UiAutomatorHelper, class_name: str, oid: int):
+        """
+        Constructor.
+
+        :param uiAutomatorHelper: the uiAutomatorHelper instance.
+        :param class_name: the class name of the UI object
+        :param oid: the object id
+        """
         self.uiAutomatorHelper = uiAutomatorHelper
+        self.class_name = class_name
         self.oid = oid
 
+    def clear(self):
+        """
+        Clears the text content if this object is an editable field.
+        :return: the result of the operation
+        """
+        return self.uiAutomatorHelper.ui_object2.clear(oid=self.oid)
+
     def click(self):
-        self.uiAutomatorHelper.click(oid=self.oid)
+        """
+        Clicks on this object.
+        :return: the result of the operation
+        """
+        return self.uiAutomatorHelper.ui_object2.click(oid=self.oid)
+
+    def dump(self):
+        """
+        Dumps the content of the object/
+        :return: the content of the object
+        """
+        return self.uiAutomatorHelper.ui_object2.dump(oid=self.oid)
+
+    def get_text(self):
+        """
+        Returns the text value for this object.
+        :return: the text
+        """
+        return self.uiAutomatorHelper.ui_object2.get_text(oid=self.oid)
+
+    def long_click(self):
+        """
+        Performs a long click on this object.
+        :return: the result of the operation
+        """
+        return self.uiAutomatorHelper.ui_object2.long_click(oid=self.oid)
+
+    def set_text(self, text):
+        """
+        Sets the text content if this object is an editable field.
+        :param text: the text
+        :return: the result of the operation
+        """
+        return self.uiAutomatorHelper.ui_object2.set_text(oid=self.oid, text=text)
 
     def clickAndWait(self, eventCondition, timeout):
+        """
+        :deprecated:
+        :param eventCondition:
+        :param timeout:
+        :return:
+        """
         self.uiAutomatorHelper.clickAndWait(uiObject2=self, eventCondition=eventCondition, timeout=timeout)
 
     def isChecked(self):
         """
 
+        :deprecated:
         :rtype: bool
         """
         return self.uiAutomatorHelper.isChecked(uiObject=self)
 
     def longClick(self):
+        """
+
+        :deprecated:
+        """
         self.uiAutomatorHelper.longClick(oid=self.oid)
 
     def getText(self):
+        """
+
+        :deprecated:
+        :return:
+        """
         # NOTICE: even if this is an uiObject2 we are invoking the only "getText" method in UiAutomatorHelper
         # passing the uiObject2 as uiObject
         return self.uiAutomatorHelper.getText(uiObject=self)
 
     def setText(self, text):
+        """
+
+        :deprecated:
+        :param text:
+        """
         # NOTICE: even if this is an uiObject2 we are invoking the only "setText" method in UiAutomatorHelper
         # passing the uiObject2 as uiObject
         self.uiAutomatorHelper.setText(uiObject=self, text=text)

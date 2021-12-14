@@ -2,4 +2,4 @@ setuptools
 requests
 numpy
 matplotlib
-culebratester-client
+culebratester-client>=2.0.17
