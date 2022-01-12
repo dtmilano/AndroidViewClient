@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-'''
-Copyright (C) 2012-2020  Diego Torres Milano
+"""
+Copyright (C) 2012-2022  Diego Torres Milano
 Created on Feb 2, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Diego Torres Milano
-'''
+"""
 
 from __future__ import print_function
 
@@ -24,7 +24,7 @@ import json
 
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '20.4.4'
+__version__ = '20.4.5'
 
 import sys
 import warnings
@@ -3694,7 +3694,10 @@ class ViewClient:
         try:
             rootId = root.getId()
         except AttributeError as ex:
-            rootId = root.id
+            try:
+                rootId = root.resource_id
+            except AttributeError as ex:
+                rootId = root.id
 
         if rootId == viewId:
             if viewFilter:
