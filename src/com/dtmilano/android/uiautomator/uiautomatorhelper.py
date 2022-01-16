@@ -33,7 +33,7 @@ import time
 from abc import ABC
 
 import culebratester_client
-from culebratester_client import Text
+from culebratester_client import Text, ObjectRef
 
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
@@ -128,6 +128,7 @@ class UiAutomatorHelper:
         self.object_store: UiAutomatorHelper.ObjectStore = UiAutomatorHelper.ObjectStore(self)
         self.ui_device: UiAutomatorHelper.UiDevice = UiAutomatorHelper.UiDevice(self)
         self.ui_object2: UiAutomatorHelper.UiObject2 = UiAutomatorHelper.UiObject2(self)
+        self.until: UiAutomatorHelper.Until = UiAutomatorHelper.Until(self)
 
     def __connectSession(self):
         if DEBUG:
@@ -421,6 +422,16 @@ class UiAutomatorHelper:
             return self.uiAutomatorHelper.api_instance.ui_device_screenshot_get(scale=scale, quality=quality,
                                                                                 _preload_content=False, **kwargs)
 
+        def wait(self, search_condition_ref: int, timeout=10000):
+            """
+
+            :param search_condition_ref: the search condition ref (oid)
+            :param timeout: the timeout in ms
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_wait_get(search_condition_ref=search_condition_ref,
+                                                                          timeout=timeout)
+
         def wait_for_idle(self, **kwargs):
             """
             Waits for idle.
@@ -498,6 +509,16 @@ class UiAutomatorHelper:
             :return: the result of the operation
             """
             return self.uiAutomatorHelper.api_instance.ui_object2_set_text_post(oid=oid, body=Text(text))
+
+    #
+    # Until
+    #
+    class Until(ApiBase):
+        def __init__(self, uiAutomatorHelper) -> None:
+            super().__init__(uiAutomatorHelper)
+
+        def find_object(self, by_selector: str) -> ObjectRef:
+            return self.uiAutomatorHelper.api_instance.until_find_object_get(by_selector=by_selector)
 
     def click(self, **kwargs):
         """
@@ -682,6 +703,7 @@ class UiObject:
     """
     A UiObject is a representation of a view.
     """
+
     def __init__(self, uiAutomatorHelper, oid, response):
         self.uiAutomatorHelper = uiAutomatorHelper
         self.oid = oid

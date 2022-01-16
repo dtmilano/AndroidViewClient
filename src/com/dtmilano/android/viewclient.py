@@ -24,7 +24,7 @@ import json
 
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '20.4.5'
+__version__ = '20.5.0'
 
 import sys
 import warnings
@@ -2701,8 +2701,6 @@ class ViewClient:
     def __del__(self):
         # should clean up some things
         if hasattr(self, 'uiAutomatorHelper') and self.uiAutomatorHelper:
-            if DEBUG or True:
-                print("Stopping UiAutomatorHelper...", file=sys.stderr)
             self.uiAutomatorHelper.quit()
 
     @staticmethod
@@ -2890,6 +2888,9 @@ class ViewClient:
         @return: the string containing class, id, and text if available
         '''
 
+        if type(view) == WindowHierarchy:
+            return ''
+
         try:
             eis = ''
             if extraInfo:
@@ -2907,11 +2908,11 @@ class ViewClient:
                 _str += ' '
                 _str += view.getText() if view.getText() else ''
             except AttributeError:
-                _str = view.clazz
-                _str += ' '
-                _str += '%s' % view.id
-                _str += ' '
-                _str += view.text
+                _str = f'{view.clazz}'
+                if view.resource_id:
+                    _str += f' {view.resource_id}'
+                if view.text:
+                    _str += f' {view.text}'
             if eis:
                 _str += eis
             return _str
@@ -3668,7 +3669,7 @@ class ViewClient:
             return self.windows
 
     def findViewById(self, viewId, root="ROOT", viewFilter=None):
-        '''
+        """
         Finds the View with the specified viewId.
 
         @type viewId: str
@@ -3683,7 +3684,11 @@ class ViewClient:
                            This can be C{None} and no extra filtering is applied.
 
         @return: the C{View} found or C{None}
-        '''
+        """
+
+        if self.uiAutomatorHelper:
+            # If we are using uiAutomatorHelper let's find object directly without traversing the tree
+            return self.uiAutomatorHelper.ui_device.find_object(by_selector=f'res@{viewId}')
 
         if not root:
             return None
@@ -3732,7 +3737,7 @@ class ViewClient:
                     return foundView
 
     def findViewByIdOrRaise(self, viewId, root="ROOT", viewFilter=None):
-        '''
+        """
         Finds the View or raise a ViewNotFoundException.
 
         @type viewId: str
@@ -3747,7 +3752,7 @@ class ViewClient:
                            This can be C{None} and no extra filtering is applied.
         @return: the View found
         @raise ViewNotFoundException: raise the exception if View not found
-        '''
+        """
 
         view = self.findViewById(viewId, root, viewFilter)
         if view:
@@ -3797,6 +3802,12 @@ class ViewClient:
         return matchingViews
 
     def __findViewWithAttributeInTree(self, attr, val, root):
+        if self.uiAutomatorHelper:
+            if attr == 'content-desc':
+                attr = 'desc'
+            by_selector = f'{attr}@{val}'
+            return self.uiAutomatorHelper.ui_device.find_object(by_selector=by_selector)
+
         if DEBUG:
             print("    __findViewWithAttributeInTree: type(val)=", type(val), file=sys.stderr)
             if type(val) != str and type(val) != re._pattern_type:
@@ -4856,6 +4867,8 @@ class CulebraTestCase(unittest.TestCase):
             for serialno in __devices:
                 device, serialno = ViewClient.connectToDeviceOrExit(serialno=serialno, **self.kwargs1)
                 if self.options[CulebraOptions.START_ACTIVITY]:
+                    # FIXME: we are not considering the uiAutomatorHelper case
+                    # see if in lines 4832..4836
                     device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
                 vc = ViewClient(device, serialno, **self.kwargs2)
                 connectedDevice = ConnectedDevice(serialno=serialno, device=device, vc=vc)
@@ -4873,6 +4886,8 @@ class CulebraTestCase(unittest.TestCase):
                 self.serialno = __devices[0]
             self.device, self.serialno = ViewClient.connectToDeviceOrExit(serialno=self.serialno, **self.kwargs1)
             if CulebraOptions.START_ACTIVITY in self.options and self.options[CulebraOptions.START_ACTIVITY]:
+                # FIXME: we are not considering the uiAutomatorHelper case
+                # see if in lines 4832..4836
                 self.device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
             self.vc = ViewClient(self.device, self.serialno, **self.kwargs2)
             # Set the default device, to be consistent with multi-devices case

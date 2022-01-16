@@ -1,0 +1,70 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Copyright (C) 2013-2019  Diego Torres Milano
+Created on 2022-01-15 by Culebra v20.4.5
+                      __    __    __    __
+                     /  \  /  \  /  \  /  \ 
+____________________/  __\/  __\/  __\/  __\_____________________________
+___________________/  /__/  /__/  /__/  /________________________________
+                   | / \   / \   / \   / \   \___
+                   |/   \_/   \_/   \_/   \    o \ 
+                                           \_____/--<
+@author: Diego Torres Milano
+@author: Jennifer E. Swofford (ascii art snake)
+"""
+
+from com.dtmilano.android.viewclient import ViewClient
+
+TAG = 'CULEBRA'
+
+kwargs1 = {'verbose': False}
+device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
+
+kwargs2 = {'useuiautomatorhelper': True, 'debug': {}}
+vc = ViewClient(device, serialno, **kwargs2)
+
+
+vc.uiAutomatorHelper.target_context.start_activity('com.google.android.calculator', 'com.android.calculator2.Calculator')
+
+com_android_systemui___id_status_bar_container = vc.findViewByIdOrRaise("com.android.systemui:id/status_bar_container")
+com_android_systemui___id_status_bar = vc.findViewByIdOrRaise("com.android.systemui:id/status_bar")
+com_android_systemui___id_status_bar_contents = vc.findViewByIdOrRaise("com.android.systemui:id/status_bar_contents")
+com_android_systemui___id_status_bar_contents_left = vc.findViewByIdOrRaise(
+    "com.android.systemui:id/status_bar_contents_left")
+com_android_systemui___id_status_bar_left_side = vc.findViewByIdOrRaise("com.android.systemui:id/status_bar_left_side")
+com_android_systemui___id_notification_icon_area = vc.findViewByIdOrRaise(
+    "com.android.systemui:id/notification_icon_area")
+com_android_systemui___id_notification_icon_area_inner = vc.findViewByIdOrRaise(
+    "com.android.systemui:id/notification_icon_area_inner")
+com_android_systemui___id_notificationIcons = vc.findViewByIdOrRaise("com.android.systemui:id/notificationIcons")
+
+com_android_systemui___id_system_icon_area = vc.findViewByIdOrRaise("com.android.systemui:id/system_icon_area")
+com_android_systemui___id_system_icons = vc.findViewByIdOrRaise("com.android.systemui:id/system_icons")
+com_android_systemui___id_statusIcons = vc.findViewByIdOrRaise("com.android.systemui:id/statusIcons")
+com_android_systemui___id_wifi_combo = vc.findViewByIdOrRaise("com.android.systemui:id/wifi_combo")
+com_android_systemui___id_wifi_group = vc.findViewByIdOrRaise("com.android.systemui:id/wifi_group")
+com_android_systemui___id_wifi_combo = vc.findViewByIdOrRaise("com.android.systemui:id/wifi_combo")
+com_android_systemui___id_wifi_signal = vc.findViewByIdOrRaise("com.android.systemui:id/wifi_signal")
+com_android_systemui___id_battery = vc.findViewByIdOrRaise("com.android.systemui:id/battery")
+com_google_android_calculator___id_action_bar_root = vc.findViewByIdOrRaise("com.google.android.calculator:id/action_bar_root")
+android___id_content = vc.findViewByIdOrRaise("android:id/content")
+com_google_android_calculator___id_main_calculator = vc.findViewByIdOrRaise("com.google.android.calculator:id/main_calculator")
+com_google_android_calculator___id_display = vc.findViewByIdOrRaise("com.google.android.calculator:id/display")
+com_google_android_calculator___id_toolbar = vc.findViewByIdOrRaise("com.google.android.calculator:id/toolbar")
+com_google_android_calculator___id_formula_container = vc.findViewByIdOrRaise("com.google.android.calculator:id/formula_container")
+com_google_android_calculator___id_formula_scroll_view = vc.findViewByIdOrRaise("com.google.android.calculator:id/formula_scroll_view")
+com_google_android_calculator___id_formula = vc.findViewByIdOrRaise("com.google.android.calculator:id/formula")
+com_google_android_calculator___id_result_container = vc.findViewByIdOrRaise("com.google.android.calculator:id/result_container")
+com_google_android_calculator___id_result_preview = vc.findViewByIdOrRaise("com.google.android.calculator:id/result_preview")
+com_google_android_calculator___id_result_preview = vc.findViewWithContentDescriptionOrRaise(u'''No result''')
+com_google_android_calculator___id_drag_handle_view = vc.findViewByIdOrRaise("com.google.android.calculator:id/drag_handle_view")
+com_google_android_calculator___id_op_sqrt = vc.findViewByIdOrRaise("com.google.android.calculator:id/op_sqrt")
+com_google_android_calculator___id_op_sqrt = vc.findViewWithTextOrRaise(u'√')
+com_google_android_calculator___id_op_sqrt = vc.findViewWithContentDescriptionOrRaise(u'''square root''')
+com_google_android_calculator___id_const_pi = vc.findViewByIdOrRaise("com.google.android.calculator:id/const_pi")
+com_google_android_calculator___id_const_pi = vc.findViewWithTextOrRaise(u'π')
+com_google_android_calculator___id_const_pi = vc.findViewWithContentDescriptionOrRaise(u'''pi''')
+com_google_android_calculator___id_op_pow = vc.findViewByIdOrRaise("com.google.android.calculator:id/op_pow")
+com_google_android_calculator___id_op_pow = vc.findViewWithTextOrRaise(u'^')
+com_google_android_calculator___id_op_pow = vc.findViewWithContentDescriptionOrRaise(u'''power''')
