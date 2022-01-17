@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.5.0'
+__version__ = '20.5.1'
 
 import json
 import os
@@ -471,7 +471,7 @@ class UiAutomatorHelper:
             :param oid: the oid
             :return: the result of the operation
             """
-            return self.uiAutomatorHelper.api_instance.ui_object2_click_get(oid=oid)
+            return self.uiAutomatorHelper.api_instance.ui_object2_oid_click_get(oid=oid)
 
         def dump(self, oid):
             """
