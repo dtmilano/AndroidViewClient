@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012-2021  Diego Torres Milano
+Copyright (C) 2012-2022  Diego Torres Milano
 Created on Feb 2, 2015
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.6.0'
+__version__ = '20.6.1'
 
 import json
 import os
@@ -482,8 +482,8 @@ class UiAutomatorHelper:
             :param timeout: the timeout
             :return: the status response
             """
-            return self.uiAutomatorHelper.api_instance.ui_oject2_oid_click_and_wait_get(oid, event_condition_ref,
-                                                                                        timeout=timeout)
+            return self.uiAutomatorHelper.api_instance.ui_object2_oid_click_and_wait_get(oid, event_condition_ref,
+                                                                                         timeout=timeout)
 
         def dump(self, oid):
             """

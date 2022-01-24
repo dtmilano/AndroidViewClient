@@ -45,13 +45,14 @@ from pkg_resources import Requirement, resource_filename
 
 try:
     import PIL
-    from PIL import Image, ImageTk
+    from PIL import Image
 
     PIL_AVAILABLE = True
 except:
     PIL_AVAILABLE = False
 
 try:
+    from PIL import ImageTk
     import tkinter
     import tkinter.simpledialog
     import tkinter.filedialog
