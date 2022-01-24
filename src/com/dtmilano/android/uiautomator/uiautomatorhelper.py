@@ -33,7 +33,7 @@ import time
 from abc import ABC
 
 import culebratester_client
-from culebratester_client import Text, ObjectRef
+from culebratester_client import Text, ObjectRef, StatusResponse
 
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
@@ -473,6 +473,18 @@ class UiAutomatorHelper:
             """
             return self.uiAutomatorHelper.api_instance.ui_object2_oid_click_get(oid=oid)
 
+        def click_and_wait(self, oid: int, event_condition_ref, timeout=10000) -> StatusResponse:
+            """
+            Clicks and wait.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :param event_condition_ref: the event condition
+            :param timeout: the timeout
+            :return: the status response
+            """
+            return self.uiAutomatorHelper.api_instance.ui_oject2_oid_click_and_wait_get(oid, event_condition_ref,
+                                                                                        timeout=timeout)
+
         def dump(self, oid):
             """
             Dumps the content of an object.
@@ -518,7 +530,22 @@ class UiAutomatorHelper:
             super().__init__(uiAutomatorHelper)
 
         def find_object(self, by_selector: str) -> ObjectRef:
+            """
+            Returns a SearchCondition that is satisfied when at least one element matching the selector can be found.
+            The condition will return the first matching element.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param by_selector: the selector
+            :return: the search condition reference
+            """
             return self.uiAutomatorHelper.api_instance.until_find_object_get(by_selector=by_selector)
+
+        def new_window(self) -> ObjectRef:
+            """
+            Returns a condition that depends on a new window having appeared.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return: the event condition reference
+            """
+            return self.uiAutomatorHelper.api_instance.until_new_window_get()
 
     def click(self, **kwargs):
         """

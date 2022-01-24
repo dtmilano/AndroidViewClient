@@ -11,7 +11,7 @@ vc = ViewClient(*ViewClient.connectToDeviceOrExit(), **{'useuiautomatorhelper': 
 
 search_condition_ref = vc.uiAutomatorHelper.until.find_object(by_selector='text@Answer').oid
 timeout = 30000
-print(f"Let's wait {timeout/1000} secs for an incoming call...")
+print(f"Let's wait {timeout / 1000} secs for an incoming call...")
 answer = vc.uiAutomatorHelper.ui_device.wait(search_condition_ref=search_condition_ref, timeout=timeout)
 if answer:
     vc.uiAutomatorHelper.ui_object2.click(answer.oid)
