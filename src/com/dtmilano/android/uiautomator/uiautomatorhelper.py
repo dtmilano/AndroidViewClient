@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.6.1'
+__version__ = '20.6.2'
 
 import json
 import os
@@ -501,7 +501,7 @@ class UiAutomatorHelper:
             :param oid: the oid
             :return: the text
             """
-            return self.uiAutomatorHelper.api_instance.ui_object2_get_text_get(oid=oid)
+            return self.uiAutomatorHelper.api_instance.ui_object2_oid_get_text_get(oid=oid)
 
         def long_click(self, oid):
             """
