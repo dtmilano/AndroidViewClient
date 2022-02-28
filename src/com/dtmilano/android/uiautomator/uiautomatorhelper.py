@@ -243,6 +243,13 @@ class UiAutomatorHelper:
             """
             return self.uiAutomatorHelper.api_instance.device_display_real_size_get()
 
+        def wait_for_new_toast(self, timeout=10000):
+            """
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return: the text in the Toast if found
+            """
+            return self.uiAutomatorHelper.api_instance.device_wait_for_new_toast_get(timeout=timeout)
+
     def getDisplayRealSize(self):
         """
         :deprecated: use uiAutomatorHelper.device.display_real_size()
