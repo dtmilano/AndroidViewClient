@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 '''
 Copyright (C) 2014  Diego Torres Milano
@@ -22,6 +22,6 @@ kwargs2 = {'startviewserver': True, 'forceviewserveruse': True, 'autodump': Fals
 vc = ViewClient(*ViewClient.connectToDeviceOrExit(**kwargs1), **kwargs2)
 windows = vc.list()
 for wId in windows.keys():
-    print ">>> window=", wId, windows[wId]
+    print(">>> window=", wId, windows[wId])
     vc.dump(window=wId)
     vc.traverse(transform=ViewClient.TRAVERSE_CITCD, indent="    ")
