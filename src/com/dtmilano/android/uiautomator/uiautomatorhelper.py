@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.7.0'
+__version__ = '20.7.1'
 
 import json
 import os
@@ -527,7 +527,7 @@ class UiAutomatorHelper:
             :param text: the text
             :return: the result of the operation
             """
-            return self.uiAutomatorHelper.api_instance.ui_object2_set_text_post(oid=oid, body=Text(text))
+            return self.uiAutomatorHelper.api_instance.ui_object2_oid_set_text_post(oid=oid, body=Text(text))
 
     #
     # Until
