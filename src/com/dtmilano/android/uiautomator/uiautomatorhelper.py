@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '20.7.1'
+__version__ = '20.8.0'
 
 import json
 import os
@@ -381,6 +381,15 @@ class UiAutomatorHelper:
             :return:
             """
             return self.uiAutomatorHelper.api_instance.ui_device_press_back_get()
+
+        def press_enter(self):
+            """
+            Presses ENTER.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_press_enter_get()
 
         def press_home(self):
             """
