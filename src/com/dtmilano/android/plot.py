@@ -31,7 +31,7 @@ from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '20.8.0'
+__version__ = '20.9.0'
 
 DEBUG = True
 
