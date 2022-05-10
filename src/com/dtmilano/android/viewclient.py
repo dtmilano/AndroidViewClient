@@ -24,7 +24,7 @@ import json
 
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '20.9.0'
+__version__ = '20.9.1'
 
 import sys
 import warnings
@@ -1204,7 +1204,7 @@ class View:
         # __str = str('', 'utf-8', 'replace')
         __str = ''
         if "class" in self.map:
-            __str += re.sub('.*\.', '', self.map['class'])
+            __str += re.sub('.*\\.', '', self.map['class'])
         _id = self.getId().replace('id/no_id/', '-')
         __str += _id
         ((L, T), (R, B)) = self.getCoords()
@@ -3433,7 +3433,7 @@ class ViewClient:
 
         if self.useUiAutomator:
             if self.uiAutomatorHelper:
-                received = self.uiAutomatorHelper.dumpWindowHierarchy()
+                received = self.uiAutomatorHelper.ui_device.dump_window_hierarchy()
             else:
                 api = self.getSdkVersion()
                 if api >= 24:
@@ -4246,7 +4246,7 @@ class ViewClient:
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print("Taking screenshot using UiAutomatorHelper", file=sys.stderr)
-            received = self.uiAutomatorHelper.takeScreenshot()
+            received = self.uiAutomatorHelper.ui_device.take_screenshot()
             stream = io.BytesIO(received.read())
             try:
                 from PIL import Image
