@@ -1055,7 +1055,6 @@ class View:
             (x, y) = self.getCenter()
             self.device.longTouch(x, y, duration, orientation=-1)
 
-
     def allPossibleNamesWithColon(self, name):
         l = []
         for _ in range(name.count("_")):
@@ -2551,7 +2550,7 @@ class ViewClient:
             self.useUiAutomator = True
             self.uiAutomatorHelper = UiAutomatorHelper(device)
             # we might return here if all the dependencies to `adb` commands were removed when uiAutomatorHelper is used
-            #return
+            # return
 
         self.debug = debug
         if debug:
@@ -2630,7 +2629,8 @@ class ViewClient:
 
         self.forceViewServerUse = forceviewserveruse
         ''' Force the use of ViewServer even if the conditions to use UiAutomator are satisfied '''
-        self.useUiAutomator = self.uiAutomatorHelper or (self.build[VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse  # jelly bean 4.1 & 4.2
+        self.useUiAutomator = self.uiAutomatorHelper or (
+                    self.build[VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse  # jelly bean 4.1 & 4.2
         if DEBUG:
             print("    ViewClient.__init__: useUiAutomator=", self.useUiAutomator, "sdk=",
                   self.build[VERSION_SDK_PROPERTY], "forceviewserveruse=", forceviewserveruse, file=sys.stderr)
