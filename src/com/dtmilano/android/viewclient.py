@@ -2630,8 +2630,7 @@ class ViewClient:
 
         self.forceViewServerUse = forceviewserveruse
         ''' Force the use of ViewServer even if the conditions to use UiAutomator are satisfied '''
-        self.useUiAutomator = (self.build[
-                                   VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse  # jelly bean 4.1 & 4.2
+        self.useUiAutomator = self.uiAutomatorHelper or (self.build[VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse  # jelly bean 4.1 & 4.2
         if DEBUG:
             print("    ViewClient.__init__: useUiAutomator=", self.useUiAutomator, "sdk=",
                   self.build[VERSION_SDK_PROPERTY], "forceviewserveruse=", forceviewserveruse, file=sys.stderr)
@@ -4797,7 +4796,7 @@ class CulebraTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.kwargs1 = {'ignoreversioncheck': False, 'verbose': False, 'ignoresecuredevice': False}
-        cls.kwargs2 = {'startviewserver': True, 'forceviewserveruse': False, 'autodump': False,
+        cls.kwargs2 = {'startviewserver': False, 'forceviewserveruse': False, 'autodump': False,
                        'ignoreuiautomatorkilled': True}
 
     @classmethod
@@ -4815,8 +4814,8 @@ class CulebraTestCase(unittest.TestCase):
 
         # Handle the special case for utrunner.py (Pycharm test runner)
         progname = os.path.basename(sys.argv[0])
-        if progname == 'utrunner.py':
-            testname = sys.argv[1]
+        if progname == 'utrunner.py' or progname == '_jb_unittest_runner.py':
+            testname = sys.argv[1] if len(sys.argv) >= 2 else ""
             # a string containing the args
             testargs = sys.argv[2] if len(sys.argv) >= 3 else ""
             # used by utrunner.py (usually `true`) but depends on the number of args
@@ -4843,7 +4842,7 @@ class CulebraTestCase(unittest.TestCase):
             except:
                 pass
 
-        if self.kwargs2.get('useuiautomatorhelper'):
+        if 'useuiautomatorhelper' in self.kwargs2 and self.kwargs2.get('useuiautomatorhelper'):
             # FIXME: we could find better alternatives for device and serialno when UiAutomatorHelper is used
             # Searialno could be obtained form UiAutomatorHelper too.
             self.vc = ViewClient("UI_AUTOMATOR_HELPER_DEVICE", "UI_AUTOMATOR_HELPER_SERIALNO", **self.kwargs2)
@@ -4971,7 +4970,8 @@ class CulebraTestCase(unittest.TestCase):
         try:
             unittest.TestProgram.USAGE = unittest.TestProgram.USAGE.replace(old, new)
         except AttributeError as ex:
-            print(ex, file=sys.stderr)
+            if DEBUG:
+                print(ex, file=sys.stderr)
         argsToRemove = []
         i = 0
         while i < len(sys.argv):
