@@ -82,6 +82,7 @@ WARNINGS = False
 
 VIEW_SERVER_HOST = 'localhost'
 VIEW_SERVER_PORT = 4939
+CULEBRATESTER2_PORT = 9987
 
 ADB_DEFAULT_PORT = 5555
 
@@ -2459,8 +2460,8 @@ class ViewClientOptions:
     SERIALNO = 'serialno'
     AUTO_DUMP = 'autodump'
     FORCE_VIEW_SERVER_USE = 'forceviewserveruse'
-    LOCAL_PORT = 'localport'  # ViewServer local port
-    REMOTE_PORT = 'remoteport'  # ViewServer remote port
+    LOCAL_PORT = 'localport'  # ViewServer or CulebraTester2-public local port
+    REMOTE_PORT = 'remoteport'  # ViewServer  or CulebraTester2-public remote port
     START_VIEW_SERVER = 'startviewserver'
     IGNORE_UIAUTOMATOR_KILLED = 'ignoreuiautomatorkilled'
     COMPRESSED_DUMP = 'compresseddump'
@@ -2490,7 +2491,7 @@ class ViewClient:
 
     UiAutomatorHelper backend
     =========================
-    Requires B{Culebra Tester} installed on Android device.
+    Requires B{CulebraTester2-public} installed on Android device.
     '''
 
     osName = platform.system()
@@ -2501,8 +2502,8 @@ class ViewClient:
     imageDirectory = None
     ''' The directory used to store screenshot images '''
 
-    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=VIEW_SERVER_PORT,
-                 remoteport=VIEW_SERVER_PORT, startviewserver=True, ignoreuiautomatorkilled=False, compresseddump=True,
+    def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=None,
+                 remoteport=None, startviewserver=True, ignoreuiautomatorkilled=False, compresseddump=True,
                  useuiautomatorhelper=False, debug={}):
         '''
         Constructor
@@ -2548,7 +2549,11 @@ class ViewClient:
 
         if useuiautomatorhelper:
             self.useUiAutomator = True
-            self.uiAutomatorHelper = UiAutomatorHelper(device)
+            if not localport:
+                localport = CULEBRATESTER2_PORT
+            if not remoteport:
+                remoteport = CULEBRATESTER2_PORT
+            self.uiAutomatorHelper = UiAutomatorHelper(device, localport=localport, remoteport=remoteport)
             # we might return here if all the dependencies to `adb` commands were removed when uiAutomatorHelper is used
             # return
 
@@ -2666,6 +2671,10 @@ class ViewClient:
                               '    ro.debuggable=%s\n' % (self.ro['secure'], self.ro['debuggable'])
                         raise Exception(msg)
 
+            if not localport:
+                localport = VIEW_SERVER_PORT
+            if not remoteport:
+                remoteport = VIEW_SERVER_PORT
             self.localPort = localport
             self.remotePort = remoteport
             # FIXME: it seems there's no way of obtaining the serialno from the MonkeyDevice
