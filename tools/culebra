@@ -24,7 +24,7 @@ from __future__ import print_function
 
 from culebratester_client import WindowHierarchy
 
-__version__ = '21.0.0'
+__version__ = '21.1.0'
 
 import calendar
 import codecs
