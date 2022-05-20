@@ -93,16 +93,26 @@ class UiAutomatorHelper:
     TEST_CLASS = PACKAGE + '.test'
     TEST_RUNNER = 'com.dtmilano.android.uiautomatorhelper.UiAutomatorHelperTestRunner'
 
-    def __init__(self, adbclient, adb=None, localport=9987, remoteport=9987, hostname='localhost'):
+    def __init__(self, adbclient, adb=None, localport=9987, remoteport=9987, hostname='localhost', api_version='v2'):
+        """
+        UiAutomatorHelper constructor used when the backend selected is **CulebraTester2-public**.
+        This class holds references to the different API's:
+         - Device
+         - TargetContext
+         - ObjectStore
+         - UiDevice
+         - UiObject2
+         - Until
+
+        :param adbclient: the adb client
+        :param adb: adb if known
+        :param localport: the local port used in CulebraTester2-public port forwarding
+        :param remoteport: the remote port used in CulebraTester2-public port forwarding
+        :param hostname: the hostname used by CulebraTester2-public
+        :param api_version: the api version
+        """
         self.adbClient = adbclient
         ''' The adb client (a.k.a. device) '''
-        # instrumentation = self.adbClient.shell('pm list instrumentation %s' % self.PACKAGE)
-        # if not instrumentation:
-        #    raise RuntimeError('The target device does not contain the instrumentation for %s' % self.PACKAGE)
-        # if not re.match('instrumentation:%s/%s \(target=%s\)' % (self.TEST_CLASS, self.TEST_RUNNER, self.PACKAGE),
-        #                instrumentation):
-        #    raise RuntimeError('The instrumentation found for %s does not match the expected %s/%s' % (
-        #    self.PACKAGE, self.TEST_CLASS, self.TEST_RUNNER))
         self.adb = self.__whichAdb(adb)
         ''' The adb command '''
         self.osName = platform.system()
@@ -111,18 +121,11 @@ class UiAutomatorHelper:
         ''' Is it Mac OSX? '''
         self.hostname = hostname
         ''' The hostname we are connecting to. '''
-        # if hostname in ['localhost', '127.0.0.1']:
-        #    self.__redirectPort(localport, remoteport)
-        # self.__runTests()
-        # self.baseUrl = 'http://%s:%d' % (hostname, localport)
-        # try:
-        #    self.session = self.__connectSession()
-        # except RuntimeError as ex:
-        #    self.thread.forceStop()
-        #    raise ex
-        print('⚠️ CulebraTester2 server should have been started and port redirected.', file=sys.stderr)
-        # TODO: localport should be in ApiClient configuration
-        self.api_instance = culebratester_client.DefaultApi(culebratester_client.ApiClient())
+
+        print(f'⚠️  CulebraTester2 server should have been started and localport {localport} redirected to remote port {remoteport}.', file=sys.stderr)
+        configuration = culebratester_client.Configuration()
+        configuration.host = f'http://{hostname}:{localport}/{api_version}'
+        self.api_instance = culebratester_client.DefaultApi(culebratester_client.ApiClient(configuration))
         self.device: UiAutomatorHelper.Device = UiAutomatorHelper.Device(self)
         self.target_context: UiAutomatorHelper.TargetContext = UiAutomatorHelper.TargetContext(self)
         self.object_store: UiAutomatorHelper.ObjectStore = UiAutomatorHelper.ObjectStore(self)
