@@ -24,7 +24,7 @@ from __future__ import print_function
 
 from culebratester_client import WindowHierarchy
 
-__version__ = '20.9.1'
+__version__ = '21.0.0'
 
 import calendar
 import codecs
@@ -94,7 +94,7 @@ SB_NO_JAR = 'no-jar'
 SB_JAR = 'jar'
 SB_JAR_LINUX = 'jar-linux'
 SHEBANG = {
-    SB_NO_JAR: '#! /usr/bin/env python',
+    SB_NO_JAR: '#! /usr/bin/env python3',
     SB_JAR: '#! /usr/bin/env shebang monkeyrunner -plugin $ANDROID_VIEW_CLIENT_HOME/bin/androidviewclient-$ANDROID_VIEW_CLIENT_VERSION.jar @!',
     SB_JAR_LINUX: '#! /usr/local/bin/shebang monkeyrunner -plugin $AVC_HOME/bin/androidviewclient-$AVC_VERSION.jar @!'
 }
