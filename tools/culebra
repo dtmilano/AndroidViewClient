@@ -661,7 +661,7 @@ def printSaveViewScreenshot(view, filename, _format):
     else:
         # FIXME: if -u was passed in the command line then we are not saving the variables and thus
         # next line will generate an error in the script as the variable is 'undefined'
-        print('%s%s.writeImageToFile(\'%s\', \'%s\')' % (indent, view.variableNameFromId(), filename, _format))
+        print('%s%s.writeImageToFile(\'%s\', \'%s\')' % (indent, View.variableNameFromId(view), filename, _format))
 
 
 def printFlingBackward(view):
