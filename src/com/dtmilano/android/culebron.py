@@ -31,7 +31,7 @@ from culebratester_client import WindowHierarchy
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
-from com.dtmilano.android.viewclient import ViewClient
+from com.dtmilano.android.viewclient import ViewClient, View
 
 __version__ = '21.1.0'
 
@@ -336,12 +336,14 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG:
             print("takeScreenshotAndShowItOnWindow()", file=sys.stderr)
         if self.vc and self.vc.uiAutomatorHelper:
-            received = self.vc.uiAutomatorHelper.takeScreenshot()
-            if sys.version_info[0] < 3:
-                stream = io.StringIO(received)
-            else:
-                stream = io.BytesIO(received.data)
-            self.unscaledScreenshot = Image.open(stream)
+            received = self.vc.uiAutomatorHelper.ui_device.take_screenshot()
+            stream = io.BytesIO(received.read())
+            try:
+                self.unscaledScreenshot = Image.open(stream)
+            except IOError as ex:
+                print(ex, file=sys.stderr)
+                print(repr(stream))
+                sys.exit(1)
         else:
             self.unscaledScreenshot = self.device.takeSnapshot(reconnect=True)
         self.image = self.unscaledScreenshot
@@ -949,7 +951,7 @@ This is usually installed by python package. Check your distribution details.
 
     def onCtrlButton1Pressed(self, event):
         if DEBUG:
-            print("onCtrlButton1Pressed((", event.x, ", ", event.y, "))", file=sys.stderr)
+            print(f"onCtrlButton1Pressed(({event.x}, {event.y}))", file=sys.stderr)
         (scaledX, scaledY) = (event.x / self.scale, event.y / self.scale)
         l = self.vc.findViewsContainingPoint((scaledX, scaledY))
         if l and len(l) > 0:
@@ -1059,7 +1061,7 @@ This is usually installed by python package. Check your distribution details.
         # OPTION-ENTER (mac)
         elif keysym == 'Return' and event.state == 16:
             if DEBUG_KEY:
-                print >> sys.stderr, "Sending DPAD_CENTER"
+                print("Sending DPAD_CENTER", file=sys.stderr)
             self.command('DPAD_CENTER')
         elif char == '\r':
             self.command('ENTER')
@@ -1067,7 +1069,7 @@ This is usually installed by python package. Check your distribution details.
             # do nothing
             pass
         else:
-            self.command(char.decode('ascii', errors='replace'))
+            self.command(char)
         # commented out (profile)
         # time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
@@ -1148,7 +1150,7 @@ This is usually installed by python package. Check your distribution details.
 
         if not view:
             raise ValueError("view must be provided to take snapshot")
-        filename = self.snapshotDir + os.sep + '${serialno}-' + view.variableNameFromId() + '-${timestamp}' + '.' + self.snapshotFormat.lower()
+        filename = self.snapshotDir + os.sep + '${serialno}-' + View.variableNameFromId(view) + '-${timestamp}' + '.' + self.snapshotFormat.lower()
         d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
         saveAsFilename = d.askSaveAsFilename()
         if saveAsFilename:
@@ -1951,6 +1953,8 @@ if TKINTER_AVAILABLE:
             self.transient(self.parent)
             self.culebron.setDragDialogShowed(True)
             self.title("Drag: selecting parameters")
+            self.__grabbing = None
+            self.ok = None
 
             # valid percent substitutions (from the Tk entry man page)
             # %d = Type of action (1=insert, 0=delete, -1 for others)
