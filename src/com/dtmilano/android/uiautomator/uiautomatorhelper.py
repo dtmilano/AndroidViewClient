@@ -195,7 +195,7 @@ class UiAutomatorHelper:
             print("__runTests: end", file=sys.stderr)
 
     def __httpCommand(self, url, params=None, method='GET'):
-        raise RuntimeError("this method should not be used")
+        raise RuntimeError(f"this method should not be used: url={url} params={params} method={method}")
 
     #
     # UiAutomatorHelper internal commands
