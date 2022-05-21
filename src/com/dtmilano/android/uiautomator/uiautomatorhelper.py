@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.3.0'
+__version__ = '21.4.0'
 
 import json
 import os
@@ -122,7 +122,9 @@ class UiAutomatorHelper:
         self.hostname = hostname
         ''' The hostname we are connecting to. '''
 
-        print(f'⚠️  CulebraTester2 server should have been started and localport {localport} redirected to remote port {remoteport}.', file=sys.stderr)
+        print(
+            f'⚠️  CulebraTester2 server should have been started and localport {localport} redirected to remote port {remoteport}.',
+            file=sys.stderr)
         configuration = culebratester_client.Configuration()
         configuration.host = f'http://{hostname}:{localport}/{api_version}'
         self.api_instance = culebratester_client.DefaultApi(culebratester_client.ApiClient(configuration))
@@ -462,6 +464,17 @@ class UiAutomatorHelper:
             :return:
             """
             return self.uiAutomatorHelper.api_instance.ui_device_wait_for_idle_get(**kwargs)
+
+        def wait_for_window_update(self, timeout=5000, **kwargs):
+            """
+            Waits for window update.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param timeout: the timeout
+            :param kwargs:
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_wait_for_window_update_get(timeout, **kwargs)
 
     #
     # UiObject2

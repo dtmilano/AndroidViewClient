@@ -167,7 +167,9 @@ class ControlPanelButton(tkinter.Button):
 
     def command(self):
         key = self.value
-        if key == 'KEYCODE_GOOGLE_NOW':
+        if self.culebron.vc.uiAutomatorHelper:
+            self.culebron.command(key)
+        elif key == 'KEYCODE_GOOGLE_NOW':
             self.device.press(Key.GOOGLE_NOW)
             self.printOperation(None, Operation.PRESS, Key.GOOGLE_NOW)
         elif key == 'KEYCODE_.':
@@ -179,6 +181,7 @@ class ControlPanelButton(tkinter.Button):
         else:
             self.device.press(key)
             self.printOperation(None, Operation.PRESS, key)
+        self.refreshScreen()
 
     def refreshScreen(self):
         self.culebron.refresh()

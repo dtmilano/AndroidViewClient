@@ -31,6 +31,7 @@ __version__ = '21.3.0'
 import sys
 import warnings
 
+import com.dtmilano.android.keyevent
 from com.dtmilano.android.adb.adbclient import AdbClient
 
 if sys.executable:
@@ -150,6 +151,9 @@ IP_DOMAIN_NAME_PORT_REGEX = r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[
                             r'(?:/?|[/?]\S+)$'
 IPV6_RE = re.compile('^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$', re.IGNORECASE)
 IPV6_PORT_RE = re.compile(r'^\[(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}\]:\d+$', re.IGNORECASE)
+
+
+KEY_EVENT = com.dtmilano.android.keyevent.KEY_EVENT
 
 
 class ViewNotFoundException(Exception):

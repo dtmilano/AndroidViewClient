@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (C) 2012-2019  Diego Torres Milano
+Copyright (C) 2012-2022  Diego Torres Milano
 Created on oct 6, 2014
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ from culebratester_client import WindowHierarchy
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
+from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.viewclient import ViewClient, View
 
 __version__ = '21.3.0'
@@ -130,6 +131,7 @@ class Operation:
     OPEN_QUICK_SETTINGS = 'open_quick_settings'
     TYPE = 'type'
     PRESS = 'press'
+    PRESS_UI_AUTOMATOR_HELPER = 'press_ui_automator_helper'
     PRESS_BACK = 'press_back'
     PRESS_BACK_UI_AUTOMATOR_HELPER = 'press_back_ui_automator_helper'
     PRESS_HOME = 'press_home'
@@ -144,6 +146,8 @@ class Operation:
     SWIPE_UI_AUTOMATOR_HELPER = 'swipe_ui_automator_helper'
     TRAVERSE = 'traverse'
     VIEW_SNAPSHOT = 'view_snapshot'
+    WAIT_FOR_IDLE_UI_AUTOMATOR_HELPER = 'wait_for_idle_ui_automator_helper'
+    WAIT_FOR_WINDOW_UPDATE_UI_AUTOMATOR_HELPER = 'wait_for_window_update_ui_automator_helper'
     WAKE = 'wake'
 
     COMMAND_NAME_OPERATION_MAP = {'flingBackward': FLING_BACKWARD, 'flingForward': FLING_FORWARD,
@@ -167,6 +171,7 @@ class Culebron:
 
     KEYSYM_TO_KEYCODE_MAP = {
         'Home': 'HOME',
+        'abovedot': 'HOME',  # Option+H on macOS
         'BackSpace': 'BACK',
         'Left': 'DPAD_LEFT',
         'Right': 'DPAD_RIGHT',
@@ -252,6 +257,7 @@ This is usually installed by python package. Check your distribution details.
         '''
 
         self.vc = vc
+        self.dump = None
         if 'CONCERTINA' in self.vc.debug:
             global DEBUG_CONCERTINA
             DEBUG_CONCERTINA = self.vc.debug['CONCERTINA'] is not None
@@ -605,15 +611,15 @@ This is usually installed by python package. Check your distribution details.
                 parent_unique_id = parent.getUniqueId()
         except AttributeError:
             vuid = view.unique_id
-            #FIXME
-            #is_target = view.is_target
+            # FIXME
+            # is_target = view.is_target
             is_target = False
             text = view.text
             parent = view.parent
             if parent:
-                #FIXME:
+                # FIXME:
                 # parent is an int
-                #parent_unique_id = parent.unique_id
+                # parent_unique_id = parent.unique_id
                 parent_unique_id = 0
         if parent is None:
             self.viewTree.insert('', tkinter.END, vuid, text=text)
@@ -646,7 +652,8 @@ This is usually installed by python package. Check your distribution details.
             window = -1
         if self.vc:
             dump = self.vc.dump(window=window, sleep=0.1)
-            self.printOperation(None, Operation.DUMP, window, dump)
+            if not self.vc.uiAutomatorHelper:
+                self.printOperation(None, Operation.DUMP, window, dump)
         else:
             dump = []
         self.dump = dump
@@ -676,7 +683,7 @@ This is usually installed by python package. Check your distribution details.
 
         # FIXME: we are not populating the view tree now
         # there are some problems with culebratester2
-        #if self.vc:
+        # if self.vc:
         #    self.vc.traverse(transform=self.populateViewTree)
 
     def getViewContainingPointAndGenerateTestCondition(self, x, y):
@@ -787,7 +794,10 @@ This is usually installed by python package. Check your distribution details.
                 candidate = candidates[0]
                 self.touchView(candidate, v if candidate != v else None)
 
-        self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
+        if self.vc.uiAutomatorHelper:
+            self.printOperation(None, Operation.WAIT_FOR_WINDOW_UPDATE_UI_AUTOMATOR_HELPER, Operation.DEFAULT)
+        else:
+            self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         self.vc.sleep(5)
         self.takeScreenshotAndShowItOnWindow()
 
@@ -975,47 +985,65 @@ This is usually installed by python package. Check your distribution details.
             print("onButton3Pressed((", event.x, ", ", event.y, "))", file=sys.stderr)
         self.showPopupMenu(event)
 
-    def command(self, keycode):
-        '''
+    def command(self, keycode: str) -> None:
+        """
         Presses a key.
         Generates the actual key press on the device and prints the line in the script.
-        '''
 
-        self.device.press(keycode)
-        self.printOperation(None, Operation.PRESS, keycode)
+        :param keycode the keycode name
+        """
+
+        if self.vc.uiAutomatorHelper:
+            try:
+                if not keycode.startswith('KEYCODE_'):
+                    keycode = f'KEYCODE_{keycode}'
+                self.vc.uiAutomatorHelper.ui_device.press_key_code(KEY_EVENT[f'{keycode}'])
+                self.printOperation(None, Operation.PRESS_UI_AUTOMATOR_HELPER, keycode)
+            except Exception as e:
+                print(e, file=sys.stderr)
+        else:
+            self.device.press(keycode)
+            self.printOperation(None, Operation.PRESS, keycode)
 
     def onKeyPressed(self, event):
         if DEBUG_KEY:
             print("onKeyPressed(", repr(event), ")", file=sys.stderr)
-            print("    event", type(event.char), len(event.char), repr(
-                event.char), "keysym=", event.keysym, "keycode=", event.keycode, event.type, "state=", event.state,
+            print(f'    char: type={type(event.char)} len={len(event.char)} repr={repr(event.char)}\n' +
+                  f'    keysym={event.keysym}, keycode={event.keycode}, type={event.type}, state={event.state}',
                   file=sys.stderr)
             print("    events disabled:", self.areEventsDisabled, file=sys.stderr)
         if self.areEventsDisabled:
             if DEBUG_KEY:
-                print("ignoring event", file=sys.stderr)
+                print("    ignoring event", file=sys.stderr)
             self.canvas.update_idletasks()
             return
 
         char = event.char
         keysym = event.keysym
+        state = event.state
+
+        # Manual way to get the modifiers
+        # https://stackoverflow.com/a/34482048/236465
+        ctrl = (state & 0x4) != 0
+        alt = (state & 0x8) != 0 or (state & 0x80) != 0
+        shift = (state & 0x1) != 0
+
+        if ctrl:
+            try:
+                return getattr(self, f'onCtrl{keysym.upper()}')(event)
+            except AttributeError:
+                pass
 
         if len(char) == 0 and not (
                 keysym in Culebron.KEYSYM_TO_KEYCODE_MAP or keysym in Culebron.KEYSYM_CULEBRON_COMMANDS):
             if DEBUG_KEY:
-                print("returning because len(char) == 0", file=sys.stderr)
+                print(f'    returning because len(char) == 0 keysym={keysym}', file=sys.stderr)
             return
 
         ###
         ### internal commands: no output to generated script
         ###
-        try:
-            handler = getattr(self, 'onCtrl%s' % self.UPPERCASE_CHARS[ord(char) - 1])
-        except:
-            handler = None
-        if handler:
-            return handler(event)
-        elif keysym == 'F1':
+        if keysym == 'F1':
             self.showHelp()
             return
         elif keysym == 'F5':
@@ -1056,7 +1084,7 @@ This is usually installed by python package. Check your distribution details.
             else:
                 self.command(Culebron.KEYSYM_TO_KEYCODE_MAP[keysym])
         # ALT-M
-        elif keysym == 'm' and event.state == 24:
+        elif keysym == 'm' and alt:
             if DEBUG_KEY:
                 print("Sending MENU", file=sys.stderr)
             self.command('MENU')
@@ -1072,8 +1100,6 @@ This is usually installed by python package. Check your distribution details.
             pass
         else:
             self.command(char)
-        # commented out (profile)
-        # time.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
     def wake(self):
@@ -1152,7 +1178,8 @@ This is usually installed by python package. Check your distribution details.
 
         if not view:
             raise ValueError("view must be provided to take snapshot")
-        filename = self.snapshotDir + os.sep + '${serialno}-' + View.variableNameFromId(view) + '-${timestamp}' + '.' + self.snapshotFormat.lower()
+        filename = self.snapshotDir + os.sep + '${serialno}-' + View.variableNameFromId(
+            view) + '-${timestamp}' + '.' + self.snapshotFormat.lower()
         d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
         saveAsFilename = d.askSaveAsFilename()
         if saveAsFilename:
@@ -2306,7 +2333,7 @@ if TKINTER_AVAILABLE:
             self.bind("<Return>", self.onDismiss)
             self.bind("<Escape>", self.onDismiss)
 
-            box.grid(row=1, column=1)
+            box.grid(row=2, column=1)
 
         def onDismiss(self, event=None):
             # put focus back to the parent window's canvas

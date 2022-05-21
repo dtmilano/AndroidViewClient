@@ -580,6 +580,8 @@ def printPress(keycode):
     else:
         logAction('pressing key=%s' % keycode)
         print('%s%sdevice.press(\'%s\')' % (indent, prefix, keycode))
+        # FIXME: we should support both cases: CulebraTester2 and adbclient
+        # print('%s%svc.uiAutomatorHelper.ui_device.press_key_code(KEY_EVENT[\'%s\'])' % (indent, prefix, keycode))
 
 
 def printDrag(start, end, duration, steps, unit, orientation):
@@ -887,6 +889,39 @@ def printLongPress(keycode, duration, dev, scancode, repeat):
             indent, prefix, keycode, duration, dev, scancode, repeat))
 
 
+def printPressUiAutomatorHelper(keycode):
+    """
+    Prints the corresponding press
+    """
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(f'pressing {keycode}')
+        print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_device.press_key_code(KEY_EVENT[\'{keycode}\'])')
+
+
+def printWaitForIdleUiAutomatorHelper():
+    """
+    Prints the corresponding wait for idle
+    """
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(f'waiting for idle')
+        print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_device.wait_for_idle()')
+
+
+def printWaitForWindowUpdateUiAutomatorHelper():
+    """
+    Prints the corresponding wait for window update
+    """
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(f'waiting for idle')
+        print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_device.wait_for_window_update()')
+
+
 def printOperation(view, op, *args):
     if len(args) == 0:
         # We use tuple values in the rest of this method, so if an empty tuple was passed
@@ -914,6 +949,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.PRESS:
         printPress(keycode=args[0])
+        return
+    elif op == Operation.PRESS_UI_AUTOMATOR_HELPER:
+        printPressUiAutomatorHelper(keycode=args[0])
         return
     elif op == Operation.PRESS_BACK:
         printPress('BACK')
@@ -993,6 +1031,12 @@ def printOperation(view, op, *args):
     elif op == Operation.START_ACTIVITY:
         printStartActivity(component=args[0])
         return
+    elif op == Operation.WAIT_FOR_IDLE_UI_AUTOMATOR_HELPER:
+        printWaitForIdleUiAutomatorHelper()
+        return
+    elif op == Operation.WAIT_FOR_WINDOW_UPDATE_UI_AUTOMATOR_HELPER:
+        printWaitForWindowUpdateUiAutomatorHelper()
+        return
     elif op == Operation.WAKE:
         printWake()
         return
@@ -1050,7 +1094,7 @@ def printScriptHeader():
     print('''%s
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2013-2019  Diego Torres Milano
+Copyright (C) 2013-2022  Diego Torres Milano
 Created on %s by Culebra v%s
                       __    __    __    __
                      /  \  /  \  /  \  /  \ 
@@ -1323,7 +1367,7 @@ if options[CulebraOptions.PREPEND_TO_SYS_PATH]:
 
 if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
     print('''\
-from com.dtmilano.android.viewclient import ViewClient%s
+from com.dtmilano.android.viewclient import ViewClient, KEY_EVENT%s
 
 TAG = '%s'
 ''' % (', CulebraTestCase' if options[CulebraOptions.UNIT_TEST_CLASS] else '', TAG))
