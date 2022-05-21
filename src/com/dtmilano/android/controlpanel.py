@@ -64,7 +64,7 @@ class ControlPanel(tkinter.Toplevel):
         self.childWindow.row = 0
         if self.isDarwin:
             out = subprocess.check_output(["defaults", "read", "-g", "AppleInterfaceStyle"])
-            self.isDarkMode = ('Dark' in out)
+            self.isDarkMode = ('Dark' in out.decode())
         else:
             self.isDarkMode = False
         if self.isDarkMode:
