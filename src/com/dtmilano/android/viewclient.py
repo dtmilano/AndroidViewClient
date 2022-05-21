@@ -24,7 +24,7 @@ import json
 
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '21.1.0'
+__version__ = '21.2.0'
 
 import sys
 import warnings
@@ -1156,10 +1156,10 @@ class View:
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print("Taking screenshot using UiAutomatorHelper", file=sys.stderr)
-            received = self.uiAutomatorHelper.takeScreenshot()
-            stream = io.StringIO(received)
+            received = self.uiAutomatorHelper.ui_device.take_screenshot()
+            stream = io.BytesIO(received.read())
             try:
-                from pillow import Image
+                from PIL import Image
                 image = Image.open(stream)
             except ImportError as ex:
                 # FIXME: this method should be global
