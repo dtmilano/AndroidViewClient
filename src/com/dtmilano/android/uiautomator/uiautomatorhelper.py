@@ -361,6 +361,8 @@ class UiAutomatorHelper:
             :param kwargs:
             :return:
             """
+            if 'body' in kwargs:
+                return self.uiAutomatorHelper.api_instance.ui_device_find_object_post(**kwargs)
             if self.some(['resource_id', 'ui_selector', 'by_selector'], kwargs):
                 return self.uiAutomatorHelper.api_instance.ui_device_find_object_get(**kwargs)
             body = culebratester_client.Selector(**kwargs)

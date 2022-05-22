@@ -835,10 +835,12 @@ This is usually installed by python package. Check your distribution details.
         ViewClient.sayText(text)
         self.printOperation(None, Operation.SAY_TEXT, text)
 
-    def touchView(self, v, root=None):
+    def touchView(self, v: View, root=None) -> None:
+        # FIXME: v.touch() handles the 2 cases for CulebraTester2-public and adbclient
+        # also, we should obtain the selector only once
         v.touch()
         if v.uiAutomatorHelper:
-            self.printOperation(v, Operation.TOUCH_VIEW_UI_AUTOMATOR_HELPER, v.obtainSelectorForView())
+            self.printOperation(v, Operation.TOUCH_VIEW_UI_AUTOMATOR_HELPER, v.obtain_selector())
         else:
             # we pass root=v as an argument so the corresponding findView*() searches in this
             # subtree instead of the full tree

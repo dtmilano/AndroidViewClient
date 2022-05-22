@@ -21,7 +21,9 @@ limitations under the License.
 from __future__ import print_function
 
 import json
+from typing import Optional
 
+import culebratester_client
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
 __version__ = '21.2.0'
@@ -77,6 +79,7 @@ DEBUG_CHANGE_LANGUAGE = DEBUG and False
 DEBUG_UI_AUTOMATOR = DEBUG and False
 DEBUG_UI_AUTOMATOR_HELPER = DEBUG and False
 DEBUG_NAV_BUTTONS = DEBUG and False
+DEBUG_SELECTOR = DEBUG and False
 
 WARNINGS = False
 
@@ -716,7 +719,7 @@ class View:
         ''' Hierarchy accumulated Y '''
 
         if DEBUG_COORDS: print("   getXY: not using UiAutomator, calculating parent coordinates", file=sys.stderr)
-        while parent != None:
+        while parent is not None:
             if DEBUG_COORDS: print("      getXY: parent: %s %s <<<<" % (parent.getClass(), parent.getId()),
                                    file=sys.stderr)
             if SKIP_CERTAIN_CLASSES_IN_GET_XY_ENABLED:
@@ -779,7 +782,7 @@ class View:
                   file=sys.stderr)
             print("                     x=%d+%d+%d+%d" % (x, hx, wvx, pwx), file=sys.stderr)
             print("                     y=%d+%d+%d-%d+%d" % (y, hy, wvy, statusBarOffset, pwy), file=sys.stderr)
-        return (x + hx + wvx + pwx, y + hy + wvy - statusBarOffset + pwy)
+        return x + hx + wvx + pwx, y + hy + wvy - statusBarOffset + pwy
 
     def getCoords(self):
         '''
@@ -794,24 +797,24 @@ class View:
         (x, y) = self.getXY()
         w = self.getWidth()
         h = self.getHeight()
-        return ((x, y), (x + w, y + h))
+        return (x, y), (x + w, y + h)
 
     def getPositionAndSize(self):
-        '''
+        """
         Gets the position and size (X,Y, W, H)
 
         @return: A tuple containing the View's coordinates (X, Y, W, H)
-        '''
+        """
 
         (x, y) = self.getXY()
         w = self.getWidth()
         h = self.getHeight()
-        return (x, y, w, h)
+        return x, y, w, h
 
     def getBounds(self):
-        '''
+        """
         Gets the View bounds
-        '''
+        """
 
         if isinstance(self, WindowHierarchyChild):
             return self.bounds
@@ -821,16 +824,16 @@ class View:
             return self.getCoords()
 
     def getCenter(self):
-        '''
+        """
         Gets the center coords of the View
 
         @author: U{Dean Morin <https://github.com/deanmorin>}
-        '''
+        """
 
         (left, top), (right, bottom) = self.getCoords()
         x = left + (right - left) / 2
         y = top + (bottom - top) / 2
-        return (x, y)
+        return x, y
 
     def __obtainStatusBarDimensionsIfVisible(self):
         sbw = 0
@@ -847,7 +850,7 @@ class View:
                     sbh = w.wvh
                 break
 
-        return (sbw, sbh)
+        return sbw, sbh
 
     def __obtainVxVy(self, m):
         return obtainVxVy(m)
@@ -959,19 +962,19 @@ class View:
 
         if self.windowId and self.windowId in self.windows and self.windows[self.windowId].visibility == 0:
             w = self.windows[self.windowId]
-            return (w.wvx, w.wvy)
+            return w.wvx, w.wvy
         elif self.currentFocus in self.windows and self.windows[self.currentFocus].visibility == 0:
             if DEBUG_COORDS or debug:
                 print("__dumpWindowsInformation: focus=", self.currentFocus, file=sys.stderr)
                 print("__dumpWindowsInformation:", self.windows[self.currentFocus], file=sys.stderr)
             w = self.windows[self.currentFocus]
-            return (w.wvx, w.wvy)
+            return w.wvx, w.wvy
         else:
             if DEBUG_COORDS: print("__dumpWindowsInformation: (0,0)", file=sys.stderr)
-            return (0, 0)
+            return 0, 0
 
     def touch(self, eventType=adbclient.DOWN_AND_UP, deltaX=0, deltaY=0):
-        '''
+        """
         Touches the center of this C{View}. The touch can be displaced from the center by
         using C{deltaX} and C{deltaY} values.
 
@@ -981,7 +984,7 @@ class View:
         @type deltaX: int
         @param deltaY: Displacement from center (Y axis)
         @type deltaY: int
-        '''
+        """
 
         (x, y) = self.getCenter()
         if deltaX:
@@ -998,26 +1001,25 @@ class View:
             self.device.touch(x + 10, y + 10, eventType=adbclient.UP)
         else:
             if self.uiAutomatorHelper:
-                selector = self.obtainSelectorForView()
+                selector = self.obtain_selector()
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print('using selector="%s"' % selector, file=sys.stderr)
                 if selector:
                     try:
-                        object_ref = self.uiAutomatorHelper.findObject(by_selector=selector)
+                        object_ref = self.uiAutomatorHelper.ui_device.find_object(body=selector)
                         if DEBUG_UI_AUTOMATOR_HELPER:
-                            print("id=%d" % object_ref.oid, file=sys.stderr)
-                            print("ignoring click delta to click View as UiObject", file=sys.stderr)
-                        self.uiAutomatorHelper.click(oid=object_ref.oid)
+                            print("oid=%d" % object_ref.oid, file=sys.stderr)
+                        self.uiAutomatorHelper.ui_object2.click(oid=object_ref.oid)
                     except RuntimeError as e:
-                        print(e.message, file=sys.stderr)
-                        print("UiObject click failed, using co-ordinates", file=sys.stderr)
-                        self.uiAutomatorHelper.click(x=x, y=y)
+                        print(e, file=sys.stderr)
+                        print("UiObject2 click failed, falling back to coordinates", file=sys.stderr)
+                        self.uiAutomatorHelper.ui_device.click(x=x, y=y)
                 else:
                     # FIXME:
                     # The View has no CD, TEXT or ID so we cannot use it in a selector to findObject()
                     # We should try content description, text, and perhaps other properties before surrendering.
                     # For now, tet's fall back to click(x, y)
-                    self.uiAutomatorHelper.click(x=x, y=y)
+                    self.uiAutomatorHelper.ui_device.click(x=x, y=y)
             else:
                 self.device.touch(x, y, eventType=eventType)
 
@@ -1037,6 +1039,28 @@ class View:
                 selector += ','
             selector += 'res@' + self.escapeSelectorChars(self.getId())
         return selector
+
+    def obtain_selector(self) -> Optional[culebratester_client.Selector]:
+        """
+        Obtains a Selector for this View.
+
+        :return: the Selector or None if the most important values (e.g. text, res, etc.) are not present
+        """
+        if DEBUG_SELECTOR:
+            print(f'obtain_selector: view={self}', file=sys.stderr)
+        selector = culebratester_client.Selector()
+        selector.desc = self.getContentDescription()
+        selector.text = self.getText()
+        res = self.getId()
+        selector.res = res if res else None
+        selector.clazz = self.getClass()
+        selector.pkg = self.getPackage()
+        selector.clickable = self.isClickable()
+        selector.checkable = self.isCheckable()
+        if selector.desc or selector.text or selector.res or selector.clazz:
+            # If we have some of these values let's return the selector
+            return selector
+        return None
 
     def longTouch(self, duration=2000):
         '''
@@ -2635,7 +2659,7 @@ class ViewClient:
         self.forceViewServerUse = forceviewserveruse
         ''' Force the use of ViewServer even if the conditions to use UiAutomator are satisfied '''
         self.useUiAutomator = self.uiAutomatorHelper or (
-                    self.build[VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse  # jelly bean 4.1 & 4.2
+                self.build[VERSION_SDK_PROPERTY] >= 16) and not forceviewserveruse  # jelly bean 4.1 & 4.2
         if DEBUG:
             print("    ViewClient.__init__: useUiAutomator=", self.useUiAutomator, "sdk=",
                   self.build[VERSION_SDK_PROPERTY], "forceviewserveruse=", forceviewserveruse, file=sys.stderr)
