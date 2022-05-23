@@ -26,7 +26,7 @@ import unicodedata
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '21.3.0'
+__version__ = '21.4.0'
 
 import sys
 import warnings
