@@ -152,7 +152,6 @@ IP_DOMAIN_NAME_PORT_REGEX = r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[
 IPV6_RE = re.compile('^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$', re.IGNORECASE)
 IPV6_PORT_RE = re.compile(r'^\[(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}\]:\d+$', re.IGNORECASE)
 
-
 KEY_EVENT = com.dtmilano.android.keyevent.KEY_EVENT
 
 
@@ -990,7 +989,7 @@ class View:
         @type deltaY: int
         """
 
-        (x, y) = self.getCenter()
+        x, y = self.getCenter()
         if deltaX:
             x += deltaX
         if deltaY:
@@ -1067,21 +1066,36 @@ class View:
         return None
 
     def longTouch(self, duration=2000):
-        '''
+        """
         Long touches this C{View}
 
         @param duration: duration in ms
-        '''
+        """
+
+        x, y = self.getCenter()
 
         if self.uiAutomatorHelper:
-            # FIXME: is `selector` a `bySlector`?
-            object_ref = self.uiAutomatorHelper.findObject(by_selector=self.obtainSelectorForView())
+            selector = self.obtain_selector()
             if DEBUG_UI_AUTOMATOR_HELPER:
-                print("♦️ object_ref=%s" % object_ref, file=sys.stderr)
-            self.uiAutomatorHelper.longClick(oid=object_ref.oid)
+                print('using selector="%s"' % selector, file=sys.stderr)
+            if selector:
+                try:
+                    object_ref = self.uiAutomatorHelper.ui_device.find_object(body=selector)
+                    if DEBUG_UI_AUTOMATOR_HELPER:
+                        print("♦️ object_ref=%s" % object_ref, file=sys.stderr)
+                    self.uiAutomatorHelper.ui_object2.long_click(oid=object_ref.oid)
+                except RuntimeError as e:
+                    print(e, file=sys.stderr)
+                    print("UiObject2 click failed, falling back to coordinates", file=sys.stderr)
+                    self.uiAutomatorHelper.ui_device.click(x=x, y=y)
+            else:
+                # FIXME:
+                # The View has no CD, TEXT or ID so we cannot use it in a selector to findObject()
+                # We should try content description, text, and perhaps other properties before surrendering.
+                # For now, tet's fall back to click(x, y)
+                self.uiAutomatorHelper.ui_device.click(x=x, y=y)
         else:
             # FIXME: get orientation
-            (x, y) = self.getCenter()
             self.device.longTouch(x, y, duration, orientation=-1)
 
     def allPossibleNamesWithColon(self, name):

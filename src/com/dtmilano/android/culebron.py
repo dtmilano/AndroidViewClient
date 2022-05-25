@@ -922,10 +922,12 @@ This is usually installed by python package. Check your distribution details.
             self.statusBar.clear()
             return
 
-    def longTouchView(self, v, root=None):
+    def longTouchView(self, v: View, root=None) -> None:
+        # FIXME: v.longTouch() handles the 2 cases for CulebraTester2-public and adbclient
+        # also, we should obtain the selector only once
         v.longTouch()
         if v.uiAutomatorHelper:
-            self.printOperation(v, Operation.LONG_TOUCH_VIEW_UI_AUTOMATOR_HELPER, v.obtainSelectorForView())
+            self.printOperation(v, Operation.LONG_TOUCH_VIEW_UI_AUTOMATOR_HELPER, v.obtain_selector())
         else:
             # we pass root=v as an argument so the corresponding findView*() searches in this
             # subtree instead of the full tree

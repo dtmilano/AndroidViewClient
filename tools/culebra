@@ -809,15 +809,23 @@ def printTouchViewUiAutomatorHelper(selector: culebratester_client.Selector) -> 
         print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_object2.click(oid=obj_ref.oid)')
 
 
-def printLongTouchViewUiAutomatorHelper(view, selector):
-    '''
+def printLongTouchViewUiAutomatorHelper(selector):
+    """
     Prints the corresponding long touch
-    '''
+    """
     if options[CulebraOptions.MULTI_DEVICE]:
         warnings.warn('Multi-device not implemented yet for this case')
     else:
-        logAction('long-touching View by selector=%s' % (selector))
-        print('%s%svc.longTouch(selector=\'%s\')' % (indent, prefix, selector))
+        logAction(f'long-touching by selector={selector}')
+        indented_line = None
+        indentation = indent + ' ' * 4
+        for line in f'{indent}obj_ref = {prefix}vc.uiAutomatorHelper.ui_device.find_object(body={selector})'.splitlines():
+            if not indented_line:
+                indented_line = line
+            else:
+                indented_line = f'{indented_line}\n{indentation}{line}'
+        print(f'{indented_line}')
+        print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_object2.long_click(oid=obj_ref.oid)')
 
 
 def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, unit, orientation):
@@ -991,7 +999,7 @@ def printOperation(view, op, *args):
         printLongTouch(x=args[0], y=args[1], duration=args[2], unit=args[3], orientation=args[4])
         return
     elif op == Operation.LONG_TOUCH_VIEW_UI_AUTOMATOR_HELPER:
-        printLongTouchViewUiAutomatorHelper(view=view, selector=args[0])
+        printLongTouchViewUiAutomatorHelper(selector=args[0])
         return
     elif op == Operation.TRAVERSE:
         printTraverse()
