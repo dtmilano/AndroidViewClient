@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.4.2'
+__version__ = '21.4.3'
 
 import json
 import os
@@ -273,16 +273,17 @@ class UiAutomatorHelper:
         def __init__(self, uiAutomatorHelper) -> None:
             super().__init__(uiAutomatorHelper)
 
-        def start_activity(self, pkg, cls):
+        def start_activity(self, pkg, cls, **kwargs):
             """
             Starts an activity.
 
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
             :param pkg: the package
             :param cls: the Activity class
+            :param kwargs: uri: the optional URI
             :return: the api response
             """
-            return self.uiAutomatorHelper.api_instance.target_context_start_activity_get(pkg, cls)
+            return self.uiAutomatorHelper.api_instance.target_context_start_activity_get(pkg, cls, **kwargs)
 
     #
     # ObjectStore

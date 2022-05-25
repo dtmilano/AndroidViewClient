@@ -142,6 +142,7 @@ class Operation:
     SET_TEXT = 'set_text'
     SNAPSHOT = 'snapshot'
     START_ACTIVITY = 'start_activity'
+    START_ACTIVITY_UI_AUTOMATOR_HELPER = 'start_activity_ui_automator__helper'
     SLEEP = 'sleep'
     SWIPE_UI_AUTOMATOR_HELPER = 'swipe_ui_automator_helper'
     TRAVERSE = 'traverse'
@@ -1137,7 +1138,10 @@ This is usually installed by python package. Check your distribution details.
             self.toggleGenerateTestCondition()
 
     def printStartActivityAtTop(self):
-        self.printOperation(None, Operation.START_ACTIVITY, self.device.getTopActivityName())
+        if self.vc.uiAutomatorHelper:
+            self.printOperation(None, Operation.START_ACTIVITY_UI_AUTOMATOR_HELPER, self.device.getTopActivityName())
+        else:
+            self.printOperation(None, Operation.START_ACTIVITY, self.device.getTopActivityName())
 
     def onCtrlA(self, event):
         if DEBUG:

@@ -790,6 +790,21 @@ def printStartActivity(component):
     printSleep(3)
 
 
+def printStartActivityUiAutomatorHelper(component):
+    """
+    Prints the corresponding startActivity().
+
+    :param component: the component
+    """
+
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(f'starting activity={component}')
+        pkg, cls = component.split('/')
+        print(f'{indent}{prefix}vc.uiAutomatorHelper.target_context.start_activity(\'{pkg}\', \'{cls}\')')
+
+
 def printTouchViewUiAutomatorHelper(selector: culebratester_client.Selector) -> None:
     """
     Prints the corresponding touch
@@ -1039,6 +1054,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.START_ACTIVITY:
         printStartActivity(component=args[0])
+        return
+    elif op == Operation.START_ACTIVITY_UI_AUTOMATOR_HELPER:
+        printStartActivityUiAutomatorHelper(component=args[0])
         return
     elif op == Operation.WAIT_FOR_IDLE_UI_AUTOMATOR_HELPER:
         printWaitForIdleUiAutomatorHelper()
