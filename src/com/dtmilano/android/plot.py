@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012-2018  Diego Torres Milano
+Copyright (C) 2012-2022  Diego Torres Milano
 Created on mar 11, 2017
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,9 +31,9 @@ from mpl_toolkits.axes_grid1 import host_subplot
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '21.4.3'
+__version__ = '21.4.4'
 
-DEBUG = True
+DEBUG = False
 
 NumberTypes = (int, int, float)
 
@@ -62,7 +62,7 @@ class Plot:
                 self.__initAava()
             dumpsys = value
             self.ava[Dumpsys.TOTAL].append(dumpsys.get(Dumpsys.TOTAL))
-            self.ava[Dumpsys.ACTIVITIES].append(dumpsys.get(Dumpsys.ACTIVITIES))
+            self.ava[Dumpsys.ACTIVITY].append(dumpsys.get(Dumpsys.ACTIVITY))
             self.ava[Dumpsys.VIEWS].append(dumpsys.get(Dumpsys.VIEWS))
             # self.ava[Dumpsys.VIEW_ROOT_IMPL].append(dumpsys.get(Dumpsys.VIEW_ROOT_IMPL))
             self.aava[Dumpsys.FRAMESTATS].append(dumpsys.get(Dumpsys.FRAMESTATS))
@@ -70,7 +70,7 @@ class Plot:
 
     def __initAva(self):
         self.ava[Dumpsys.TOTAL] = []
-        self.ava[Dumpsys.ACTIVITIES] = []
+        self.ava[Dumpsys.ACTIVITY] = []
         self.ava[Dumpsys.VIEWS] = []
         # self.ava[Dumpsys.VIEW_ROOT_IMPL] = []
 
@@ -99,7 +99,7 @@ class Plot:
 
                 axis = 1
                 for k in list(self.ava.keys()):
-                    if k != Dumpsys.TOTAL and k != Dumpsys.ACTIVITIES:
+                    if k != Dumpsys.TOTAL and k != Dumpsys.ACTIVITY:
                         offset = axis * 60
                         axis += 1
                         new_fixed_axis = par[k].get_grid_helper().new_fixed_axis
