@@ -31,7 +31,7 @@ case "$1" in
             END {
                 for (i in files) {
                     if (versions[i] == max) {
-                        s=\" MAX\"
+                        s=\" MAX 👈\"
                     } else {
                         s = \"\"};
                     printf(\"%-45s: %s%s\\n\", files[i], versions[i], s)};
