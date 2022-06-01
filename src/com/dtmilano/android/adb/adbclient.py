@@ -1,6 +1,6 @@
 # coding=utf-8
 '''
-Copyright (C) 2012-2018  Diego Torres Milano
+Copyright (C) 2012-2022  Diego Torres Milano
 Created on Dec 1, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@ from typing import Optional
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '21.6.0'
+__version__ = '21.7.0'
 
 import sys
 import warnings
@@ -576,16 +576,19 @@ class AdbClient:
         raise RuntimeError("Couldn't find display info in 'wm size', 'dumpsys display' or 'dumpsys window'")
 
     def getLogicalDisplayInfo(self):
-        '''
+        """
         Gets C{mDefaultViewport} and then C{deviceWidth} and C{deviceHeight} values from dumpsys.
-        This is a method to obtain display logical dimensions and density
-        '''
+        This is a method to obtain display logical dimensions and density.
+        Obtains the rotation from dumpsys.
+        """
 
         self.__checkTransport()
         logicalDisplayRE = re.compile(
-            '.*DisplayViewport\{valid=true, .*orientation=(?P<orientation>\d+), .*deviceWidth=(?P<width>\d+), deviceHeight=(?P<height>\d+).*')
-        for line in self.shell('dumpsys display').splitlines():
-            m = logicalDisplayRE.search(line, 0)
+            r'.*DisplayViewport\{.*valid=true, .*orientation=(?P<orientation>\d+), .*deviceWidth=(?P<width>\d+), '
+            r'deviceHeight=(?P<height>\d+).*')
+        predictedRotationRE = re.compile(r'.*mPredictedRotation=(?P<rotation>\d).*')
+        for _line in self.shell('dumpsys display').splitlines():
+            m = logicalDisplayRE.search(_line, pos=0)
             if m:
                 self.__displayInfo = {}
                 for prop in ['width', 'height', 'orientation']:
@@ -597,7 +600,14 @@ class AdbClient:
                     else:
                         # No available density information
                         self.__displayInfo[prop] = -1.0
-                return self.__displayInfo
+
+        for _line in self.shell('dumpsys window displays').splitlines():
+            m = predictedRotationRE.search(_line, pos=0)
+            if m:
+                self.__displayInfo['rotation'] = int(m.group('rotation'))
+
+        if self.__displayInfo:
+            return self.__displayInfo
         return None
 
     def getPhysicalDisplayInfo(self):
