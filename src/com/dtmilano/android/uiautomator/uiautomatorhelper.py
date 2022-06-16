@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.7.0'
+__version__ = '21.8.0'
 
 import json
 import os
@@ -30,7 +30,9 @@ import subprocess
 import sys
 import threading
 import time
+import warnings
 from abc import ABC
+from typing import Optional
 
 import culebratester_client
 from culebratester_client import Text, ObjectRef, StatusResponse
@@ -247,6 +249,46 @@ class UiAutomatorHelper:
             :return: the display real size
             """
             return self.uiAutomatorHelper.api_instance.device_display_real_size_get()
+
+        def dumpsys(self, service, **kwargs) -> str:
+            """
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param service: the service
+            :return: the dumpsys output
+            """
+            return self.uiAutomatorHelper.api_instance.device_dumpsys_get(service=service, _preload_content=False,
+                                                                          **kwargs).read().decode('UTF-8')
+
+        def get_top_activity_name_and_pid(self) -> Optional[str]:
+            dat = self.dumpsys('activity', arg1='top')
+            activityRE = re.compile(r'\s*ACTIVITY ([A-Za-z0-9_.]+)/([A-Za-z0-9_.\$]+) \w+ pid=(\d+)')
+            m = activityRE.findall(dat)
+            if len(m) > 0:
+                return m[-1]
+            else:
+                warnings.warn("NO MATCH:" + dat)
+                return None
+
+        def get_top_activity_name(self) -> Optional[str]:
+            tanp = self.get_top_activity_name_and_pid()
+            if tanp:
+                return tanp[0] + '/' + tanp[1]
+            else:
+                return None
+
+        def get_top_activity_uri(self) -> Optional[str]:
+            tan = self.get_top_activity_name()
+            dat = self.dumpsys('activity')
+            startActivityRE = re.compile(r'^\s*mStartActivity:')
+            intentRE = re.compile(f'^\\s*Intent {{ act=(\\S+) dat=(\\S+) flg=(\\S+) cmp={tan} }}')
+            lines = dat.splitlines()
+            for n, _line in enumerate(lines):
+                if startActivityRE.match(_line):
+                    for i in range(n, n + 6):
+                        m = intentRE.match(lines[i])
+                        if m:
+                            return m.group(2)
+            return None
 
         def wait_for_new_toast(self, timeout=10000):
             """
