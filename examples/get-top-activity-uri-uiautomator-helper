@@ -1,0 +1,9 @@
+#! /usr/bin/env python3
+
+from com.dtmilano.android.viewclient import ViewClient
+
+device, serialno = ViewClient.connectToDeviceOrExit()
+helper = ViewClient(device, serialno, useuiautomatorhelper=True).uiAutomatorHelper
+
+print('Top Activity:', helper.device.get_top_activity_name())
+print('URI:', helper.device.get_top_activity_uri())
