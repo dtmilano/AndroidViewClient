@@ -1,0 +1,10 @@
+#! /usr/bin/env python3
+
+from com.dtmilano.android.viewclient import ViewClient
+
+PKG = 'com.android.chrome'
+CLS = 'com.google.android.apps.chrome.Main'
+CMP = f'{PKG}/{CLS}'
+URI = 'https://stackoverflow.com/questions/13193592/adb-android-getting-the-name-of-the-current-activity'
+
+ViewClient.connectToDeviceOrExit()[0].startActivity(CMP, uri=URI)

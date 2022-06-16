@@ -1,0 +1,9 @@
+#! /usr/bin/env python3
+
+from com.dtmilano.android.viewclient import ViewClient
+
+PKG = 'com.google.android.calculator'
+CLS = 'com.android.calculator2.Calculator'
+CMP = f'{PKG}/{CLS}'
+
+ViewClient.connectToDeviceOrExit()[0].startActivity(CMP)
