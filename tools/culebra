@@ -25,7 +25,7 @@ from __future__ import print_function
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '21.8.0'
+__version__ = '21.9.0'
 
 import calendar
 import codecs
@@ -140,7 +140,7 @@ def usage(exitVal=1):
     sys.exit(exitVal)
 
 
-def help():
+def _help():
     print(USAGE % progname, file=sys.stderr)
     print(file=sys.stderr)
     print("Options:", file=sys.stderr)
@@ -581,7 +581,7 @@ def printPress(keycode):
         logAction('pressing key=%s' % keycode)
         print('%s%sdevice.press(\'%s\')' % (indent, prefix, keycode))
         # FIXME: we should support both cases: CulebraTester2 and adbclient
-        # print('%s%svc.uiAutomatorHelper.ui_device.press_key_code(KEY_EVENT[\'%s\'])' % (indent, prefix, keycode))
+        # print('%s%shelper.ui_device.press_key_code(KEY_EVENT[\'%s\'])' % (indent, prefix, keycode))
 
 
 def printDrag(start, end, duration, steps, unit, orientation):
@@ -802,7 +802,7 @@ def printStartActivityUiAutomatorHelper(component):
     else:
         logAction(f'starting activity={component}')
         pkg, cls = component.split('/')
-        print(f'{indent}{prefix}vc.uiAutomatorHelper.target_context.start_activity(\'{pkg}\', \'{cls}\')')
+        print(f'{indent}{prefix}helper.target_context.start_activity(\'{pkg}\', \'{cls}\')')
 
 
 def printTouchViewUiAutomatorHelper(selector: culebratester_client.Selector) -> None:
@@ -815,13 +815,13 @@ def printTouchViewUiAutomatorHelper(selector: culebratester_client.Selector) -> 
         logAction(f'touching by selector={selector}')
         indented_line = None
         indentation = indent + ' ' * 4
-        for line in f'{indent}obj_ref = {prefix}vc.uiAutomatorHelper.ui_device.find_object(body={selector})'.splitlines():
+        for line in f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body={selector})'.splitlines():
             if not indented_line:
                 indented_line = line
             else:
                 indented_line = f'{indented_line}\n{indentation}{line}'
         print(f'{indented_line}')
-        print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_object2.click(oid=obj_ref.oid)')
+        print(f'{indent}{prefix}helper.ui_object2.click(oid=obj_ref.oid)')
 
 
 def printLongTouchViewUiAutomatorHelper(selector):
@@ -834,13 +834,13 @@ def printLongTouchViewUiAutomatorHelper(selector):
         logAction(f'long-touching by selector={selector}')
         indented_line = None
         indentation = indent + ' ' * 4
-        for line in f'{indent}obj_ref = {prefix}vc.uiAutomatorHelper.ui_device.find_object(body={selector})'.splitlines():
+        for line in f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body={selector})'.splitlines():
             if not indented_line:
                 indented_line = line
             else:
                 indented_line = f'{indented_line}\n{indentation}{line}'
         print(f'{indented_line}')
-        print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_object2.long_click(oid=obj_ref.oid)')
+        print(f'{indent}{prefix}helper.ui_object2.long_click(oid=obj_ref.oid)')
 
 
 def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, unit, orientation):
@@ -920,7 +920,7 @@ def printPressUiAutomatorHelper(keycode):
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction(f'pressing {keycode}')
-        print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_device.press_key_code(KEY_EVENT[\'{keycode}\'])')
+        print(f'{indent}{prefix}helper.ui_device.press_key_code(KEY_EVENT[\'{keycode}\'])')
         printWaitForWindowUpdateUiAutomatorHelper()
 
 
@@ -932,7 +932,7 @@ def printWaitForIdleUiAutomatorHelper():
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction(f'waiting for idle')
-        print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_device.wait_for_idle()')
+        print(f'{indent}{prefix}helper.ui_device.wait_for_idle()')
 
 
 def printWaitForWindowUpdateUiAutomatorHelper():
@@ -943,7 +943,7 @@ def printWaitForWindowUpdateUiAutomatorHelper():
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction(f'waiting for idle')
-        print(f'{indent}{prefix}vc.uiAutomatorHelper.ui_device.wait_for_window_update()')
+        print(f'{indent}{prefix}helper.ui_device.wait_for_window_update()')
 
 
 def printOperation(view, op, *args):
@@ -1251,7 +1251,7 @@ transform = traverseAndPrint
 for o, a in optlist:
     o = o.strip('-')
     if o in ['H', CulebraOptions.HELP]:
-        help()
+        _help()
     elif o in ['V', CulebraOptions.VERBOSE]:
         kwargs1[CulebraOptions.VERBOSE] = True
     elif o in ['v', CulebraOptions.VERSION]:
@@ -1497,9 +1497,10 @@ device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
 vc = ViewClient(device, serialno, **kwargs2)
 ''' % (kwargs2))
 
+        if kwargs2[ViewClientOptions.USE_UIAUTOMATOR_HELPER]:
+            print('''helper = vc.uiAutomatorHelper''')
         if options[CulebraOptions.USE_DICTIONARY]:
             print('''views = dict()''')
-
         if options[CulebraOptions.SAVE_SCREENSHOT]:
             print('''vc.writeImageToFile('%s', 'PNG', %s, %s, %s)
 ''' % (options[CulebraOptions.SAVE_SCREENSHOT], options[CulebraOptions.DEVICE_ART], options[CulebraOptions.DROP_SHADOW],

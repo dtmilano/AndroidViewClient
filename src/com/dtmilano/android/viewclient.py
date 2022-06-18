@@ -2507,6 +2507,9 @@ class ViewClientOptions:
     START_VIEW_SERVER = 'startviewserver'
     IGNORE_UIAUTOMATOR_KILLED = 'ignoreuiautomatorkilled'
     COMPRESSED_DUMP = 'compresseddump'
+    # NOTICE: there are 2 constants referring to UiAutomatorHelper (i.e. CulebraTester2-public) option,
+    # this one and the other at CulebraOptions.USE_UI_AUTOMATOR_HELPER.
+    # The other one in kebab-case is for the command line option while this one is a method argument name
     USE_UIAUTOMATOR_HELPER = 'useuiautomatorhelper'
 
 
@@ -4718,6 +4721,9 @@ class CulebraOptions:
     DROP_SHADOW = 'drop-shadow'
     SCREEN_GLARE = 'glare'
     NULL_BACK_END = 'null-back-end'
+    # NOTICE: there are 2 constants referring to UiAutomatorHelper (i.e CulebraTester2-public) option,
+    # this one and the other at ViewClientOptions.USE_UI_AUTOMATOR_HELPER.
+    # This one in kebab-case is for the command line option
     USE_UIAUTOMATOR_HELPER = 'use-uiautomator-helper'
     CONCERTINA = 'concertina'
     CONCERTINA_CONFIG = 'concertina-config'
@@ -4805,7 +4811,7 @@ class CulebraOptions:
 
 
 class CulebraTestCase(unittest.TestCase):
-    '''
+    """
     The base class for all CulebraTests.
 
     Class variables
@@ -4825,7 +4831,7 @@ class CulebraTestCase(unittest.TestCase):
 
     B{verbose}: The verbosity of the tests. This can be changed from the test command line using the
     command line option C{-v} or C{--verbose}.
-    '''
+    """
 
     kwargs1 = None
     kwargs2 = None
@@ -4841,6 +4847,8 @@ class CulebraTestCase(unittest.TestCase):
     ''' The default connected device '''
     vc = None
     ''' The default connected device C{ViewClient} '''
+    helper = None
+    ''' The UiAutomatoHelper instance if enabled'''
     verbose = False
     options = {}
 
@@ -4848,11 +4856,11 @@ class CulebraTestCase(unittest.TestCase):
     def setUpClass(cls):
         cls.kwargs1 = {'ignoreversioncheck': False, 'verbose': False, 'ignoresecuredevice': False}
         cls.kwargs2 = {'startviewserver': False, 'forceviewserveruse': False, 'autodump': False,
-                       'ignoreuiautomatorkilled': True}
+                       'ignoreuiautomatorkilled': True, ViewClientOptions.USE_UIAUTOMATOR_HELPER: False}
 
     @classmethod
     def tearDownClass(cls):
-        if 'useuiautomatorhelper' in cls.kwargs2 and cls.kwargs2['useuiautomatorhelper']:
+        if cls.kwargs2.get(ViewClientOptions.USE_UIAUTOMATOR_HELPER, False):
             for d in cls.globalDevices:
                 d.vc.uiAutomatorHelper.quit()
 
@@ -4893,14 +4901,15 @@ class CulebraTestCase(unittest.TestCase):
             except:
                 pass
 
-        if 'useuiautomatorhelper' in self.kwargs2 and self.kwargs2.get('useuiautomatorhelper'):
+        if self.kwargs2.get(ViewClientOptions.USE_UIAUTOMATOR_HELPER, False):
             # FIXME: we could find better alternatives for device and serialno when UiAutomatorHelper is used
-            # Searialno could be obtained form UiAutomatorHelper too.
+            # Serialno could be obtained form UiAutomatorHelper too.
             self.vc = ViewClient("UI_AUTOMATOR_HELPER_DEVICE", "UI_AUTOMATOR_HELPER_SERIALNO", **self.kwargs2)
+            self.helper = self.vc.uiAutomatorHelper
             return
 
         if self.serialno:
-            # serialno can be 1 serialno, multiple serialnos, 'all' or 'default'
+            # serialno can be 1 serialno, multiple serialno's, 'all' or 'default'
             if self.serialno.lower() == 'all':
                 __devices = [d.serialno for d in adbclient.AdbClient().getDevices()]
             elif self.serialno.lower() == 'default':
@@ -4920,26 +4929,30 @@ class CulebraTestCase(unittest.TestCase):
                     # FIXME: we are not considering the uiAutomatorHelper case
                     # see if in lines 4832..4836
                     device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
-                vc = ViewClient(device, serialno, **self.kwargs2)
-                connectedDevice = ConnectedDevice(serialno=serialno, device=device, vc=vc)
+                _vc = ViewClient(device, serialno, **self.kwargs2)
+                connectedDevice = ConnectedDevice(serialno=serialno, device=device, vc=_vc)
                 self.devices.append(connectedDevice)
                 CulebraTestCase.globalDevices.append(connectedDevice)
-            # Select the first devices as default
+            # Select the first device as default
             self.defaultDevice = self.devices[0]
             self.device = self.defaultDevice.device
             self.serialno = self.defaultDevice.serialno
             self.vc = self.defaultDevice.vc
+            if self.options.get(ViewClientOptions.USE_UIAUTOMATOR_HELPER, False):
+                self.helper = self.vc.uiAutomatorHelper
         else:
             self.devices = []
             if __devices:
                 # A list containing only one device was specified
                 self.serialno = __devices[0]
             self.device, self.serialno = ViewClient.connectToDeviceOrExit(serialno=self.serialno, **self.kwargs1)
-            if CulebraOptions.START_ACTIVITY in self.options and self.options[CulebraOptions.START_ACTIVITY]:
+            if self.options.get(CulebraOptions.START_ACTIVITY, None):
                 # FIXME: we are not considering the uiAutomatorHelper case
                 # see if in lines 4832..4836
                 self.device.startActivity(component=self.options[CulebraOptions.START_ACTIVITY])
             self.vc = ViewClient(self.device, self.serialno, **self.kwargs2)
+            if self.options.get(ViewClientOptions.USE_UIAUTOMATOR_HELPER, False):
+                self.helper = self.vc.uiAutomatorHelper
             # Set the default device, to be consistent with multi-devices case
             connectedDevice = ConnectedDevice(serialno=self.serialno, device=self.device, vc=self.vc)
             self.devices.append(connectedDevice)
@@ -4957,7 +4970,7 @@ class CulebraTestCase(unittest.TestCase):
         return True
 
     def isTestRunningOnMultipleDevices(self):
-        return (len(self.devices) > 1)
+        return len(self.devices) > 1
 
     @staticmethod
     def __passAll(arg):
