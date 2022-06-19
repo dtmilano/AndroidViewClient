@@ -25,7 +25,7 @@ from __future__ import print_function
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '21.9.0'
+__version__ = '21.10.0'
 
 import calendar
 import codecs
@@ -523,6 +523,7 @@ def printDump(window, dump=None):
     @type dump: list
     '''
 
+    print('🐸 culebra.printDump', file=sys.stderr)
     if options[CulebraOptions.MULTI_DEVICE]:
         logAction('dumping content of window=%s on ${serialno}' % window)
         print('%s[_vc.dump(window=%s) for _vc in %sallVcs()]' % (indent, window, prefix))
@@ -755,7 +756,7 @@ def traverseAndPrint(view):
     '''
 
     if DEBUG:
-        print("🐞 traverseAndPrint(view=%s)" % view.id, file=sys.stderr)
+        print("🐞 culebra.traverseAndPrint(view=%s)" % view.id, file=sys.stderr)
     if type(view) == WindowHierarchy:
         # The root element is a WindowHierarchy (id=hierarchy)
         return
@@ -946,6 +947,58 @@ def printWaitForWindowUpdateUiAutomatorHelper():
         print(f'{indent}{prefix}helper.ui_device.wait_for_window_update()')
 
 
+def printDumpUiAutomatorHelper(window, dump=None):
+    """
+    Prints a dump.
+
+    NOTICE: This is a NO-OP for UiAutomatorHelper (i.e. CulebraTester2-public), except for
+    invoking traverse
+
+    @param window: The window id to use to print the dump
+    @type window: int or str
+    @param dump: Dump of Views previously obtained via L{ViewClient.dump()}
+    @type dump: list
+    """
+
+    if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
+        if DEBUG:
+            print('printDumpUiAutomatorHelper: printing dump: %s' % (dump.__class__.__name__ if dump else None),
+                  file=sys.stderr)
+        printTraverseUiAutomatorHelper(dump)
+
+
+def printTraverseUiAutomatorHelper(dump=None):
+    """
+    Prints the result of traversing the tree.
+    A previously obtained dump can be passed as a parameter and in such case that
+    tree is used.
+
+    @param dump: Dump of Views previously obtained via L{ViewClient.dump()}
+    @type dump: list
+    """
+
+    if DEBUG:
+        print('🤷‍♀️ printTraverseUiAutomatorHelper', file=sys.stderr)
+
+    print()
+    if dump:
+        for view in dump:
+            transform(view)
+    else:
+        if DEBUG:
+            print('🤷‍♀️ printTraverseUiAutomatorHelper: need to traverse the tree: not implemented yet',
+                  file=sys.stderr)
+        # We can do something like this for UiAutomatorHelper.
+        # adb/dump:
+        # vc.traverse(transform=transform)
+        # uiAutromatorHelper:
+        # wh = vc.uiAutomatorHelper.ui_device.dump_window_hierarchy()
+        # whch: WindowHierarchyChild = None
+        # for whch in wh.children:
+        #    print(whch.id, whch.text, whch.clazz)
+    print()
+
+
 def printOperation(view, op, *args):
     if len(args) == 0:
         # We use tuple values in the rest of this method, so if an empty tuple was passed
@@ -1001,6 +1054,9 @@ def printOperation(view, op, *args):
     elif op == Operation.DUMP:
         printDump(window=args[0], dump=args[1])
         return
+    elif op == Operation.DUMP_UI_AUTOMATOR_HELPER:
+        printDumpUiAutomatorHelper(window=args[0], dump=args[1])
+        return
     elif op == Operation.DRAG:
         printDrag(start=args[0], end=args[1], duration=args[2], steps=args[3], unit=args[4], orientation=args[5])
         return
@@ -1018,6 +1074,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.TRAVERSE:
         printTraverse()
+        return
+    elif op == Operation.TRAVERSE_UI_AUTOMATOR_HELPER:
+        printTraverseUiAutomatorHelper()
         return
     elif op == Operation.SNAPSHOT:
         printTakeSnapshot(filename=args[0], _format=args[1], deviceart=args[2], dropshadow=args[3], screenglare=args[4])
@@ -1469,7 +1528,10 @@ class CulebraTests(CulebraTestCase):
     if options[CulebraOptions.GUI]:
         runCulebron()
     elif not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
-        printDump(getWindowOption())
+        if kwargs2.get(ViewClientOptions.USE_UIAUTOMATOR_HELPER, False):
+            printDumpUiAutomatorHelper(getWindowOption())
+        else:
+            printDump(getWindowOption())
     else:
         print('''\
         ## your test code here ##
@@ -1525,7 +1587,10 @@ vc = ViewClient(device, serialno, **kwargs2)
     if options[CulebraOptions.GUI]:
         runCulebron()
     elif not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
-        printDump(getWindowOption())
+        if kwargs2.get(ViewClientOptions.USE_UIAUTOMATOR_HELPER, False):
+            printDumpUiAutomatorHelper(getWindowOption())
+        else:
+            printDump(getWindowOption())
 
 if kwargs2[ViewClientOptions.USE_UIAUTOMATOR_HELPER]:
     try:
