@@ -32,6 +32,12 @@ As of August 2021 we have reached:
 
 Thanks to all who made it possible.
 
+# Installation
+```
+pip3 install androidviewclient --upgrade
+```
+Or check the wiki for more alternatives.
+
 # Want to learn more?
 Detailed information can be found in the [AndroidViewClient/culebra wiki](https://github.com/dtmilano/AndroidViewClient/wiki)
 
