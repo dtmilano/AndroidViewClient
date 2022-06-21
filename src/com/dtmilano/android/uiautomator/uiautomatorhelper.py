@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.10.1'
+__version__ = '21.10.2'
 
 import json
 import os
@@ -569,7 +569,16 @@ class UiAutomatorHelper:
             :param oid: the oid
             :return: the content
             """
-            return self.uiAutomatorHelper.api_instance.ui_object2_dump_get(oid=oid)
+            return self.uiAutomatorHelper.api_instance.ui_object2_oid_dump_get(oid=oid)
+
+        def get_content_description(self, oid):
+            """
+            Returns the content description for this object.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :return: the text
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object2_oid_get_content_description_get(oid=oid)
 
         def get_text(self, oid):
             """
@@ -836,12 +845,14 @@ class UiObject2:
     """
     A UiObject2 represents a UI element. Unlike UiObject, it is bound to a particular view instance and can become
     stale.
+    :deprecated:
     """
 
     def __init__(self, uiAutomatorHelper: UiAutomatorHelper, class_name: str, oid: int):
         """
         Constructor.
 
+        :deprecated:
         :param uiAutomatorHelper: the uiAutomatorHelper instance.
         :param class_name: the class name of the UI object
         :param oid: the object id
@@ -853,6 +864,7 @@ class UiObject2:
     def clear(self):
         """
         Clears the text content if this object is an editable field.
+        :deprecated:
         :return: the result of the operation
         """
         return self.uiAutomatorHelper.ui_object2.clear(oid=self.oid)
@@ -860,6 +872,7 @@ class UiObject2:
     def click(self):
         """
         Clicks on this object.
+        :deprecated:
         :return: the result of the operation
         """
         return self.uiAutomatorHelper.ui_object2.click(oid=self.oid)
@@ -867,12 +880,14 @@ class UiObject2:
     def dump(self):
         """
         Dumps the content of the object/
+        :deprecated:
         :return: the content of the object
         """
         return self.uiAutomatorHelper.ui_object2.dump(oid=self.oid)
 
     def get_text(self):
         """
+        :deprecated:
         Returns the text value for this object.
         :return: the text
         """
@@ -881,6 +896,7 @@ class UiObject2:
     def long_click(self):
         """
         Performs a long click on this object.
+        :deprecated:
         :return: the result of the operation
         """
         return self.uiAutomatorHelper.ui_object2.long_click(oid=self.oid)
@@ -888,6 +904,7 @@ class UiObject2:
     def set_text(self, text):
         """
         Sets the text content if this object is an editable field.
+        :deprecated:
         :param text: the text
         :return: the result of the operation
         """
