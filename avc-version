@@ -26,15 +26,36 @@ case "$1" in
         echo -n "setup.py: "
         grep version setup.py
         ) | awk "
-            BEGIN { FS = \"[=:]+\"; max=-1 };
-            { gsub(/[,' ]+/, \"\", \$NF); files[NR]=\$1; v=\$NF; versions[NR]=v; if (v > max) max=v;}
+            function version_to_number(v) {
+                n = split(v, a, \".\");
+                r = 0;
+                for (j=n; j>0; j--) {
+                    r += a[j] * 1000**(n-j);
+                }
+                return r;
+            }
+
+            BEGIN {
+                FS = \"[=:]+\"; max=-1
+            }
+
+            {
+                gsub(/[,' ]+/, \"\", \$NF);
+                files[NR]=\$1; v=\$NF; versions[NR]=v;
+                v2n=version_to_number(v);
+                if (v2n > max)
+                    max=v2n
+            }
+
             END {
                 for (i in files) {
-                    if (versions[i] == max) {
+                    if (version_to_number(versions[i]) == max) {
                         s=\" MAX 👈\"
                     } else {
-                        s = \"\"};
-                    printf(\"%-45s: %s%s\\n\", files[i], versions[i], s)};
+                        s = \"\"
+                    }
+                    printf(\"%-65s: %s%s\\n\", files[i], versions[i], s)
+                }
             }
             "
         ;;
