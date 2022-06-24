@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.10.2'
+__version__ = '21.11.0'
 
 import json
 import os
@@ -416,12 +416,18 @@ class UiAutomatorHelper:
         def find_objects(self, **kwargs):
             """
             Finds objects.
+            Invokes GET or POST method depending on the arguments passed.
 
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
             :param kwargs:
             :return:
             """
-            return self.uiAutomatorHelper.api_instance.ui_device_find_objects_get(**kwargs)
+            if 'body' in kwargs:
+                return self.uiAutomatorHelper.api_instance.ui_device_find_objects_post(**kwargs)
+            if 'by_selector' in kwargs:
+                return self.uiAutomatorHelper.api_instance.ui_device_find_objects_get(**kwargs)
+            body = culebratester_client.Selector(**kwargs)
+            return self.uiAutomatorHelper.api_instance.ui_device_find_objects_post(body=body)
 
         def press_back(self):
             """
@@ -475,18 +481,30 @@ class UiAutomatorHelper:
             body = culebratester_client.SwipeBody(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_swipe_post(body=body)
 
-        def take_screenshot(self, scale=1.0, quality=90, **kwargs):
+        def take_screenshot(self, scale=1.0, quality=90, filename=None, **kwargs):
             """
             Takes screenshot.
+            Eventually save it in a file specified by filename.
 
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
-            :param scale:
-            :param quality:
-            :param kwargs:
-            :return:
+            :param scale: the scale
+            :param quality: the quality
+            :param filename: if specified the image will be saved in filename
+            :param kwargs: optional arguments
+            :return: the response containing the image binary if the filename was not specified
             """
-            return self.uiAutomatorHelper.api_instance.ui_device_screenshot_get(scale=scale, quality=quality,
-                                                                                _preload_content=False, **kwargs)
+            if filename:
+                img = self.uiAutomatorHelper.api_instance.ui_device_screenshot_get(scale=scale,
+                                                                                   quality=quality,
+                                                                                   _preload_content=False,
+                                                                                   **kwargs).read()
+                with open(filename, 'wb') as file:
+                    file.write(img)
+                return
+            return self.uiAutomatorHelper.api_instance.ui_device_screenshot_get(scale=scale,
+                                                                                quality=quality,
+                                                                                _preload_content=False,
+                                                                                **kwargs)
 
         def wait(self, search_condition_ref: int, timeout=10000):
             """
