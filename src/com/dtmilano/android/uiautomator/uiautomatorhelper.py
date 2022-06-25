@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.11.0'
+__version__ = '21.11.1'
 
 import json
 import os
@@ -506,14 +506,14 @@ class UiAutomatorHelper:
                                                                                 _preload_content=False,
                                                                                 **kwargs)
 
-        def wait(self, search_condition_ref: int, timeout=10000):
+        def wait(self, oid: int, timeout=10000):
             """
 
-            :param search_condition_ref: the search condition ref (oid)
+            :param oid: the search condition ref (oid)
             :param timeout: the timeout in ms
             :return:
             """
-            return self.uiAutomatorHelper.api_instance.ui_device_wait_get(search_condition_ref=search_condition_ref,
+            return self.uiAutomatorHelper.api_instance.ui_device_wait_get(oid=oid,
                                                                           timeout=timeout)
 
         def wait_for_idle(self, **kwargs):
@@ -633,15 +633,20 @@ class UiAutomatorHelper:
         def __init__(self, uiAutomatorHelper) -> None:
             super().__init__(uiAutomatorHelper)
 
-        def find_object(self, by_selector: str) -> ObjectRef:
+        def find_object(self, **kwargs) -> ObjectRef:
             """
             Returns a SearchCondition that is satisfied when at least one element matching the selector can be found.
             The condition will return the first matching element.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
-            :param by_selector: the selector
+            :param kwargs: the arguments
             :return: the search condition reference
             """
-            return self.uiAutomatorHelper.api_instance.until_find_object_get(by_selector=by_selector)
+            if 'body' in kwargs:
+                return self.uiAutomatorHelper.api_instance.until_find_object_post(**kwargs)
+            if 'by_selector' in kwargs:
+                return self.uiAutomatorHelper.api_instance.until_find_object_get(**kwargs)
+            body = culebratester_client.Selector(**kwargs)
+            return self.uiAutomatorHelper.api_instance.until_find_object_post(body=body)
 
         def new_window(self) -> ObjectRef:
             """
