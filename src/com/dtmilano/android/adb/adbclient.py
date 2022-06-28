@@ -27,7 +27,7 @@ from typing import Optional
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '21.11.1'
+__version__ = '21.11.2'
 
 import sys
 import warnings
@@ -225,6 +225,9 @@ class AdbClient:
 
         self.display = {}
         ''' The map containing the device's physical display properties: width, height and density '''
+
+        self.screenshot_number = 1
+        ''' The screenshot number count '''
 
         self.isTransportSet = False
         if settransport and serialno is not None:
@@ -932,6 +935,7 @@ class AdbClient:
 
         if PROFILE:
             profileEnd()
+        self.screenshot_number += 1
         return image
 
     def imageToData(self, image, output_type=None):
@@ -1428,6 +1432,7 @@ class AdbClient:
         if osName.startswith('Windows'):  # ':' not supported in filenames
             timestamp.replace(':', '_')
         _map = {
+            'screenshot_number': f'{self.screenshot_number:04d}',
             'serialno': serialno,
             'focusedwindowname': focusedWindowName,
             'timestamp': timestamp

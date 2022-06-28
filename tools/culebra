@@ -747,6 +747,18 @@ def printTakeSnapshot(filename, _format, deviceart, dropshadow, screenglare):
             indent, prefix, filename, _format, deviceart, dropshadow, screenglare))
 
 
+def printTakeSnapshotUiAutomatorHelper(filename, _format='PNG'):
+    '''
+    Prints the corresponding take_screenshot() to take a snapshot
+    '''
+
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(f'taking screenshot @ {filename} format={_format}')
+        print(f'{indent}{prefix}helper.ui_device.take_screenshot(filename=\'{filename}\')')
+
+
 def traverseAndPrint(view):
     '''
     Traverses the View tree and prints the corresponding statement.
@@ -1084,6 +1096,9 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.SNAPSHOT:
         printTakeSnapshot(filename=args[0], _format=args[1], deviceart=args[2], dropshadow=args[3], screenglare=args[4])
+        return
+    elif op == Operation.SNAPSHOT_UI_AUTOMATOR_HELPER:
+        printTakeSnapshotUiAutomatorHelper(filename=args[0], _format=args[1])
         return
     elif op == Operation.SWIPE_UI_AUTOMATOR_HELPER:
         printSwipeUiAutomatorHelper(startX=args[0], startY=args[1], endX=args[2], endY=args[3], steps=args[4],

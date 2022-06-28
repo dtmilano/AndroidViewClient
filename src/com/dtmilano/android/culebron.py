@@ -34,7 +34,7 @@ from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.viewclient import ViewClient, View
 
-__version__ = '21.11.1'
+__version__ = '21.11.2'
 
 import sys
 import threading
@@ -142,6 +142,7 @@ class Operation:
     SAY_TEXT = 'say_text'
     SET_TEXT = 'set_text'
     SNAPSHOT = 'snapshot'
+    SNAPSHOT_UI_AUTOMATOR_HELPER = 'snapshot_ui_automator_helper'
     START_ACTIVITY = 'start_activity'
     START_ACTIVITY_UI_AUTOMATOR_HELPER = 'start_activity_ui_automator__helper'
     SLEEP = 'sleep'
@@ -1167,14 +1168,26 @@ This is usually installed by python package. Check your distribution details.
         Current snapshot is the image being displayed on the main window.
         '''
 
-        filename = self.snapshotDir + os.sep + '${serialno}-${focusedwindowname}-${timestamp}' + '.' + self.snapshotFormat.lower()
+        filename = self.snapshotDir + os.sep + '${serialno}-${screenshot_number}-${focusedwindowname}-${timestamp}' + '.' + self.snapshotFormat.lower()
         # We have the snapshot already taken, no need to retake
         d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
         saveAsFilename = d.askSaveAsFilename()
         if saveAsFilename:
             _format = os.path.splitext(saveAsFilename)[1][1:].upper()
-            self.printOperation(None, Operation.SNAPSHOT, filename, _format, self.deviceArt, self.dropShadow,
+            if self.vc.uiAutomatorHelper:
+                # FIXME: we should use fields in this class instead of relying on device
+                # FIXME: the screenshot name is generated here and then no re-evaluation of variables take place
+                # when the generated script runs (i.e. if the serialno changes then the filenames will be wrong)
+                # Note that in the other case (no helper), the template is re-evaluated.
+                # Then, it may make more sense to have the template evaluation in ui_device.take_screenshot().
+                _filename = self.device.substituteDeviceTemplate(filename)
+                self.printOperation(None, Operation.SNAPSHOT_UI_AUTOMATOR_HELPER, _filename, _format)
+                # FIXME: we increment here as we dont use device.takeSnapshot() which increments the count
+                self.device.screenshot_number += 1
+            else:
+                self.printOperation(None, Operation.SNAPSHOT, filename, _format, self.deviceArt, self.dropShadow,
                                 self.screenGlare)
+
             # FIXME: we should add deviceArt, dropShadow and screenGlare to the saved image
             # self.unscaledScreenshot.save(saveAsFilename, _format, self.deviceArt, self.dropShadow, self.screenGlare)
             self.unscaledScreenshot.save(saveAsFilename, _format)
