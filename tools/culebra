@@ -25,7 +25,7 @@ from __future__ import print_function
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '21.11.1'
+__version__ = '21.11.2'
 
 import calendar
 import codecs
@@ -816,12 +816,16 @@ def printTouchViewUiAutomatorHelper(selector: culebratester_client.Selector) -> 
         logAction(f'touching by selector={selector}')
         indented_line = None
         indentation = indent + ' ' * 4
-        for line in f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body={selector})'.splitlines():
+        # FIXME: should be find_objects and before clicking we should verify the list contains
+        # only 1 object, otherwise we aren't sure which one is being clicked
+        for line in f'{indent}obj_ref = {prefix}helper.until.find_object(body={selector})'.splitlines():
             if not indented_line:
                 indented_line = line
             else:
                 indented_line = f'{indented_line}\n{indentation}{line}'
+        print('')
         print(f'{indented_line}')
+        print(f'{indent}obj_ref = {prefix}helper.ui_device.wait(oid=obj_ref.oid)')
         print(f'{indent}{prefix}helper.ui_object2.click(oid=obj_ref.oid)')
 
 
