@@ -26,7 +26,7 @@ from typing import Optional
 import culebratester_client
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '21.11.3'
+__version__ = '21.12.0'
 
 import sys
 import warnings

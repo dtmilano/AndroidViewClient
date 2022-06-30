@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.11.3'
+__version__ = '21.12.0'
 
 import json
 import os
