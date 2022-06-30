@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.11.2'
+__version__ = '21.11.3'
 
 import json
 import os
@@ -401,6 +401,7 @@ class UiAutomatorHelper:
         def find_object(self, **kwargs):
             """
             Finds an object.
+            Invokes GET or POST method depending on the arguments passed.
 
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
             :param kwargs:
@@ -647,6 +648,21 @@ class UiAutomatorHelper:
                 return self.uiAutomatorHelper.api_instance.until_find_object_get(**kwargs)
             body = culebratester_client.Selector(**kwargs)
             return self.uiAutomatorHelper.api_instance.until_find_object_post(body=body)
+
+        def find_objects(self, **kwargs) -> ObjectRef:
+            """
+            Returns a SearchCondition that is satisfied when at least one element matching the selector can be found.
+            The condition will return the first matching element.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param kwargs: the arguments
+            :return: the search condition reference
+            """
+            if 'body' in kwargs:
+                return self.uiAutomatorHelper.api_instance.until_find_objects_post(**kwargs)
+            if 'by_selector' in kwargs:
+                return self.uiAutomatorHelper.api_instance.until_find_objects_get(**kwargs)
+            body = culebratester_client.Selector(**kwargs)
+            return self.uiAutomatorHelper.api_instance.until_find_objects_post(body=body)
 
         def new_window(self) -> ObjectRef:
             """
