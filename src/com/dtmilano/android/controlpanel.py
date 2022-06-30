@@ -105,7 +105,7 @@ class ControlPanel(tkinter.Toplevel):
             'KEYCODE_BOOKMARK',
             'KEYCODE_ZOOM_OUT', 'REFRESH', 'KEYCODE_APP_SWITCH', 'KEYCODE_GOOGLE_NOW', 'KEYCODE_CALL', 'KEYCODE_ESCAPE',
             'KEYCODE_BRIGHTNESS_UP', 'KEYCODE_VOLUME_MUTE', 'KEYCODE_MEDIA_STOP', 'KEYCODE_CALCULATOR',
-            'KEYCODE_SETTINGS', 'QUIT'
+            'KEYCODE_SETTINGS', 'CLOSE'
         ]
         for keycode in _keycodeList:
             _cpb = ControlPanelButton(self.keycodeTab, self.culebron, self.printOperation, value=keycode,
@@ -118,7 +118,7 @@ class ControlPanel(tkinter.Toplevel):
                 _cpb.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=_cpb.refreshScreen)
             elif keycode == 'SNAPSHOPT':
                 _cpb.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=_cpb.takeSnapshot)
-            elif keycode == 'QUIT':
+            elif keycode == 'CLOSE':
                 _cpb.configure(fg=Color.BLUE, bg=Color.DARK_GRAY, text=keycode, command=self.childWindow.destroy)
             else:
                 _cpb.configure(command=_cpb.command)

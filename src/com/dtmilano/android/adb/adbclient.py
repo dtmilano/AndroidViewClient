@@ -1425,6 +1425,7 @@ class AdbClient:
 
     def substituteDeviceTemplate(self, template):
         serialno = self.serialno.replace('.', '_').replace(':', '-')
+        pid = os.getpid()
         window_name = self.getFocusedWindowName() or 'no_name'
         focusedWindowName = window_name.replace('/', '-').replace('.', '_')
         timestamp = datetime.datetime.now().isoformat()
@@ -1433,6 +1434,7 @@ class AdbClient:
             timestamp.replace(':', '_')
         _map = {
             'screenshot_number': f'{self.screenshot_number:04d}',
+            'pid': pid,
             'serialno': serialno,
             'focusedwindowname': focusedWindowName,
             'timestamp': timestamp

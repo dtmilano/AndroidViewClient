@@ -34,7 +34,7 @@ from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.viewclient import ViewClient, View
 
-__version__ = '21.11.3'
+__version__ = '21.12.0'
 
 import sys
 import threading
@@ -81,6 +81,7 @@ from ast import literal_eval as make_tuple
 
 CHECK_KEYBOARD_SHOWN = False
 PROFILE = False
+TIMING = False
 
 DEBUG = False
 DEBUG_MOVE = DEBUG and False
@@ -120,6 +121,7 @@ class Operation:
     FLING_TO_BEGINNING = 'fling_to_beginning'
     FLING_TO_END = 'fling_to_end'
     TEST = 'test'
+    TEST_UI_AUTOMATOR_HELPER = 'test_ui_automator_helper'
     TEST_TEXT = 'test_text'
     TOUCH_VIEW = 'touch_view'
     TOUCH_VIEW_UI_AUTOMATOR_HELPER = 'touch_view_ui_automator_helper'
@@ -146,6 +148,7 @@ class Operation:
     START_ACTIVITY = 'start_activity'
     START_ACTIVITY_UI_AUTOMATOR_HELPER = 'start_activity_ui_automator__helper'
     SLEEP = 'sleep'
+    SLEEP_UI_AUTOMATOR_HELPER = 'sleep_ui_automator_helper'
     SWIPE_UI_AUTOMATOR_HELPER = 'swipe_ui_automator_helper'
     TRAVERSE = 'traverse'
     TRAVERSE_UI_AUTOMATOR_HELPER = 'traverse_ui_automator_helper'
@@ -327,7 +330,7 @@ This is usually installed by python package. Check your distribution details.
         print("details:", self.viewDetails.grid_info(), file=sys.stderr)
 
     def takeScreenshotAndShowItOnWindow(self):
-        '''
+        """
         Takes the current screenshot and shows it on the main window.
         It also:
          - sizes the window
@@ -337,7 +340,7 @@ This is usually installed by python package. Check your distribution details.
          - create widgets
          - finds the targets (as explained in L{findTargets})
          - hides the vignette (that could have been showed before)
-        '''
+        """
 
         if PROFILE:
             print("PROFILING: takeScreenshotAndShowItOnWindow()", file=sys.stderr)
@@ -345,9 +348,24 @@ This is usually installed by python package. Check your distribution details.
 
         if DEBUG:
             print("takeScreenshotAndShowItOnWindow()", file=sys.stderr)
+        t0 = None
         if self.vc and self.vc.uiAutomatorHelper:
+            if self.vc.uiAutomatorHelper:
+                if TIMING:
+                    t0 = time.time()
+                self.vc.uiAutomatorHelper.ui_device.wait_for_window_update()
+                if TIMING:
+                    print(f"# takeScreenshotAndShowItOnWindow: waiting for window update: {time.time() - t0:.2f}s")
+                    t0 = time.time()
+                self.vc.uiAutomatorHelper.ui_device.wait_for_idle()
+                if TIMING:
+                    print(f"# takeScreenshotAndShowItOnWindow: waiting for idle: {time.time() - t0:.2f}s")
+            if TIMING:
+                t0 = time.time()
             received = self.vc.uiAutomatorHelper.ui_device.take_screenshot()
             stream = io.BytesIO(received.read())
+            if TIMING:
+                print(f"# takeScreenshotAndShowItOnWindow: screenshot: {time.time() - t0:.2f}s")
             try:
                 self.unscaledScreenshot = Image.open(stream)
             except IOError as ex:
@@ -697,13 +715,19 @@ This is usually installed by python package. Check your distribution details.
         vlist = self.vc.findViewsContainingPoint((x, y))
         vlist.reverse()
         for v in vlist:
-            text = v.getText()
-            if text:
-                self.toast('Asserting view with text=%s' % text, timeout=5)
-                # FIXME: only getText() is invoked by the generated assert(), a parameter
-                # should be used to provide different alternatives to printOperation()
-                self.printOperation(v, Operation.TEST, text)
-                break
+            if self.vc.uiAutomatorHelper:
+                selector = v.obtain_selector()
+                if selector:
+                    self.printOperation(v, Operation.TEST_UI_AUTOMATOR_HELPER, selector)
+                    break
+            else:
+                text = v.getText()
+                if text:
+                    self.toast('Asserting view with text=%s' % text, timeout=5)
+                    # FIXME: only getText() is invoked by the generated assert(), a parameter
+                    # should be used to provide different alternatives to printOperation()
+                    self.printOperation(v, Operation.TEST, text)
+                    break
 
     def findViewContainingPointInTargets(self, x, y):
         if self.vc:
@@ -802,7 +826,13 @@ This is usually installed by python package. Check your distribution details.
             self.printOperation(None, Operation.WAIT_FOR_WINDOW_UPDATE_UI_AUTOMATOR_HELPER, Operation.DEFAULT)
         else:
             self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
-        self.vc.sleep(5)
+        # FIXME: we may use sleep() but we may need to differentiate the cases between this and an explicit sleep
+        # self.sleep(5)
+
+        if self.vc.uiAutomatorHelper:
+            self.vc.uiAutomatorHelper.ui_device.wait_for_idle()
+        else:
+            self.vc.sleep(5)
         self.takeScreenshotAndShowItOnWindow()
 
     def pressBack(self):
@@ -830,7 +860,7 @@ This is usually installed by python package. Check your distribution details.
             self.printOperation(None, Operation.PRESS_RECENT_APPS_UI_AUTOMATOR_HELPER)
         else:
             self.printOperation(None, Operation.PRESS_RECENT_APPS)
-        self.vc.sleep(1)
+        self.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
     def setText(self, v, text):
@@ -861,11 +891,11 @@ This is usually installed by python package. Check your distribution details.
             self.printOperation(v, Operation.TOUCH_VIEW, root)
 
     def touchPoint(self, x, y):
-        '''
+        """
         Touches a point in the device screen.
         The generated operation will use the units specified in L{coordinatesUnit} and the
         orientation in L{vc.display['orientation']}.
-        '''
+        """
 
         if DEBUG:
             print('touchPoint(%d, %d)' % (x, y), file=sys.stderr)
@@ -886,7 +916,7 @@ This is usually installed by python package. Check your distribution details.
                 y = round(y / self.device.display['density'], 2)
             self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit,
                                 self.device.display['orientation'])
-            self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
+            self.sleep(5)
             # FIXME: can we reduce this sleep? (was 5)
             time.sleep(1)
             self.isTouchingPoint = self.vc is None
@@ -1163,12 +1193,13 @@ This is usually installed by python package. Check your distribution details.
         self.saveSnapshot()
 
     def saveSnapshot(self):
-        '''
-        Saves the current shanpshot to the specified file.
+        """
+        Saves the current snapshot to the specified file.
         Current snapshot is the image being displayed on the main window.
-        '''
+        """
 
-        filename = self.snapshotDir + os.sep + '${serialno}-${screenshot_number}-${focusedwindowname}-${timestamp}' + '.' + self.snapshotFormat.lower()
+        filename = self.snapshotDir + os.sep + '${serialno}-${pid}-${screenshot_number}-${focusedwindowname}-' \
+                                               '${timestamp}' + '.' + self.snapshotFormat.lower()
         # We have the snapshot already taken, no need to retake
         d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
         saveAsFilename = d.askSaveAsFilename()
@@ -1186,20 +1217,20 @@ This is usually installed by python package. Check your distribution details.
                 self.device.screenshot_number += 1
             else:
                 self.printOperation(None, Operation.SNAPSHOT, filename, _format, self.deviceArt, self.dropShadow,
-                                self.screenGlare)
+                                    self.screenGlare)
 
             # FIXME: we should add deviceArt, dropShadow and screenGlare to the saved image
             # self.unscaledScreenshot.save(saveAsFilename, _format, self.deviceArt, self.dropShadow, self.screenGlare)
             self.unscaledScreenshot.save(saveAsFilename, _format)
 
     def saveViewSnapshot(self, view):
-        '''
+        """
         Saves the View snapshot.
-        '''
+        """
 
         if not view:
             raise ValueError("view must be provided to take snapshot")
-        filename = self.snapshotDir + os.sep + '${serialno}-' + View.variableNameFromId(
+        filename = self.snapshotDir + os.sep + '${serialno}-${pid}-' + View.variableNameFromId(
             view) + '-${timestamp}' + '.' + self.snapshotFormat.lower()
         d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
         saveAsFilename = d.askSaveAsFilename()
@@ -1296,10 +1327,10 @@ This is usually installed by python package. Check your distribution details.
         self.window.destroy()
 
     def showSleepDialog(self):
-        seconds = tkinter.simpledialog.askfloat('Sleep Interval', 'Value in seconds:', initialvalue=1, minvalue=0,
-                                                parent=self.window)
-        if seconds is not None:
-            self.printOperation(None, Operation.SLEEP, seconds)
+        secs = tkinter.simpledialog.askfloat('Sleep Interval', 'Value in secs:', initialvalue=1, minvalue=0,
+                                             parent=self.window)
+        if secs is not None:
+            self.sleep(secs, False)
         self.canvas.focus_set()
 
     def onCtrlS(self, event):
@@ -1379,8 +1410,7 @@ This is usually installed by python package. Check your distribution details.
         else:
             self.printOperation(None, Operation.DRAG, start, end, duration, steps, units,
                                 self.device.display['orientation'])
-        self.printOperation(None, Operation.SLEEP, 1)
-        time.sleep(1)
+        self.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
     def enableEvents(self):
@@ -1490,8 +1520,7 @@ This is usually installed by python package. Check your distribution details.
         # is executed
         self.printOperation(view, Operation.fromCommandName(command.__name__))
         command()
-        self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
-        self.vc.sleep(5)
+        self.sleep(5)
         # FIXME: perhaps refresh() should be invoked here just in case size or orientation changed
         self.takeScreenshotAndShowItOnWindow()
 
@@ -1756,17 +1785,22 @@ This is usually installed by python package. Check your distribution details.
         self.window.after(5000 if dontinteract or needToSleep else 0, self.concertinaLoopCallback)
 
     def sleepAndRefreshScreen(self):
-        self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
         if DEBUG_CONCERTINA:
             print("CONCERTINA: waiting 5 secs", file=sys.stderr)
-        time.sleep(5)
+        self.sleep(5)
         if DEBUG_CONCERTINA:
             print("CONCERTINA: updating window", file=sys.stderr)
         self.takeScreenshotAndShowItOnWindow()
 
-    def sleep(self, s):
-        time.sleep(s)
-        self.printOperation(None, Operation.SLEEP, s)
+    def sleep(self, secs: float, do_actual_sleep_before: bool = True) -> None:
+        if do_actual_sleep_before:
+            time.sleep(secs)
+        if self.vc.uiAutomatorHelper:
+            # FIXME: we may use this for many cases, but we need to exclude explicit sleeps
+            # self.printOperation(None, Operation.WAIT_FOR_WINDOW_UPDATE_UI_AUTOMATOR_HELPER, secs)
+            self.printOperation(None, Operation.SLEEP_UI_AUTOMATOR_HELPER, secs)
+        else:
+            self.printOperation(None, Operation.SLEEP, secs)
 
     def getViewContainingPointAndLongTouch(self, x, y):
         # FIXME: this method is almost exactly as getViewContainingPointAndTouch()
@@ -1811,8 +1845,7 @@ This is usually installed by python package. Check your distribution details.
         candidate = candidates[0]
         self.longTouchView(candidate, v if candidate != v else None)
 
-        self.printOperation(None, Operation.SLEEP, Operation.DEFAULT)
-        self.vc.sleep(5)
+        self.sleep(5)
         self.takeScreenshotAndShowItOnWindow()
 
 
