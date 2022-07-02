@@ -22,10 +22,12 @@ ___________________/  /__/  /__/  /__/  /________________________________
 
 from __future__ import print_function
 
+import textwrap
+
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '21.12.0'
+__version__ = '21.13.0'
 
 import calendar
 import codecs
@@ -326,6 +328,17 @@ You have to set PYTHONIOENCODING environment variable. For example:
                 warnings.warn('Multi-device not implemented yet for this case')
             else:
                 print('%s%svc.findViewWithTextOrRaise(%s).setText(u"%s")' % (indent, prefix, text, arg))
+        elif op == Operation.SET_TEXT_UI_AUTOMATOR_HELPER:
+            if options[CulebraOptions.MULTI_DEVICE]:
+                warnings.warn('Multi-device not implemented yet for this case')
+            else:
+                logAction(f'setting view with text={text}')
+                find_object_line = textwrap.indent(f'obj_ref = helper.until.find_object(body={view.obtain_selector()})',
+                                                   '    ' * 6, lambda line: not line.startswith('obj_ref ='))
+                print(textwrap.dedent(f'''
+                    {find_object_line}
+                    response = helper.ui_device.wait(oid=obj_ref.oid)
+                    helper.ui_object2.set_text(oid=response['oid'], text={text})'''))
         elif op in [Operation.FLING_BACKWARD, Operation.FLING_FORWARD, Operation.FLING_TO_BEGINNING,
                     Operation.FLING_TO_END]:
             if options[CulebraOptions.MULTI_DEVICE]:
@@ -767,7 +780,7 @@ def printTakeSnapshotUiAutomatorHelper(filename, _format='PNG'):
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction(f'taking screenshot @ {filename} format={_format}')
-        print(f'{indent}{prefix}helper.ui_device.take_screenshot(filename=\'{filename}\')')
+        print(f'{indent}{prefix}helper.ui_device.take_screenshot(filename=f\'{filename}\')')
 
 
 def traverseAndPrint(view):
@@ -848,8 +861,8 @@ def printTouchViewUiAutomatorHelper(selector: culebratester_client.Selector) -> 
                 indented_line = f'{indented_line}\n{indentation}{line}'
         print('')
         print(f'{indented_line}')
-        print(f'{indent}obj_ref = {prefix}helper.ui_device.wait(oid=obj_ref.oid)')
-        print(f'{indent}{prefix}helper.ui_object2.click(oid=obj_ref.oid)')
+        print(f'{indent}response = {prefix}helper.ui_device.wait(oid=obj_ref.oid)')
+        print(f'{indent}{prefix}helper.ui_object2.click(oid=response[\'oid\'])')
 
 
 def printLongTouchViewUiAutomatorHelper(selector):
@@ -948,6 +961,7 @@ def printPressUiAutomatorHelper(keycode):
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction(f'pressing {keycode}')
+        print('')
         print(f'{indent}{prefix}helper.ui_device.press_key_code(KEY_EVENT[\'{keycode}\'])')
         printWaitForWindowUpdateUiAutomatorHelper()
 
@@ -1250,6 +1264,7 @@ ___________________/  /__/  /__/  /__/  /________________________________
 """
 
 
+import datetime
 import os
 import re
 import sys
@@ -1299,7 +1314,8 @@ def runCulebron():
     Culebron.checkSupportedSdkVersion(device.getSdkVersion())
     Culebron.checkDependencies()
     culebron = Culebron(vc, device, serialno, printOperation, options[CulebraOptions.SCALE],
-                        options[CulebraOptions.CONCERTINA], options[CulebraOptions.CONCERTINA_CONFIG])
+                        options[CulebraOptions.CONCERTINA], options[CulebraOptions.CONCERTINA_CONFIG],
+                        options[CulebraOptions.AUTO_SCREENSHOTS])
     if options[CulebraOptions.DEVICE_ART]:
         culebron.deviceArt = options[CulebraOptions.DEVICE_ART]
         culebron.dropShadow = options[CulebraOptions.DROP_SHADOW]
@@ -1313,11 +1329,13 @@ def printShortcutVariables():
         print('''\
         _s = CulebraTests.sleep
         _v = CulebraTests.verbose
+        pid = os.getpid()
 ''')
     else:
         print('''\
 _s = 5
 _v = '--verbose' in sys.argv
+pid = os.getpid()
 ''')
 
 
@@ -1325,6 +1343,7 @@ _v = '--verbose' in sys.argv
 # __main__
 ################
 progname = os.path.basename(sys.argv[0])
+optlist = []
 try:
     optlist, args = getopt.getopt(sys.argv[1:], CulebraOptions.SHORT_OPTS, CulebraOptions.LONG_OPTS)
     sys.argv[1:] = args
@@ -1362,6 +1381,7 @@ options = {CulebraOptions.FIND_VIEWS_BY_ID: True, CulebraOptions.FIND_VIEWS_WITH
            CulebraOptions.CONCERTINA: False,
            CulebraOptions.CONCERTINA_CONFIG: None,
            CulebraOptions.INSTALL_APK: None,
+           CulebraOptions.AUTO_SCREENSHOTS: False,
            }
 transform = traverseAndPrint
 for o, a in optlist:
@@ -1466,6 +1486,8 @@ for o, a in optlist:
         options[CulebraOptions.INSTALL_APK] = a
     elif o in ['X', ViewClientOptions.DEBUG]:
         kwargs2[ViewClientOptions.DEBUG] = debugArgsToDict(a)
+    elif o in ['y', CulebraOptions.AUTO_SCREENSHOTS]:
+        options[CulebraOptions.AUTO_SCREENSHOTS] = True
 
 if not (options[CulebraOptions.FIND_VIEWS_BY_ID] or options[CulebraOptions.FIND_VIEWS_WITH_TEXT] or options[
     CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]):
@@ -1614,7 +1636,7 @@ device, serialno = ViewClient.connectToDeviceOrExit(**kwargs1)
     if not options[CulebraOptions.UNIT_TEST_METHOD]:
         print('''kwargs2 = %s
 vc = ViewClient(device, serialno, **kwargs2)
-''' % (kwargs2))
+''' % kwargs2)
 
         if kwargs2[ViewClientOptions.USE_UIAUTOMATOR_HELPER]:
             print('''helper = vc.uiAutomatorHelper''')

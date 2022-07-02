@@ -20,14 +20,18 @@ limitations under the License.
 '''
 from __future__ import print_function
 
+import datetime
 import io
 import random
 import re
 import time
+from tkinter.filedialog import asksaveasfilename
+from typing import Any, Optional
 
 import numpy
 from culebratester_client import WindowHierarchy
 
+from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
@@ -143,6 +147,7 @@ class Operation:
     PRESS_RECENT_APPS_UI_AUTOMATOR_HELPER = 'press_recent_apps_ui_automator_helper'
     SAY_TEXT = 'say_text'
     SET_TEXT = 'set_text'
+    SET_TEXT_UI_AUTOMATOR_HELPER = 'set_text_ui_automator_helper'
     SNAPSHOT = 'snapshot'
     SNAPSHOT_UI_AUTOMATOR_HELPER = 'snapshot_ui_automator_helper'
     START_ACTIVITY = 'start_activity'
@@ -243,10 +248,12 @@ or, preferred since El Capitan
 This is usually installed by python package. Check your distribution details.
 ''')
 
-    def __init__(self, vc, device, serialno, printOperation, scale=1, concertina=False, concertinaConfigFile=None):
-        '''
+    def __init__(self, vc: ViewClient, device: AdbClient, serialno: str, printOperation: Any, scale: float = 1,
+                 concertina: bool = False, concertinaConfigFile: Optional[str] = None,
+                 autoScreenshots: bool = False):
+        """
         Culebron constructor.
-        
+
         @param vc: The ViewClient used by this Culebron instance. Can be C{None} if no back-end is used.
         @type vc: ViewClient
         @param device: The device
@@ -261,7 +268,8 @@ This is usually installed by python package. Check your distribution details.
         @type concertina: bool
         @param concertinaConfigFile: configuration file for concertina
         @type concertinaConfigFile: str
-        '''
+        :param autoScreenshots: take screenshots automatically
+        """
 
         self.vc = vc
         self.dump = None
@@ -312,6 +320,7 @@ This is usually installed by python package. Check your distribution details.
         self.screenshot = None
         self.iterations = 0
         self.noTargetViewsCount = 0
+        self.autoScreenshots = autoScreenshots
         if DEBUG:
             try:
                 self.printGridInfo()
@@ -430,6 +439,10 @@ This is usually installed by python package. Check your distribution details.
         try:
             self.findTargets()
             self.hideVignette()
+            if self.autoScreenshots:
+                print(f'Taking screenshot {self.device.screenshot_number}', file=sys.stderr)
+                self.saveSnapshot()
+
         except Exception as ex:
             print("⛔️ %s" % ex, file=sys.stderr)
         if DEBUG:
@@ -797,8 +810,12 @@ This is usually installed by python package. Check your distribution details.
                 text = tkinter.simpledialog.askstring(title, "Enter text to type into this field", **kwargs)
                 self.canvas.focus_set()
                 if text:
-                    self.vc.setText(v, text)
-                    self.printOperation(v, Operation.SET_TEXT, text)
+                    if self.vc.uiAutomatorHelper:
+                        self.vc.setText(v, text)
+                        self.printOperation(v, Operation.SET_TEXT_UI_AUTOMATOR_HELPER, text)
+                    else:
+                        self.vc.setText(v, text)
+                        self.printOperation(v, Operation.SET_TEXT, text)
                 else:
                     self.hideVignette()
                     return
@@ -1190,19 +1207,23 @@ This is usually installed by python package. Check your distribution details.
         self.showDragDialog()
 
     def onCtrlF(self, event):
-        self.saveSnapshot()
+        self.saveSnapshot(showDialog=True)
 
-    def saveSnapshot(self):
+    def saveSnapshot(self, showDialog=False):
         """
         Saves the current snapshot to the specified file.
         Current snapshot is the image being displayed on the main window.
         """
 
-        filename = self.snapshotDir + os.sep + '${serialno}-${pid}-${screenshot_number}-${focusedwindowname}-' \
-                                               '${timestamp}' + '.' + self.snapshotFormat.lower()
-        # We have the snapshot already taken, no need to retake
-        d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
-        saveAsFilename = d.askSaveAsFilename()
+        filename = self.snapshotDir + os.sep + '${serialno}-{pid}-${screenshot_number}-${focusedwindowname}-' \
+                                               '{datetime.datetime.now().isoformat()}' + '.' + self.snapshotFormat.lower()
+        # FIXME: without the dialog we may loose the ability of specifying real steps names
+        if showDialog:
+            # We have the snapshot already taken, no need to retake
+            d = FileDialog(self, self.device.substituteDeviceTemplate(filename))
+            saveAsFilename = d.askSaveAsFilename()
+        else:
+            saveAsFilename = filename
         if saveAsFilename:
             _format = os.path.splitext(saveAsFilename)[1][1:].upper()
             if self.vc.uiAutomatorHelper:
@@ -1211,7 +1232,9 @@ This is usually installed by python package. Check your distribution details.
                 # when the generated script runs (i.e. if the serialno changes then the filenames will be wrong)
                 # Note that in the other case (no helper), the template is re-evaluated.
                 # Then, it may make more sense to have the template evaluation in ui_device.take_screenshot().
-                _filename = self.device.substituteDeviceTemplate(filename)
+                # FIXME: we may want to use saveAsFilename as it perhaps was modified in the dialog, but in such case
+                # we may not use variables for f-strings
+                _filename = self.device.substituteDeviceTemplate(saveAsFilename)
                 self.printOperation(None, Operation.SNAPSHOT_UI_AUTOMATOR_HELPER, _filename, _format)
                 # FIXME: we increment here as we dont use device.takeSnapshot() which increments the count
                 self.device.screenshot_number += 1
@@ -1221,7 +1244,11 @@ This is usually installed by python package. Check your distribution details.
 
             # FIXME: we should add deviceArt, dropShadow and screenGlare to the saved image
             # self.unscaledScreenshot.save(saveAsFilename, _format, self.deviceArt, self.dropShadow, self.screenGlare)
-            self.unscaledScreenshot.save(saveAsFilename, _format)
+            if showDialog:
+                # FIXME: home made f-string
+                saveAsFilename = saveAsFilename.replace('{pid}', str(os.getgid()))\
+                    .replace('{datetime.datetime.now().isoformat()}', datetime.datetime.now().isoformat())
+                self.unscaledScreenshot.save(saveAsFilename, _format)
 
     def saveViewSnapshot(self, view):
         """

@@ -4194,15 +4194,10 @@ class ViewClient:
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print("Setting text through UiAutomatorHelper for View with ID=%s" % v.getId(), file=sys.stderr)
-            if v.getId():
-                oid = self.uiAutomatorHelper.findObject(selector='res@%s' % v.getId())
-                if DEBUG_UI_AUTOMATOR_HELPER:
-                    print("oid=", oid, "text=", text, file=sys.stderr)
-                self.uiAutomatorHelper.setText(oid, text)
-            else:
-                # The View has no ID so we cannot use the ID to create a selector to find it using findObject()
-                # Let's fall back to this method.
-                v.setText(text)
+            selector = v.obtain_selector()
+            obj_ref = self.uiAutomatorHelper.until.find_object(body=selector)
+            response = self.uiAutomatorHelper.ui_device.wait(obj_ref.oid)
+            self.uiAutomatorHelper.ui_object2.set_text(response['oid'], text)
         else:
             # This is deleting the existing text, which should be asked in the dialog, but I would have to implement
             # the dialog myself
@@ -4728,8 +4723,9 @@ class CulebraOptions:
     CONCERTINA = 'concertina'
     CONCERTINA_CONFIG = 'concertina-config'
     INSTALL_APK = 'install-apk'
+    AUTO_SCREENSHOTS = 'auto-screenshots'
 
-    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB0hcJ:1:X:'
+    SHORT_OPTS = 'HVvIEFSkw:i:t:d:rCUM:j:D:K:R:a:o:pf:W:GuP:Os:mLA:ZB0hcJ:1:X:y'
     LONG_OPTS = [HELP, VERBOSE, VERSION, IGNORE_SECURE_DEVICE, IGNORE_VERSION_CHECK, FORCE_VIEW_SERVER_USE,
                  DO_NOT_START_VIEW_SERVER,
                  DO_NOT_IGNORE_UIAUTOMATOR_KILLED,
@@ -4754,6 +4750,7 @@ class CulebraOptions:
                  CONCERTINA_CONFIG + '=',
                  INSTALL_APK + '=',
                  'debug' + '=',
+                 AUTO_SCREENSHOTS
                  ]
     LONG_OPTS_ARG = {WINDOW: 'WINDOW',
                      FIND_VIEWS_BY_ID: 'BOOL', FIND_VIEWS_WITH_TEXT: 'BOOL',
@@ -4779,6 +4776,7 @@ class CulebraOptions:
         't': 'whether to use findViewWithText() in script',
         'd': 'whether to use findViewWithContentDescription',
         'r': 'use regexps in matches',
+        'C': 'generates verbose comments',
         'U': 'generates unit test class and script',
         'M': 'generates unit test method. Can be used with or without -U',
         'j': 'use jar and appropriate shebang to run script (deprecated)',
@@ -4807,6 +4805,7 @@ class CulebraOptions:
         'J': 'concertina config file (JSON)',
         '1': 'install APK as precondition (use with -U)',
         'X': 'debug options',
+        'y': 'auto screenshots'
     }
 
 
@@ -4976,7 +4975,7 @@ class CulebraTestCase(unittest.TestCase):
     def __passAll(arg):
         return True
 
-    def all(self, arg, _filter=None):
+    def all(self, arg, _filter=None) -> list:
         # CulebraTestCase.__passAll cannot be specified as the default argument value
         if _filter is None:
             _filter = CulebraTestCase.__passAll
@@ -4987,13 +4986,13 @@ class CulebraTestCase(unittest.TestCase):
                 print("    i=", i, file=sys.stderr)
         return list(filter(_filter, (getattr(d, arg) for d in self.devices)))
 
-    def allVcs(self, _filter=None):
+    def allVcs(self, _filter=None) -> list:
         return self.all('vc', _filter)
 
-    def allDevices(self, _filter=None):
+    def allDevices(self, _filter=None) -> list:
         return self.all('device', _filter)
 
-    def allSerialnos(self, _filter=None):
+    def allSerialnos(self, _filter=None) -> list:
         return self.all('serialno', _filter)
 
     def log(self, message, priority='D'):
