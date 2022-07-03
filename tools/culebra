@@ -27,7 +27,7 @@ import textwrap
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '21.14.1'
+__version__ = '21.15.0'
 
 import calendar
 import codecs
@@ -37,6 +37,8 @@ import re
 import sys
 import warnings
 from datetime import date
+
+from com.dtmilano.android.code_generator import HelperCodeGenerator, VcCodeGenerator
 
 try:
     sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
@@ -334,7 +336,8 @@ You have to set PYTHONIOENCODING environment variable. For example:
             else:
                 logAction(f'setting view with text={text}')
                 find_object_line = textwrap.indent(f'obj_ref = helper.until.find_object(body={view.obtain_selector()})',
-                                                   '    ' * 6, lambda line: not line.startswith('obj_ref ='))
+                                                   ' ' * 40,
+                                                   lambda line: not line.startswith('obj_ref ='))
                 print(textwrap.dedent(f'''
                     {find_object_line}
                     response = helper.ui_device.wait(oid=obj_ref.oid)
@@ -796,20 +799,23 @@ def traverseAndPrint(view):
     if type(view) == WindowHierarchy:
         # The root element is a WindowHierarchy (id=hierarchy)
         return
-    if options[CulebraOptions.VERBOSE_COMMENTS]:
-        printVerboseComments(view)
-    if options[CulebraOptions.FIND_VIEWS_BY_ID]:
-        printFindViewById(view)
-    if options[CulebraOptions.FIND_VIEWS_WITH_TEXT]:
-        printFindViewWithText(view, options[CulebraOptions.USE_REGEXPS])
-    if options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
-        printFindViewWithContentDescription(view, options[CulebraOptions.USE_REGEXPS])
-    if options[CulebraOptions.SAVE_VIEW_SCREENSHOTS]:
-        _format = 'PNG'
-        filename = options[
-                       CulebraOptions.SAVE_VIEW_SCREENSHOTS] + os.sep + View.variableNameFromId(
-            view) + '.' + _format.lower()
-        printSaveViewScreenshot(view, filename, _format)
+    if vc.uiAutomatorHelper:
+        printFindObjectUiAutomatorViewer(view.obtain_selector())
+    else:
+        if options[CulebraOptions.VERBOSE_COMMENTS]:
+            printVerboseComments(view)
+        if options[CulebraOptions.FIND_VIEWS_BY_ID]:
+            printFindViewById(view)
+        if options[CulebraOptions.FIND_VIEWS_WITH_TEXT]:
+            printFindViewWithText(view, options[CulebraOptions.USE_REGEXPS])
+        if options[CulebraOptions.FIND_VIEWS_WITH_CONTENT_DESCRIPTION]:
+            printFindViewWithContentDescription(view, options[CulebraOptions.USE_REGEXPS])
+        if options[CulebraOptions.SAVE_VIEW_SCREENSHOTS]:
+            _format = 'PNG'
+            filename = options[
+                           CulebraOptions.SAVE_VIEW_SCREENSHOTS] + os.sep + View.variableNameFromId(
+                view) + '.' + _format.lower()
+            printSaveViewScreenshot(view, filename, _format)
 
 
 def printStartActivity(component):
@@ -851,7 +857,7 @@ def printTouchViewUiAutomatorHelper(selector: culebratester_client.Selector) -> 
     else:
         logAction(f'touching by selector={selector}')
         indented_line = None
-        indentation = indent + ' ' * 4
+        indentation = indent + ' ' * 40
         # FIXME: should be find_objects and before clicking we should verify the list contains
         # only 1 object, otherwise we aren't sure which one is being clicked
         for line in f'{indent}obj_ref = {prefix}helper.until.find_object(body={selector})'.splitlines():
@@ -873,15 +879,19 @@ def printLongTouchViewUiAutomatorHelper(selector):
         warnings.warn('Multi-device not implemented yet for this case')
     else:
         logAction(f'long-touching by selector={selector}')
-        indented_line = None
-        indentation = indent + ' ' * 4
-        for line in f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body={selector})'.splitlines():
-            if not indented_line:
-                indented_line = line
-            else:
-                indented_line = f'{indented_line}\n{indentation}{line}'
-        print(f'{indented_line}')
+        printFindObjectUiAutomatorViewer(selector)
         print(f'{indent}{prefix}helper.ui_object2.long_click(oid=obj_ref.oid)')
+
+
+def printFindObjectUiAutomatorViewer(selector):
+    indented_line = None
+    indentation = indent + ' ' * 4
+    for line in f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body={selector})'.splitlines():
+        if not indented_line:
+            indented_line = line
+        else:
+            indented_line = f'{indented_line}\n{indentation}{line}'
+    print(f'{indented_line}')
 
 
 def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, unit, orientation):
@@ -1027,17 +1037,16 @@ def printTraverseUiAutomatorHelper(dump=None):
         for view in dump:
             transform(view)
     else:
-        if DEBUG:
-            print('🤷‍♀️ printTraverseUiAutomatorHelper: need to traverse the tree: not implemented yet',
-                  file=sys.stderr)
+        print('🤷‍♀️ printTraverseUiAutomatorHelper: need to traverse the tree: not implemented yet', file=sys.stderr)
         # We can do something like this for UiAutomatorHelper.
-        # adb/dump:
-        # vc.traverse(transform=transform)
-        # uiAutromatorHelper:
+        # (however, we have a view hierarchy obtained before using uiAutomatorHelper)
         # wh = vc.uiAutomatorHelper.ui_device.dump_window_hierarchy()
         # whch: WindowHierarchyChild = None
         # for whch in wh.children:
         #    print(whch.id, whch.text, whch.clazz)
+        # print(vc.views)
+        #vc.root = vc.views[0]
+        vc.traverse(transform=transform)
     print()
 
 
@@ -1050,9 +1059,7 @@ def printTestUiAutomatorHelper(selector):
     else:
         logAction(f'test by selector={selector}')
         indented_line = None
-        indentation = indent + ' ' * 4
-        # FIXME: we need has_object POST
-        # We are just raising the exception if the object is not found, we could trap it
+        indentation = indent + ' ' * 40
         for line in f'{indent}assert {prefix}helper.ui_device.has_object(body={selector})'.splitlines():
             if not indented_line:
                 indented_line = line
@@ -1505,6 +1512,11 @@ if options[CulebraOptions.MULTI_DEVICE] and not options[CulebraOptions.UNIT_TEST
         "--" + CulebraOptions.MULTI_DEVICE + " only supported for unit tests (please specify --" + CulebraOptions.UNIT_TEST_CLASS + ")",
         fatal=True)
 
+if kwargs2.get(ViewClientOptions.USE_UIAUTOMATOR_HELPER, True):
+    code_generator = HelperCodeGenerator(options)
+else:
+    code_generator = VcCodeGenerator(options)
+
 device, serialno = ViewClient.connectToDeviceOrExit(serialno=serialno, **kwargs1)
 if options[CulebraOptions.ORIENTATION_LOCKED] == 'PENDING':
     options[CulebraOptions.ORIENTATION_LOCKED] = device.display['orientation']
@@ -1522,65 +1534,20 @@ if options[CulebraOptions.OUTPUT]:
     os.chmod(options[CulebraOptions.OUTPUT], st.st_mode | stat.S_IEXEC)
 
 if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
-    printScriptHeader()
+    code_generator.header()
 
 if options[CulebraOptions.UNIT_TEST_CLASS]:
-    printUnittestImport()
+    code_generator.import_unittest()
 
 if options[CulebraOptions.PREPEND_TO_SYS_PATH]:
-    printPrependToSysPath()
+    code_generator.prepend_to_syspath()
 
 if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
-    print('''\
-from com.dtmilano.android.viewclient import ViewClient, KEY_EVENT%s
-
-TAG = '%s'
-''' % (', CulebraTestCase' if options[CulebraOptions.UNIT_TEST_CLASS] else '', TAG))
+    code_generator.import_viewclient()
+    code_generator.tag(TAG)
 
 if options[CulebraOptions.UNIT_TEST_CLASS]:
-    print('''
-class CulebraTests(CulebraTestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.kwargs1 = %s
-        cls.kwargs2 = %s
-        cls.options = %s
-        cls.sleep = 5
-
-''' % (kwargs1, kwargs2, options), end=' ')
-
-    print('''
-    def setUp(self):
-        super(CulebraTests, self).setUp()
-''')
-
-    print('''
-    def tearDown(self):
-        super(CulebraTests, self).tearDown()
-''')
-
-    print('''
-    def preconditions(self):
-        if not super(CulebraTests, self).preconditions():
-            return False
-''', end=' ')
-
-    if options[CulebraOptions.INSTALL_APK]:
-        print('''
-        if self.vc.installPackage(\"%s\") != 0:
-            return False
-''' % (options[CulebraOptions.INSTALL_APK]), end=' ')
-
-    print('''
-        return True
-
-    def %s(self):
-        if not self.preconditions():
-            self.fail('Preconditions failed')
-''' % (options[CulebraOptions.UNIT_TEST_METHOD] if options[CulebraOptions.UNIT_TEST_METHOD] else 'testSomething'))
-
-    printShortcutVariables()
+    code_generator.unittest(kwargs1, kwargs2)
 
     if options[CulebraOptions.SAVE_SCREENSHOT]:
         print('''\
@@ -1596,13 +1563,6 @@ class CulebraTests(CulebraTestCase):
         vc.dump(window=options[CulebraOptions.WINDOW])
     indent = ' ' * 8
     prefix = 'self.'
-
-    #     if not options[CulebraOptions.DO_NOT_VERIFY_SCREEN_DUMP]:
-    #         print '''\
-    #         self.vc.dump(%s)
-    #         ''' % getWindowOption()
-    #         vc.traverse(transform=transform)
-    #         print
 
     if options[CulebraOptions.GUI]:
         runCulebron()
