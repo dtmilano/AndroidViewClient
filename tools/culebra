@@ -1052,12 +1052,12 @@ def printTestUiAutomatorHelper(selector):
         indentation = indent + ' ' * 4
         # FIXME: we need has_object POST
         # We are just raising the exception if the object is not found, we could trap it
-        for line in f'{indent}assert {prefix}helper.ui_device.find_object(body={selector})'.splitlines():
+        for line in f'{indent}assert {prefix}helper.ui_device.has_object(body={selector})'.splitlines():
             if not indented_line:
                 indented_line = line
             else:
                 indented_line = f'{indented_line}\n{indentation}{line}'
-        print(f'{indented_line} is not None')
+        print(indented_line)
 
 
 def printOperation(view, op, *args):

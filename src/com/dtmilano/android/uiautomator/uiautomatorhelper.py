@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.13.0'
+__version__ = '21.14.0'
 
 import json
 import os
@@ -429,6 +429,22 @@ class UiAutomatorHelper:
                 return self.uiAutomatorHelper.api_instance.ui_device_find_objects_get(**kwargs)
             body = culebratester_client.Selector(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_find_objects_post(body=body)
+
+        def has_object(self, **kwargs) -> bool:
+            """
+            Has an object.
+            Invokes GET or POST method depending on the arguments passed.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param kwargs:
+            :return: True or False
+            """
+            if 'body' in kwargs:
+                return self.uiAutomatorHelper.api_instance.ui_device_has_object_post(**kwargs).value
+            if self.some(['resource_id', 'ui_selector', 'by_selector'], kwargs):
+                return self.uiAutomatorHelper.api_instance.ui_device_has_object_get(**kwargs).value
+            body = culebratester_client.Selector(**kwargs)
+            return self.uiAutomatorHelper.api_instance.ui_device_has_object_post(body=body).value
 
         def press_back(self):
             """
