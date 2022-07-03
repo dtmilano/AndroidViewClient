@@ -32,6 +32,7 @@ import threading
 import time
 import warnings
 from abc import ABC
+from datetime import datetime
 from typing import Optional
 
 import culebratester_client
@@ -200,6 +201,17 @@ class UiAutomatorHelper:
 
     def __httpCommand(self, url, params=None, method='GET'):
         raise RuntimeError(f"this method should not be used: url={url} params={params} method={method}")
+
+    @staticmethod
+    def timestamp() -> str:
+        """
+        Timestamp in ISO format.
+
+        WARNING: may not be suitable to include in filenames on some platforms.
+
+        :return: the timestamps
+        """
+        return datetime.now().isoformat()
 
     #
     # UiAutomatorHelper internal commands

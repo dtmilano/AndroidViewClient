@@ -1216,7 +1216,7 @@ This is usually installed by python package. Check your distribution details.
         """
 
         filename = self.snapshotDir + os.sep + '${serialno}-{pid}-${screenshot_number}-${focusedwindowname}-' \
-                                               '{datetime.datetime.now().isoformat()}' + '.' + self.snapshotFormat.lower()
+                                               '{helper.timestamp()}' + '.' + self.snapshotFormat.lower()
         # FIXME: without the dialog we may loose the ability of specifying real steps names
         if showDialog:
             # We have the snapshot already taken, no need to retake
@@ -1246,8 +1246,8 @@ This is usually installed by python package. Check your distribution details.
             # self.unscaledScreenshot.save(saveAsFilename, _format, self.deviceArt, self.dropShadow, self.screenGlare)
             if showDialog:
                 # FIXME: home made f-string
-                saveAsFilename = saveAsFilename.replace('{pid}', str(os.getgid()))\
-                    .replace('{datetime.datetime.now().isoformat()}', datetime.datetime.now().isoformat())
+                saveAsFilename = saveAsFilename.replace('{pid}', str(os.getgid())) \
+                    .replace('{helper.timestamp()}', self.vc.uiAutomatorHelper.timestamp())
                 self.unscaledScreenshot.save(saveAsFilename, _format)
 
     def saveViewSnapshot(self, view):
@@ -1421,9 +1421,19 @@ This is usually installed by python package. Check your distribution details.
 
     def drag(self, start, end, duration, steps, units=Unit.DIP):
         self.showVignette()
+        x0 = start[0]
+        y0 = start[1]
+        x1 = end[0]
+        y1 = end[1]
+
         # the operation on this current device is always done in PX
         # so let's do it before any conversion takes place
-        self.device.drag(start, end, duration, steps)
+        if self.vc.uiAutomatorHelper:
+            self.vc.uiAutomatorHelper.ui_device.swipe(start_x=int(x0), start_y=int(y0), end_x=int(x1), end_y=int(y1),
+                                                      steps=steps)
+        else:
+            self.device.drag(start, end, duration, steps)
+
         if units == Unit.DIP:
             x0 = round(start[0] / self.device.display['density'], 2)
             y0 = round(start[1] / self.device.display['density'], 2)
@@ -1431,6 +1441,7 @@ This is usually installed by python package. Check your distribution details.
             y1 = round(end[1] / self.device.display['density'], 2)
             start = (x0, y0)
             end = (x1, y1)
+
         if self.vc.uiAutomatorHelper:
             self.printOperation(None, Operation.SWIPE_UI_AUTOMATOR_HELPER, x0, y0, x1, y1, steps, units,
                                 self.device.display['orientation'])

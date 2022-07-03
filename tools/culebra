@@ -27,7 +27,7 @@ import textwrap
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '21.14.0'
+__version__ = '21.14.1'
 
 import calendar
 import codecs
@@ -899,8 +899,9 @@ def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, unit, orienta
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print('%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (
-                indent, prefix, startX, startY, endX, endY, steps))
+            print(
+                f'{indent}{prefix}helper.ui_device.swipe(start_x={int(startX)}, start_y={int(startY)}, ' +
+                f'end_x={int(endX)}, end_y={int(endY)}, steps={int(steps)})')
     else:
         raise RuntimeError('Invalid unit: %s' % unit)
 
@@ -1264,7 +1265,6 @@ ___________________/  /__/  /__/  /__/  /________________________________
 """
 
 
-import datetime
 import os
 import re
 import sys
