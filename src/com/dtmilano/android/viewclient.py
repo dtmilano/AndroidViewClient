@@ -21,12 +21,12 @@ limitations under the License.
 from __future__ import print_function
 
 import json
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 
 import culebratester_client
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '21.15.2'
+__version__ = '21.15.3'
 
 import sys
 import warnings
@@ -3360,7 +3360,7 @@ class ViewClient:
 
     @staticmethod
     def attributesFromWindowHierarchyChild(unique_id: str, child: WindowHierarchyChild) -> \
-            dict[str, Union[int, str, bool]]:
+            Dict[str, Union[int, str, bool]]:
         bounds = ((int(child.bounds[0]), int(child.bounds[1])), (int(child.bounds[2]), int(child.bounds[3])))
         return {'index': child.index, 'text': child.text, 'resource-id': child.resource_id, 'class': child.clazz,
                 'package': child.package, 'content-desc': child.content_description, 'checkable': child.checkable,

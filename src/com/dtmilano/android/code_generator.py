@@ -5,13 +5,13 @@ from datetime import date
 
 __version__ = '21.15.2'
 
-from typing import TextIO, Union
+from typing import TextIO, Union, Dict, List
 
 from com.dtmilano.android.viewclient import CulebraOptions
 
 
 class AbstractCodeGenerator(ABC):
-    def __init__(self, options: dict[str, Union[bool, None, str, list[str], float]]) -> None:
+    def __init__(self, options: Dict[str, Union[bool, None, str, List[str], float]]) -> None:
         self.options = options
 
     @staticmethod
@@ -69,7 +69,7 @@ class AbstractCodeGenerator(ABC):
     def tag(tag: str, out: TextIO = sys.stdout) -> None:
         print(f'TAG = \'{tag}\'', file=out)
 
-    def unittest(self, kwargs1: dict[str, bool], kwargs2: dict[str, Union[bool, dict]],
+    def unittest(self, kwargs1: Dict[str, bool], kwargs2: Dict[str, Union[bool, dict]],
                  out: TextIO = sys.stdout) -> None:
         method = self.options[CulebraOptions.UNIT_TEST_METHOD] if self.options[
             CulebraOptions.UNIT_TEST_METHOD] else 'testSomething'
