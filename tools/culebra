@@ -27,7 +27,7 @@ import textwrap
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '21.15.1'
+__version__ = '21.15.2'
 
 import calendar
 import codecs
@@ -38,7 +38,6 @@ import sys
 import warnings
 from datetime import date
 
-from com.dtmilano.android.code_generator import HelperCodeGenerator, VcCodeGenerator
 
 try:
     sys.path.insert(0, os.path.join(os.environ['ANDROID_VIEW_CLIENT_HOME'], 'src'))
@@ -49,6 +48,7 @@ from com.dtmilano.android.viewclient import ViewClient, ViewClientOptions, View,
 from com.dtmilano.android.culebron import Culebron, Operation, Unit
 from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.common import debugArgsToDict
+from com.dtmilano.android.code_generator import HelperCodeGenerator, VcCodeGenerator
 
 DEBUG = False
 USAGE = 'usage: %s [OPTION]... [serialno]'

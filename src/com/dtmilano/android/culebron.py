@@ -20,7 +20,6 @@ limitations under the License.
 '''
 from __future__ import print_function
 
-import datetime
 import io
 import random
 import re
@@ -36,7 +35,7 @@ from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.keyevent import KEY_EVENT
-from com.dtmilano.android.viewclient import ViewClient, View
+from com.dtmilano.android.viewclient import ViewClient, View, VERSION_SDK_PROPERTY
 
 __version__ = '21.15.1'
 
@@ -775,7 +774,7 @@ This is usually installed by python package. Check your distribution details.
         if DEBUG_POINT:
             print("getViewsContainingPointAndTouch(x=%s, y=%s)" % (x, y), file=sys.stderr)
             print("self.vc=", self.vc, file=sys.stderr)
-        v = self.findViewContainingPointInTargets(x, y)
+        v: View = self.findViewContainingPointInTargets(x, y)
 
         if v is None:
             self.hideVignette()
@@ -832,10 +831,20 @@ This is usually installed by python package. Check your distribution details.
                         candidates.insert(0, view)
                     return None
 
-                if not (v.getText() or v.getContentDescription()) and v.getChildren():
+                if v.ui_automator_helper_node:
+                    for _u, _ch in enumerate(v.ui_automator_helper_node.children, start=-99):
+                        attributes = ViewClient.attributesFromWindowHierarchyChild(f'unique_id/{_u}', _ch)
+                        _v: View = View.factory(attributes, self.device,
+                                                version=self.vc.build[VERSION_SDK_PROPERTY],
+                                                uiAutomatorHelper=self.vc.uiAutomatorHelper)
+                        findBestCandidate(_v)
+
+                if (not (v.getText() or v.getContentDescription())) and v.getChildren():
                     self.vc.traverse(root=v, transform=findBestCandidate, stream=None)
+
                 if len(candidates) > 2:
                     warnings.warn("We are in trouble, we have more than one candidate to touch", stacklevel=0)
+
                 candidate = candidates[0]
                 self.touchView(candidate, v if candidate != v else None)
 
@@ -897,7 +906,7 @@ This is usually installed by python package. Check your distribution details.
         self.printOperation(None, Operation.SAY_TEXT, text)
 
     def touchView(self, v: View, root=None) -> None:
-        # FIXME: v.touch() handles the 2 cases for CulebraTester2-public and adbclient
+        # FIXME: v.touch() handles the 2 cases for CulebraTester2-public and adbclient/vc
         # also, we should obtain the selector only once
         v.touch()
         if v.uiAutomatorHelper:

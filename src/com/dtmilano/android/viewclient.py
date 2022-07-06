@@ -21,7 +21,7 @@ limitations under the License.
 from __future__ import print_function
 
 import json
-from typing import Optional
+from typing import Optional, Union
 
 import culebratester_client
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
@@ -297,6 +297,7 @@ class View:
         ''' Is this a touch target zone '''
         self.uiAutomatorHelper = uiAutomatorHelper
         ''' The UiAutomatorHelper '''
+        self.ui_automator_helper_node: Optional[WindowHierarchyChild] = None
 
         if version != -1:
             self.build[VERSION_SDK_PROPERTY] = version
@@ -2592,6 +2593,8 @@ class ViewClient:
         self.uiAutomatorHelper = None
         ''' The UiAutomatorHelper '''
 
+        self.ui_automator_helper_dump: Optional[WindowHierarchy] = None
+
         if useuiautomatorhelper:
             self.useUiAutomator = True
             if not localport:
@@ -3356,9 +3359,8 @@ class ViewClient:
         self.__processWindowHierarchyChild(self.root, idCount, version)
 
     @staticmethod
-    # python 3
-    # def __attributesFromWindowHierarchyChild(unique_id, child: WindowHierarchyChild):
-    def __attributesFromWindowHierarchyChild(child):
+    def attributesFromWindowHierarchyChild(unique_id: str, child: WindowHierarchyChild) -> \
+            dict[str, Union[int, str, bool]]:
         bounds = ((int(child.bounds[0]), int(child.bounds[1])), (int(child.bounds[2]), int(child.bounds[3])))
         return {'index': child.index, 'text': child.text, 'resource-id': child.resource_id, 'class': child.clazz,
                 'package': child.package, 'content-desc': child.content_description, 'checkable': child.checkable,
@@ -3367,17 +3369,17 @@ class ViewClient:
                 'focused': child.focused,
                 'scrollable': child.scrollable, 'long-clickable': child.long_clickable,
                 'password': child.password, 'selected': child.selected, 'bounds': bounds,
-                'uniqueId': child.unique_id}
+                'uniqueId': unique_id}
 
-    def __processWindowHierarchyChild(self, node, idCount, version):
+    def __processWindowHierarchyChild(self, node: Union[WindowHierarchy, WindowHierarchyChild], idCount: int, version) -> None:
         if node.id != 'hierarchy':
-            # FIXME: as WindowHierarchyChild is generated we may need a descendant
-            # NOTE: we are extending WindowHierarchyChild adding unique_id
-            node.unique_id = 'id/no_id/%d' % idCount
-            attributes = ViewClient.__attributesFromWindowHierarchyChild(node)
-            view = View.factory(attributes, self.device, version=version, uiAutomatorHelper=self.uiAutomatorHelper)
-            self.views.append(view)
+            unique_id = f'fid/no_id/{idCount}'
+            attributes = ViewClient.attributesFromWindowHierarchyChild(unique_id, node)
+            view: View = View.factory(attributes, self.device, version=version,
+                                      uiAutomatorHelper=self.uiAutomatorHelper)
+            view.ui_automator_helper_node = node
             idCount += 1
+            self.views.append(view)
         for ch in node.children:
             self.__processWindowHierarchyChild(ch, idCount, version)
 
@@ -3487,6 +3489,7 @@ class ViewClient:
         if self.useUiAutomator:
             if self.uiAutomatorHelper:
                 received = self.uiAutomatorHelper.ui_device.dump_window_hierarchy()
+                self.ui_automator_helper_dump = received
             else:
                 api = self.getSdkVersion()
                 if api >= 24:
