@@ -20,7 +20,7 @@
     '''
 import platform
 
-__version__ = '21.15.2'
+__version__ = '21.15.3'
 
 import tkinter
 import tkinter.ttk
