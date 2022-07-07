@@ -27,7 +27,7 @@ import textwrap
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '21.15.4'
+__version__ = '21.15.5'
 
 import calendar
 import codecs
@@ -1037,7 +1037,7 @@ def printTraverseUiAutomatorHelper(dump=None):
         for view in dump:
             transform(view)
     else:
-        print('🤷‍♀️ printTraverseUiAutomatorHelper: need to traverse the tree: not implemented yet', file=sys.stderr)
+        warnings.warn('🤷‍♀️ printTraverseUiAutomatorHelper: need to traverse the tree: not implemented yet')
         # We can do something like this for UiAutomatorHelper.
         # (however, we have a view hierarchy obtained before using uiAutomatorHelper)
         # wh = vc.uiAutomatorHelper.ui_device.dump_window_hierarchy()
@@ -1534,20 +1534,20 @@ if options[CulebraOptions.OUTPUT]:
     os.chmod(options[CulebraOptions.OUTPUT], st.st_mode | stat.S_IEXEC)
 
 if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
-    code_generator.header()
+    code_generator.header(out=sys.stdout)
 
 if options[CulebraOptions.UNIT_TEST_CLASS]:
-    code_generator.import_unittest()
+    code_generator.import_unittest(out=sys.stdout)
 
 if options[CulebraOptions.PREPEND_TO_SYS_PATH]:
-    code_generator.prepend_to_syspath()
+    code_generator.prepend_to_syspath(out=sys.stdout)
 
 if options[CulebraOptions.UNIT_TEST_CLASS] or (not options[CulebraOptions.UNIT_TEST_METHOD]):
-    code_generator.import_viewclient()
-    code_generator.tag(TAG)
+    code_generator.import_viewclient(out=sys.stdout)
+    code_generator.tag(TAG, out=sys.stdout)
 
 if options[CulebraOptions.UNIT_TEST_CLASS]:
-    code_generator.unittest(kwargs1, kwargs2)
+    code_generator.unittest(kwargs1, kwargs2, out=sys.stdout)
 
     if options[CulebraOptions.SAVE_SCREENSHOT]:
         print('''\
