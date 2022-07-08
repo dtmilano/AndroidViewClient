@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.15.5'
+__version__ = '21.16.0'
 
 import json
 import os
@@ -33,10 +33,10 @@ import time
 import warnings
 from abc import ABC
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 import culebratester_client
-from culebratester_client import Text, ObjectRef, StatusResponse
+from culebratester_client import Text, ObjectRef, StatusResponse, DefaultApi
 
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
@@ -121,7 +121,7 @@ class UiAutomatorHelper:
         self.osName = platform.system()
         ''' The OS name. We sometimes need specific behavior. '''
         self.isDarwin = (self.osName == 'Darwin')
-        ''' Is it Mac OSX? '''
+        ''' Is it macOS? '''
         self.hostname = hostname
         ''' The hostname we are connecting to. '''
 
@@ -130,7 +130,7 @@ class UiAutomatorHelper:
             file=sys.stderr)
         configuration = culebratester_client.Configuration()
         configuration.host = f'http://{hostname}:{localport}/{api_version}'
-        self.api_instance = culebratester_client.DefaultApi(culebratester_client.ApiClient(configuration))
+        self.api_instance: DefaultApi = culebratester_client.DefaultApi(culebratester_client.ApiClient(configuration))
         self.device: UiAutomatorHelper.Device = UiAutomatorHelper.Device(self)
         self.target_context: UiAutomatorHelper.TargetContext = UiAutomatorHelper.TargetContext(self)
         self.object_store: UiAutomatorHelper.ObjectStore = UiAutomatorHelper.ObjectStore(self)
@@ -207,7 +207,8 @@ class UiAutomatorHelper:
         """
         Timestamp in ISO format.
 
-        WARNING: may not be suitable to include in filenames on some platforms.
+        WARNING: may not be suitable to include in filenames on some platforms as it may include invalid path chars
+        (i.e. `:`).
 
         :return: the timestamps
         """
@@ -314,6 +315,7 @@ class UiAutomatorHelper:
         :deprecated: use uiAutomatorHelper.device.display_real_size()
         :return: the display real size
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.api_instance.device_display_real_size_get()
 
     #
@@ -385,20 +387,14 @@ class UiAutomatorHelper:
         def __init__(self, uiAutomatorHelper) -> None:
             super().__init__(uiAutomatorHelper)
 
-        def click(self, **kwargs):
+        def click(self, x: int, y: int):
             """
-            Clicks.
+            Clicks on the specified coordinates.
 
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
-            :param kwargs:
             :return:
             """
-            if self.all(['x', 'y'], kwargs):
-                x = int(kwargs['x'])
-                y = int(kwargs['y'])
-                return self.uiAutomatorHelper.api_instance.ui_device_click_get(x=x, y=y)
-            else:
-                raise ValueError('click: (x, y) must have a value')
+            return self.uiAutomatorHelper.api_instance.ui_device_click_get(x=x, y=y)
 
         def dump_window_hierarchy(self, _format='JSON'):
             """
@@ -484,6 +480,15 @@ class UiAutomatorHelper:
             :return:
             """
             return self.uiAutomatorHelper.api_instance.ui_device_press_home_get()
+
+        def press_recent_apps(self):
+            """
+            Press recent apps.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_press_recent_apps_get()
 
         def press_key_code(self, key_code, meta_state=0):
             """
@@ -677,7 +682,7 @@ class UiAutomatorHelper:
             body = culebratester_client.Selector(**kwargs)
             return self.uiAutomatorHelper.api_instance.until_find_object_post(body=body)
 
-        def find_objects(self, **kwargs) -> ObjectRef:
+        def find_objects(self, **kwargs) -> List[ObjectRef]:
             """
             Returns a SearchCondition that is satisfied when at least one element matching the selector can be found.
             The condition will return the first matching element.
@@ -706,6 +711,7 @@ class UiAutomatorHelper:
         :param kwargs:
         :return:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         params = kwargs
         if not (('x' in params and 'y' in params) or 'oid' in params):
             raise RuntimeError('click: (x, y) or oid must have a value')
@@ -721,24 +727,28 @@ class UiAutomatorHelper:
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.api_instance.ui_device_dump_window_hierarchy_get(format='JSON')
 
     def findObject(self, **kwargs):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.api_instance.ui_device_find_object_get(**kwargs)
 
     def findObjects(self, **kwargs):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.api_instance.ui_device_find_objects_get(**kwargs)
 
     def longClick(self, **kwargs):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         params = kwargs
         if not (('x' in params and 'y' in params) or 'oid' in params):
             raise RuntimeError('longClick: (x, y) or oid must have a value')
@@ -752,42 +762,49 @@ class UiAutomatorHelper:
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.__httpCommand('/UiDevice/openNotification')
 
     def openQuickSettings(self):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.__httpCommand('/UiDevice/openQuickSettings')
 
     def pressBack(self):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.api_instance.ui_device_press_back_get()
 
     def pressHome(self):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.api_instance.ui_device_press_home_get()
 
     def pressKeyCode(self, keyCode, metaState=0):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.api_instance.ui_device_press_key_code_get(key_code=keyCode, meta_state=metaState)
 
     def pressRecentApps(self):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.__httpCommand('/UiDevice/pressRecentApps')
 
     def swipe(self, startX=-1, startY=-1, endX=-1, endY=-1, steps=10, segments=None, segmentSteps=5):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         if segments is None:
             segments = []
         if startX != -1 and startY != -1:
@@ -804,12 +821,14 @@ class UiAutomatorHelper:
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.api_instance.ui_device_screenshot_get(scale=scale, quality=quality, **kwargs)
 
     def waitForIdle(self, timeout):
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         params = {'timeout': timeout}
         return self.api_instance.ui_device_wait_for_idle_get(**params)
 
@@ -820,6 +839,7 @@ class UiAutomatorHelper:
         """
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         body = {'text': text}
         return self.api_instance.ui_object2_oid_set_text_post(body, oid)
 
@@ -832,10 +852,12 @@ class UiAutomatorHelper:
         :param timeout:
         :return:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         params = {'eventCondition': eventCondition, 'timeout': timeout}
         return self.__httpCommand('/UiObject2/%d/clickAndWait' % uiObject2.oid, params)
 
     def getText(self, oid):
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.api_instance.ui_object2_oid_get_text_get(oid)
 
     def isChecked(self, uiObject=None):
@@ -845,6 +867,7 @@ class UiAutomatorHelper:
         :param uiObject:
         :return:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         # This path works for UiObject and UiObject2, so there's no need to handle both cases differently
         path = '/UiObject/%d/isChecked' % uiObject.oid
         response = self.__httpCommand(path, None)
@@ -857,6 +880,7 @@ class UiAutomatorHelper:
     # UiScrollable
     #
     def uiScrollable(self, path, params=None):
+        warnings.warn("Deprecated: will be removed in future versions")
         response = self.__httpCommand('/UiScrollable/' + path, params)
         if DEBUG:
             print("UiAutomatorHelper: uiScrollable: response=", response, file=sys.stderr)
@@ -885,26 +909,33 @@ class UiObject:
     """
 
     def __init__(self, uiAutomatorHelper, oid, response):
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper = uiAutomatorHelper
         self.oid = oid
         self.className = response['className']
 
     def getOid(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.oid
 
     def getClassName(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.className
 
     def click(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper.click(oid=self.oid)
 
     def longClick(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper.longClick(oid=self.oid)
 
     def getText(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.getText(uiObject=self)
 
     def setText(self, text):
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper.setText(uiObject=self, text=text)
 
 
@@ -924,6 +955,7 @@ class UiObject2:
         :param class_name: the class name of the UI object
         :param oid: the object id
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper = uiAutomatorHelper
         self.class_name = class_name
         self.oid = oid
@@ -934,6 +966,7 @@ class UiObject2:
         :deprecated:
         :return: the result of the operation
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.ui_object2.clear(oid=self.oid)
 
     def click(self):
@@ -942,6 +975,7 @@ class UiObject2:
         :deprecated:
         :return: the result of the operation
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.ui_object2.click(oid=self.oid)
 
     def dump(self):
@@ -950,6 +984,7 @@ class UiObject2:
         :deprecated:
         :return: the content of the object
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.ui_object2.dump(oid=self.oid)
 
     def get_text(self):
@@ -958,6 +993,7 @@ class UiObject2:
         Returns the text value for this object.
         :return: the text
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.ui_object2.get_text(oid=self.oid)
 
     def long_click(self):
@@ -966,6 +1002,7 @@ class UiObject2:
         :deprecated:
         :return: the result of the operation
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.ui_object2.long_click(oid=self.oid)
 
     def set_text(self, text):
@@ -975,6 +1012,7 @@ class UiObject2:
         :param text: the text
         :return: the result of the operation
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.ui_object2.set_text(oid=self.oid, text=text)
 
     def clickAndWait(self, eventCondition, timeout):
@@ -984,6 +1022,7 @@ class UiObject2:
         :param timeout:
         :return:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper.clickAndWait(uiObject2=self, eventCondition=eventCondition, timeout=timeout)
 
     def isChecked(self):
@@ -992,6 +1031,7 @@ class UiObject2:
         :deprecated:
         :rtype: bool
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.isChecked(uiObject=self)
 
     def longClick(self):
@@ -999,6 +1039,7 @@ class UiObject2:
 
         :deprecated:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper.longClick(oid=self.oid)
 
     def getText(self):
@@ -1007,6 +1048,7 @@ class UiObject2:
         :deprecated:
         :return:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         # NOTICE: even if this is an uiObject2 we are invoking the only "getText" method in UiAutomatorHelper
         # passing the uiObject2 as uiObject
         return self.uiAutomatorHelper.getText(uiObject=self)
@@ -1017,6 +1059,7 @@ class UiObject2:
         :deprecated:
         :param text:
         """
+        warnings.warn("Deprecated: will be removed in future versions")
         # NOTICE: even if this is an uiObject2 we are invoking the only "setText" method in UiAutomatorHelper
         # passing the uiObject2 as uiObject
         self.uiAutomatorHelper.setText(uiObject=self, text=text)
@@ -1024,26 +1067,33 @@ class UiObject2:
 
 class UiScrollable:
     def __init__(self, uiAutomatorHelper, uiSelector):
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper = uiAutomatorHelper
         self.uiSelector = uiSelector
         self.oid, self.response = self.__createUiScrollable()
 
     def __createUiScrollable(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.uiScrollable('new', {'uiSelector': self.uiSelector})
 
     def flingBackward(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/flingBackward')
 
     def flingForward(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/flingForward')
 
     def flingToBeginning(self, maxSwipes=20):
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/flingToBeginning', {'maxSwipes': maxSwipes})
 
     def flingToEnd(self, maxSwipes=20):
+        warnings.warn("Deprecated: will be removed in future versions")
         return self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/flingToEnd', {'maxSwipes': maxSwipes})
 
     def getChildByDescription(self, uiSelector, description, allowScrollSearch):
+        warnings.warn("Deprecated: will be removed in future versions")
         oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByDescription',
                                                             {'uiSelector': uiSelector,
                                                              'contentDescription': description,
@@ -1051,15 +1101,18 @@ class UiScrollable:
         return UiObject(self.uiAutomatorHelper, oid, response)
 
     def getChildByText(self, uiSelector, text, allowScrollSearch):
+        warnings.warn("Deprecated: will be removed in future versions")
         oid, response = self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/getChildByText',
                                                             {'uiSelector': uiSelector, 'text': text,
                                                              'allowScrollSearch': allowScrollSearch})
         return UiObject(self.uiAutomatorHelper, oid, response)
 
     def setAsHorizontalList(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/setAsHorizontalList')
         return self
 
     def setAsVerticalList(self):
+        warnings.warn("Deprecated: will be removed in future versions")
         self.uiAutomatorHelper.uiScrollable(str(self.oid) + '/setAsVerticalList')
         return self

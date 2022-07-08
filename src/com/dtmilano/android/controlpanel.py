@@ -188,4 +188,4 @@ class ControlPanelButton(tkinter.Button):
 
     def takeSnapshot(self):
         # No need to retake snapshot as it is already shown
-        self.culebron.saveSnapshot()
+        self.culebron.saveSnapshot(showDialog=True)

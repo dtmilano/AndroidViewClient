@@ -37,7 +37,7 @@ from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.viewclient import ViewClient, View, VERSION_SDK_PROPERTY
 
-__version__ = '21.15.5'
+__version__ = '21.16.0'
 
 import sys
 import threading
@@ -115,6 +115,7 @@ class Unit:
 class Operation:
     ASSIGN = 'assign'
     CHANGE_LANGUAGE = 'change_language'
+    CLICK_UI_AUTOMATOR_HELPER = 'click_ui_automator_helper'
     DEFAULT = 'default'
     DRAG = 'drag'
     DUMP = 'dump'
@@ -440,7 +441,7 @@ This is usually installed by python package. Check your distribution details.
             self.hideVignette()
             if self.autoScreenshots:
                 print(f'Taking screenshot {self.device.screenshot_number}', file=sys.stderr)
-                self.saveSnapshot()
+                self.saveSnapshot(showDialog=False)
 
         except Exception as ex:
             print("⛔️ %s" % ex, file=sys.stderr)
@@ -936,20 +937,33 @@ This is usually installed by python package. Check your distribution details.
         if self.isTouchingPoint:
             self.showVignette()
             if self.vc:
-                self.vc.touch(x, y)
-            if self.coordinatesUnit == Unit.DIP:
-                x = round(x / self.device.display['density'], 2)
-                y = round(y / self.device.display['density'], 2)
-            self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit,
-                                self.device.display['orientation'])
-            self.sleep(5)
-            # FIXME: can we reduce this sleep? (was 5)
-            time.sleep(1)
-            self.isTouchingPoint = self.vc is None
-            self.takeScreenshotAndShowItOnWindow()
-            # self.hideVignette()
-            self.statusBar.clear()
-            return
+                if self.vc.uiAutomatorHelper:
+                    self.vc.uiAutomatorHelper.ui_device.click(int(x), int(y))
+                    self.vc.uiAutomatorHelper.ui_device.wait_for_idle()
+                    self.printOperation(None, Operation.CLICK_UI_AUTOMATOR_HELPER, int(x), int(y))
+                    self.printOperation(None, Operation.WAIT_FOR_IDLE_UI_AUTOMATOR_HELPER)
+                    self.isTouchingPoint = self.vc is None
+                    self.takeScreenshotAndShowItOnWindow()
+                    # self.hideVignette()
+                    self.statusBar.clear()
+                    return
+                else:
+                    self.vc.touch(x, y)
+                    if self.coordinatesUnit == Unit.DIP:
+                        x = round(x / self.device.display['density'], 2)
+                        y = round(y / self.device.display['density'], 2)
+                    self.printOperation(None, Operation.TOUCH_POINT, x, y, self.coordinatesUnit,
+                                        self.device.display['orientation'])
+                    self.sleep(5)
+                    # FIXME: can we reduce this sleep? (was 5)
+                    time.sleep(1)
+                    self.isTouchingPoint = self.vc is None
+                    self.takeScreenshotAndShowItOnWindow()
+                    # self.hideVignette()
+                    self.statusBar.clear()
+                    return
+        else:
+            warnings.warn('isTouchingPoint is False')
 
     def longTouchPoint(self, x, y):
         '''
@@ -1440,24 +1454,24 @@ This is usually installed by python package. Check your distribution details.
         if self.vc.uiAutomatorHelper:
             self.vc.uiAutomatorHelper.ui_device.swipe(start_x=int(x0), start_y=int(y0), end_x=int(x1), end_y=int(y1),
                                                       steps=steps)
+            self.vc.uiAutomatorHelper.ui_device.wait_for_idle()
+            self.printOperation(None, Operation.SWIPE_UI_AUTOMATOR_HELPER, x0, y0, x1, y1, steps,
+                                self.device.display['orientation'])
+            self.printOperation(None, Operation.WAIT_FOR_IDLE_UI_AUTOMATOR_HELPER)
         else:
             self.device.drag(start, end, duration, steps)
 
-        if units == Unit.DIP:
-            x0 = round(start[0] / self.device.display['density'], 2)
-            y0 = round(start[1] / self.device.display['density'], 2)
-            x1 = round(end[0] / self.device.display['density'], 2)
-            y1 = round(end[1] / self.device.display['density'], 2)
-            start = (x0, y0)
-            end = (x1, y1)
+            if units == Unit.DIP:
+                x0 = round(start[0] / self.device.display['density'], 2)
+                y0 = round(start[1] / self.device.display['density'], 2)
+                x1 = round(end[0] / self.device.display['density'], 2)
+                y1 = round(end[1] / self.device.display['density'], 2)
+                start = (x0, y0)
+                end = (x1, y1)
 
-        if self.vc.uiAutomatorHelper:
-            self.printOperation(None, Operation.SWIPE_UI_AUTOMATOR_HELPER, x0, y0, x1, y1, steps, units,
-                                self.device.display['orientation'])
-        else:
             self.printOperation(None, Operation.DRAG, start, end, duration, steps, units,
                                 self.device.display['orientation'])
-        self.sleep(1)
+            self.sleep(1)
         self.takeScreenshotAndShowItOnWindow()
 
     def enableEvents(self):
@@ -2323,7 +2337,7 @@ if TKINTER_AVAILABLE:
 
             items.append(ContextMenu.Command('Drag dialog', 0, 'Ctrl+D', '<Control-D>', culebron.showDragDialog))
             items.append(ContextMenu.Command('Take snapshot and save to file', 26, 'Ctrl+F', '<Control-F>',
-                                             culebron.saveSnapshot))
+                                             lambda: culebron.saveSnapshot(showDialog=True)))
             items.append(ContextMenu.Command('Control Panel', 0, 'Ctrl+K', '<Control-K>', culebron.showControlPanel))
             items.append(ContextMenu.Command('Long touch point using PX', 0, 'Ctrl+L', '<Control-L>',
                                              culebron.toggleLongTouchPoint))

@@ -608,8 +608,6 @@ def printPress(keycode):
     else:
         logAction('pressing key=%s' % keycode)
         print('%s%sdevice.press(\'%s\')' % (indent, prefix, keycode))
-        # FIXME: we should support both cases: CulebraTester2 and adbclient
-        # print('%s%shelper.ui_device.press_key_code(KEY_EVENT[\'%s\'])' % (indent, prefix, keycode))
 
 
 def printDrag(start, end, duration, steps, unit, orientation):
@@ -894,21 +892,25 @@ def printFindObjectUiAutomatorViewer(selector):
     print(f'{indented_line}')
 
 
-def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, unit, orientation):
-    '''
+def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, orientation, unit=Unit.PX):
+    """
     Prints a swipe
-    '''
+    """
 
     if unit == Unit.PX:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
-            print('%s%svc.swipe(startX=%d, startY=%d, endX=%d, endY=%d, steps=%d)' % (
-                indent, prefix, startX, startY, endX, endY, steps))
+            print('')
+            print(
+                f'{indent}{prefix}helper.ui_device.swipe(start_x={int(startX)}, start_y={int(startY)}, ' +
+                f'end_x={int(endX)}, end_y={int(endY)}, steps={int(steps)})')
     elif unit == Unit.DIP:
         if options[CulebraOptions.MULTI_DEVICE]:
             warnings.warn('Multi-device not implemented yet for this case')
         else:
+            warnings.warn(f'Swipe using {unit} is not implemented yet')
+            print('')
             print(
                 f'{indent}{prefix}helper.ui_device.swipe(start_x={int(startX)}, start_y={int(startY)}, ' +
                 f'end_x={int(endX)}, end_y={int(endY)}, steps={int(steps)})')
@@ -1065,7 +1067,17 @@ def printTestUiAutomatorHelper(selector):
                 indented_line = line
             else:
                 indented_line = f'{indented_line}\n{indentation}{line}'
+        print('')
         print(indented_line)
+
+
+def printClickUiAutomatorHelper(x:int, y:int):
+    if options[CulebraOptions.MULTI_DEVICE]:
+        warnings.warn('Multi-device not implemented yet for this case')
+    else:
+        logAction(f'touching point by PX @ ({x}, {y})')
+        print('')
+        print(f'{indent}{prefix}helper.ui_device.click({x}, {y})')
 
 
 def printOperation(view, op, *args):
@@ -1135,6 +1147,9 @@ def printOperation(view, op, *args):
     elif op == Operation.TOUCH_POINT:
         printTouch(x=args[0], y=args[1], unit=args[2], orientation=args[3])
         return
+    elif op == Operation.CLICK_UI_AUTOMATOR_HELPER:
+        printClickUiAutomatorHelper(x=int(args[0]), y=int(args[1]))
+        return
     elif op == Operation.TOUCH_VIEW_UI_AUTOMATOR_HELPER:
         printTouchViewUiAutomatorHelper(selector=args[0])
         return
@@ -1161,7 +1176,7 @@ def printOperation(view, op, *args):
         return
     elif op == Operation.SWIPE_UI_AUTOMATOR_HELPER:
         printSwipeUiAutomatorHelper(startX=args[0], startY=args[1], endX=args[2], endY=args[3], steps=args[4],
-                                    unit=args[5], orientation=args[6])
+                                    orientation=args[5], unit=Unit.PX)
         return
     elif op == Operation.VIEW_SNAPSHOT:
         printSaveViewScreenshot(view, filename=args[0], _format=args[1])

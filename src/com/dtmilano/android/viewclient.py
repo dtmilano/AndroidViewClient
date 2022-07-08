@@ -3371,7 +3371,8 @@ class ViewClient:
                 'password': child.password, 'selected': child.selected, 'bounds': bounds,
                 'uniqueId': unique_id}
 
-    def __processWindowHierarchyChild(self, node: Union[WindowHierarchy, WindowHierarchyChild], idCount: int, version) -> None:
+    def __processWindowHierarchyChild(self, node: Union[WindowHierarchy, WindowHierarchyChild], idCount: int,
+                                      version) -> None:
         if node.id != 'hierarchy':
             unique_id = f'fid/no_id/{idCount}'
             attributes = ViewClient.attributesFromWindowHierarchyChild(unique_id, node)
@@ -4098,7 +4099,7 @@ class ViewClient:
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print("Finding object with %s through UiAutomatorHelper" % kwargs, file=sys.stderr)
-            return self.uiAutomatorHelper.findObject(**kwargs)
+            return self.uiAutomatorHelper.ui_device.find_object(**kwargs)
         else:
             warnings.warn("findObject only implemented using UiAutomatorHelper. Use ViewClient.findView...() instead.")
             return None
@@ -4121,14 +4122,14 @@ class ViewClient:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print("Touching View by selector=%s through UiAutomatorHelper" % selector, file=sys.stderr)
                 # FIXME: is `selector` a `bySlector`?
-                object_ref = self.uiAutomatorHelper.findObject(by_selector=selector)
+                object_ref = self.uiAutomatorHelper.ui_device.find_object(by_selector=selector)
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print("♦️ object_ref=%s" % object_ref, file=sys.stderr)
                 self.uiAutomatorHelper.click(oid=object_ref.oid)
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print("Touching (%d, %d) through UiAutomatorHelper" % (x, y), file=sys.stderr)
-                self.uiAutomatorHelper.click(x=int(x), y=int(y))
+                self.uiAutomatorHelper.ui_device.click(x=int(x), y=int(y))
         else:
             self.device.touch(x, y)
 
@@ -4138,15 +4139,17 @@ class ViewClient:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print("ViewClient: Long-touching View by selector=%s through UiAutomatorHelper" % (selector),
                           file=sys.stderr)
-                self.uiAutomatorHelper.findObject(selector=selector).longClick()
+                oid_ref = self.uiAutomatorHelper.ui_device.find_object(by_selector=selector)
+                self.uiAutomatorHelper.ui_object2.long_click(oid=oid_ref.oid)
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print("ViewClient: Long-touching (%d, %d) through UiAutomatorHelper" % (x, y), file=sys.stderr)
-                self.uiAutomatorHelper.swipe(startX=int(x), startY=int(y), endX=int(x), endY=int(y), steps=400)
+                self.uiAutomatorHelper.ui_device.swipe(start_x=int(x), start_y=int(y), end_x=int(x), end_y=int(y),
+                                                       steps=400)
         else:
             self.device.longTouch(x, y)
 
-    def swipe(self, startX=-1, startY=-1, endX=-1, endY=-1, steps=400, segments=[], segmentSteps=5, start=None,
+    def swipe(self, startX=-1, startY=-1, endX=-1, endY=-1, steps=400, segments=None, segmentSteps=5, start=None,
               end=None):
         if startX == -1 and startY == -1 and start:
             startX = start[0]
@@ -4158,36 +4161,38 @@ class ViewClient:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print("Swipe through UiAutomatorHelper", (startX, startY, endX, endY, steps, segments, segmentSteps),
                       file=sys.stderr)
-            self.uiAutomatorHelper.swipe(startX=startX, startY=startY, endX=endX, endY=endY, steps=steps,
-                                         segments=segments, segmentSteps=segmentSteps)
+            if segments:
+                warnings.warn("Not implemented yet")
+                return
+            self.uiAutomatorHelper.ui_device.swipe(start_x=startX, start_y=startY, end_x=endX, end_y=endY, steps=steps)
         else:
             duration = steps / 2.0
             self.device.drag((startX, startY), (endX, endY), duration, steps)
 
     def pressBack(self):
         if self.uiAutomatorHelper:
-            self.uiAutomatorHelper.pressBack()
+            self.uiAutomatorHelper.ui_device.press_back()
         else:
             warnings.warn("pressBak only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
 
     def pressHome(self):
         if self.uiAutomatorHelper:
-            self.uiAutomatorHelper.pressHome()
+            self.uiAutomatorHelper.ui_device.press_home()
         else:
             warnings.warn("pressHome only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
 
     def pressRecentApps(self):
         if self.uiAutomatorHelper:
-            self.uiAutomatorHelper.pressRecentApps()
+            self.uiAutomatorHelper.ui_device.press_recent_apps()
         else:
             warnings.warn("pressRecentApps only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
 
     def pressKeyCode(self, keycode, metaState=0):
-        '''By default no meta state'''
+        """By default no meta state"""
         if self.uiAutomatorHelper:
             if DEBUG_UI_AUTOMATOR_HELPER:
                 print("pressKeyCode(%d, %d)" % (keycode, metaState), file=sys.stderr)
-            self.uiAutomatorHelper.pressKeyCode(keycode, metaState)
+            self.uiAutomatorHelper.ui_device.press_key_code(keycode, metaState)
         else:
             warnings.warn("pressKeyCode only implemented using UiAutomatorHelper.  Use AdbClient.type() instead")
 
