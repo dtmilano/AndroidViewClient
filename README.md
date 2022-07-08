@@ -10,7 +10,7 @@ It is a test framework for Android applications that:
     <li>Provides view-based <i>device independent</i> UI interaction</li>
     <li>Uses 'logical' screen comparison (UI Automator Hierarchy based) over image comparison (Avoiding extraneous 
     detail issues, such as time or data changes)</li>
-    <li>Supports running on multiple devices</li>
+    <li>Supports running concurrently on multiple devices</li>
     <li>Provides simple control for high level operations like language change and activity start</li>
     <li>Supports all Android APIs</li>
     <li>Is written in python (python 3.6+ support in 20.x.y+)</li>
