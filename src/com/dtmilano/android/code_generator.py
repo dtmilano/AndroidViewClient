@@ -3,7 +3,7 @@ import textwrap
 from abc import ABC
 from datetime import date
 
-__version__ = '21.16.9'
+__version__ = '21.16.10'
 
 from typing import TextIO, Union, Dict, List
 
