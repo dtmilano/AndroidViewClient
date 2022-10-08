@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.16.10'
+__version__ = '21.17.0'
 
 import json
 import os
@@ -33,10 +33,10 @@ import time
 import warnings
 from abc import ABC
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import culebratester_client
-from culebratester_client import Text, ObjectRef, StatusResponse, DefaultApi
+from culebratester_client import Text, ObjectRef, StatusResponse, DefaultApi, Point, PerformTwoPointerGestureBody
 
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
@@ -135,6 +135,7 @@ class UiAutomatorHelper:
         self.target_context: UiAutomatorHelper.TargetContext = UiAutomatorHelper.TargetContext(self)
         self.object_store: UiAutomatorHelper.ObjectStore = UiAutomatorHelper.ObjectStore(self)
         self.ui_device: UiAutomatorHelper.UiDevice = UiAutomatorHelper.UiDevice(self)
+        self.ui_object: UiAutomatorHelper.UiObject = UiAutomatorHelper.UiObject(self)
         self.ui_object2: UiAutomatorHelper.UiObject2 = UiAutomatorHelper.UiObject2(self)
         self.until: UiAutomatorHelper.Until = UiAutomatorHelper.Until(self)
 
@@ -572,6 +573,68 @@ class UiAutomatorHelper:
             return self.uiAutomatorHelper.api_instance.ui_device_wait_for_window_update_get(timeout, **kwargs)
 
     #
+    # UiObject
+    #
+    class UiObject(ApiBase):
+        """
+        Inner UiObject class.
+
+        Notice that this class does not require an OID in its constructor.
+        """
+
+        def __init__(self, uiAutomatorHelper) -> None:
+            super().__init__(uiAutomatorHelper)
+
+        def performTwoPointerGesture(self, oid: int, startPoint1: Tuple[int, int], startPoint2: Tuple[int, int],
+                                     endPoint1: Tuple[int, int], endPoint2: Tuple[int, int], steps: int):
+            """
+            Generates a two-pointer gesture with arbitrary starting and ending points.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :param startPoint1:
+            :param startPoint2:
+            :param endPoint1:
+            :param endPoint2:
+            :param steps:
+            :return: the result of the operation
+            """
+            body = PerformTwoPointerGestureBody(Point(startPoint1[0], startPoint1[1]),
+                                                Point(startPoint2[0], startPoint2[1]),
+                                                Point(endPoint1[0], endPoint1[1]),
+                                                Point(endPoint2[0], endPoint2[1]),
+                                                steps)
+            return self.uiAutomatorHelper.api_instance.ui_object_oid_perform_two_pointer_gesture_post(oid=oid,
+                                                                                                      body=body)
+
+        def pinch_in(self, oid: int, percentage: int, steps: int = 50):
+            """
+            Performs a two-pointer gesture, where each pointer moves diagonally toward the other, from the edges to the
+            center of this UiObject.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :param percentage: percentage of the object's diagonal length for the pinch gesture
+            :param steps: the number of steps for the gesture. Steps are injected about 5 milliseconds apart, so 100
+            steps may take around 0.5 seconds to complete.
+            :return: the result of the operation
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object_oid_pinch_in_get(oid=oid, percentage=percentage,
+                                                                                  steps=steps)
+
+        def pinch_out(self, oid: int, percentage: int, steps: int = 50):
+            """
+            Performs a two-pointer gesture, where each pointer moves diagonally opposite across the other, from the
+            center out towards the edges of the this UiObject.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :param percentage: percentage of the object's diagonal length for the pinch gesture
+            :param steps: the number of steps for the gesture. Steps are injected about 5 milliseconds apart, so 100
+            steps may take around 0.5 seconds to complete.
+            :return: the result of the operation
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object_oid_pinch_out_get(oid=oid, percentage=percentage,
+                                                                                   steps=steps)
+
+    #
     # UiObject2
     #
     class UiObject2(ApiBase):
@@ -584,7 +647,7 @@ class UiAutomatorHelper:
         def __init__(self, uiAutomatorHelper) -> None:
             super().__init__(uiAutomatorHelper)
 
-        def clear(self, oid):
+        def clear(self, oid: int):
             """
             Clears the text content if this object is an editable field.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
@@ -593,7 +656,7 @@ class UiAutomatorHelper:
             """
             return self.uiAutomatorHelper.api_instance.ui_object2_clear_get(oid=oid)
 
-        def click(self, oid):
+        def click(self, oid: int):
             """
             Clicks on this object.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
