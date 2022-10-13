@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '21.17.0'
+__version__ = '21.17.1'
 
 import json
 import os
@@ -513,6 +513,15 @@ class UiAutomatorHelper:
             """
             if self.all(['start_x', 'start_y', 'end_x', 'end_y', 'steps'], kwargs):
                 return self.uiAutomatorHelper.api_instance.ui_device_swipe_get(**kwargs)
+            if 'segments' in kwargs:
+                # noinspection PyBroadException
+                try:
+                    segments = kwargs['segments']
+                    if isinstance(segments, list):
+                        if all(isinstance(e, tuple) for e in segments):
+                            kwargs['segments'] = list(map(lambda e: Point(*e), segments))
+                except Exception:
+                    pass
             body = culebratester_client.SwipeBody(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_swipe_post(body=body)
 
