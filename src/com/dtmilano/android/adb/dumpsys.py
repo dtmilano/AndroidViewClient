@@ -23,7 +23,7 @@ import re
 import sys
 from _warnings import warn
 
-__version__ = '21.17.1'
+__version__ = '21.17.2'
 
 DEBUG = False
 

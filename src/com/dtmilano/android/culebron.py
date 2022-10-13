@@ -37,7 +37,7 @@ from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.viewclient import ViewClient, View, VERSION_SDK_PROPERTY
 
-__version__ = '21.17.1'
+__version__ = '21.17.2'
 
 import sys
 import threading
