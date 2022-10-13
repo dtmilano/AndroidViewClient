@@ -1,0 +1,9 @@
+#! /usr/bin/env python3
+
+from com.dtmilano.android.viewclient import ViewClient
+
+helper = ViewClient(*ViewClient.connectToDeviceOrExit(), useuiautomatorhelper=True).uiAutomatorHelper
+
+# assume google keep is open so we can see it drawing
+# see keep-swipe.gif
+helper.ui_device.swipe(segments=[(300, 300), (600, 1200), (600, 300), (300, 300)], segment_steps=50)
