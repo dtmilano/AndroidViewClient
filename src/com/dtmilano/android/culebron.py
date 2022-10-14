@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Copyright (C) 2012-2022  Diego Torres Milano
 Created on oct 6, 2014
 
@@ -17,14 +17,13 @@ limitations under the License.
 
 @author: Diego Torres Milano
 
-'''
+"""
 from __future__ import print_function
 
 import io
 import random
 import re
 import time
-from tkinter.filedialog import asksaveasfilename
 from typing import Any, Optional
 
 import numpy
@@ -37,7 +36,7 @@ from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.viewclient import ViewClient, View, VERSION_SDK_PROPERTY
 
-__version__ = '21.17.2'
+__version__ = '21.17.3'
 
 import sys
 import threading
@@ -47,6 +46,7 @@ import os
 import platform
 from pkg_resources import Requirement, resource_filename
 
+# noinspection PyBroadException
 try:
     import PIL
     from PIL import Image
@@ -55,6 +55,7 @@ try:
 except:
     PIL_AVAILABLE = False
 
+# noinspection PyBroadException
 try:
     from PIL import ImageTk
     import tkinter
@@ -64,6 +65,7 @@ try:
     import tkinter.scrolledtext
     import tkinter.ttk
     from tkinter.constants import DISABLED, NORMAL
+    from tkinter.filedialog import asksaveasfilename
 
     TKINTER_AVAILABLE = True
 except:
@@ -75,6 +77,7 @@ except:
         import ScrolledText
         import ttk
         from Tkconstants import DISABLED, NORMAL
+        from tkinter.filedialog import asksaveasfilename
 
         TKINTER_AVAILABLE = True
     except:
