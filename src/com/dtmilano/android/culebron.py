@@ -23,6 +23,7 @@ from __future__ import print_function
 import io
 import random
 import re
+import string
 import time
 from typing import Any, Optional
 
@@ -93,7 +94,7 @@ DEBUG = False
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and False
-DEBUG_KEY = DEBUG and False
+DEBUG_KEY = DEBUG and False or True
 DEBUG_ISCCOF = DEBUG and False
 DEBUG_FIND_VIEW = DEBUG and False
 DEBUG_CONTEXT_MENU = DEBUG and False
@@ -182,17 +183,20 @@ class Operation:
 class Culebron:
     APPLICATION_NAME = "Culebra"
 
-    UPPERCASE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    UPPERCASE_CHARS = string.ascii_uppercase
 
     KEYSYM_TO_KEYCODE_MAP = {
         'Home': 'HOME',
+        'Tab': 'TAB',
         'abovedot': 'HOME',  # Option+H on macOS
         'BackSpace': 'BACK',
         'Left': 'DPAD_LEFT',
         'Right': 'DPAD_RIGHT',
         'Up': 'DPAD_UP',
         'Down': 'DPAD_DOWN',
+        'Return': 'DPAD_CENTER',
         'F12': 'F12',
+        'acute': 'ESCAPE',  # Option+E on macOS
     }
 
     KEYSYM_CULEBRON_COMMANDS = {
@@ -689,7 +693,7 @@ This is usually installed by python package. Check your distribution details.
         else:
             window = -1
         if self.vc:
-            dump = self.vc.dump(window=window, sleep=0.1)
+            dump = self.vc.dump(window=window, sleep=1)
             if not self.vc.uiAutomatorHelper:
                 self.printOperation(None, Operation.DUMP, window, dump)
         else:
@@ -711,7 +715,7 @@ This is usually installed by python package. Check your distribution details.
                 # or add it if it's touchable, focusable, whatever
                 ((x1, y1), (x2, y2)) = v.getCoords()
                 if DEBUG:
-                    print("appending target", ((x1, y1, x2, y2)), file=sys.stderr)
+                    print("appending target", (x1, y1, x2, y2), file=sys.stderr)
                 v.setTarget(True)
                 self.targets.append((x1, y1, x2, y2))
                 self.targetViews.append(v)
@@ -1203,9 +1207,9 @@ This is usually installed by python package. Check your distribution details.
         self.takeScreenshotAndShowItOnWindow()
 
     def cancelOperation(self):
-        '''
+        """
         Cancels the ongoing operation if any.
-        '''
+        """
         if self.isLongTouchingPoint:
             self.toggleLongTouchPoint()
         elif self.isTouchingPoint:
