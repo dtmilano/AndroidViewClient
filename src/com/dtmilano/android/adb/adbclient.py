@@ -27,7 +27,7 @@ from typing import Optional
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '21.17.4'
+__version__ = '22.0.0'
 
 import sys
 import warnings
@@ -823,6 +823,15 @@ class AdbClient:
             print("Starting activity: %s" % cmd, file=sys.stderr)
         out = self.shell(cmd)
         if re.search(r"(Error type)|(Error: )|(Cannot find 'App')", out, re.IGNORECASE | re.MULTILINE):
+            raise RuntimeError(out)
+
+    def forceStop(self, package):
+        self.__checkTransport()
+        _cmd = f'am force-stop {package}'
+        if DEBUG:
+            print(f'Force-stop package: {_cmd}', file=sys.stderr)
+        out = self.shell(_cmd)
+        if re.search(r"(Error type)|(Error: )", out, re.IGNORECASE | re.MULTILINE):
             raise RuntimeError(out)
 
     def takeSnapshot(self, reconnect=False):
