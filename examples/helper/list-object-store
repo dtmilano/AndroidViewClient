@@ -1,0 +1,15 @@
+#! /usr/bin/env python3
+
+from com.dtmilano.android.viewclient import ViewClient
+
+helper = ViewClient.view_client_helper()
+
+for e in helper.object_store.list():
+    if e.obj.startswith('androidx.test.uiautomator.UiObject2@'):
+        print(helper.ui_object2.dump(e.oid), '\n')
+    elif e.obj.startswith('androidx.test.uiautomator.UiObject@'):
+        print(helper.ui_object.dump(e.oid), '\n')
+    elif e.obj.startswith('androidx.test.uiautomator.Until@'):
+        pass
+    else:
+        print(e)

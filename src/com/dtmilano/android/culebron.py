@@ -35,9 +35,10 @@ from com.dtmilano.android.common import profileEnd
 from com.dtmilano.android.common import profileStart
 from com.dtmilano.android.concertina import Concertina
 from com.dtmilano.android.keyevent import KEY_EVENT
+from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper
 from com.dtmilano.android.viewclient import ViewClient, View, VERSION_SDK_PROPERTY
 
-__version__ = '22.0.0'
+__version__ = '22.0.1'
 
 import sys
 import threading
@@ -1277,7 +1278,7 @@ This is usually installed by python package. Check your distribution details.
             if showDialog:
                 # FIXME: home made f-string
                 saveAsFilename = saveAsFilename.replace('{pid}', str(os.getgid())) \
-                    .replace('{helper.timestamp()}', self.vc.uiAutomatorHelper.timestamp())
+                    .replace('{helper.timestamp()}', UiAutomatorHelper.timestamp())
                 self.unscaledScreenshot.save(saveAsFilename, _format)
 
     def saveViewSnapshot(self, view):

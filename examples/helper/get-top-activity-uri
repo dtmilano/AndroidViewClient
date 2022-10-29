@@ -1,0 +1,14 @@
+#! /usr/bin/env python3
+#
+# Gets the top most activity and the uri.
+# It is starting google chrome first to show a useful example.
+#
+
+from com.dtmilano.android.viewclient import ViewClient
+
+helper = ViewClient.view_client_helper()
+
+helper.target_context.start_activity("com.android.chrome", "com.google.android.apps.chrome.Main",
+                                     uri='https://stackoverflow.com')
+print('Top Activity:', helper.device.get_top_activity_name())
+print('URI:', helper.device.get_top_activity_uri())

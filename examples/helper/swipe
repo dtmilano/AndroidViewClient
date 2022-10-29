@@ -2,7 +2,7 @@
 
 from com.dtmilano.android.viewclient import ViewClient
 
-helper = ViewClient(*ViewClient.connectToDeviceOrExit(), useuiautomatorhelper=True).uiAutomatorHelper
+helper = ViewClient.view_client_helper()
 
 # assume google keep is open so we can see it drawing
 # see keep-swipe.gif

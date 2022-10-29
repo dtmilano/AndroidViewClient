@@ -1,0 +1,42 @@
+#! /usr/bin/env python3
+
+import sys
+import time
+
+from com.dtmilano.android.viewclient import ViewClient
+
+if len(sys.argv) != 2:
+    sys.exit("usage: %s <app>" % sys.argv[0])
+
+app = sys.argv.pop(1)
+device, serialno = ViewClient.connectToDeviceOrExit()
+helper = ViewClient(device, serialno, useuiautomatorhelper=True).uiAutomatorHelper
+
+t = [time.time()]
+cmps = {
+    'calculator': {
+        'pkg': 'com.google.android.calculator',
+        'act': 'com.android.calculator2.Calculator',
+        'uri': None
+    },
+    'chrome': {
+        'pkg': 'com.android.chrome',
+        'act': 'com.google.android.apps.chrome.Main',
+        'uri': 'https://google.com'
+    }
+}
+
+cmp = cmps[app]
+device.forceStop(cmp['pkg'])
+helper.target_context.start_activity(cmp['pkg'], cmp['act'], uri=cmp['uri'])
+helper.ui_device.wait_for_window_update()
+t.append(time.time())
+
+for n in range(4):
+    helper.ui_device.dump_window_hierarchy()
+    t.append(time.time())
+
+for n in range(1, len(t) - 1):
+    print(f'{t[n] - t[n - 1]:.3f}s')
+
+device.forceStop(cmp['pkg'])

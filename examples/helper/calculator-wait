@@ -13,7 +13,7 @@ def start_calculator():
                                          'com.android.calculator2.Calculator')
 
 
-helper = ViewClient(*ViewClient.connectToDeviceOrExit(), useuiautomatorhelper=True).uiAutomatorHelper
+helper = ViewClient.view_client_helper()
 
 threading.Thread(target=start_calculator).start()
 

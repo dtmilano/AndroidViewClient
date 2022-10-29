@@ -26,7 +26,7 @@ from typing import Optional, Union, Dict
 import culebratester_client
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '22.0.0'
+__version__ = '22.1.0'
 
 import sys
 import warnings
@@ -2758,6 +2758,13 @@ class ViewClient:
         # should clean up some things
         if hasattr(self, 'uiAutomatorHelper') and self.uiAutomatorHelper:
             self.uiAutomatorHelper.quit()
+
+    @staticmethod
+    def view_client_helper(kato=False):
+        helper = ViewClient(*ViewClient.connectToDeviceOrExit(), useuiautomatorhelper=True).uiAutomatorHelper
+        # not enabled yet:
+        # helper.kato.enabled = kato
+        return helper
 
     @staticmethod
     def __obtainAdbPath():

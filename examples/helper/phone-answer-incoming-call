@@ -1,0 +1,20 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+#
+# Waits for an incoming call and clicks on the "Answer" button
+#
+
+from com.dtmilano.android.viewclient import ViewClient
+
+helper = ViewClient.view_client_helper()
+
+search_condition = helper.until.find_object(body={'text': 'Answer'}).oid
+timeout = 30000
+print(f"Let's wait {timeout / 1000} secs for an incoming call...")
+# noinspection PyBroadException
+try:
+    answer = helper.ui_device.wait(search_condition, timeout).oid
+    helper.ui_object2.click(answer)
+except:
+    print('No call received')

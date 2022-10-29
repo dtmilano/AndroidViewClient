@@ -1,0 +1,7 @@
+#! /usr/bin/env python3
+
+from com.dtmilano.android.viewclient import ViewClient
+
+ViewClient.view_client_helper().target_context.start_activity('com.android.chrome',
+                                                              'com.google.android.apps.chrome.Main',
+                                                              uri='https://google.com')
