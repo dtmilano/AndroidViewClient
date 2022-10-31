@@ -7,6 +7,7 @@ from com.dtmilano.android.viewclient import ViewClient
 
 helper = ViewClient.view_client_helper(kato=True)
 
+# Let's assume with have Calculator on top (you can launch it if not).
 # This selector has an intentional mistake, instead of "plus" in the description we say "add"
 # to see if kato would be able to correct it and find the view.
 body = {'checkable': False, 'checked': False, 'clazz': 'android.widget.ImageButton', 'clickable': True, 'depth': None,
