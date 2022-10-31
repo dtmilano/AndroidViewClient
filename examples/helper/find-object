@@ -19,7 +19,7 @@ try:
     print(helper.ui_object2.dump(oid=obj_ref.oid).desc)
 except Exception as e:
     print(f"I couldn't find any view matching selector={body}")
-    print("But found other {len(helper.kato.selectors)} potential ones.")
+    print(f'But found other {len(helper.kato.selectors)} potential ones.')
     print('Choosing a closest selector from such potential list:')
     body = next(iter(helper.kato.distances.values()))
     obj_ref = helper.ui_device.find_object(body=body)
