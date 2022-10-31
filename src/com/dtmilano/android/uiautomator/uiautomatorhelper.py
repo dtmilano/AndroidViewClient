@@ -43,6 +43,8 @@ from com.dtmilano.android.common import obtainAdbPath
 
 __author__ = 'diego'
 
+from com.dtmilano.android.kato import kato
+
 DEBUG = False
 
 lock = threading.Lock()
@@ -149,6 +151,7 @@ class UiAutomatorHelper:
         self.ui_object: UiAutomatorHelper.UiObject = UiAutomatorHelper.UiObject(self)
         self.ui_object2: UiAutomatorHelper.UiObject2 = UiAutomatorHelper.UiObject2(self)
         self.until: UiAutomatorHelper.Until = UiAutomatorHelper.Until(self)
+        self.kato = kato.Kato()
 
     def __connectSession(self):
         if DEBUG:
@@ -405,6 +408,7 @@ class UiAutomatorHelper:
             """
             return self.uiAutomatorHelper.api_instance.ui_device_dump_window_hierarchy_get(format=_format)
 
+        @kato.kato
         def find_object(self, **kwargs):
             """
             Finds an object.
@@ -421,6 +425,7 @@ class UiAutomatorHelper:
             body = culebratester_client.Selector(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_find_object_post(body=body)
 
+        #@kato.kato
         def find_objects(self, **kwargs):
             """
             Finds objects.
@@ -437,6 +442,7 @@ class UiAutomatorHelper:
             body = culebratester_client.Selector(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_find_objects_post(body=body)
 
+        #@kato.kato
         def has_object(self, **kwargs) -> bool:
             """
             Has an object.
@@ -592,6 +598,14 @@ class UiAutomatorHelper:
 
         def __init__(self, uiAutomatorHelper) -> None:
             super().__init__(uiAutomatorHelper)
+
+        def dump(self, oid: int):
+            """
+
+            :param oid:
+            :return:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object_oid_dump_get(oid=oid)
 
         def exists(self, oid: int) -> bool:
             """

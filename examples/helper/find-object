@@ -1,0 +1,25 @@
+#! /usr/bin/env python3
+#
+# Tries to find the object containing a "wrong" content description ...
+#
+
+from com.dtmilano.android.viewclient import ViewClient
+
+helper = ViewClient.view_client_helper(kato=True)
+
+# This selector has an intentional mistake, instead of "plus" in the description we say "add"
+# to see if kato would be able to correct it and find the view.
+body = {'checkable': False, 'checked': False, 'clazz': 'android.widget.ImageButton', 'clickable': True, 'depth': None,
+        'desc': 'add', 'index': None, 'instance': None, 'pkg': 'com.google.android.calculator',
+        'res': 'com.google.android.calculator:id/op_add', 'scrollable': False, 'text': None}
+
+try:
+    obj_ref = helper.ui_device.find_object(body=body)
+    print(helper.ui_object2.dump(oid=obj_ref.oid).desc)
+except Exception as e:
+    print(f"I couldn't find any view matching selector={body}")
+    print("But found other {len(helper.kato.selectors)} potential ones.")
+    print('Choosing a closest selector from such potential list:')
+    body = next(iter(helper.kato.distances.values()))
+    obj_ref = helper.ui_device.find_object(body=body)
+    print(helper.ui_object2.dump(oid=obj_ref.oid))

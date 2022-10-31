@@ -300,7 +300,7 @@ com.dtmilano.android.viewclient.ViewClient.isKeyboardShown	com.dtmilano.android.
 com.dtmilano.android.viewclient.ViewClient.__obtainAdbPath	com.dtmilano.android.viewclient.ViewClient-class.html#__obtainAdbPath
 com.dtmilano.android.viewclient.ViewClient.findViewWithContentDescriptionOrRaise	com.dtmilano.android.viewclient.ViewClient-class.html#findViewWithContentDescriptionOrRaise
 com.dtmilano.android.viewclient.ViewClient.build	com.dtmilano.android.viewclient.ViewClient-class.html#build
-com.dtmilano.android.viewclient.ViewClient.__levenshteinDistance	com.dtmilano.android.viewclient.ViewClient-class.html#__levenshteinDistance
+com.dtmilano.android.viewclient.ViewClient.levenshtein_distance	com.dtmilano.android.viewclient.ViewClient-class.html#levenshtein_distance
 com.dtmilano.android.viewclient.ViewClient.__parseTreeFromUiAutomatorDump	com.dtmilano.android.viewclient.ViewClient-class.html#__parseTreeFromUiAutomatorDump
 com.dtmilano.android.viewclient.ViewClient.ro	com.dtmilano.android.viewclient.ViewClient-class.html#ro
 com.dtmilano.android.viewclient.ViewClient.TRAVERSE_CITCD	com.dtmilano.android.viewclient.ViewClient-class.html#TRAVERSE_CITCD
