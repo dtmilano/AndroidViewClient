@@ -93,8 +93,18 @@ VERSION_RELEASE_PROPERTY = 'ro.build.version.release'
 
 
 class Device:
+    """
+    A device.
+    """
     @staticmethod
     def factory(_str):
+        """
+        Device factory.
+        :param _str:
+        :type _str:
+        :return:
+        :rtype:
+        """
         _str = _str.decode('utf-8')
         if DEBUG:
             print("Device.factory(", _str, ")", file=sys.stderr)
@@ -106,11 +116,27 @@ class Device:
         return Device(*values)
 
     def __init__(self, serialno, status, qualifiers=None):
+        """
+        Constructor.
+        :param serialno:
+        :type serialno:
+        :param status:
+        :type status:
+        :param qualifiers:
+        :type qualifiers:
+        """
         self.serialno = serialno
         self.status = status
         self.qualifiers = qualifiers.split(None) if qualifiers else None
 
     def has_qualifier(self, qualifier):
+        """
+
+        :param qualifier:
+        :type qualifier:
+        :return:
+        :rtype:
+        """
         return self.qualifiers and qualifier in self.qualifiers
 
     def __str__(self):
@@ -118,11 +144,11 @@ class Device:
 
 
 class WifiManager:
-    '''
+    """
     Simulates Android WifiManager.
 
     @see: http://developer.android.com/reference/android/net/wifi/WifiManager.html
-    '''
+    """
 
     WIFI_STATE_DISABLING = 0
     WIFI_STATE_DISABLED = 1
@@ -134,14 +160,19 @@ class WifiManager:
     WIFI_IS_DISABLED_RE = re.compile('Wi-Fi is disabled')
 
     def __init__(self, device):
+        """
+        Constructor.
+        :param device:
+        :type device:
+        """
         self.device = device
 
     def getWifiState(self):
-        '''
+        """
         Gets the Wi-Fi enabled state.
 
         @return: One of WIFI_STATE_DISABLED, WIFI_STATE_DISABLING, WIFI_STATE_ENABLED, WIFI_STATE_ENABLING, WIFI_STATE_UNKNOWN
-        '''
+        """
 
         result = self.device.shell('dumpsys wifi')
         if result:
@@ -194,12 +225,34 @@ def connect(hostname, port, timeout=TIMEOUT):
 
 
 class AdbClient:
+    """
+    Adb client.
+    """
     UP = UP
     DOWN = DOWN
     DOWN_AND_UP = DOWN_AND_UP
 
     def __init__(self, serialno=None, hostname=HOSTNAME, port=PORT, settransport=True, reconnect=True,
                  ignoreversioncheck=False, timeout=TIMEOUT, connect=connect):
+        """
+        Constructor.
+        :param serialno:
+        :type serialno:
+        :param hostname:
+        :type hostname:
+        :param port:
+        :type port:
+        :param settransport:
+        :type settransport:
+        :param reconnect:
+        :type reconnect:
+        :param ignoreversioncheck:
+        :type ignoreversioncheck:
+        :param timeout:
+        :type timeout:
+        :param connect:
+        :type connect:
+        """
         self.Log = AdbClient.__Log(self)
 
         self.serialno = serialno
@@ -1251,9 +1304,9 @@ class AdbClient:
         self.shell('log -p %c -t "%s" %s' % (priority, tag, message))
 
     class __Log:
-        '''
+        """
         Log class to simulate C{android.util.Log}
-        '''
+        """
 
         def __init__(self, adbClient):
             self.adbClient = adbClient

@@ -96,6 +96,7 @@ class RunTestsThread(threading.Thread):
 def check_response(response: StatusResponse) -> None:
     """
     Checks if the status response is OK. Otherwise, it raises an exception.
+
     :param response: the response
     :return: None
     """
@@ -104,6 +105,9 @@ def check_response(response: StatusResponse) -> None:
 
 
 class UiAutomatorHelper:
+    """
+    UiAutomatorHelper is a backend for AndroidViewClient.
+    """
     PACKAGE = 'com.dtmilano.android.culebratester2'
     TEST_CLASS = PACKAGE + '.test'
     TEST_RUNNER = 'com.dtmilano.android.culebratester2.UiAutomatorHelper'
@@ -239,19 +243,52 @@ class UiAutomatorHelper:
     # API Base
     #
     class ApiBase(ABC):
+        """
+        Abstract class to serve as a base for API implementations.
+        """
 
         def __init__(self, uiAutomatorHelper) -> None:
             super().__init__()
             self.uiAutomatorHelper = uiAutomatorHelper
 
         @staticmethod
-        def intersection(l1, l2):
+        def intersection(l1: list, l2: list) -> list:
+            """
+            Obtains the intersection between the two lists.
+
+            :param l1: list 1
+            :type l1: list
+            :param l2: list 2
+            :type l2: list
+            :return: the list containing the intersection
+            :rtype: list
+            """
             return list(set(l1) & set(l2))
 
-        def some(self, l1, l2):
+        def some(self, l1: list, l2: list) -> bool:
+            """
+            Some elements are in both lists.
+
+            :param l1: list 1
+            :type l1: list
+            :param l2: list 2
+            :type l2: list
+            :return: whether some elements are in both lists
+            :rtype: bool
+            """
             return len(self.intersection(l1, l2)) > 0
 
-        def all(self, l1, l2):
+        def all(self, l1: list, l2: list) -> bool:
+            """
+            All the elements are in both lists.
+
+            :param l1: list 1
+            :type l1: list
+            :param l2: list 2
+            :type l2: list
+            :return: whether all elements are in both lists
+            :rtype: bool
+            """
             li = len(self.intersection(l1, l2))
             return li == len(l1) and li == len(l2)
 
@@ -261,6 +298,7 @@ class UiAutomatorHelper:
     class Device(ApiBase):
         """
         Device
+        :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
         """
 
         def __init__(self, uiAutomatorHelper) -> None:
@@ -276,6 +314,7 @@ class UiAutomatorHelper:
         def dumpsys(self, service, **kwargs) -> str:
             """
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
             :param service: the service
             :return: the dumpsys output
             """
@@ -316,6 +355,7 @@ class UiAutomatorHelper:
         def wait_for_new_toast(self, timeout=10000):
             """
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
             :return: the text in the Toast if found
             """
             return self.uiAutomatorHelper.api_instance.device_wait_for_new_toast_get(timeout=timeout)
@@ -358,6 +398,7 @@ class UiAutomatorHelper:
             """
             Clears all the objects.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
             :return: the status
             """
             return self.uiAutomatorHelper.api_instance.object_store_clear_get()
@@ -366,7 +407,9 @@ class UiAutomatorHelper:
             """
             List the objects.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
             :return: the list of objects
+            :rtype: list
             """
             return self.uiAutomatorHelper.api_instance.object_store_list_get()
 
@@ -374,6 +417,8 @@ class UiAutomatorHelper:
             """
             Removes an object.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
+            :param oid: the object id
             :return: the status
             """
             return self.uiAutomatorHelper.api_instance.object_store_remove_get(oid)
@@ -403,8 +448,8 @@ class UiAutomatorHelper:
             Dumps the window hierarchy.
 
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
-            :param _format:
-            :return:
+            :param _format: the format (e.g.: JSON, XML)
+            :return: the window hierarchy
             """
             return self.uiAutomatorHelper.api_instance.ui_device_dump_window_hierarchy_get(format=_format)
 
@@ -425,7 +470,7 @@ class UiAutomatorHelper:
             body = culebratester_client.Selector(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_find_object_post(body=body)
 
-        #@kato.kato
+        # @kato.kato
         def find_objects(self, **kwargs):
             """
             Finds objects.
@@ -442,7 +487,7 @@ class UiAutomatorHelper:
             body = culebratester_client.Selector(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_find_objects_post(body=body)
 
-        #@kato.kato
+        # @kato.kato
         def has_object(self, **kwargs) -> bool:
             """
             Has an object.
@@ -557,10 +602,11 @@ class UiAutomatorHelper:
 
         def wait(self, oid: int, timeout=10000):
             """
+            Waits for a search condition.
 
             :param oid: the search condition ref (oid)
             :param timeout: the timeout in ms
-            :return:
+            :return: The final result returned by the condition, or null if the condition was not met before the timeout.
             """
             return self.uiAutomatorHelper.api_instance.ui_device_wait_get(oid=oid,
                                                                           timeout=timeout)
@@ -780,6 +826,7 @@ class UiAutomatorHelper:
             Returns a SearchCondition that is satisfied when at least one element matching the selector can be found.
             The condition will return the first matching element.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
             :param kwargs: the arguments
             :return: the search condition reference
             """
@@ -792,11 +839,12 @@ class UiAutomatorHelper:
 
         def find_objects(self, **kwargs) -> List[ObjectRef]:
             """
-            Returns a SearchCondition that is satisfied when at least one element matching the selector can be found.
+            Returns a ``SearchCondition`` that is satisfied when at least one element matching the selector can be found.
             The condition will return the first matching element.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
             :param kwargs: the arguments
-            :return: the search condition reference
+            :return: the search condition object reference
             """
             if 'body' in kwargs:
                 return self.uiAutomatorHelper.api_instance.until_find_objects_post(**kwargs)
@@ -809,6 +857,8 @@ class UiAutomatorHelper:
             """
             Returns a condition that depends on a new window having appeared.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
             :return: the event condition reference
+            :rtype: Until object reference
             """
             return self.uiAutomatorHelper.api_instance.until_new_window_get()

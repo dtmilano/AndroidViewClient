@@ -1,0 +1,10 @@
+/* This file intentionally left blank. */
+
+/* added by dtm */
+div.sphinxsidebar {
+    width: 540px;
+}
+
+div.bodywrapper {
+    margin: 0 0 0 540px;
+}

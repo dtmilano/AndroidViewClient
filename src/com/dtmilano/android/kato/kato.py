@@ -23,6 +23,13 @@ class Kato:
 
 
 def kato(func):
+    """
+    Kato decorator.
+    @param func:the function to invoke
+    @type func:
+    @return: the wrapper
+    @rtype:
+    """
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)

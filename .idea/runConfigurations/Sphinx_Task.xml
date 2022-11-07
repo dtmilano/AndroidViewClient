@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Sphinx Task" type="docs" factoryName="Sphinx task">
+    <module name="AndroidViewClient" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <option name="SDK_HOME" value="/usr/local/bin/python3.10" />
+    <option name="WORKING_DIRECTORY" value="" />
+    <option name="IS_MODULE_SDK" value="false" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <option name="docutils_input_file" value="$PROJECT_DIR$/sphinx" />
+    <option name="docutils_output_file" value="$PROJECT_DIR$/docs" />
+    <option name="docutils_params" value="" />
+    <option name="docutils_task" value="html" />
+    <option name="docutils_open_in_browser" value="false" />
+    <method v="2" />
+  </configuration>
+</component>

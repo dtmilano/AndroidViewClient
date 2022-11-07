@@ -1168,16 +1168,16 @@ class View:
         return self.target
 
     def writeImageToFile(self, filename, _format="PNG"):
-        '''
+        """
         Write the View image to the specified filename in the specified format.
 
         @type filename: str
         @param filename: Absolute path and optional filename receiving the image. If this points to
-                         a directory, then the filename is determined by this View unique ID and
-                         format extension.
+        a directory, then the filename is determined by this View unique ID and
+        format extension.
         @type _format: str
         @param _format: Image format (default format is PNG)
-        '''
+        """
 
         filename = self.device.substituteDeviceTemplate(filename)
         if not os.path.isabs(filename):
@@ -2848,31 +2848,37 @@ class ViewClient:
                               connect=adbclient.connect):
         """
         Connects to a device which serial number is obtained from the script arguments if available
-        or using the default regex C{.*}.
+        or using the default regex ``.*`` if not provided.
 
         If the connection is not successful the script exits.
+
+
+        :param timeout: timeout for the connection
+        :type timeout: int
+        :param verbose: Verbose output
+        :type verbose: bool
+        :param ignoresecuredevice: ignores a secure device
+        :type ignoresecuredevice: bool
+        :param ignoreversioncheck: ignores the version check
+        :type ignoreversioncheck: bool
+        :param serialno: the serial number of the device (can be ``None``)
+        :type serialno: str
+        :param adbhostname: The adb hostname
+        :type adbhostname: str
+        :param adbport: The adb port
+        :type adbport: int
+        :param connect: Connect method to use to connect to ADB
+        :type connect: function
+        :return: the device and serialno used for the connection
+        :rtype: Tuple[AdbClient, str]
 
         History
         -------
         In MonkeyRunner times, this method was a way of overcoming one of its limitations.
-        L{MonkeyRunner.waitForConnection()} returns a L{MonkeyDevice} even if the connection failed.
-        Then, to detect this situation, C{device.wake()} is attempted and if it fails then it is
+        ``MonkeyRunner.waitForConnection()`` returns a MonkeyDevice even if the connection failed.
+        Then, to detect this situation, `device.wake()` is attempted and if it fails then it is
         assumed the previous connection failed.
 
-        @type timeout: int
-        @param timeout: timeout for the connection
-        @type verbose: bool
-        @param verbose: Verbose output
-        @type ignoresecuredevice: bool
-        @param ignoresecuredevice: Ignores the check for a secure device
-        @type ignoreversioncheck: bool
-        @param ignoreversioncheck: Ignores the check for a supported ADB version
-        @type serialno: str
-        @param serialno: The device or emulator serial number
-        @type connect: function
-        @param connect: Connect method to use to connect to ADB
-
-        @return: the device and serialno used for the connection
         """
         progname = os.path.basename(sys.argv[0])
         if serialno is None:
@@ -3004,14 +3010,14 @@ class ViewClient:
 
     @staticmethod
     def traverseShowClassIdTextAndContentDescription(view):
-        '''
+        """
         Shows the View class, id, text if available and content description.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
         @param view: the View
         @return: the string containing class, id, and text if available and the content description
-        '''
+        """
 
         return ViewClient.traverseShowClassIdAndText(view, View.getContentDescription, 'NAF')
 
@@ -3057,28 +3063,28 @@ class ViewClient:
 
     @staticmethod
     def traverseShowClassIdTextPositionAndSize(view):
-        '''
+        """
         Shows the View class, id and text if available.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
         @param view: the View
         @return: the string containing class, id, and text if available
-        '''
+        """
 
         return ViewClient.traverseShowClassIdAndText(view, View.getPositionAndSize)
 
     @staticmethod
     def traverseShowClassIdTextAndBounds(view):
-        '''
+        """
         Shows the View class, id and text if available.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
         @param view: the View
         @return: the string containing class, id, and text if available plus
-                 View bounds
-        '''
+        View bounds
+        """
 
         return ViewClient.traverseShowClassIdAndText(view, View.getBounds)
 
@@ -3471,7 +3477,7 @@ class ViewClient:
             ViewClient.__traverse(ch, indent=indent + "   ", transform=transform, stream=stream)
 
     def dump(self, window=-1, sleep=1):
-        '''
+        """
         Dumps the window content.
 
         Sleep is useful to wait some time before obtaining the new content when something in the
@@ -3479,18 +3485,18 @@ class ViewClient:
 
         @type window: int or str
         @param window: the window id or name of the window to dump.
-                    The B{name} is the package name or the window name (i.e. StatusBar) for
-                    system windows.
-                    The window id can be provided as C{int} or C{str}. The C{str} should represent
-                    and C{int} in either base 10 or 16.
-                    Use -1 to dump all windows.
-                    This parameter only is used when the backend is B{ViewServer} and it's
-                    ignored for B{UiAutomator}.
+        The B{name} is the package name or the window name (i.e. StatusBar) for
+        system windows.
+        The window id can be provided as C{int} or C{str}. The C{str} should represent
+        and C{int} in either base 10 or 16.
+        Use -1 to dump all windows.
+        This parameter only is used when the backend is B{ViewServer} and it's
+        ignored for B{UiAutomator}.
         @type sleep: int
         @param sleep: sleep in seconds before proceeding to dump the content
 
         @return: the list of Views as C{str} received from the server after being split into lines
-        '''
+        """
         if sleep > 0:
             time.sleep(sleep)
 
@@ -3743,9 +3749,9 @@ class ViewClient:
         @param root: the root node of the tree where the View will be searched
         @type: viewFilter: function
         @param viewFilter: a function that will be invoked providing the candidate View as a parameter
-                           and depending on the return value (C{True} or C{False}) the View will be
-                           selected and returned as the result of C{findViewById()} or ignored.
-                           This can be C{None} and no extra filtering is applied.
+        and depending on the return value (C{True} or C{False}) the View will be
+        selected and returned as the result of C{findViewById()} or ignored.
+        This can be C{None} and no extra filtering is applied.
 
         @return: the C{View} found or C{None}
         """
@@ -3811,9 +3817,9 @@ class ViewClient:
         @param root: the root node of the tree where the View will be searched
         @type: viewFilter: function
         @param viewFilter: a function that will be invoked providing the candidate View as a parameter
-                           and depending on the return value (C{True} or C{False}) the View will be
-                           selected and returned as the result of C{findViewById()} or ignored.
-                           This can be C{None} and no extra filtering is applied.
+        and depending on the return value (C{True} or C{False}) the View will be
+        selected and returned as the result of C{findViewById()} or ignored.
+        This can be C{None} and no extra filtering is applied.
         @return: the View found
         @raise ViewNotFoundException: raise the exception if View not found
         """
@@ -4115,10 +4121,10 @@ class ViewClient:
         """
         An alias for touch.
 
-        :param x:
-        :param y:
-        :param selector:
-        :return:
+        :param x: x coordinate
+        :param y: y coordinate
+        :param selector: the selector, could be ``None``
+        :return: the result of the operation
         """
 
         self.touch(x=x, y=y, selector=selector)
@@ -4132,7 +4138,7 @@ class ViewClient:
                 object_ref = self.uiAutomatorHelper.ui_device.find_object(by_selector=selector)
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print("♦️ object_ref=%s" % object_ref, file=sys.stderr)
-                self.uiAutomatorHelper.click(oid=object_ref.oid)
+                self.uiAutomatorHelper.ui_object2.click(oid=object_ref.oid)
             else:
                 if DEBUG_UI_AUTOMATOR_HELPER:
                     print("Touching (%d, %d) through UiAutomatorHelper" % (x, y), file=sys.stderr)
@@ -4283,16 +4289,16 @@ class ViewClient:
         return self.device.isKeyboardShown()
 
     def writeImageToFile(self, filename, _format="PNG", deviceart=None, dropshadow=True, screenglare=True):
-        '''
+        """
         Write the View image to the specified filename in the specified format.
 
         @type filename: str
         @param filename: Absolute path and optional filename receiving the image. If this points to
-                         a directory, then the filename is determined by the serialno of the device and
-                         format extension.
+        a directory, then the filename is determined by the serialno of the device and
+        format extension.
         @type _format: str
         @param _format: Image format (default format is PNG)
-        '''
+        """
 
         # FIXME: if we try to use uiAutomatorHelper only we don't have device
         if isinstance(self.device, AdbClient):
@@ -4601,16 +4607,28 @@ On OSX install
 
 
 class ConnectedDevice:
+    """
+    A connected device.
+    """
     def __init__(self, device, vc, serialno):
+        """
+        Constructor.
+        :param device: the device
+        :type device:
+        :param vc: the viewclient
+        :type vc:
+        :param serialno: the serial number
+        :type serialno:
+        """
         self.device = device
         self.vc = vc
         self.serialno = serialno
 
 
 class CulebraOptions:
-    '''
+    """
     Culebra options helper class
-    '''
+    """
 
     HELP = 'help'
     VERBOSE = 'verbose'
