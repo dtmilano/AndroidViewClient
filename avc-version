@@ -25,6 +25,8 @@ case "$1" in
         done
         echo -n "setup.py: "
         grep version setup.py
+        echo -n "sphinx/conf.py: "
+        grep release sphinx/conf.py
         ) | awk "
             function version_to_number(v) {
                 n = split(v, a, \".\");
@@ -90,5 +92,18 @@ case "$1" in
                 sed -E -i -e "s@version='[0-9abr.]+'@version='$version'@" setup.py
                 ;;
         esac
+
+        echo '<<< sphinx/conf.py >>>'
+        case "$(uname)" in
+            Darwin)
+                # release = '22.3.0'
+                sed -E -i '' -e "s@release = '[0-9abr.]+'@release = '$version'@" sphinx/conf.py
+                ;;
+
+            Linux)
+                sed -E -i -e "s@release = '[0-9abr.]+'@release = '$version'@" sphinx/conf.py
+                ;;
+        esac
+
         ;;
  esac
