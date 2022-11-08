@@ -26,7 +26,7 @@ from typing import Optional, Union, Dict
 import culebratester_client
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '22.2.0'
+__version__ = '22.3.0'
 
 import sys
 import warnings
@@ -157,9 +157,9 @@ KEY_EVENT = com.dtmilano.android.keyevent.KEY_EVENT
 
 
 class ViewNotFoundException(Exception):
-    '''
+    """
     ViewNotFoundException is raised when a View is not found.
-    '''
+    """
 
     def __init__(self, attr, value, root):
         if isinstance(value, RegexType):
@@ -170,18 +170,18 @@ class ViewNotFoundException(Exception):
 
 
 class View:
-    '''
+    """
     View class
-    '''
+    """
 
     @staticmethod
     def factory(arg1, arg2, version=-1, forceviewserveruse=False, windowId=None, uiAutomatorHelper=None):
-        '''
+        """
         View factory
 
         @type arg1: ClassType or dict
         @type arg2: View instance or AdbClient
-        '''
+        """
 
         if DEBUG_VIEW_FACTORY:
             print("View.factory(%s, %s, %s, %s, %s, %s)" % (
@@ -225,9 +225,9 @@ class View:
 
     @classmethod
     def __copy(cls, view):
-        '''
+        """
         Copy constructor
-        '''
+        """
 
         return cls(view.map, view.device, view.version, view.forceviewserveruse, view.windowId, view.uiAutomatorHelper)
 
@@ -243,7 +243,7 @@ class View:
         return 'android.widget.View'
 
     def __init__(self, _map, device, version=-1, forceviewserveruse=False, windowId=None, uiAutomatorHelper=None):
-        '''
+        """
         Constructor
 
         @type _map: map
@@ -259,7 +259,7 @@ class View:
                         to use C{UiAutomator}.
         @type uiAutomatorHelper: UiAutomatorHelper
         @:param uiAutomatorHelper: The UiAutomatorHelper if available
-        '''
+        """
 
         if DEBUG_VIEW:
             print("☣️ View.__init__(%s, %s, %s, %s)" % (
@@ -503,11 +503,11 @@ class View:
             print("__call__(%s)" % (args if args else None), file=sys.stderr)
 
     def getClass(self):
-        '''
+        """
         Gets the L{View} class
 
         @return:  the L{View} class or C{None} if not defined
-        '''
+        """
 
         try:
             return self.map['class']
@@ -515,12 +515,12 @@ class View:
             return None
 
     def getId(self):
-        '''
+        """
         Gets the L{View} Id
 
         @return: the L{View} C{Id} or C{None} if not defined
         @see: L{getUniqueId()}
-        '''
+        """
 
         try:
             return self.map['resource-id']
@@ -533,9 +533,9 @@ class View:
             return None
 
     def getContentDescription(self):
-        '''
+        """
         Gets the content description.
-        '''
+        """
 
         try:
             return self.map['content-desc']
@@ -543,9 +543,9 @@ class View:
             return None
 
     def getTag(self):
-        '''
+        """
         Gets the tag.
-        '''
+        """
 
         try:
             return self.map[self.tagProperty]
@@ -553,25 +553,25 @@ class View:
             return None
 
     def getParent(self):
-        '''
+        """
         Gets the parent.
-        '''
+        """
 
         return self.parent
 
     def getChildren(self):
-        '''
+        """
         Gets the children of this L{View}.
-        '''
+        """
 
         return self.children
 
     def getText(self):
-        '''
+        """
         Gets the text attribute.
 
         @return: the text attribute or C{None} if not defined
-        '''
+        """
 
         try:
             return self.map[self.textProperty]
@@ -579,9 +579,9 @@ class View:
             return None
 
     def getHeight(self):
-        '''
+        """
         Gets the height.
-        '''
+        """
 
         if self.useUiAutomator:
             return self.map['bounds'][1][1] - self.map['bounds'][0][1]
@@ -592,9 +592,9 @@ class View:
                 return 0
 
     def getWidth(self):
-        '''
+        """
         Gets the width.
-        '''
+        """
 
         if self.useUiAutomator:
             return self.map['bounds'][1][0] - self.map['bounds'][0][0]
@@ -605,11 +605,11 @@ class View:
                 return 0
 
     def getUniqueId(self):
-        '''
+        """
         Gets the unique Id of this View.
 
         @see: L{ViewClient.__splitAttrs()} for a discussion on B{Unique Ids}
-        '''
+        """
 
         try:
             return self.map['uniqueId']
@@ -617,9 +617,9 @@ class View:
             return None
 
     def getVisibility(self):
-        '''
+        """
         Gets the View visibility
-        '''
+        """
 
         try:
             if self.map[GET_VISIBILITY_PROPERTY] == 'VISIBLE':
@@ -634,16 +634,16 @@ class View:
             return -1
 
     def getX(self):
-        '''
+        """
         Gets the View X coordinate
-        '''
+        """
 
         return self.getXY()[0]
 
     def __getX(self):
-        '''
+        """
         Gets the View X coordinate
-        '''
+        """
 
         if DEBUG_COORDS:
             print("getX(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId()), file=sys.stderr)
@@ -664,16 +664,16 @@ class View:
         return x
 
     def getY(self):
-        '''
+        """
         Gets the View Y coordinate
-        '''
+        """
 
         return self.getXY()[1]
 
     def __getY(self):
-        '''
+        """
         Gets the View Y coordinate
-        '''
+        """
 
         if DEBUG_COORDS:
             print("getY(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId()), file=sys.stderr)
@@ -694,14 +694,14 @@ class View:
         return y
 
     def getXY(self, debug=False):
-        '''
+        """
         Returns the I{screen} coordinates of this C{View}.
 
         WARNING: Don't call self.getX() or self.getY() inside this method
         or it will enter an infinite loop
 
         @return: The I{screen} coordinates of this C{View}
-        '''
+        """
 
         if DEBUG_COORDS or debug:
             try:
@@ -790,11 +790,11 @@ class View:
         return x + hx + wvx + pwx, y + hy + wvy - statusBarOffset + pwy
 
     def getCoords(self):
-        '''
+        """
         Gets the coords of the View
 
         @return: A tuple containing the View's coordinates ((L, T), (R, B))
-        '''
+        """
 
         if DEBUG_COORDS:
             print("getCoords(%s %s ## %s)" % (self.getClass(), self.getId(), self.getUniqueId()), file=sys.stderr)
@@ -1116,12 +1116,12 @@ class View:
         return (((x >= X) and (x <= (X + W)) and ((y >= Y) and (y <= (Y + H)))))
 
     def add(self, child):
-        '''
+        """
         Adds a child
 
         @type child: View
         @param child: The child to add
-        '''
+        """
         child.parent = self
         self.children.append(child)
 
@@ -1129,11 +1129,11 @@ class View:
         return self.__getattr__('isClickable')()
 
     def isFocused(self):
-        '''
+        """
         Gets the focused value
 
         @return: the focused value. If the property cannot be found returns C{False}
-        '''
+        """
 
         try:
             return True if self.map[self.isFocusedProperty].lower() == 'true' else False
@@ -1298,9 +1298,9 @@ class View:
 
 
 class TextView(View):
-    '''
+    """
     TextView class.
-    '''
+    """
 
     @classmethod
     def getAndroidClassName(cls):
@@ -1308,9 +1308,9 @@ class TextView(View):
 
 
 class EditText(TextView):
-    '''
+    """
     EditText class.
-    '''
+    """
 
     @classmethod
     def getAndroidClassName(cls):
@@ -1345,19 +1345,19 @@ class EditText(TextView):
 
 
 class UiDevice():
-    '''
+    """
     Provides access to state information about the device. You can also use this class to simulate
     user actions on the device, such as pressing the d-pad or pressing the Home and Menu buttons.
-    '''
+    """
 
     def __init__(self, vc):
         self.vc = vc
         self.device = self.vc.device
 
     def openNotification(self):
-        '''
+        """
         Opens the notification shade.
-        '''
+        """
 
         # the tablet has a different Notification/Quick Settings bar depending on x
         w13 = self.device.display['width'] / 3
@@ -1368,9 +1368,9 @@ class UiDevice():
         self.vc.dump(-1)
 
     def openQuickSettings(self):
-        '''
+        """
         Opens the Quick Settings shade.
-        '''
+        """
 
         # the tablet has a different Notification/Quick Settings bar depending on x
         w23 = 2 * self.device.display['width'] / 3
@@ -1384,9 +1384,9 @@ class UiDevice():
         self.vc.dump(-1)
 
     def openQuickSettingsSettings(self):
-        '''
+        """
         Opens the Quick Settings shade and then tries to open Settings from there.
-        '''
+        """
 
         STATUS_BAR_SETTINGS_SETTINGS_BUTTON = [
             "Settings", "Cài đặt", "Instellingen", "Կարգավորումներ", "设置", "Nastavitve", "සැකසීම්", "Ayarlar",
@@ -2253,20 +2253,20 @@ class UiDevice():
 
 
 class UiCollection():
-    '''
+    """
     Used to enumerate a container's user interface (UI) elements for the purpose of counting, or
     targeting a sub elements by a child's text or description.
-    '''
+    """
 
     pass
 
 
 class UiScrollable(UiCollection):
-    '''
+    """
     A L{UiCollection} that supports searching for items in scrollable layout elements.
 
     This class can be used with horizontally or vertically scrollable controls.
-    '''
+    """
 
     def __init__(self, view):
         self.vc = None
@@ -2318,10 +2318,10 @@ class UiScrollable(UiCollection):
                 self.flingForward()
 
     def scrollTextIntoView(self, text):
-        '''
+        """
         Performs a forward scroll action on the scrollable layout element until the text you provided is visible,
         or until swipe attempts have been exhausted. See setMaxSearchSwipes(int)
-        '''
+        """
 
         if self.vc is None:
             raise ValueError('vc must be set in order to use this method')
@@ -2363,17 +2363,17 @@ class UiScrollable(UiCollection):
 
 
 class ListView(View):
-    '''
+    """
     ListView class.
-    '''
+    """
 
     pass
 
 
 class UiAutomator2AndroidViewClient():
-    '''
+    """
     UiAutomator XML to AndroidViewClient
-    '''
+    """
 
     def __init__(self, device, version, uiAutomatorHelper):
         self.device = device
@@ -2386,9 +2386,9 @@ class UiAutomator2AndroidViewClient():
         self.idCount = 1
 
     def StartElement(self, name, attributes):
-        '''
+        """
         Expat start element event handler
-        '''
+        """
         if name == 'hierarchy':
             pass
         elif name == 'node':
@@ -2411,9 +2411,9 @@ class UiAutomator2AndroidViewClient():
             self.nodeStack.append(child)
 
     def EndElement(self, name):
-        '''
+        """
         Expat end element event handler
-        '''
+        """
 
         if name == 'hierarchy':
             pass
@@ -2421,9 +2421,9 @@ class UiAutomator2AndroidViewClient():
             self.nodeStack.pop()
 
     def CharacterData(self, data):
-        '''
+        """
         Expat character data event handler
-        '''
+        """
 
         if data.strip():
             data = data.encode()
@@ -2454,26 +2454,26 @@ class Excerpt2Code():
         self.data = None
 
     def StartElement(self, name, attributes):
-        '''
+        """
         Expat start element event handler
-        '''
+        """
         if name == 'excerpt':
             pass
         else:
             warnings.warn("Unexpected element: '%s'" % name)
 
     def EndElement(self, name):
-        '''
+        """
         Expat end element event handler
-        '''
+        """
 
         if name == 'excerpt':
             pass
 
     def CharacterData(self, data):
-        '''
+        """
         Expat character data event handler
-        '''
+        """
 
         if data.strip():
             data = data.encode()
@@ -2495,9 +2495,9 @@ class Excerpt2Code():
 
 
 class ViewClientOptions:
-    '''
+    """
     ViewClient options helper class
-    '''
+    """
 
     DEBUG = 'debug'
     DEVICE = 'device'
@@ -2516,7 +2516,7 @@ class ViewClientOptions:
 
 
 class ViewClient:
-    '''
+    """
     ViewClient is a I{ViewServer} client.
 
     ViewServer backend
@@ -2539,7 +2539,7 @@ class ViewClient:
     UiAutomatorHelper backend
     =========================
     Requires B{CulebraTester2-public} installed on Android device.
-    '''
+    """
 
     osName = platform.system()
     ''' The OS name. We sometimes need specific behavior. '''
@@ -2552,7 +2552,7 @@ class ViewClient:
     def __init__(self, device, serialno, adb=None, autodump=True, forceviewserveruse=False, localport=None,
                  remoteport=None, startviewserver=True, ignoreuiautomatorkilled=False, compresseddump=True,
                  useuiautomatorhelper=False, debug={}):
-        '''
+        """
         Constructor
 
         @type device: AdbClient
@@ -2579,7 +2579,7 @@ class ViewClient:
         @param compresseddump: turns --compressed flag for uiautomator dump on/off
         @:type useuiautomatorhelper: boolean
         @:param useuiautomatorhelper: use UiAutomatorHelper Android app as backend
-        '''
+        """
 
         if not device:
             raise Exception('Device is not connected')
@@ -2941,7 +2941,7 @@ class ViewClient:
 
     @staticmethod
     def traverseShowClassIdAndText(view, extraInfo=None, noExtraInfo=None, extraAction=None):
-        '''
+        """
         Shows the View class, id and text if available.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
@@ -2955,7 +2955,7 @@ class ViewClient:
         @param extraAction: An extra action to be invoked for every view
 
         @return: the string containing class, id, and text if available
-        '''
+        """
 
         if type(view) == WindowHierarchy:
             return ''
@@ -2997,14 +2997,14 @@ class ViewClient:
 
     @staticmethod
     def traverseShowClassIdTextAndUniqueId(view):
-        '''
+        """
         Shows the View class, id, text if available and unique id.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
         @param view: the View
         @return: the string containing class, id, and text if available and unique Id
-        '''
+        """
 
         return ViewClient.traverseShowClassIdAndText(view, View.getUniqueId)
 
@@ -3023,41 +3023,41 @@ class ViewClient:
 
     @staticmethod
     def traverseShowClassIdTextAndTag(view):
-        '''
+        """
         Shows the View class, id, text if available and tag.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
         @param view: the View
         @return: the string containing class, id, and text if available and tag
-        '''
+        """
 
         return ViewClient.traverseShowClassIdAndText(view, View.getTag, None)
 
     @staticmethod
     def traverseShowClassIdTextContentDescriptionAndScreenshot(view):
-        '''
+        """
         Shows the View class, id, text if available and unique id and takes the screenshot.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
         @param view: the View
         @return: the string containing class, id, and text if available and the content description
-        '''
+        """
 
         return ViewClient.traverseShowClassIdAndText(view, View.getContentDescription, 'NAF',
                                                      extraAction=ViewClient.writeViewImageToFileInDir)
 
     @staticmethod
     def traverseShowClassIdTextAndCenter(view):
-        '''
+        """
         Shows the View class, id and text if available and center.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
         @param view: the View
         @return: the string containing class, id, and text if available
-        '''
+        """
 
         return ViewClient.traverseShowClassIdAndText(view, View.getCenter)
 
@@ -3090,14 +3090,14 @@ class ViewClient:
 
     @staticmethod
     def traverseTakeScreenshot(view):
-        '''
+        """
         Don't show any any, just takes the screenshot.
         This function can be used as a transform function to L{ViewClient.traverse()}
 
         @type view: I{View}
         @param view: the View
         @return: None
-        '''
+        """
 
         return ViewClient.writeViewImageToFileInDir(view)
 
@@ -3123,33 +3123,33 @@ class ViewClient:
 
     @staticmethod
     def sleep(secs=1.0):
-        '''
+        """
         Sleeps for the specified number of seconds.
 
         @type secs: float
         @param secs: number of seconds
-        '''
+        """
         time.sleep(secs)
 
     def assertServiceResponse(self, response):
-        '''
+        """
         Checks whether the response received from the server is correct or raises and Exception.
 
         @type response: str
         @param response: Response received from the server
 
         @raise Exception: If the response received from the server is invalid
-        '''
+        """
 
         if not self.serviceResponse(response):
             raise Exception('Invalid response received from service.')
 
     def serviceResponse(self, response):
-        '''
+        """
         Checks the response received from the I{ViewServer}.
 
         @return: C{True} if the response received matches L{PARCEL_TRUE}, C{False} otherwise
-        '''
+        """
 
         PARCEL_TRUE = "Result: Parcel(00000000 00000001   '........')\r\n"
         ''' The TRUE response parcel '''
@@ -3158,12 +3158,12 @@ class ViewClient:
         return response == PARCEL_TRUE
 
     def setViews(self, received, windowId=None):
-        '''
+        """
         Sets L{self.views} to the received value splitting it into lines.
 
         @type received: str
         @param received: the string received from the I{View Server}
-        '''
+        """
 
         if not received or received == "":
             raise ValueError("received is empty")
@@ -3174,12 +3174,12 @@ class ViewClient:
             print("there are %d views in this dump" % len(self.views), file=sys.stderr)
 
     def setViewsFromUiAutomatorDump(self, received):
-        '''
+        """
         Sets L{self.views} to the received value parsing the received XML.
 
         @type received: str
         @param received: the string received from the I{UI Automator}
-        '''
+        """
 
         if not received or received == "":
             raise ValueError("received is empty")
@@ -3193,7 +3193,7 @@ class ViewClient:
             print("there are %d views in this dump" % len(self.views), file=sys.stderr)
 
     def __splitAttrs(self, strArgs):
-        '''
+        """
         Splits the C{View} attributes in C{strArgs} and optionally adds the view id to the C{viewsById} list.
 
         Unique Ids
@@ -3208,7 +3208,7 @@ class ViewClient:
         @param strArgs: the string containing the raw list of attributes and values
 
         @return: Returns the attributes map.
-        '''
+        """
 
         if self.useUiAutomator:
             raise RuntimeError("This method is not compatible with UIAutomator")
@@ -3283,13 +3283,13 @@ class ViewClient:
         return attrs
 
     def __parseTree(self, receivedLines, windowId=None):
-        '''
+        """
         Parses the View tree contained in L{receivedLines}. The tree is created and the root node assigned to L{self.root}.
         This method also assigns L{self.viewsById} values using L{View.getUniqueId} as the key.
 
         @type receivedLines: str
         @param receivedLines: the string received from B{View Server}
-        '''
+        """
 
         self.root = None
         self.viewsById = {}
@@ -3421,15 +3421,15 @@ class ViewClient:
                 print("WARNING: navRecentApps not found", file=sys.stderr)
 
     def getRoot(self):
-        '''
+        """
         Gets the root node of the C{View} tree
 
         @return: the root node of the C{View} tree
-        '''
+        """
         return self.root
 
     def traverse(self, root="ROOT", indent="", transform=None, stream=sys.stdout):
-        '''
+        """
         Traverses the C{View} tree and prints its nodes.
 
         The nodes are printed converting them to string but other transformations can be specified
@@ -3442,7 +3442,7 @@ class ViewClient:
         @type transform: method
         @param transform: a method to use to transform the node before is printed
         @param stream: the output stream
-        '''
+        """
 
         if transform is None:
             # this cannot be a default value, otherwise
@@ -3680,7 +3680,7 @@ class ViewClient:
         return self.views
 
     def list(self, sleep=1):
-        '''
+        """
         List the windows.
 
         Sleep is useful to wait some time before obtaining the new content when something in the
@@ -3691,7 +3691,7 @@ class ViewClient:
         @param sleep: sleep in seconds before proceeding to dump the content
 
         @return: the list of windows
-        '''
+        """
 
         if sleep > 0:
             time.sleep(sleep)
@@ -3831,16 +3831,16 @@ class ViewClient:
             raise ViewNotFoundException("ID", viewId, root)
 
     def findViewByTag(self, tag, root="ROOT"):
-        '''
+        """
         Finds the View with the specified tag
-        '''
+        """
 
         return self.findViewWithAttribute('getTag()', tag, root)
 
     def findViewByTagOrRaise(self, tag, root="ROOT"):
-        '''
+        """
         Finds the View with the specified tag or raise a ViewNotFoundException
-        '''
+        """
 
         view = self.findViewWithAttribute('getTag()', tag, root)
         if view:
@@ -3991,9 +3991,9 @@ class ViewClient:
         return matchingViews
 
     def findViewWithAttribute(self, attr, val, root="ROOT"):
-        '''
+        """
         Finds the View with the specified attribute and value
-        '''
+        """
         if DEBUG:
             try:
                 print('findViewWithAttribute({0}, {1}, {2})'.format(attr, str(val, encoding='utf-8', errors='replace'),
@@ -4005,32 +4005,32 @@ class ViewClient:
         return self.__findViewWithAttributeInTree(attr, val, root)
 
     def findViewsWithAttribute(self, attr, val, root="ROOT"):
-        '''
+        """
         Finds the Views with the specified attribute and value.
         This allows you to see all items that match your criteria in the view hierarchy
 
         Usage:
           buttons = v.findViewsWithAttribute("class", "android.widget.Button")
 
-        '''
+        """
 
         return self.__findViewsWithAttributeInTree(attr, val, root)
 
     def findViewsWithAttributeThatMatches(self, attr, regex, root="ROOT"):
-        '''
+        """
         Finds the Views with the specified attribute matching regex.
         This allows you to see all items that match your criteria in the view hierarchy
-        '''
+        """
 
         return self.__findViewsWithAttributeInTreeThatMatches(attr, regex, root)
 
     def findViewWithAttributeOrRaise(self, attr, val, root="ROOT"):
-        '''
+        """
         Finds the View or raise a ViewNotFoundException.
 
         @return: the View found
         @raise ViewNotFoundException: raise the exception if View not found
-        '''
+        """
 
         view = self.findViewWithAttribute(attr, val, root)
         if view:
@@ -4039,10 +4039,10 @@ class ViewClient:
             raise ViewNotFoundException(attr, val, root)
 
     def findViewWithAttributeThatMatches(self, attr, regex, root="ROOT"):
-        '''
+        """
         Finds the list of Views with the specified attribute matching
         regex
-        '''
+        """
 
         return self.__findViewWithAttributeInTreeThatMatches(attr, regex, root)
 
@@ -4069,12 +4069,12 @@ class ViewClient:
             return self.findViewWithAttribute(self.textProperty, text, root)
 
     def findViewWithTextOrRaise(self, text, root="ROOT"):
-        '''
+        """
         Finds the View or raise a ViewNotFoundException.
 
         @return: the View found
         @raise ViewNotFoundException: raise the exception if View not found
-        '''
+        """
 
         if DEBUG:
             print("findViewWithTextOrRaise(%s, %s)" % (text, root), file=sys.stderr)
@@ -4085,23 +4085,23 @@ class ViewClient:
             raise ViewNotFoundException("text", text, root)
 
     def findViewWithContentDescription(self, contentdescription, root="ROOT"):
-        '''
+        """
         Finds the View with the specified content description
-        '''
+        """
 
         return self.__findViewWithAttributeInTree('content-desc', contentdescription, root)
 
     def findViewWithContentDescriptionOrRaise(self, contentdescription, root="ROOT"):
-        '''
+        """
         Finds the View with the specified content description
-        '''
+        """
 
         return self.__findViewWithAttributeInTreeOrRaise('content-desc', contentdescription, root)
 
     def findViewsContainingPoint(self, xxx_todo_changeme1, _filter=None):
-        '''
+        """
         Finds the list of Views that contain the point (x, y).
-        '''
+        """
         (x, y) = xxx_todo_changeme1
         if not _filter:
             _filter = lambda v: True
@@ -4256,18 +4256,18 @@ class ViewClient:
             print("sayText: Unsupported OS: {}".format(ViewClient.osName), file=sys.stderr)
 
     def getViewIds(self):
-        '''
+        """
         @deprecated: Use L{getViewsById} instead.
 
         Returns the Views map.
-        '''
+        """
 
         return self.viewsById
 
     def getViewsById(self):
-        '''
+        """
         Returns the Views map. The keys are C{uniqueIds} and the values are C{View}s.
-        '''
+        """
 
         return self.viewsById
 
@@ -4275,16 +4275,16 @@ class ViewClient:
         return self.__getFocusedWindowId()
 
     def getSdkVersion(self):
-        '''
+        """
         Gets the SDK version.
-        '''
+        """
 
         return self.build[VERSION_SDK_PROPERTY]
 
     def isKeyboardShown(self):
-        '''
+        """
         Whether the keyboard is displayed.
-        '''
+        """
 
         return self.device.isKeyboardShown()
 
@@ -4476,12 +4476,12 @@ On OSX install
 
     @staticmethod
     def writeViewImageToFileInDir(view):
-        '''
+        """
         Write the View image to the directory specified in C{ViewClient.imageDirectory}.
 
         @type view: View
         @param view: The view
-        '''
+        """
 
         if not ViewClient.imageDirectory:
             raise RuntimeError('You must set ViewClient.imageDiretory in order to use this method')
@@ -4489,14 +4489,14 @@ On OSX install
 
     @staticmethod
     def __pickleable(tree):
-        '''
+        """
         Makes the tree pickleable.
-        '''
+        """
 
         def removeDeviceReference(view):
-            '''
+            """
             Removes the reference to a L{MonkeyDevice}.
-            '''
+            """
 
             view.device = None
 
@@ -4514,18 +4514,18 @@ On OSX install
         return treeCopy
 
     def distanceTo(self, tree):
-        '''
+        """
         Calculates the distance between the current state and the tree passed as argument.
 
         @type tree: list of Views
         @param tree: Tree of Views
         @return: the distance
-        '''
+        """
         return ViewClient.distance(ViewClient.__pickleable(self.views), tree)
 
     @staticmethod
     def distance(tree1, tree2):
-        '''
+        """
         Calculates the distance between the two trees.
 
         @type tree1: list of Views
@@ -4533,7 +4533,7 @@ On OSX install
         @type tree2: list of Views
         @param tree2: Tree of Views
         @return: the distance
-        '''
+        """
         ################################################################
         # FIXME: this should copy the entire tree and then transform it #
         ################################################################
@@ -4560,14 +4560,14 @@ On OSX install
 
     @staticmethod
     def __hammingDistance(s1, s2):
-        '''
+        """
         Finds the Hamming distance between two strings.
 
         @param s1: string
         @param s2: string
         @return: the distance
         @raise ValueError: if the lenght of the strings differ
-        '''
+        """
 
         l1 = len(s1)
         l2 = len(s2)
@@ -4578,9 +4578,9 @@ On OSX install
         return sum(ch1 != ch2 for ch1, ch2 in zip(s1, s2))
 
     def hammingDistance(self, tree):
-        '''
+        """
         Finds the Hamming distance between this tree and the one passed as argument.
-        '''
+        """
 
         s1 = ' '.join(map(View.__str__, self.views))
         s2 = ' '.join(map(View.__str__, tree))
@@ -4948,24 +4948,24 @@ class CulebraTestCase(unittest.TestCase):
         return self.all('serialno', _filter)
 
     def log(self, message, priority='D'):
-        '''
+        """
         Logs a message with the specified priority.
-        '''
+        """
 
         self.device.log('CULEBRA', message, priority, CulebraTestCase.verbose)
 
     class __Log():
-        '''
+        """
         Log class to simulate C{android.util.Log}
-        '''
+        """
 
         def __init__(self, culebraTestCase):
             self.culebraTestCase = culebraTestCase
 
         def __getattr__(self, attr):
-            '''
+            """
             Returns the corresponding log method or @C{AttributeError}.
-            '''
+            """
 
             if attr in ['v', 'd', 'i', 'w', 'e']:
                 return lambda message: self.culebraTestCase.log(message, priority=attr.upper())

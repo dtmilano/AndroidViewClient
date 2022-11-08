@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (C) 2012-2022  Diego Torres Milano
+Created on Nov 7, 2022
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+@author: Diego Torres Milano
+"""
+
 import sys
 from collections import OrderedDict
 
@@ -5,14 +25,13 @@ from culebratester_client import Selector
 from culebratester_client.rest import ApiException
 
 from com.dtmilano.android.distance import levenshtein_distance
+from com.dtmilano.android.uiautomator.utils import window_hierarchy_to_selector_list
 
 #
 # https://en.wikipedia.org/wiki/Kato_(The_Green_Hornet)
 #
 
 DEBUG = False
-
-ANYTHING = 'Pattern:^.*$'
 
 
 class Kato:
@@ -25,11 +44,13 @@ class Kato:
 def kato(func):
     """
     Kato decorator.
-    @param func:the function to invoke
-    @type func:
-    @return: the wrapper
-    @rtype:
+
+    :param func: the function to invoke
+    :type func: function
+    :return: the wrapper
+    :rtype:
     """
+
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -57,18 +78,18 @@ def find_me_the_selectors(e: ApiException, *args, **kwargs):
         print('find_me_the_selectors', args, kwargs, file=sys.stderr)
     helper = args[0].uiAutomatorHelper
     msg = ''
-    _d = dict()
     if helper.kato.enabled:
         if e.status == 404:
             distance = kwargs['distance_func']
             mapper = kwargs['distance_func_argument_mapper']
-            helper.kato.selectors = list(map(lambda oid: helper.ui_object2.dump(oid),
-                                             map(lambda obj_ref: obj_ref.oid,
-                                                 helper.ui_device.find_objects(body={'text': ANYTHING}))))
-            for n, s in enumerate(filter(lambda _s: helper.ui_device.has_object(body=_s), helper.kato.selectors)):
+            selector = Selector(**kwargs['body'])
+            helper.kato.selectors = window_hierarchy_to_selector_list(
+                helper.ui_device.dump_window_hierarchy(_format='JSON'))
+            _d = dict()
+            for n, s in enumerate(helper.kato.selectors):
                 if n == 0:
                     msg += 'Kato: selector distances:\n'
-                d = distance(mapper(Selector(**kwargs['body'])), mapper(s))
+                d = distance(mapper(selector), mapper(s))
                 _d[d] = s
                 msg += f'{d} -> {s}\n'
             helper.kato.distances = OrderedDict(sorted(_d.items(), reverse=False))
