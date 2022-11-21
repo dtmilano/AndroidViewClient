@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-from typing import Union
+from typing import Union, List
 
 from culebratester_client import WindowHierarchyChild, Selector, WindowHierarchy
 
@@ -50,7 +50,7 @@ def window_hierarchy_child_to_selector(window_hierarchy_child: WindowHierarchyCh
     return sel
 
 
-def window_hierarchy_to_selector_list(node: Union[WindowHierarchy, WindowHierarchyChild], selector_list=None) -> list[
+def window_hierarchy_to_selector_list(node: Union[WindowHierarchy, WindowHierarchyChild], selector_list=None) -> List[
         Selector]:
     """
     Converts a WindowHierarchy (obtained via ``window_hierarchy_dump()``) to a Selector list.
