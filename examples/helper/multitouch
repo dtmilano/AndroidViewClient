@@ -1,0 +1,11 @@
+#! /usr/bin/env python3
+
+from com.dtmilano.android.viewclient import ViewClient
+
+helper = ViewClient(*ViewClient.connectToDeviceOrExit(), useuiautomatorhelper=True).uiAutomatorHelper
+
+# multitouch tester (assume the activity is running)
+id = 'com.the511plus.MultiTouchTester:id/touchStr'
+oid = helper.ui_device.find_object(ui_selector=f'res@{id}').oid
+
+helper.ui_object.perform_two_pointer_gesture(oid, (300, 100), (600, 100), (300, 600), (600, 600), 500)
