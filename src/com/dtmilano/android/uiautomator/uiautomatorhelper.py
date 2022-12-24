@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '22.3.1'
+__version__ = '22.4.0'
 
 import os
 import platform
@@ -36,7 +36,7 @@ from typing import Optional, List, Tuple
 
 import culebratester_client
 from culebratester_client import Text, ObjectRef, DefaultApi, Point, PerformTwoPointerGestureBody, \
-    BooleanResponse, NumberResponse, StatusResponse
+    BooleanResponse, NumberResponse, StatusResponse, StringResponse
 
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
@@ -465,7 +465,7 @@ class UiAutomatorHelper:
             """
             if 'body' in kwargs:
                 return self.uiAutomatorHelper.api_instance.ui_device_find_object_post(**kwargs)
-            if self.some(['resource_id', 'ui_selector', 'by_selector'], kwargs):
+            if self.some(['resource_id', 'ui_selector', 'by_selector'], list(kwargs.keys())):
                 return self.uiAutomatorHelper.api_instance.ui_device_find_object_get(**kwargs)
             body = culebratester_client.Selector(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_find_object_post(body=body)
@@ -664,12 +664,34 @@ class UiAutomatorHelper:
 
         def get_child_count(self, oid: int) -> int:
             """
+            Counts the child views immediately under the present UiObject.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
-            :param oid:
-            :return:
+            :param oid: the oid
+            :return: the child count
             """
             response: NumberResponse = self.uiAutomatorHelper.api_instance.ui_object_oid_get_child_count_get(oid=oid)
             return int(response.value)
+
+        def get_class_name(self, oid: int) -> str:
+            """
+            Retrieves the className property of the UI element.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid:
+            :return: the class name
+            """
+            response: StringResponse = self.uiAutomatorHelper.api_instance.ui_object_oid_get_class_name_get(oid=oid)
+            return response.value
+
+        def get_content_description(self, oid: int) -> str:
+            """
+            Reads the content_desc property of the UI element.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param oid: the oid
+            :return: the content description
+            """
+            response: StringResponse = self.uiAutomatorHelper.api_instance.ui_object2_oid_get_content_description_get(
+                oid=oid)
+            return response.value
 
         def perform_two_pointer_gesture(self, oid: int, startPoint1: Tuple[int, int], startPoint2: Tuple[int, int],
                                         endPoint1: Tuple[int, int], endPoint2: Tuple[int, int], steps: int) -> None:

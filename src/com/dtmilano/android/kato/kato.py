@@ -52,9 +52,14 @@ def kato(func):
     """
 
     def wrapper(*args, **kwargs):
+        if DEBUG:
+            print('kato.wrapper:', args, kwargs)
         try:
             return func(*args, **kwargs)
         except ApiException as e:
+            helper = args[0].uiAutomatorHelper
+            if not helper.kato.enabled:
+                raise e
             find_me_the_selectors(e, *args, **kwargs, func=func.__name__, distance_func=levenshtein_distance,
                                   distance_func_argument_mapper=str)
 
