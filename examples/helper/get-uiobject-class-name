@@ -1,0 +1,12 @@
+#! /usr/bin/env python3
+#
+# Gets the class name
+#
+
+from com.dtmilano.android.viewclient import ViewClient
+
+helper = ViewClient.view_client_helper(kato=False)
+
+oid = helper.ui_device.find_object(ui_selector='clazz@android.widget.ImageButton,res@com.google.android.calculator:id/op_add').oid
+print(helper.ui_object.dump(oid=oid))
+print(helper.ui_object.get_class_name(oid=oid))
