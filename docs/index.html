@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Welcome to AndroidViewClient/culebra’s documentation! &#8212; AndroidViewClient/culebra 22.2.0 documentation</title>
+    <title>Welcome to AndroidViewClient/culebra’s documentation! &#8212; AndroidViewClient/culebra 22.5.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
@@ -30,7 +30,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">AndroidViewClient/culebra 22.2.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">AndroidViewClient/culebra 22.5.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Welcome to AndroidViewClient/culebra’s documentation!</a></li> 
       </ul>
     </div>  
@@ -238,8 +238,20 @@ will be resolved and used.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="com.dtmilano.android.adb.adbclient.AdbClient.takeSnapshot">
-<span class="sig-name descname"><span class="pre">takeSnapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reconnect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#com.dtmilano.android.adb.adbclient.AdbClient.takeSnapshot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes a snapshot of the device and return it as a PIL Image.</p>
+<span class="sig-name descname"><span class="pre">takeSnapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reconnect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#com.dtmilano.android.adb.adbclient.AdbClient.takeSnapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a snapshot of the device and return it as a PIL Image.
+The snapshot is for the entire screen or can be limited to the box if specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reconnect</strong> – reconnects after taking the screenshot</p></li>
+<li><p><strong>box</strong> – box as a tuple indicating (left, top, right, bottom) to crop the entire screen</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the image</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -681,9 +693,28 @@ Eventually save it in a file specified by filename.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.get_child_count">
 <span class="sig-name descname"><span class="pre">get_child_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.get_child_count" title="Permalink to this definition">¶</a></dt>
-<dd><p>:see <a class="reference external" href="https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml">https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml</a>
+<dd><p>Counts the child views immediately under the present UiObject.
+:see <a class="reference external" href="https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml">https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml</a>
+:param oid: the oid
+:return: the child count</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.get_class_name">
+<span class="sig-name descname"><span class="pre">get_class_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.get_class_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the className property of the UI element.
+:see <a class="reference external" href="https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml">https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml</a>
 :param oid:
-:return:</p>
+:return: the class name</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.get_content_description">
+<span class="sig-name descname"><span class="pre">get_content_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.get_content_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the content_desc property of the UI element.
+:see <a class="reference external" href="https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml">https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml</a>
+:param oid: the oid
+:return: the content description</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2243,6 +2274,8 @@ format extension.
 <li><a class="reference internal" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.dump"><code class="docutils literal notranslate"><span class="pre">UiAutomatorHelper.UiObject.dump()</span></code></a></li>
 <li><a class="reference internal" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.exists"><code class="docutils literal notranslate"><span class="pre">UiAutomatorHelper.UiObject.exists()</span></code></a></li>
 <li><a class="reference internal" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.get_child_count"><code class="docutils literal notranslate"><span class="pre">UiAutomatorHelper.UiObject.get_child_count()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.get_class_name"><code class="docutils literal notranslate"><span class="pre">UiAutomatorHelper.UiObject.get_class_name()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.get_content_description"><code class="docutils literal notranslate"><span class="pre">UiAutomatorHelper.UiObject.get_content_description()</span></code></a></li>
 <li><a class="reference internal" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.perform_two_pointer_gesture"><code class="docutils literal notranslate"><span class="pre">UiAutomatorHelper.UiObject.perform_two_pointer_gesture()</span></code></a></li>
 <li><a class="reference internal" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.pinch_in"><code class="docutils literal notranslate"><span class="pre">UiAutomatorHelper.UiObject.pinch_in()</span></code></a></li>
 <li><a class="reference internal" href="#com.dtmilano.android.uiautomator.uiautomatorhelper.UiAutomatorHelper.UiObject.pinch_out"><code class="docutils literal notranslate"><span class="pre">UiAutomatorHelper.UiObject.pinch_out()</span></code></a></li>
@@ -2483,7 +2516,7 @@ format extension.
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">AndroidViewClient/culebra 22.2.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">AndroidViewClient/culebra 22.5.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Welcome to AndroidViewClient/culebra’s documentation!</a></li> 
       </ul>
     </div>
