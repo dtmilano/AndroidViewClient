@@ -1,5 +1,5 @@
 # coding=utf-8
-'''
+"""
 Copyright (C) 2012-2022  Diego Torres Milano
 Created on Dec 1, 2012
 
@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 @author: Diego Torres Milano
-'''
+"""
 
 from __future__ import print_function
 
@@ -27,7 +27,7 @@ from typing import Optional
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '22.4.0'
+__version__ = '22.5.0'
 
 import sys
 import warnings
@@ -887,10 +887,15 @@ class AdbClient:
         if re.search(r"(Error type)|(Error: )", out, re.IGNORECASE | re.MULTILINE):
             raise RuntimeError(out)
 
-    def takeSnapshot(self, reconnect=False):
-        '''
+    def takeSnapshot(self, reconnect=False, box=None):
+        """
         Takes a snapshot of the device and return it as a PIL Image.
-        '''
+        The snapshot is for the entire screen or can be limited to the box if specified.
+
+        :param reconnect: reconnects after taking the screenshot
+        :param box: box as a tuple indicating (left, top, right, bottom) to crop the entire screen
+        :returns: the image
+        """
 
         if PROFILE:
             profileStart()
@@ -901,7 +906,7 @@ class AdbClient:
                 global Image
                 from PIL import Image
                 PIL_AVAILABLE = True
-            except:
+            except ImportError:
                 raise Exception("You have to install PIL to use takeSnapshot()")
 
         sdk_version = self.getSdkVersion()
@@ -993,11 +998,13 @@ class AdbClient:
                 r = (0, 90, 180, -90)[self.display['orientation']]
             else:
                 r = 90
-            image = image.rotate(r, expand=1).resize((h, w))
+            image = image.rotate(r, expand=True).resize((h, w))
 
         if PROFILE:
             profileEnd()
         self.screenshot_number += 1
+        if box:
+            return image.crop(box)
         return image
 
     def imageToData(self, image, output_type=None):
