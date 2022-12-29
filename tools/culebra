@@ -27,7 +27,7 @@ import textwrap
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '22.5.0'
+__version__ = '22.5.1'
 
 import calendar
 import codecs

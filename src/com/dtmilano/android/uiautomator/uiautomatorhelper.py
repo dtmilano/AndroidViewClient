@@ -20,7 +20,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '22.5.0'
+__version__ = '22.5.1'
 
 import os
 import platform
