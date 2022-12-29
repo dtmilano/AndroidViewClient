@@ -39,6 +39,8 @@ class Kato:
         self.enabled = False
         self.selectors = []
         self.distances = OrderedDict()
+        # If pkg has been specified in the selector, only finds other selectors with the same pkg when True
+        self.comply_with_pkg = False
 
 
 def kato(func):
@@ -90,6 +92,8 @@ def find_me_the_selectors(e: ApiException, *args, **kwargs):
             selector = Selector(**kwargs['body'])
             helper.kato.selectors = window_hierarchy_to_selector_list(
                 helper.ui_device.dump_window_hierarchy(_format='JSON'))
+            if selector.pkg and helper.kato.comply_with_pkg:
+                helper.kato.selectors = list(filter(lambda _s: _s.pkg == selector.pkg, helper.kato.selectors))
             _d = dict()
             for n, s in enumerate(helper.kato.selectors):
                 if n == 0:

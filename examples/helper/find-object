@@ -14,13 +14,20 @@ body = {'checkable': False, 'checked': False, 'clazz': 'android.widget.ImageButt
         'desc': 'add', 'index': None, 'instance': None, 'pkg': 'com.google.android.calculator',
         'res': 'com.google.android.calculator:id/op_add', 'scrollable': False, 'text': None}
 
+# This will restrict the search for candidates to the same pkg: 'com.google.android.calculator'
+helper.kato.comply_with_pkg = True
+
 try:
     obj_ref = helper.ui_device.find_object(body=body)
     print(helper.ui_object2.dump(oid=obj_ref.oid).desc)
 except Exception as e:
     print(f"I couldn't find any view matching selector={body}")
-    print(f'But found other {len(helper.kato.selectors)} potential ones.')
-    print('Choosing a closest selector from such potential list:')
-    body = next(iter(helper.kato.distances.values()))
-    obj_ref = helper.ui_device.find_object(body=body)
-    print(helper.ui_object2.dump(oid=obj_ref.oid))
+    n = len(helper.kato.selectors)
+    if n:
+        print(f'But found other {n} potential ones.')
+        print('Choosing a closest selector from such potential list:')
+        body = next(iter(helper.kato.distances.values()))
+        obj_ref = helper.ui_device.find_object(body=body)
+        print(helper.ui_object2.dump(oid=obj_ref.oid))
+    else:
+        print('There are no potential ones either.')
