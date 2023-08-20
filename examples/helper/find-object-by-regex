@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 #
-# Finds the object containing a content description that matches a pattern that starts wih 'Battery',
+# Finds the object containing a content description that matches a pattern that starts with 'Battery',
 # extracts the charging percentage, and prints it.
 #
 

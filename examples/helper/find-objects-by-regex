@@ -1,0 +1,16 @@
+#! /usr/bin/env python3
+#
+# Finds the object containing text that matches a pattern that ends in 'mail',
+# loops trhough the objects and dumps them.
+#
+
+from com.dtmilano.android.viewclient import ViewClient
+try:
+    from rich import print
+except:
+    pass
+
+helper = ViewClient.view_client_helper()
+
+for obj in helper.ui_device.find_objects(body={'text': 'Pattern:^.*mail$'}):
+    print(helper.ui_object2.dump(obj.oid), end="\n\n")
