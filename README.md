@@ -22,7 +22,7 @@ It is a test framework for Android applications that:
 [![Latest Version](https://img.shields.io/pypi/v/androidviewclient.svg)](https://pypi.python.org/pypi/androidviewclient/)
 ![Release](https://img.shields.io/github/v/release/dtmilano/AndroidViewClient?include_prereleases&label=release)
 ![Upload Python Package](https://github.com/dtmilano/AndroidViewClient/workflows/Upload%20Python%20Package/badge.svg)
-[![Downloads](https://pepy.tech/badge/androidviewclient)](https://pepy.tech/project/androidviewclient)
+[![Downloads](https://static.pepy.tech/badge/androidviewclient)](https://pepy.tech/project/androidviewclient)
 
 **NOTE**: Pypi statistics are broken see [here](https://github.com/aclark4life/vanity/issues/22). The new statistics can be obtained from [BigQuery](https://bigquery.cloud.google.com/queries/culebra-tester).
 
