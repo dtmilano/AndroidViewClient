@@ -1,0 +1,28 @@
+#! /usr/bin/env python3
+#
+# Search using voice
+#
+
+from com.dtmilano.android.viewclient import ViewClient
+
+helper = ViewClient.view_client_helper()
+
+# mic in voice search widget
+obj_ref = helper.until.find_object(body={
+    'clazz': 'android.widget.ImageButton',
+    'clickable': True,
+    'desc': 'Voice Search'
+})
+response = helper.ui_device.wait(oid=obj_ref.oid)
+helper.ui_object2.click(oid=response['oid'])
+print('Speak now...')
+helper.ui_device.wait_for_window_update()
+
+# text in search results
+obj_ref = helper.until.find_object(body={
+    'res': 'com.google.android.googlequicksearchbox:id/googleapp_srp_search_box_text',
+    'clazz': 'android.widget.TextView'
+})
+response = helper.ui_device.wait(oid=obj_ref.oid)
+print('Text:')
+print(helper.ui_object2.get_text(oid=response['oid']).text)
