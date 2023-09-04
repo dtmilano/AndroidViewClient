@@ -23,7 +23,7 @@ class AbstractCodeGenerator(ABC):
             {self.get_shebang()}
             # -*- coding: utf-8 -*-
             """
-            Copyright (C) 2013-2022  Diego Torres Milano
+            Copyright (C) 2013-2023  Diego Torres Milano
             Created on {date.today()} by Culebra v{__version__}
                                   __    __    __    __
                                  /  \  /  \  /  \  /  \ 
