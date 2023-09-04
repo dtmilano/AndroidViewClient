@@ -21,12 +21,12 @@ limitations under the License.
 from __future__ import print_function
 
 import json
-from typing import Optional, Union, Dict
+from typing import Optional, Union, Dict, Tuple
 
 import culebratester_client
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '22.6.0'
+__version__ = '22.6.1'
 
 import sys
 import warnings
@@ -1110,10 +1110,10 @@ class View:
     def intersection(self, l1, l2):
         return list(set(l1) & set(l2))
 
-    def containsPoint(self, xxx_todo_changeme):
-        (x, y) = xxx_todo_changeme
+    def containsPoint(self, point: Tuple[int, int]) -> bool:
+        (x, y) = point
         (X, Y, W, H) = self.getPositionAndSize()
-        return (((x >= X) and (x <= (X + W)) and ((y >= Y) and (y <= (Y + H)))))
+        return (x >= X) and (x <= (X + W)) and ((y >= Y) and (y <= (Y + H)))
 
     def add(self, child):
         """
@@ -4098,15 +4098,15 @@ class ViewClient:
 
         return self.__findViewWithAttributeInTreeOrRaise('content-desc', contentdescription, root)
 
-    def findViewsContainingPoint(self, xxx_todo_changeme1, _filter=None):
+    def findViewsContainingPoint(self, point: Tuple[int, int], _filter=None):
         """
         Finds the list of Views that contain the point (x, y).
         """
-        (x, y) = xxx_todo_changeme1
         if not _filter:
-            _filter = lambda v: True
+            def _filter(_):
+                return True
 
-        return [v for v in self.views if (v.containsPoint((x, y)) and _filter(v))]
+        return [v for v in self.views if (v.containsPoint(point) and _filter(v))]
 
     def findObject(self, **kwargs):
         if self.uiAutomatorHelper:
@@ -4610,6 +4610,7 @@ class ConnectedDevice:
     """
     A connected device.
     """
+
     def __init__(self, device, vc, serialno):
         """
         Constructor.
