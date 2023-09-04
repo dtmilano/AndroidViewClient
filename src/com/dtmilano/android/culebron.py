@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012-2022  Diego Torres Milano
+Copyright (C) 2012-2023  Diego Torres Milano
 Created on oct 6, 2014
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper
 from com.dtmilano.android.viewclient import ViewClient, View, VERSION_SDK_PROPERTY
 
-__version__ = '22.6.0'
+__version__ = '22.6.1'
 
 import sys
 import threading
@@ -94,8 +94,8 @@ TIMING = False
 DEBUG = False
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
-DEBUG_POINT = DEBUG and False
-DEBUG_KEY = DEBUG and False or False
+DEBUG_POINT = DEBUG and True
+DEBUG_KEY = DEBUG and False
 DEBUG_ISCCOF = DEBUG and False
 DEBUG_FIND_VIEW = DEBUG and False
 DEBUG_CONTEXT_MENU = DEBUG and False
@@ -733,7 +733,7 @@ This is usually installed by python package. Check your distribution details.
         # if self.vc:
         #    self.vc.traverse(transform=self.populateViewTree)
 
-    def getViewContainingPointAndGenerateTestCondition(self, x, y):
+    def getViewContainingPointAndGenerateTestCondition(self, x: int, y: int):
         if DEBUG:
             print('getViewContainingPointAndGenerateTestCondition(%d, %d)' % (x, y), file=sys.stderr)
         self.finishGeneratingTestCondition()
@@ -754,13 +754,16 @@ This is usually installed by python package. Check your distribution details.
                     self.printOperation(v, Operation.TEST, text)
                     break
 
-    def findViewContainingPointInTargets(self, x, y):
+    def findViewContainingPointInTargets(self, x: int, y: int):
         if self.vc:
             vlist = self.vc.findViewsContainingPoint((x, y))
             if DEBUG_FIND_VIEW:
                 print("Views found:", file=sys.stderr)
-                for v in vlist:
-                    print("   ", v.__smallStr__(), file=sys.stderr)
+                if vlist:
+                    for v in vlist:
+                        print("   ", v.__smallStr__(), file=sys.stderr)
+                else:
+                    print(f"   list is empty. No views found containing point ({x},{y})", file=sys.stderr)
             vlist.reverse()
             for v in vlist:
                 if DEBUG:
