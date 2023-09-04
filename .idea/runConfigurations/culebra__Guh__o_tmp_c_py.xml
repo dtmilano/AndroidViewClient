@@ -1,9 +1,10 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="culebra -Guh" type="PythonConfigurationType" factoryName="Python" folderName="culebra">
+  <configuration default="false" name="culebra -Guh -o tmp/c.py" type="PythonConfigurationType" factoryName="Python" folderName="culebra">
     <module name="AndroidViewClient" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
+      <env name="CULEBRA_SNAPSHOT_DIR" value="$PROJECT_DIR$/tmp" />
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
     <option name="SDK_HOME" value="" />
@@ -12,7 +13,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tools/culebra" />
-    <option name="PARAMETERS" value="-Guh --scale=0.5" />
+    <option name="PARAMETERS" value="-Guh --scale=0.5 -o $ProjectFileDir$/tmp/c.py" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

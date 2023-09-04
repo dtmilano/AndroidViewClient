@@ -38,7 +38,7 @@ from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper
 from com.dtmilano.android.viewclient import ViewClient, View, VERSION_SDK_PROPERTY
 
-__version__ = '22.5.1'
+__version__ = '22.6.0'
 
 import sys
 import threading
@@ -95,7 +95,7 @@ DEBUG = False
 DEBUG_MOVE = DEBUG and False
 DEBUG_TOUCH = DEBUG and False
 DEBUG_POINT = DEBUG and False
-DEBUG_KEY = DEBUG and False or True
+DEBUG_KEY = DEBUG and False or False
 DEBUG_ISCCOF = DEBUG and False
 DEBUG_FIND_VIEW = DEBUG and False
 DEBUG_CONTEXT_MENU = DEBUG and False
@@ -216,8 +216,8 @@ class Culebron:
     isLongTouchingPoint = False
     isLongTouchingView = False
     onTouchListener = None
-    snapshotDir = '/tmp'
-    snapshotFormat = 'PNG'
+    snapshotDir = os.environ.get("CULEBRA_SNAPSHOT_DIR", "/tmp")
+    snapshotFormat = os.environ.get("CULEBRA_SNAPSHOT_FORMAT", "PNG")
     deviceArt = None
     dropShadow = False
     screenGlare = False
@@ -370,7 +370,11 @@ This is usually installed by python package. Check your distribution details.
             if self.vc.uiAutomatorHelper:
                 if TIMING:
                     t0 = time.time()
-                self.vc.uiAutomatorHelper.ui_device.wait_for_window_update()
+                try:
+                    self.vc.uiAutomatorHelper.ui_device.wait_for_window_update()
+                except RuntimeError as e:
+                    if DEBUG:
+                        print(f"ERROR: {e} waiting for windows update", file=sys.stderr)
                 if TIMING:
                     print(f"# takeScreenshotAndShowItOnWindow: waiting for window update: {time.time() - t0:.2f}s")
                     t0 = time.time()

@@ -6,8 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/tst" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/venv-3.7" />
+      <excludeFolder url="file://$MODULE_DIR$/venv-3.11" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.7 (AndroidViewClient)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.11 (AndroidViewClient)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="ReSTService">

@@ -17,6 +17,7 @@
 build/
 dist/
 **/*.egg-info/*
+tmp/
 
 # idea #
 ########
