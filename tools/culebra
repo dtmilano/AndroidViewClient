@@ -25,9 +25,9 @@ from __future__ import print_function
 import textwrap
 
 import culebratester_client
-from culebratester_client import WindowHierarchy
+from culebratester_client import WindowHierarchy, Selector
 
-__version__ = '22.7.0'
+__version__ = '22.7.1'
 
 import calendar
 import codecs
@@ -882,36 +882,44 @@ def printLongTouchViewUiAutomatorHelper(selector):
         print(f'{indent}{prefix}helper.ui_object2.long_click(oid=obj_ref.oid)')
 
 
-def printFindObjectUiAutomatorViewer(selector):
+def printFindObjectUiAutomatorViewer(selector: Selector) -> None:
+    """
+    Prints a find object statement.
+    Replaces the auto regexps found if enabled.
+    :param selector:  the selector
+    :type selector: Selector
+    """
+    if options[CulebraOptions.AUTO_REGEXPS]:
+        if selector.desc:
+            selector.desc = searchAndReplaceByRegexIfMatches(selector.desc)
 
-    if selector.desc:
-        if options[CulebraOptions.AUTO_REGEXPS]:
-            desc = selector.desc
-            for _r in options[CulebraOptions.AUTO_REGEXPS]:
-                autoRegexp = CulebraOptions.AUTO_REGEXPS_RES[_r]
-                if autoRegexp.match(escapeRegexpSpecialChars(desc)):
-                    desc = f"Pattern:{autoRegexp.pattern}"
-                    break
-            selector.desc = desc
-
-    if selector.text:
-        if options[CulebraOptions.AUTO_REGEXPS]:
-            text = selector.text
-            for _r in options[CulebraOptions.AUTO_REGEXPS]:
-                autoRegexp = CulebraOptions.AUTO_REGEXPS_RES[_r]
-                if autoRegexp.match(escapeRegexpSpecialChars(text)):
-                    text = f"Pattern:{autoRegexp.pattern}"
-                    break
-            selector.text = text
+        if selector.text:
+            selector.text = searchAndReplaceByRegexIfMatches(selector.text)
 
     indented_line = None
-    indentation = indent + ' ' * (len(f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body={{') - 1)
-    for line in f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body={selector})'.splitlines():
+    # the "{" in the line comes from "selector", which includes both "{..}"
+    beginning = f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body='
+    indentation = indent + ' ' * len(beginning)
+    for line in f'{beginning}{selector})'.splitlines():
         if not indented_line:
             indented_line = line
         else:
             indented_line = f'{indented_line}\n{indentation}{line}'
     print(f'{indented_line}')
+
+
+def searchAndReplaceByRegexIfMatches(_s: str) -> str:
+    """
+    Searches the auto regexps to find a match and returns the pattern if it does.
+    :param _s: the str to match
+    :type _s: str
+    :return: the str eventually replaced by pattern
+    :rtype: str
+    """
+    for _are in [CulebraOptions.AUTO_REGEXPS_RES[k] for k in options[CulebraOptions.AUTO_REGEXPS]]:
+        if _are.match(escapeRegexpSpecialChars(_s)):
+            return f"Pattern:{_are.pattern}"
+    return _s
 
 
 def printSwipeUiAutomatorHelper(startX, startY, endX, endY, steps, orientation, unit=Unit.PX):
