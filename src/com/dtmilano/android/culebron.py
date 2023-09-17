@@ -383,7 +383,19 @@ This is usually installed by python package. Check your distribution details.
                     print(f"# takeScreenshotAndShowItOnWindow: waiting for idle: {time.time() - t0:.2f}s")
             if TIMING:
                 t0 = time.time()
-            received = self.vc.uiAutomatorHelper.ui_device.take_screenshot()
+            received = None
+            try:
+                received = self.vc.uiAutomatorHelper.ui_device.take_screenshot()
+            except Exception as e:
+                if "Cannot get screenshot" in str(e):
+                    try:
+                        activity = self.vc.uiAutomatorHelper.device.get_top_activity_name()
+                    except Exception:
+                        activity = "Unknown"
+                    print(f"⛔️ ERROR: Cannot get screenshot for {activity}", file=sys.stderr)
+                    return
+                else:
+                    print(f"ERROR: e={e} type={type(e)}", file=sys.stderr)
             stream = io.BytesIO(received.read())
             if TIMING:
                 print(f"# takeScreenshotAndShowItOnWindow: screenshot: {time.time() - t0:.2f}s")

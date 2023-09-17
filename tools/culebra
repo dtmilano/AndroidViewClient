@@ -27,7 +27,7 @@ import textwrap
 import culebratester_client
 from culebratester_client import WindowHierarchy
 
-__version__ = '22.6.1'
+__version__ = '22.7.0'
 
 import calendar
 import codecs
@@ -77,7 +77,7 @@ class Descriptor:
 
 
 def fillAutoRegexpsRes():
-    are = {'clock': re.compile('[012]?\d\\\\:[0-5]\d')}
+    are = {'clock': re.compile(r'[012]?\d:[0-5]\d( [AP]M)*')}
     d = "("
     for i in range(7):
         d += calendar.day_abbr[i]
@@ -88,9 +88,10 @@ def fillAutoRegexpsRes():
         d += calendar.month_name[i]
         if i != 12:
             d += '|'
-    d += ') [0123]\d'
+    d += r') [0123]\d'
     are['date'] = re.compile(d, re.IGNORECASE)
-    are['battery'] = re.compile('Charging, \d\d%')
+    are['battery'] = re.compile(r'Charging, \d\d%')
+    are['temp'] = re.compile(r'\d+°')
     return are
 
 
@@ -882,8 +883,29 @@ def printLongTouchViewUiAutomatorHelper(selector):
 
 
 def printFindObjectUiAutomatorViewer(selector):
+
+    if selector.desc:
+        if options[CulebraOptions.AUTO_REGEXPS]:
+            desc = selector.desc
+            for _r in options[CulebraOptions.AUTO_REGEXPS]:
+                autoRegexp = CulebraOptions.AUTO_REGEXPS_RES[_r]
+                if autoRegexp.match(escapeRegexpSpecialChars(desc)):
+                    desc = f"Pattern:{autoRegexp.pattern}"
+                    break
+            selector.desc = desc
+
+    if selector.text:
+        if options[CulebraOptions.AUTO_REGEXPS]:
+            text = selector.text
+            for _r in options[CulebraOptions.AUTO_REGEXPS]:
+                autoRegexp = CulebraOptions.AUTO_REGEXPS_RES[_r]
+                if autoRegexp.match(escapeRegexpSpecialChars(text)):
+                    text = f"Pattern:{autoRegexp.pattern}"
+                    break
+            selector.text = text
+
     indented_line = None
-    indentation = indent + ' ' * 4
+    indentation = indent + ' ' * (len(f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body={{') - 1)
     for line in f'{indent}obj_ref = {prefix}helper.ui_device.find_object(body={selector})'.splitlines():
         if not indented_line:
             indented_line = line
@@ -1039,16 +1061,13 @@ def printTraverseUiAutomatorHelper(dump=None):
         for view in dump:
             transform(view)
     else:
-        warnings.warn('🤷‍♀️ printTraverseUiAutomatorHelper: need to traverse the tree: not implemented yet')
-        # We can do something like this for UiAutomatorHelper.
-        # (however, we have a view hierarchy obtained before using uiAutomatorHelper)
-        # wh = vc.uiAutomatorHelper.ui_device.dump_window_hierarchy()
-        # whch: WindowHierarchyChild = None
-        # for whch in wh.children:
-        #    print(whch.id, whch.text, whch.clazz)
-        # print(vc.views)
-        #vc.root = vc.views[0]
-        vc.traverse(transform=transform)
+        helper = vc.uiAutomatorHelper
+        assert helper
+        # FIXME: using a match-all pattern, perhaps empty body should match all objects
+        for obj in helper.ui_device.find_objects(body={'text': 'Pattern:^.*$'}):
+            printFindObjectUiAutomatorViewer(helper.ui_object2.dump(obj.oid))
+            print(f'{indent}assert obj_ref')
+            print()
     print()
 
 
