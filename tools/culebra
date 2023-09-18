@@ -23,11 +23,12 @@ ___________________/  /__/  /__/  /__/  /________________________________
 from __future__ import print_function
 
 import textwrap
+from typing import Pattern
 
 import culebratester_client
 from culebratester_client import WindowHierarchy, Selector
 
-__version__ = '22.7.1'
+__version__ = '22.7.2'
 
 import calendar
 import codecs
@@ -76,20 +77,17 @@ class Descriptor:
         return Descriptor.ID
 
 
-def fillAutoRegexpsRes():
-    are = {'clock': re.compile(r'[012]?\d:[0-5]\d( [AP]M)*')}
-    d = "("
-    for i in range(7):
-        d += calendar.day_abbr[i]
-        if i != 6:
-            d += '|'
-    d += '), ('
-    for i in range(1, 13):
-        d += calendar.month_name[i]
-        if i != 12:
-            d += '|'
-    d += r') [0123]\d'
-    are['date'] = re.compile(d, re.IGNORECASE)
+def fillAutoRegexpsRes() -> dict[str, Pattern[str]]:
+    """
+    Fills a map with the pre-configured auto regexps.
+    :return: the dictionary
+    :rtype: dict
+    """
+    are = {'clock': re.compile(r'[012]?\d:[0-5]\d([ \u200a][AP]M)*')}
+    d = fr"({'|'.join(calendar.day_abbr)}), ({'|'.join(calendar.month_abbr[1:])}) [0123]?\d"
+    are["date_abbr"] = re.compile(d, re.IGNORECASE)
+    d = fr"({'|'.join(calendar.day_name)}), ({'|'.join(calendar.month_name[1:])}) [0123]?\d"
+    are["date"] = re.compile(d, re.IGNORECASE)
     are['battery'] = re.compile(r'Charging, \d\d%')
     are['temp'] = re.compile(r'\d+°')
     return are
@@ -917,7 +915,7 @@ def searchAndReplaceByRegexIfMatches(_s: str) -> str:
     :rtype: str
     """
     for _are in [CulebraOptions.AUTO_REGEXPS_RES[k] for k in options[CulebraOptions.AUTO_REGEXPS]]:
-        if _are.match(escapeRegexpSpecialChars(_s)):
+        if _are.match(_s):
             return f"Pattern:{_are.pattern}"
     return _s
 
@@ -1642,6 +1640,8 @@ vc = ViewClient(device, serialno, **kwargs2)
 
         if kwargs2[ViewClientOptions.USE_UIAUTOMATOR_HELPER]:
             print('''helper = vc.uiAutomatorHelper''')
+            print('''# set enabled to False if you don't want kato to find the closet selectors if one is not found''')
+            print('''helper.kato.enabled = True''')
         if options[CulebraOptions.USE_DICTIONARY]:
             print('''views = dict()''')
         if options[CulebraOptions.SAVE_SCREENSHOT]:
