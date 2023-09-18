@@ -17,8 +17,9 @@ limitations under the License.
 
 @author: Diego Torres Milano
 """
-
+import re
 import sys
+import textwrap
 from collections import OrderedDict
 
 from culebratester_client import Selector
@@ -32,6 +33,7 @@ from com.dtmilano.android.uiautomator.utils import window_hierarchy_to_selector_
 #
 
 DEBUG = False
+DEBUG_WRAPPER = False
 
 
 class Kato:
@@ -41,6 +43,7 @@ class Kato:
         self.distances = OrderedDict()
         # If pkg has been specified in the selector, only finds other selectors with the same pkg when True
         self.comply_with_pkg = False
+        self.max_num_of_selectors = 5
 
 
 def kato(func):
@@ -54,7 +57,7 @@ def kato(func):
     """
 
     def wrapper(*args, **kwargs):
-        if DEBUG:
+        if DEBUG_WRAPPER:
             print('kato.wrapper:', args, kwargs)
         try:
             return func(*args, **kwargs)
@@ -63,7 +66,8 @@ def kato(func):
             if not helper.kato.enabled:
                 raise e
             find_me_the_selectors(e, *args, **kwargs, func=func.__name__, distance_func=levenshtein_distance,
-                                  distance_func_argument_mapper=str)
+                                  distance_func_argument_mapper=str,
+                                  max_num_of_selectors=helper.kato.max_num_of_selectors)
 
     return wrapper
 
@@ -82,7 +86,7 @@ def find_me_the_selectors(e: ApiException, *args, **kwargs):
     :return: re-raise the original exception
     """
     if DEBUG:
-        print('find_me_the_selectors', args, kwargs, file=sys.stderr)
+        print('🐝 find_me_the_selectors', args, kwargs, file=sys.stderr)
     helper = args[0].uiAutomatorHelper
     msg = ''
     if helper.kato.enabled:
@@ -96,10 +100,11 @@ def find_me_the_selectors(e: ApiException, *args, **kwargs):
                 helper.kato.selectors = list(filter(lambda _s: _s.pkg == selector.pkg, helper.kato.selectors))
             _d = dict()
             for n, s in enumerate(helper.kato.selectors):
-                if n == 0:
-                    msg += 'Kato: selector distances:\n'
-                d = distance(mapper(selector), mapper(s))
-                _d[d] = s
-                msg += f'{d} -> {s}\n'
+                _d[distance(mapper(selector), mapper(s))] = s
             helper.kato.distances = OrderedDict(sorted(_d.items(), reverse=False))
+            msg = f"Kato: selector distances:\n"
+            for n, (k, v) in enumerate(helper.kato.distances.items()):
+                msg += textwrap.indent(f"{k} ➡ {v}\n", "    ", lambda line: re.match(r"^\d+ ", line) is None)
+                if n >= kwargs["max_num_of_selectors"]:
+                    break
     raise ApiException(msg, e)
