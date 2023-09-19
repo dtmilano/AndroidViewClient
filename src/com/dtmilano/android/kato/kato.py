@@ -82,6 +82,7 @@ def find_me_the_selectors(e: ApiException, *args, **kwargs):
     :param kwargs:  - `body` the body of the request
                     - `distance_func` the distance function to apply
                     - `distance_func_argument_mapper` maps the arguments to distance_func from Selector to a type suitable
+                    - `max_num_of_selectors` limit the number of selectors returned
                     for that function
     :return: re-raise the original exception
     """
