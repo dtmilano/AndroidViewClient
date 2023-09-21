@@ -95,10 +95,10 @@ def which(program, isWindows=False):
     return None
 
 
-def obtainAdbPath():
-    '''
+def obtainAdbPath() -> str:
+    """
     Obtains the ADB path attempting know locations for different OSs
-    '''
+    """
 
     FORCE_FAIL = False
     ''' Sometimes, you want it to fail to check the error messages '''

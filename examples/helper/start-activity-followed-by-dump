@@ -10,6 +10,7 @@ if len(sys.argv) != 2:
 
 app = sys.argv.pop(1)
 device, serialno = ViewClient.connectToDeviceOrExit()
+# we need adbClient because we call `forceStop()` in this script
 helper = ViewClient(device, serialno, useuiautomatorhelper=True).uiAutomatorHelper
 
 t = [time.time()]

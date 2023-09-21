@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012-2022  Diego Torres Milano
+Copyright (C) 2012-2023  Diego Torres Milano
 Created on Feb 2, 2012
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ from typing import Optional, Union, Dict, Tuple
 import culebratester_client
 from culebratester_client import WindowHierarchyChild, WindowHierarchy
 
-__version__ = '22.7.2'
+__version__ = '23.0.0'
 
 import sys
 import warnings
@@ -2761,8 +2761,9 @@ class ViewClient:
             self.uiAutomatorHelper.quit()
 
     @staticmethod
-    def view_client_helper(kato=False):
-        helper = ViewClient(*ViewClient.connectToDeviceOrExit(), useuiautomatorhelper=True).uiAutomatorHelper
+    def view_client_helper(hostname: str = "localhost", port: int = CULEBRATESTER2_PORT,
+                           kato: bool = False) -> UiAutomatorHelper:
+        helper = UiAutomatorHelper(hostname=hostname, localport=port)
         helper.kato.enabled = kato
         return helper
 
@@ -2773,7 +2774,6 @@ class ViewClient:
     @staticmethod
     def __mapSerialNo(serialno):
         serialno = serialno.strip()
-        # ipRE = re.compile('^\d+\.\d+.\d+.\d+$')
         if IP_RE.match(serialno):
             if DEBUG_DEVICE: print("ViewClient: adding default port to serialno", serialno, ADB_DEFAULT_PORT,
                                    file=sys.stderr)
