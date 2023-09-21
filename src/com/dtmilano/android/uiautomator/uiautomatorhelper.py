@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012-2022  Diego Torres Milano
+Copyright (C) 2012-2023  Diego Torres Milano
 Created on Feb 2, 2015
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -112,7 +112,8 @@ class UiAutomatorHelper:
     TEST_CLASS = PACKAGE + '.test'
     TEST_RUNNER = 'com.dtmilano.android.culebratester2.UiAutomatorHelper'
 
-    def __init__(self, adbclient, adb=None, localport=9987, remoteport=9987, hostname='localhost', api_version='v2'):
+    def __init__(self, adbclient: Optional[AdbClient] = None, adb=None, localport=9987, remoteport=9987,
+                 hostname='localhost', api_version='v2'):
         """
         UiAutomatorHelper constructor used when the backend selected is **CulebraTester2-public**.
         This class holds references to the different API's:
@@ -124,14 +125,14 @@ class UiAutomatorHelper:
          - UiObject2
          - Until
 
-        :param adbclient: the adb client
-        :param adb: adb if known
-        :param localport: the local port used in CulebraTester2-public port forwarding
-        :param remoteport: the remote port used in CulebraTester2-public port forwarding
+        :param adbclient: the adb client (optional and usually not needed for normal cases with this backend)
+        :param adb: adb if known (also optional)
+        :param localport: the local port used in CulebraTester2-public port forwarding (must be forwarded already)
+        :param remoteport: the remote port used in CulebraTester2-public port forwarding (not usually needed)
         :param hostname: the hostname used by CulebraTester2-public
         :param api_version: the api version
         """
-        self.adbClient = adbclient
+        self.adbClient: Optional[AdbClient] = adbclient
         ''' The adb client (a.k.a. device) '''
         self.adb = self.__whichAdb(adb)
         ''' The adb command '''
@@ -189,7 +190,7 @@ class UiAutomatorHelper:
         return session
 
     @staticmethod
-    def __whichAdb(adb):
+    def __whichAdb(adb: Optional[str]):
         if adb:
             if not os.access(adb, os.X_OK):
                 raise Exception('adb="%s" is not executable' % adb)
@@ -200,7 +201,10 @@ class UiAutomatorHelper:
 
         return adb
 
-    def __redirectPort(self, localport, remoteport):
+    def __redirectPort(self, localport: int, remoteport: int) -> None:
+        if not self.adbClient:
+            print("__redirectPort: cannot redirect port when adbClient is not set")
+            return
         self.localPort = localport
         self.remotePort = remoteport
         subprocess.check_call([self.adb, '-s', self.adbClient.serialno, 'forward', 'tcp:%d' % self.localPort,
@@ -209,6 +213,8 @@ class UiAutomatorHelper:
     def __runTests(self):
         if DEBUG:
             print("__runTests: start", file=sys.stderr)
+        if not self.adbClient:
+            return
         # We need a new AdbClient instance with timeout=None (means, no timeout) for the long running test service
         newAdbClient = AdbClient(self.adbClient.serialno, self.adbClient.hostname, self.adbClient.port, timeout=None)
         self.thread = RunTestsThread(adbClient=newAdbClient, testClass=self.TEST_CLASS, testRunner=self.TEST_RUNNER)
