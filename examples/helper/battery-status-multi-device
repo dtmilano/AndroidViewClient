@@ -1,0 +1,26 @@
+#! /usr/bin/env python3
+#
+# Assuming CulebraTester2-public has been started on each device and port redirected like
+#   ./culebratester2 start-service --localport 9987
+#   ./culebratester2 start-service --localport 9989
+#
+# Then, for all the devices specified via hostname and port:
+#   - finds the object containing a content description that matches a pattern that starts with 'Battery'
+#   - extracts the charging percentage
+#   - prints it.
+#
+# Expected output:
+#
+# device 1: Battery charging, 82 percent.
+# device 2: Battery 100 percent.
+#
+
+from com.dtmilano.android.viewclient import ViewClient
+
+helpers = []
+for hostname, port in [("localhost", 9987), ("localhost", 9989)]:
+    helpers.append(ViewClient.view_client_helper(hostname=hostname, port=port))
+
+for n, helper in enumerate(helpers, 1):
+    obj_ref = helper.ui_device.find_object(body={'desc': 'Pattern:^Battery .*$'})
+    print(f"device {n}: {helper.ui_object2.dump(oid=obj_ref.oid).desc}")
