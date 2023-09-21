@@ -11,7 +11,7 @@ import sys
 project = 'AndroidViewClient/culebra'
 copyright = '2022, Diego Torres Milano'
 author = 'Diego Torres Milano'
-release = '22.7.2'
+release = '23.0.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
