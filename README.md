@@ -39,5 +39,8 @@ pip3 install androidviewclient --upgrade
 Or check the wiki for more alternatives.
 
 # Want to learn more?
+
+> 🚀 Check [Examples](https://github.com/dtmilano/AndroidViewClient/wiki/Resources#examples) and [Screencasts and videos](https://github.com/dtmilano/AndroidViewClient/wiki/Resources#screencasts-and-videos) page to see it in action.
+> 
 Detailed information can be found in the [AndroidViewClient/culebra wiki](https://github.com/dtmilano/AndroidViewClient/wiki)
 
