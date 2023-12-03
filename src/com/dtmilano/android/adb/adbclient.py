@@ -1012,16 +1012,16 @@ class AdbClient:
         Helps in cases where the Views cannot be identified.
         Returns the text found in the image and its bounding box.
         :param image: the image (i.e. from takeScreenshot())
-        :param output_type: the output type (defualt: pytessearct.Output.DICT)
+        :param output_type: the output type (defualt: pytesseract.Output.DICT)
         :return: the data from the image
         """
         try:
-            import pytessearct
+            import pytesseract
         except ImportError:
             raise Exception("You have to install pytesseract to use imageToData()")
         if not output_type:
-            output_type = pytessearct.Output.DICT
-        return pytessearct.image_to_data(image, output_type=output_type)
+            output_type = pytesseract.Output.DICT
+        return pytesseract.image_to_data(image, output_type=output_type)
 
     def __transformPointByOrientation(self, xxx_todo_changeme, orientationOrig, orientationDest):
         (x, y) = xxx_todo_changeme
