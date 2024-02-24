@@ -449,6 +449,22 @@ class UiAutomatorHelper:
             """
             check_response(self.uiAutomatorHelper.api_instance.ui_device_click_get(x=x, y=y))
 
+        def drag(self, start_x: int, start_y: int, end_x: int, end_y:int , steps: int) -> None:
+            """Performs a swipe from one coordinate to another coordinate.
+
+            Performs a swipe from one coordinate to another coordinate. You can control the smoothness and speed of the
+            swipe by specifying the number of steps. Each step execution is throttled to 5 milliseconds per step,
+            so for 100 steps, the swipe will take around 0.5 seconds to complete.
+
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+            :param int start_x: from x (required)
+            :param int start_y: from y (required)
+            :param int end_x: to x (required)
+            :param int end_y: end y (required)
+            :param int steps: is the number of move steps sent to the system (required)
+            """
+            check_response(self.uiAutomatorHelper.api_instance.ui_device_drag_get(start_x, start_y, end_x, end_y, steps))
+
         def dump_window_hierarchy(self, _format='JSON'):
             """
             Dumps the window hierarchy.
