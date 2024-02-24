@@ -28,7 +28,7 @@ from typing import Pattern
 import culebratester_client
 from culebratester_client import WindowHierarchy, Selector
 
-__version__ = '23.0.1'
+__version__ = '23.1.0'
 
 import calendar
 import codecs
