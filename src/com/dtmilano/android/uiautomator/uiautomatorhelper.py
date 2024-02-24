@@ -36,7 +36,7 @@ from typing import Optional, List, Tuple
 
 import culebratester_client
 from culebratester_client import Text, ObjectRef, DefaultApi, Point, PerformTwoPointerGestureBody, \
-    BooleanResponse, NumberResponse, StatusResponse, StringResponse
+    BooleanResponse, NumberResponse, StatusResponse, StringResponse, Rect
 
 from com.dtmilano.android.adb.adbclient import AdbClient
 from com.dtmilano.android.common import obtainAdbPath
@@ -711,9 +711,22 @@ class UiAutomatorHelper:
             :param oid: the oid
             :return: the content description
             """
-            response: StringResponse = self.uiAutomatorHelper.api_instance.ui_object2_oid_get_content_description_get(
+            response: StringResponse = self.uiAutomatorHelper.api_instance.ui_object_oid_get_content_description_get(
                 oid=oid)
             return response.value
+
+        def get_bounds(self, oid: int) -> Tuple[int, int, int, int]:
+            """
+            Gets the view's bounds property.  # noqa: E501
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
+            :param oid:
+            :type oid:
+            :return:
+            :rtype:
+            """
+            rect: Rect = self.uiAutomatorHelper.api_instance.ui_object_oid_get_bounds_get(oid=oid)
+            return rect.left, rect.top, rect.right, rect.bottom
 
         def perform_two_pointer_gesture(self, oid: int, startPoint1: Tuple[int, int], startPoint2: Tuple[int, int],
                                         endPoint1: Tuple[int, int], endPoint2: Tuple[int, int], steps: int) -> None:
