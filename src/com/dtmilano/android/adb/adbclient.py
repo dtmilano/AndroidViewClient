@@ -27,7 +27,7 @@ from typing import Optional
 
 from com.dtmilano.android.adb.dumpsys import Dumpsys
 
-__version__ = '23.1.0'
+__version__ = '23.1.1'
 
 import sys
 import warnings
