@@ -8,7 +8,7 @@ Created on Feb 3, 2012
 
 from __future__ import print_function
 
-__version__ = '23.1.1'
+__version__ = '23.2.0'
 
 import getopt
 import os

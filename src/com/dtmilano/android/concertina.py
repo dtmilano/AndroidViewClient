@@ -22,7 +22,7 @@ import json
 import random
 
 __author__ = 'diego'
-__version__ = '23.1.1'
+__version__ = '23.2.0'
 
 DEBUG = True
 
