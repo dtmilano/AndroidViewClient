@@ -28,7 +28,9 @@ It is a test framework for Android applications that:
 
 As of February 2024 we have reached:
 
-<img src="https://github.com/dtmilano/AndroidViewClient/wiki/images/androidviewclient-culebra-2-million-downloads.png" alt="culebra 2 million downloads" width="80%" align="center">
+<p align="center">
+  <img src="https://github.com/dtmilano/AndroidViewClient/wiki/images/androidviewclient-culebra-2-million-downloads.png" alt="culebra 2 million downloads" width="80%" align="center">
+</p>
 
 Thanks to all who made it possible.
 
