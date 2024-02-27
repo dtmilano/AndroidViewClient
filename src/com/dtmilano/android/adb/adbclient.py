@@ -1023,8 +1023,8 @@ class AdbClient:
             output_type = pytesseract.Output.DICT
         return pytesseract.image_to_data(image, output_type=output_type)
 
-    def __transformPointByOrientation(self, xxx_todo_changeme, orientationOrig, orientationDest):
-        (x, y) = xxx_todo_changeme
+    def __transformPointByOrientation(self, initPoint, orientationOrig, orientationDest):
+        (x, y) = initPoint
         if orientationOrig != orientationDest:
             if orientationDest == 1:
                 _x = x
@@ -1075,7 +1075,7 @@ class AdbClient:
         self.__checkTransport()
         self.drag((x, y), (x, y), duration, orientation)
 
-    def drag(self, xxx_todo_changeme1, xxx_todo_changeme2, duration, steps=1, orientation=-1):
+    def drag(self, startCoords, endCoords, duration, steps=1, orientation=-1):
         """
         Sends drag event in PX (actually it's using C{input swipe} command).
 
@@ -1085,8 +1085,8 @@ class AdbClient:
         @param steps: number of steps (currently ignored by C{input swipe})
         @param orientation: the orientation (-1: undefined)
         """
-        (x0, y0) = xxx_todo_changeme1
-        (x1, y1) = xxx_todo_changeme2
+        (x0, y0) = startCoords
+        (x1, y1) = endCoords
         self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
@@ -1101,7 +1101,7 @@ class AdbClient:
         else:
             self.shell('input touchscreen swipe %d %d %d %d %d' % (x0, y0, x1, y1, duration))
 
-    def dragDip(self, xxx_todo_changeme3, xxx_todo_changeme4, duration, steps=1, orientation=-1):
+    def dragDip(self, startCoords, endCoords, duration, steps=1, orientation=-1):
         """
         Sends drag event in DIP (actually it's using C{input swipe} command.
 
@@ -1110,8 +1110,8 @@ class AdbClient:
         @param duration: duration of the event in ms
         @param steps: number of steps (currently ignored by C{input swipe})
         """
-        (x0, y0) = xxx_todo_changeme3
-        (x1, y1) = xxx_todo_changeme4
+        (x0, y0) = startCoords
+        (x1, y1) = endCoords
         self.__checkTransport()
         if orientation == -1:
             orientation = self.display['orientation']
