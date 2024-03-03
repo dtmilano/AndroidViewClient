@@ -1,19 +1,18 @@
 AndroidViewClient
 =================
 <a href="#"><img src="https://github.com/dtmilano/AndroidViewClient/wiki/images/culebra-logo-transparent-204x209-rb-border.png" align="left" hspace="0" vspace="6"></a>
-**AndroidViewClient** was originally conceived as an extension to [monkeyrunner](http://developer.android.com/tools/help/monkeyrunner_concepts.html) but lately evolved
-as a pure python tool that automates or simplifies test script creation.
-It is a test framework for Android applications that:
+**AndroidViewClient/culebra** was initially conceived as an extension to [monkeyrunner](http://developer.android.com/tools/help/monkeyrunner_concepts.html)  but has since evolved
+into a versatile pure Python tool.
+It streamlines test script creation for Android applications by automating tasks and simplifying interactions. This test framework:
 <ul><ul>
-    <li>Automates driving Android applications</li>
-    <li>Generates re-usable scripts</li>
-    <li>Provides view-based <i>device independent</i> UI interaction</li>
-    <li>Uses 'logical' screen comparison (UI Automator Hierarchy based) over image comparison (Avoiding extraneous 
-    detail issues, such as time or data changes)</li>
-    <li>Supports running concurrently on multiple devices</li>
-    <li>Provides simple control for high level operations like language change and activity start</li>
-    <li>Supports all Android APIs</li>
-    <li>Is written in python (python 3.6+ support in 20.x.y+)</li>
+  <li>Automates the navigation of Android applications.</li>
+  <li>Generates reusable scripts for efficient testing.</li>
+  <li>Offers device-independent UI interaction based on views.</li>
+  <li>Utilizes 'logical' screen comparison (UI Automator Hierarchy based) instead of image comparison, avoiding extraneous detail issues like time or data changes.</li>
+  <li>Supports concurrent operation on multiple devices.</li>
+  <li>Provides straightforward control for high-level operations such as language change and activity start.</li>
+  <li>Fully supports all Android APIs.</li>
+  <li>Written in Python with support for Python 3.6 and above in versions 20.x.y and beyond.</li>
 </ul></ul>
 
 **🛎** |A new Kotlin backend is under development to provide more functionality and improve performance.<br>Take a look at [CulebraTester2](https://github.com/dtmilano/CulebraTester2-public) and 20.x.y-series prerelease. |
