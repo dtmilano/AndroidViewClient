@@ -1,0 +1,5 @@
+#! /usr/bin/env python3
+
+from com.dtmilano.android.viewclient import ViewClient
+
+print(ViewClient.view_client_helper().device.display_physical_size())

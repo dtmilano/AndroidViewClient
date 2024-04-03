@@ -20,8 +20,9 @@ limitations under the License.
 
 from __future__ import print_function
 
-__version__ = '23.2.0'
+__version__ = '23.3.0'
 
+import math
 import os
 import platform
 import re
@@ -317,6 +318,22 @@ class UiAutomatorHelper:
             """
             return self.uiAutomatorHelper.api_instance.device_display_real_size_get()
 
+        def display_physical_size(self):
+            """
+            Gets the physical width, height and diagonal
+            :return: physical width, height and diagonal
+            :rtype: dict
+            """
+            drs = self.uiAutomatorHelper.api_instance.device_display_real_size_get()
+            display = self.dumpsys("display")
+            m = re.search(r"density (\d+), ([\d.]+) x ([\d.]+) dpi", display)
+            assert len(m.groups()) == 3
+            density, xdpi, ydpi = m.groups()
+            pw = drs.x / float(xdpi)
+            ph = drs.y / float(xdpi)
+            diag = math.sqrt(pw * pw + ph * ph)
+            return {"physical_width": round(pw, 2), "physical_height": round(ph, 2), "screen": round(diag, 2)}
+
         def dumpsys(self, service, **kwargs) -> str:
             """
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
@@ -449,7 +466,18 @@ class UiAutomatorHelper:
             """
             check_response(self.uiAutomatorHelper.api_instance.ui_device_click_get(x=x, y=y))
 
-        def drag(self, start_x: int, start_y: int, end_x: int, end_y:int , steps: int) -> None:
+        def display_size_dp(self):
+            """
+            Returns the default display size in dp (device-independent pixel).
+
+            The returned display size is adjusted per screen rotation. Also this will return the actual size of the
+            screen, rather than adjusted per system decorations (like status bar).
+            :return: the DPs
+            :rtype:
+            """
+            return self.uiAutomatorHelper.api_instance.ui_device_display_size_dp_get()
+
+        def drag(self, start_x: int, start_y: int, end_x: int, end_y: int, steps: int) -> None:
             """Performs a swipe from one coordinate to another coordinate.
 
             Performs a swipe from one coordinate to another coordinate. You can control the smoothness and speed of the
@@ -463,7 +491,8 @@ class UiAutomatorHelper:
             :param int end_y: end y (required)
             :param int steps: is the number of move steps sent to the system (required)
             """
-            check_response(self.uiAutomatorHelper.api_instance.ui_device_drag_get(start_x, start_y, end_x, end_y, steps))
+            check_response(
+                self.uiAutomatorHelper.api_instance.ui_device_drag_get(start_x, start_y, end_x, end_y, steps))
 
         def dump_window_hierarchy(self, _format='JSON'):
             """
