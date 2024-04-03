@@ -1,4 +1,9 @@
 #! /usr/bin/env python3
+#
+# Gets the physical screen size, for example on a Pixel 8 Pro:
+# ```
+# {'physical_width': 2.76, 'physical_height': 6.14, 'screen': 6.73}
+# ```
 
 from com.dtmilano.android.viewclient import ViewClient
 
