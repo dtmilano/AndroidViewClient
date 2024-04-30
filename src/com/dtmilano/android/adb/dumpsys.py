@@ -23,7 +23,7 @@ import re
 import sys
 from _warnings import warn
 
-__version__ = '23.3.0'
+__version__ = '23.4.0'
 
 DEBUG = False
 
@@ -41,8 +41,8 @@ class Dumpsys:
     VIEWS = 'views'
 
     FLAGS = 0
-    INTENDED_VSYNC = 1
-    FRAME_COMPLETED = 13
+    INTENDED_VSYNC = 2
+    FRAME_COMPLETED = 16
 
     def __init__(self, adbclient, subcommand, *args):
         self.out = None
