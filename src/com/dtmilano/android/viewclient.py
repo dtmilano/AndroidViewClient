@@ -143,8 +143,8 @@ INVISIBLE = 0x4
 GONE = 0x8
 
 RegexType = type(re.compile(''))
-IP_RE = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
-ID_RE = re.compile('id/([^/]*)(/(\d+))?')
+IP_RE = re.compile(r'^(\d{1,3}\.){3}\d{1,3}$')
+ID_RE = re.compile(r'id/([^/]*)(/(\d+))?')
 IP_DOMAIN_NAME_PORT_REGEX = r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' \
                             r'localhost|' \
                             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' \
@@ -872,21 +872,21 @@ class View:
         dww = self.device.shell('dumpsys window windows')
         if DEBUG_WINDOWS or debug: print(dww, file=sys.stderr)
         lines = dww.splitlines()
-        widRE = re.compile('^ *Window #%s Window\{%s (u\d+ )?%s?.*\}:' %
+        widRE = re.compile(r'^ *Window #%s Window\{%s (u\d+ )?%s?.*\}:' %
                            (_nd('num'), _nh('winId'), _ns('activity', greedy=True)))
-        currentFocusRE = re.compile('^  mCurrentFocus=Window\{%s .*' % _nh('winId'))
+        currentFocusRE = re.compile(r'^  mCurrentFocus=Window\{%s .*' % _nh('winId'))
         viewVisibilityRE = re.compile(' mViewVisibility=0x%s ' % _nh('visibility'))
         # This is for 4.0.4 API-15
-        containingFrameRE = re.compile('^   *mContainingFrame=\[%s,%s\]\[%s,%s\] mParentFrame=\[%s,%s\]\[%s,%s\]' %
+        containingFrameRE = re.compile(r'^   *mContainingFrame=\[%s,%s\]\[%s,%s\] mParentFrame=\[%s,%s\]\[%s,%s\]' %
                                        (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'),
                                         _nd('ph')))
-        contentFrameRE = re.compile('^   *mContentFrame=\[%s,%s\]\[%s,%s\] mVisibleFrame=\[%s,%s\]\[%s,%s\]' %
+        contentFrameRE = re.compile(r'^   *mContentFrame=\[%s,%s\]\[%s,%s\] mVisibleFrame=\[%s,%s\]\[%s,%s\]' %
                                     (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'),
                                      _nd('vy1')))
         # This is for 4.1 API-16
-        framesRE = re.compile('^   *Frames: containing=\[%s,%s\]\[%s,%s\] parent=\[%s,%s\]\[%s,%s\]' %
+        framesRE = re.compile(r'^   *Frames: containing=\[%s,%s\]\[%s,%s\] parent=\[%s,%s\]\[%s,%s\]' %
                               (_nd('cx'), _nd('cy'), _nd('cw'), _nd('ch'), _nd('px'), _nd('py'), _nd('pw'), _nd('ph')))
-        contentRE = re.compile('^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]\[%s,%s\]' %
+        contentRE = re.compile(r'^     *content=\[%s,%s\]\[%s,%s\] visible=\[%s,%s\]\[%s,%s\]' %
                                (_nd('x'), _nd('y'), _nd('w'), _nd('h'), _nd('vx'), _nd('vy'), _nd('vx1'), _nd('vy1')))
         policyVisibilityRE = re.compile('mPolicyVisibility=%s ' % _ns('policyVisibility', greedy=True))
 
@@ -1237,7 +1237,7 @@ class View:
         # __str = str("View[", 'utf-8', 'replace')
         __str = "View["
         if "class" in self.map:
-            __str += " class=" + re.sub('.*\.', '', self.map['class'])
+            __str += " class=" + re.sub(r'.*\.', '', self.map['class'])
         __str += " id=%s" % self.getId()
         __str += " ]"
 
@@ -2394,7 +2394,7 @@ class UiAutomator2AndroidViewClient():
         elif name == 'node':
             # Instantiate an Element object
             attributes['uniqueId'] = 'id/no_id/%d' % self.idCount
-            bounds = re.split('[\][,]', attributes['bounds'])
+            bounds = re.split(r'[\][,]', attributes['bounds'])
             attributes['bounds'] = ((int(bounds[1]), int(bounds[2])), (int(bounds[4]), int(bounds[5])))
             if DEBUG_BOUNDS:
                 print("bounds=", attributes['bounds'], file=sys.stderr)
@@ -3224,8 +3224,8 @@ class ViewClient:
             s2 = s1.replace(' ', WS)
             strArgs = strArgs.replace(s1, s2, 1)
 
-        idRE = re.compile("(?P<viewId>id/\S+)")
-        attrRE = re.compile('%s(?P<parens>\(\))?=%s,(?P<val>[^ ]*)' % (_ns('attr'), _nd('len')), flags=re.DOTALL)
+        idRE = re.compile(r"(?P<viewId>id/\S+)")
+        attrRE = re.compile(r'%s(?P<parens>\(\))?=%s,(?P<val>[^ ]*)' % (_ns('attr'), _nd('len')), flags=re.DOTALL)
         hashRE = re.compile('%s@%s' % (_ns('class'), _nh('oid')))
 
         attrs = {}
@@ -3269,7 +3269,7 @@ class ViewClient:
                 # sometimes the view ids are not unique, so let's generate a unique id here
                 i = 1
                 while True:
-                    newId = re.sub('/\d+$', '', viewId) + '/%d' % i
+                    newId = re.sub(r'/\d+$', '', viewId) + '/%d' % i
                     if not newId in self.viewsById:
                         break
                     i += 1
@@ -3579,13 +3579,13 @@ class ViewClient:
                 if self.ignoreUiAutomatorKilled:
                     if DEBUG_RECEIVED:
                         print("ignoring UiAutomator Killed", file=sys.stderr)
-                    killedRE = re.compile('</hierarchy>[\n\S]*Killed', re.MULTILINE)
+                    killedRE = re.compile(r'</hierarchy>[\n\S]*Killed', re.MULTILINE)
                     if killedRE.search(received):
                         received = re.sub(killedRE, '</hierarchy>', received)
                     elif DEBUG_RECEIVED:
                         print("UiAutomator Killed: NOT FOUND!")
                     # It seems that API18 uiautomator spits this message to stdout
-                    dumpedToDevTtyRE = re.compile('</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
+                    dumpedToDevTtyRE = re.compile(r'</hierarchy>[\n\S]*UI hierchary dumped to: /dev/tty.*', re.MULTILINE)
                     if dumpedToDevTtyRE.search(received):
                         received = re.sub(dumpedToDevTtyRE, '</hierarchy>', received)
                     if DEBUG_RECEIVED:
@@ -3595,7 +3595,7 @@ class ViewClient:
                 received = received.replace(
                     'WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.\r\n',
                     '')
-                if re.search('\[: not found', received):
+                if re.search(r'\[: not found', received):
                     raise RuntimeError('''ERROR: Some emulator images (i.e. android 4.1.2 API 16 generic_x86) does not include the '[' command.
     While UiAutomator back-end might be supported 'uiautomator' command fails.
     You should force ViewServer back-end.''')
