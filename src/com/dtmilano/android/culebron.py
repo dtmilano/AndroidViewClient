@@ -412,7 +412,7 @@ This is usually installed by python package. Check your distribution details.
         if self.scale != 1:
             scaledWidth = int(width * self.scale)
             scaledHeight = int(height * self.scale)
-            self.image = self.image.resize((scaledWidth, scaledHeight), PIL.Image.ANTIALIAS)
+            self.image = self.image.resize((scaledWidth, scaledHeight), PIL.Image.LANCZOS)
             (width, height) = self.image.size
             if self.isDarwin and 14 < self.sdkVersion < 23:
                 if sys.version_info[0] < 3:
