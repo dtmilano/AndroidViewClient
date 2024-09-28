@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+r"""
 Copyright (C) 2013-2023  Diego Torres Milano
 Created on Mar 28, 2013
 
@@ -1295,7 +1295,7 @@ def getWindowOption():
 
 
 def printScriptHeader():
-    print(f'''{getShebangJar()}
+    print(rf'''{getShebangJar()}
 # -*- coding: utf-8 -*-
 """
 Copyright (C) 2013-2023  Diego Torres Milano
