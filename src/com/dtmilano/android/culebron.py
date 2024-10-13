@@ -38,7 +38,7 @@ from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper
 from com.dtmilano.android.viewclient import ViewClient, View, VERSION_SDK_PROPERTY
 
-__version__ = '24.0.0'
+__version__ = '24.1.0'
 
 import sys
 import threading
