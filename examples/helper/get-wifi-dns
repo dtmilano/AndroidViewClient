@@ -1,0 +1,29 @@
+#! /usr/bin/env python3
+#
+# Gets the DNS names when connected via WiFi
+#
+
+import subprocess
+
+from com.dtmilano.android.viewclient import ViewClient
+
+WIFI = "MY-SSID"  # Use your WiFi SSID here
+subprocess.run(["adb", "shell", "am", "start", "-a", "android.settings.WIFI_SETTINGS"])
+helper = ViewClient.view_client_helper()
+obj_ref = helper.until.find_object(body={'desc': f"{WIFI},Connected,Wifi signal full.,Secure network"})
+helper.ui_object2.click(oid=helper.ui_device.wait(oid=obj_ref.oid)["oid"])
+helper.ui_device.wait_for_window_update()
+try:
+    obj_ref = helper.until.find_object(body={'text': "Advanced"})
+    helper.ui_object2.click(oid=helper.ui_device.wait(oid=obj_ref.oid)["oid"])
+except:
+    pass
+helper.ui_device.swipe(segments=[(300, 1500), (300, 300)], segment_steps=50)
+helper.ui_device.wait_for_window_update()
+obj_ref = helper.ui_device.find_object(ui_selector="text@DNS")
+obj_ref = helper.ui_object.get_from_parent(obj_ref.oid, ui_selector="res@android:id/summary")
+obj = helper.ui_object.dump(obj_ref.oid)
+print("DNS")
+print(obj.text)
+helper.ui_device.press_back()
+helper.ui_device.press_back()

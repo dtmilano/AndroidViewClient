@@ -33,7 +33,7 @@ import time
 import warnings
 from abc import ABC
 from datetime import datetime
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union
 
 import culebratester_client
 from culebratester_client import Text, ObjectRef, DefaultApi, Point, PerformTwoPointerGestureBody, \
@@ -259,9 +259,9 @@ class UiAutomatorHelper:
             self.uiAutomatorHelper = uiAutomatorHelper
 
         @staticmethod
-        def intersection(l1: list, l2: list) -> list:
+        def intersection(l1: Union[list, tuple], l2: Union[list, tuple]) -> list:
             """
-            Obtains the intersection between the two lists.
+            Obtains the intersection between the two lists or tuples.
 
             :param l1: list 1
             :type l1: list
@@ -272,7 +272,7 @@ class UiAutomatorHelper:
             """
             return list(set(l1) & set(l2))
 
-        def some(self, l1: list, l2: list) -> bool:
+        def some(self, l1: Union[list, tuple], l2: Union[list, tuple]) -> bool:
             """
             Some elements are in both lists.
 
@@ -285,7 +285,7 @@ class UiAutomatorHelper:
             """
             return len(self.intersection(l1, l2)) > 0
 
-        def all(self, l1: list, l2: list) -> bool:
+        def all(self, l1: Union[list, tuple], l2: Union[list, tuple]) -> bool:
             """
             All the elements are in both lists.
 
@@ -550,7 +550,7 @@ class UiAutomatorHelper:
             """
             if 'body' in kwargs:
                 return self.uiAutomatorHelper.api_instance.ui_device_has_object_post(**kwargs).value
-            if self.some(['resource_id', 'ui_selector', 'by_selector'], kwargs):
+            if self.some(('resource_id', 'ui_selector', 'by_selector'), tuple(kwargs.keys())):
                 return self.uiAutomatorHelper.api_instance.ui_device_has_object_get(**kwargs).value
             body = culebratester_client.Selector(**kwargs)
             return self.uiAutomatorHelper.api_instance.ui_device_has_object_post(body=body).value
@@ -611,7 +611,7 @@ class UiAutomatorHelper:
             :param kwargs:
             :return:
             """
-            if self.all(['start_x', 'start_y', 'end_x', 'end_y', 'steps'], kwargs):
+            if self.all(('start_x', 'start_y', 'end_x', 'end_y', 'steps'), tuple(kwargs.keys())):
                 check_response(self.uiAutomatorHelper.api_instance.ui_device_swipe_get(**kwargs))
                 return
             if 'segments' in kwargs:
@@ -757,11 +757,41 @@ class UiAutomatorHelper:
             rect: Rect = self.uiAutomatorHelper.api_instance.ui_object_oid_get_bounds_get(oid=oid)
             return rect.left, rect.top, rect.right, rect.bottom
 
+        def get_child(self, oid: int, ui_selector: str) -> ObjectRef:
+            """
+            Creates a new UiObject for a child view that is under the present UiObject.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
+            :param oid: The oid
+            :type oid: int
+            :param ui_selector:
+            :type ui_selector:
+            :return:
+            :rtype: ObjectRef
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object_oid_get_child(oid, ui_selector=ui_selector)
+
+        def get_from_parent(self, oid: int, ui_selector: str) -> ObjectRef:
+            """
+            Creates a new UiObject for a sibling view or a child of the sibling view, relative to the present UiObject.
+            :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
+            :param oid: The oid
+            :type oid: int
+            :param ui_selector:
+            :type ui_selector:
+            :return:
+            :rtype: ObjectRef
+            """
+            return self.uiAutomatorHelper.api_instance.ui_object_oid_get_from_parent_get(oid,
+                                                                                         ui_selector=ui_selector)
+
         def perform_two_pointer_gesture(self, oid: int, startPoint1: Tuple[int, int], startPoint2: Tuple[int, int],
                                         endPoint1: Tuple[int, int], endPoint2: Tuple[int, int], steps: int) -> None:
             """
             Generates a two-pointer gesture with arbitrary starting and ending points.
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
+
             :param oid: the oid
             :param startPoint1:
             :param startPoint2:
