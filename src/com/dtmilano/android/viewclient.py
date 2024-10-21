@@ -3955,7 +3955,7 @@ class ViewClient:
         if DEBUG: print("__findViewWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (
             root.__smallStr__(), attr, regex), file=sys.stderr)
 
-        if root and attr in root.map and regex.match(root.map[attr]):
+        if root and attr in root.map and regex.search(root.map[attr]):
             if DEBUG: print("__findViewWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__(),
                             file=sys.stderr)
             return root
@@ -3981,7 +3981,7 @@ class ViewClient:
             print("__findViewsWithAttributeInTreeThatMatches: checking if root=%s attr=%s matches %s" % (
                 root.__smallStr__(), attr, regex), file=sys.stderr)
 
-        if root and attr in root.map and regex.match(root.map[attr]):
+        if root and attr in root.map and regex.search(root.map[attr]):
             if DEBUG:
                 print("__findViewsWithAttributeInTreeThatMatches:  FOUND: %s" % root.__smallStr__(), file=sys.stderr)
             matchingViews.append(root)
