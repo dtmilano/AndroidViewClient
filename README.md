@@ -39,6 +39,88 @@ pip3 install androidviewclient --upgrade
 ```
 Or check the wiki for more alternatives.
 
+# AI-Powered Testing with MCP
+
+**NEW!** AndroidViewClient now includes a Model Context Protocol (MCP) server that enables AI assistants like Kiro to interact with Android devices through natural language.
+
+## Quick Start with MCP
+
+1. **Install with MCP support:**
+   ```bash
+   pip3 install androidviewclient --upgrade
+   ```
+
+2. **Start CulebraTester2 on your device:**
+   ```bash
+   # Install the APK
+   adb install -r culebratester2.apk
+   
+   # Start the service
+   adb shell am instrument -w com.dtmilano.android.culebratester2/.CulebraTester2Instrumentation
+   
+   # Forward the port
+   adb forward tcp:9987 tcp:9987
+   ```
+
+3. **Configure your AI assistant:**
+   
+   Add to `.kiro/settings/mcp.json` or `~/.kiro/settings/mcp.json`:
+   ```json
+   {
+     "mcpServers": {
+       "culebratester2": {
+         "command": "culebra-mcp",
+         "env": {
+           "CULEBRATESTER2_URL": "http://localhost:9987"
+         }
+       }
+     }
+   }
+   ```
+
+4. **Start testing with natural language:**
+   - "Get the device screen size"
+   - "Launch the Calculator app"
+   - "Find the button with text Submit and click it"
+   - "Take a screenshot"
+   - "Swipe up to scroll"
+
+## MCP Tools Available
+
+The MCP server provides 20 tools for Android automation:
+
+**Element-based interactions:**
+- Find elements by text or resource ID
+- Click, long-click, enter text, clear text
+- Navigate with back/home buttons
+- Launch applications
+
+**Coordinate-based interactions:**
+- Click/long-click at coordinates
+- Swipe gestures
+
+**Device actions:**
+- Wake/sleep device
+- Get current app
+- Force stop apps
+- Take screenshots
+
+## Configuration
+
+For detailed MCP configuration options, see the [MCP Configuration Guide](docs/MCP_CONFIGURATION.md).
+
+Quick reference:
+- **User-level config** (kiro-cli): `~/.kiro/settings/mcp.json`
+- **Workspace config** (Kiro IDE): `.kiro/settings/mcp.json`
+- **Examples:** `examples/mcp_config.json`
+- **Usage examples:** `examples/test_calculator_mcp.py`
+
+## Environment Variables
+
+- `CULEBRATESTER2_URL`: Base URL for CulebraTester2 (default: `http://localhost:9987`)
+- `CULEBRATESTER2_TIMEOUT`: HTTP timeout in seconds (default: `30`)
+- `CULEBRATESTER2_DEBUG`: Enable debug logging (`1`, `true`, or `yes`)
+
 # Want to learn more?
 
 > 🚀 Check [Examples](https://github.com/dtmilano/AndroidViewClient/wiki/Resources#examples) and [Screencasts and videos](https://github.com/dtmilano/AndroidViewClient/wiki/Resources#screencasts-and-videos) page to see it in action.

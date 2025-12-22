@@ -27,4 +27,8 @@ tmp/
 
 # venv #
 ########
-venv/*
+venv*/*
+
+# Kiro #
+########
+.kiro/
