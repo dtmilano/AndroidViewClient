@@ -38,7 +38,7 @@ from com.dtmilano.android.keyevent import KEY_EVENT
 from com.dtmilano.android.uiautomator.uiautomatorhelper import UiAutomatorHelper
 from com.dtmilano.android.viewclient import ViewClient, View, VERSION_SDK_PROPERTY
 
-__version__ = '24.1.0'
+__version__ = '25.0.0'
 
 import sys
 import threading
@@ -240,13 +240,8 @@ On Ubuntu install
 
    $ sudo apt-get install python-imaging python-imaging-tk
 
-On OSX install
+On macOS install
 
-   $ brew install homebrew/python/pillow
-
-or, preferred since El Capitan
-
-   $ sudo easy_install pip
    $ sudo pip install pillow
 
 ''')

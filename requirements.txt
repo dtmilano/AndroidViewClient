@@ -1,0 +1,5 @@
+matplotlib~=3.4.3
+numpy>=1.23.4
+pillow~=8.3.2
+setuptools~=52.0.0
+pytest~=7.1.3
