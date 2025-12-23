@@ -8,7 +8,7 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     environment:
-      name: pypi # Must match the environment name configured on PyPI (if used)
+      name: release # Must match the environment name configured on PyPI (if used)
     permissions:
       contents: read
       id-token: write # Mandatory for OIDC trusted publishing
