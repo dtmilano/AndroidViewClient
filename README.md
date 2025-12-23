@@ -51,18 +51,11 @@ Or check the wiki for more alternatives.
    ```
 
 2. **Start CulebraTester2 on your device:**
-   ```bash
-   # Install the APK
-   adb install -r culebratester2.apk
    
-   # Start the service
-   adb shell am instrument -w com.dtmilano.android.culebratester2/.CulebraTester2Instrumentation
+   Check the details at [How to run CulebraTester2 ?](https://github.com/dtmilano/CulebraTester2-public?tab=readme-ov-file#how-to-run-culebratester2-)
    
-   # Forward the port
-   adb forward tcp:9987 tcp:9987
-   ```
 
-3. **Configure your AI assistant:**
+4. **Configure your AI assistant:**
    
    Add to `.kiro/settings/mcp.json` or `~/.kiro/settings/mcp.json`:
    ```json
@@ -78,7 +71,7 @@ Or check the wiki for more alternatives.
    }
    ```
 
-4. **Start testing with natural language:**
+5. **Start testing with natural language:**
    - "Get the device screen size"
    - "Launch the Calculator app"
    - "Find the button with text Submit and click it"
