@@ -72,11 +72,11 @@ Or check the wiki for more alternatives.
    ```
 
 5. **Start testing with natural language:**
-   - "Get the device screen size"
-   - "Launch the Calculator app"
-   - "Find the button with text Submit and click it"
-   - "Take a screenshot"
-   - "Swipe up to scroll"
+   - "_Get the device screen size_"
+   - "_Launch the Calculator app_"
+   - "_Find the button with text Submit and click it_"
+   - "_Take a screenshot_"
+   - "_Swipe up to scroll_"
 
 ## MCP Tools Available
 
