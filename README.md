@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/dtmilano-androidviewclient-badge.png)](https://mseep.ai/app/dtmilano-androidviewclient)
+
 AndroidViewClient
 =================
 <a href="#"><img src="https://github.com/dtmilano/AndroidViewClient/wiki/images/culebra-logo-transparent-204x209-rb-border.png" align="left" hspace="0" vspace="6"></a>
