@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "culebratester2": {
+      "type": "stdio",
+      "command": "culebra-mcp",
+      "args": [],
+      "env": {
+        "CULEBRATESTER2_URL": "http://localhost:9987",
+        "CULEBRATESTER2_TIMEOUT": "30"
+      },
+      "timeout": 60000
+    }
+  }
+}

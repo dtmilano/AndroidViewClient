@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "culebratester2": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["-m", "com.dtmilano.android.mcp.server"],
+      "env": {
+        "PYTHONPATH": "${ANDROID_VIEW_CLIENT_HOME:-.}/src",
+        "CULEBRATESTER2_URL": "${CULEBRATESTER2_URL:-http://localhost:9987}",
+        "CULEBRATESTER2_TIMEOUT": "${CULEBRATESTER2_TIMEOUT:-30}",
+        "CULEBRATESTER2_DEBUG": "${CULEBRATESTER2_DEBUG:-0}"
+      }
+    }
+  }
+}

@@ -38,7 +38,9 @@ setup(name='androidviewclient',
           'numpy',
           'matplotlib',
           'culebratester-client >= 2.0.73',
-          'mcp >= 0.9.0',
+          # mcp 2.x renamed FastMCP to MCPServer and changed other APIs;
+          # com.dtmilano.android.mcp.server still uses the v1 API.
+          'mcp >= 0.9.0, < 2',
       ],
       extras_require={
           'dev': [
