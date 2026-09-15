@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__culebratester2__getDeviceInfo",
+      "mcp__culebratester2__getCurrentPackage",
+      "mcp__culebratester2__dumpUiHierarchy",
+      "mcp__culebratester2__takeScreenshot"
+    ],
+    "ask": [
+      "mcp__culebratester2__startApp",
+      "mcp__culebratester2__forceStopApp",
+      "mcp__culebratester2__sleepDevice"
+    ]
+  }
+}

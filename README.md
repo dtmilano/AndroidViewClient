@@ -41,7 +41,7 @@ Or check the wiki for more alternatives.
 
 # AI-Powered Testing with MCP
 
-**NEW!** AndroidViewClient now includes a Model Context Protocol (MCP) server that enables AI assistants like Kiro to interact with Android devices through natural language.
+**NEW!** AndroidViewClient now includes a Model Context Protocol (MCP) server that enables AI assistants like Claude Code and Kiro to interact with Android devices through natural language.
 
 ## Quick Start with MCP
 
@@ -53,11 +53,15 @@ Or check the wiki for more alternatives.
 2. **Start CulebraTester2 on your device:**
    
    Check the details at [How to run CulebraTester2 ?](https://github.com/dtmilano/CulebraTester2-public?tab=readme-ov-file#how-to-run-culebratester2-)
-   
 
-4. **Configure your AI assistant:**
-   
-   Add to `.kiro/settings/mcp.json` or `~/.kiro/settings/mcp.json`:
+3. **Configure your AI assistant:**
+
+   **Claude Code** — register the server with one command:
+   ```bash
+   claude mcp add culebratester2 --env CULEBRATESTER2_URL=http://localhost:9987 -- culebra-mcp
+   ```
+
+   Or add it to `.mcp.json` in your project root, so everyone who clones the project gets it:
    ```json
    {
      "mcpServers": {
@@ -71,7 +75,9 @@ Or check the wiki for more alternatives.
    }
    ```
 
-5. **Start testing with natural language:**
+   **Kiro** — add the same entry to `.kiro/settings/mcp.json` or `~/.kiro/settings/mcp.json`.
+
+4. **Start testing with natural language:**
    - "_Get the device screen size_"
    - "_Launch the Calculator app_"
    - "_Find the button with text Submit and click it_"
@@ -103,9 +109,14 @@ The MCP server provides 20 tools for Android automation:
 For detailed MCP configuration options, see the [MCP Configuration Guide](docs/MCP_CONFIGURATION.md).
 
 Quick reference:
-- **User-level config** (kiro-cli): `~/.kiro/settings/mcp.json`
-- **Workspace config** (Kiro IDE): `.kiro/settings/mcp.json`
-- **Examples:** `examples/mcp_config.json`
+
+| | Claude Code | Kiro |
+|---|---|---|
+| **Project config** | `.mcp.json` (repository root) | `.kiro/settings/mcp.json` |
+| **User config** | `~/.claude.json` (via `claude mcp add --scope user`) | `~/.kiro/settings/mcp.json` |
+| **Tool pre-approval** | `permissions.allow` in `.claude/settings.json` | `autoApprove` in the server entry |
+| **Example** | `examples/mcp_config.json` | `examples/mcp_config_kiro.json` |
+
 - **Usage examples:** `examples/test_calculator_mcp.py`
 
 ## Environment Variables

@@ -104,51 +104,14 @@ python3 examples/test_find_click_mcp.py
 
 ## Configuration
 
-### Kiro-CLI Configuration
-File: `~/.kiro/settings/mcp.json`
-
-```json
-{
-  "mcpServers": {
-    "culebratester2-mcp": {
-      "command": "culebra-mcp",
-      "env": {
-        "CULEBRATESTER2_URL": "http://localhost:9987",
-        "CULEBRATESTER2_TIMEOUT": "30",
-        "CULEBRATESTER2_DEBUG": "0"
-      },
-      "disabled": false,
-      "autoApprove": []
-    }
-  }
-}
-```
-
-### Workspace Configuration
-File: `.kiro/settings/mcp.json`
-
-```json
-{
-  "mcpServers": {
-    "culebratester2-mcp": {
-      "command": "python3",
-      "args": ["-m", "com.dtmilano.android.mcp.server"],
-      "env": {
-        "PYTHONPATH": "${workspaceFolder}/src",
-        "CULEBRATESTER2_URL": "http://localhost:9987",
-        "CULEBRATESTER2_TIMEOUT": "30",
-        "CULEBRATESTER2_DEBUG": "1"
-      },
-      "disabled": false,
-      "autoApprove": []
-    }
-  }
-}
-```
+The server is configured entirely through environment variables, so it works with any MCP
+client. Claude Code and Kiro configuration — file locations, tool permissions, complete
+examples and troubleshooting — are documented in
+[MCP_CONFIGURATION.md](MCP_CONFIGURATION.md).
 
 ## Usage Examples
 
-### From Kiro-CLI (Natural Language)
+### Natural Language
 ```
 User: "Show me the device info"
 AI: [calls getDeviceInfo()]
@@ -223,9 +186,12 @@ All logs go to stderr (doesn't interfere with MCP protocol on stdout).
 - `README.md` - Updated with MCP server info
 
 ### Configuration
-- `.kiro/settings/mcp.json` - Workspace MCP configuration
-- `.gitignore` - Added `.kiro/` exclusion
+- `.mcp.json` - Claude Code project MCP configuration (run from source)
+- `.claude/settings.json` - Claude Code tool pre-approval example
+- `examples/mcp_config.json` - Claude Code configuration example
+- `examples/mcp_config_kiro.json` - Kiro configuration example
+- `.gitignore` - Added `.kiro/` and `.claude/settings.local.json` exclusions
 
 ## Conclusion
 
-The CulebraTester2 MCP server is fully functional with all 20 tools working correctly. All major serialization issues have been resolved, and the server is ready for production use with AI assistants like Kiro.
+The CulebraTester2 MCP server is fully functional with all 20 tools working correctly. All major serialization issues have been resolved, and the server is ready for production use with AI assistants like Claude Code and Kiro.

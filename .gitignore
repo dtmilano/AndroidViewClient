@@ -32,3 +32,9 @@ venv*/*
 # Kiro #
 ########
 .kiro/
+
+# Claude Code #
+###############
+# .mcp.json and .claude/settings.json are committed on purpose; these are personal
+.claude/settings.local.json
+CLAUDE.local.md

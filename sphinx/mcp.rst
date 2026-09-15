@@ -6,7 +6,7 @@ The Model Context Protocol (MCP) server enables AI assistants to interact with A
 Overview
 --------
 
-The CulebraTester2 MCP server exposes 20 tools that allow AI assistants like Kiro to:
+The CulebraTester2 MCP server exposes 20 tools that allow AI assistants like Claude Code and Kiro to:
 
 * Find and interact with UI elements
 * Perform coordinate-based gestures
@@ -34,7 +34,12 @@ Quick Start
 
 2. **Configure your AI assistant**
 
-   Add to ``.kiro/settings/mcp.json``::
+   *Claude Code* — register the server with one command::
+
+    claude mcp add culebratester2 --env CULEBRATESTER2_URL=http://localhost:9987 -- culebra-mcp
+
+   Or add it to ``.mcp.json`` in your project root, so everyone who clones the project
+   gets it (Claude Code asks each user to approve the server the first time it sees it)::
 
     {
       "mcpServers": {
@@ -46,6 +51,13 @@ Quick Start
         }
       }
     }
+
+   *Kiro* — add the same entry to ``.kiro/settings/mcp.json`` or
+   ``~/.kiro/settings/mcp.json``.
+
+   See the `MCP Configuration Guide
+   <https://github.com/dtmilano/AndroidViewClient/blob/master/docs/MCP_CONFIGURATION.md>`_
+   for per-assistant details, tool permissions and troubleshooting.
 
 3. **Start testing with natural language**:
 
@@ -66,8 +78,14 @@ Environment Variables
 .. envvar:: CULEBRATESTER2_TIMEOUT
 
    HTTP request timeout in seconds.
-   
+
    Default: ``30``
+
+.. envvar:: CULEBRATESTER2_DEBUG
+
+   Enable debug logging to stderr. Accepts ``1``, ``true`` or ``yes``.
+
+   Default: ``0``
 
 Available Tools
 ---------------
@@ -246,7 +264,9 @@ Or on error::
 Examples
 --------
 
-See ``examples/mcp_config.json`` for complete MCP configuration and ``examples/test_calculator_mcp.py`` for usage examples.
+See ``examples/mcp_config.json`` for a complete Claude Code configuration,
+``examples/mcp_config_kiro.json`` for the Kiro equivalent, and
+``examples/test_calculator_mcp.py`` for usage examples.
 
 Troubleshooting
 ---------------
@@ -279,9 +299,6 @@ API Reference
 -------------
 
 .. automodule:: com.dtmilano.android.mcp.server
-   :members:
-
-.. automodule:: com.dtmilano.android.mcp.client
    :members:
 
 .. automodule:: com.dtmilano.android.mcp.object_store
