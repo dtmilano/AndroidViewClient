@@ -10,6 +10,8 @@ Welcome to AndroidViewClient/culebra's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   mcp
+
 .. automodule:: com.dtmilano.android.adb.adbclient
    :members:
 

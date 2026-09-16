@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MCP Server for AI-Powered Testing &#8212; AndroidViewClient/culebra 25.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=874516b3" />
+    
+    <script src="_static/documentation_options.js?v=f7bdfdd7"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to AndroidViewClient/culebra’s documentation!" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to AndroidViewClient/culebra’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">AndroidViewClient/culebra 25.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">MCP Server for AI-Powered Testing</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="mcp-server-for-ai-powered-testing">
+<h1>MCP Server for AI-Powered Testing<a class="headerlink" href="#mcp-server-for-ai-powered-testing" title="Link to this heading">¶</a></h1>
+<p>The Model Context Protocol (MCP) server enables AI assistants to interact with Android devices through natural language commands.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The CulebraTester2 MCP server exposes 20 tools that allow AI assistants like Claude Code and Kiro to:</p>
+<ul class="simple">
+<li><p>Find and interact with UI elements</p></li>
+<li><p>Perform coordinate-based gestures</p></li>
+<li><p>Control device state (wake, sleep, etc.)</p></li>
+<li><p>Launch applications and navigate</p></li>
+<li><p>Capture screenshots and UI hierarchies</p></li>
+</ul>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
+<p>Install AndroidViewClient with MCP support:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">androidviewclient</span> <span class="o">--</span><span class="n">upgrade</span>
+</pre></div>
+</div>
+<p>The MCP server is automatically available as the <code class="docutils literal notranslate"><span class="pre">culebra-mcp</span></code> command.</p>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p><strong>Start CulebraTester2 on your device</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">adb</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">culebratester2</span><span class="o">.</span><span class="n">apk</span>
+<span class="n">adb</span> <span class="n">shell</span> <span class="n">am</span> <span class="n">instrument</span> <span class="o">-</span><span class="n">w</span> <span class="n">com</span><span class="o">.</span><span class="n">dtmilano</span><span class="o">.</span><span class="n">android</span><span class="o">.</span><span class="n">culebratester2</span><span class="o">/.</span><span class="n">CulebraTester2Instrumentation</span>
+<span class="n">adb</span> <span class="n">forward</span> <span class="n">tcp</span><span class="p">:</span><span class="mi">9987</span> <span class="n">tcp</span><span class="p">:</span><span class="mi">9987</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Configure your AI assistant</strong></p>
+<p><em>Claude Code</em> — register the server with one command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">claude</span> <span class="n">mcp</span> <span class="n">add</span> <span class="n">culebratester2</span> <span class="o">--</span><span class="n">env</span> <span class="n">CULEBRATESTER2_URL</span><span class="o">=</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">localhost</span><span class="p">:</span><span class="mi">9987</span> <span class="o">--</span> <span class="n">culebra</span><span class="o">-</span><span class="n">mcp</span>
+</pre></div>
+</div>
+<p>Or add it to <code class="docutils literal notranslate"><span class="pre">.mcp.json</span></code> in your project root, so everyone who clones the project
+gets it (Claude Code asks each user to approve the server the first time it sees it):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">"mcpServers"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"culebratester2"</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">"command"</span><span class="p">:</span> <span class="s2">"culebra-mcp"</span><span class="p">,</span>
+      <span class="s2">"env"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"CULEBRATESTER2_URL"</span><span class="p">:</span> <span class="s2">"http://localhost:9987"</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><em>Kiro</em> — add the same entry to <code class="docutils literal notranslate"><span class="pre">.kiro/settings/mcp.json</span></code> or
+<code class="docutils literal notranslate"><span class="pre">~/.kiro/settings/mcp.json</span></code>.</p>
+<p>See the <a class="reference external" href="https://github.com/dtmilano/AndroidViewClient/blob/master/docs/MCP_CONFIGURATION.md">MCP Configuration Guide</a>
+for per-assistant details, tool permissions and troubleshooting.</p>
+</li>
+<li><p><strong>Start testing with natural language</strong>:</p>
+<ul class="simple">
+<li><p>“Get the device screen size”</p></li>
+<li><p>“Launch the Calculator app”</p></li>
+<li><p>“Find the button with text Submit and click it”</p></li>
+<li><p>“Take a screenshot”</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="environment-variables">
+<h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading">¶</a></h2>
+<dl class="std envvar">
+<dt class="sig sig-object std" id="envvar-CULEBRATESTER2_URL">
+<span class="sig-name descname"><span class="pre">CULEBRATESTER2_URL</span></span><a class="headerlink" href="#envvar-CULEBRATESTER2_URL" title="Link to this definition">¶</a></dt>
+<dd><p>Base URL where CulebraTester2 is running.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">http://localhost:9987</span></code></p>
+</dd></dl>
+
+<dl class="std envvar">
+<dt class="sig sig-object std" id="envvar-CULEBRATESTER2_TIMEOUT">
+<span class="sig-name descname"><span class="pre">CULEBRATESTER2_TIMEOUT</span></span><a class="headerlink" href="#envvar-CULEBRATESTER2_TIMEOUT" title="Link to this definition">¶</a></dt>
+<dd><p>HTTP request timeout in seconds.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">30</span></code></p>
+</dd></dl>
+
+<dl class="std envvar">
+<dt class="sig sig-object std" id="envvar-CULEBRATESTER2_DEBUG">
+<span class="sig-name descname"><span class="pre">CULEBRATESTER2_DEBUG</span></span><a class="headerlink" href="#envvar-CULEBRATESTER2_DEBUG" title="Link to this definition">¶</a></dt>
+<dd><p>Enable debug logging to stderr. Accepts <code class="docutils literal notranslate"><span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">true</span></code> or <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">0</span></code></p>
+</dd></dl>
+
+</section>
+<section id="available-tools">
+<h2>Available Tools<a class="headerlink" href="#available-tools" title="Link to this heading">¶</a></h2>
+<section id="element-based-interactions">
+<h3>Element-Based Interactions<a class="headerlink" href="#element-based-interactions" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="getDeviceInfo">
+<span class="sig-name descname"><span class="pre">getDeviceInfo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#getDeviceInfo" title="Link to this definition">¶</a></dt>
+<dd><p>Get device display information including screen dimensions and density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON with display width, height, and density</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dumpUiHierarchy">
+<span class="sig-name descname"><span class="pre">dumpUiHierarchy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dumpUiHierarchy" title="Link to this definition">¶</a></dt>
+<dd><p>Dump the current UI hierarchy as XML.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON with complete UI hierarchy</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="findElementByText">
+<span class="sig-name descname"><span class="pre">findElementByText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#findElementByText" title="Link to this definition">¶</a></dt>
+<dd><p>Find a UI element by its text content.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> – The text to search for</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with element ID and metadata</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="findElementByResourceId">
+<span class="sig-name descname"><span class="pre">findElementByResourceId</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resourceId</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#findElementByResourceId" title="Link to this definition">¶</a></dt>
+<dd><p>Find a UI element by its resource ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>resourceId</strong> – The resource ID (e.g., “com.example:id/button”)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with element ID and metadata</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clickElement">
+<span class="sig-name descname"><span class="pre">clickElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementId</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#clickElement" title="Link to this definition">¶</a></dt>
+<dd><p>Click on a previously found UI element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elementId</strong> – The element ID from findElementByText or findElementByResourceId</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="longClickElement">
+<span class="sig-name descname"><span class="pre">longClickElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementId</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#longClickElement" title="Link to this definition">¶</a></dt>
+<dd><p>Long click on a previously found UI element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elementId</strong> – The element ID</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="enterText">
+<span class="sig-name descname"><span class="pre">enterText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#enterText" title="Link to this definition">¶</a></dt>
+<dd><p>Enter text into a UI element (e.g., EditText field).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elementId</strong> – The element ID</p></li>
+<li><p><strong>text</strong> – The text to enter</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clearText">
+<span class="sig-name descname"><span class="pre">clearText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementId</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#clearText" title="Link to this definition">¶</a></dt>
+<dd><p>Clear text from a UI element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>elementId</strong> – The element ID</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pressBack">
+<span class="sig-name descname"><span class="pre">pressBack</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pressBack" title="Link to this definition">¶</a></dt>
+<dd><p>Press the Android BACK button.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pressHome">
+<span class="sig-name descname"><span class="pre">pressHome</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pressHome" title="Link to this definition">¶</a></dt>
+<dd><p>Press the Android HOME button.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="takeScreenshot">
+<span class="sig-name descname"><span class="pre">takeScreenshot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#takeScreenshot" title="Link to this definition">¶</a></dt>
+<dd><p>Take a screenshot of the current screen.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON with base64-encoded screenshot data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="startApp">
+<span class="sig-name descname"><span class="pre">startApp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packageName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activityName</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#startApp" title="Link to this definition">¶</a></dt>
+<dd><p>Start an Android application.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>packageName</strong> – The package name (e.g., “com.example.app”)</p></li>
+<li><p><strong>activityName</strong> – Optional activity name (e.g., “.MainActivity”)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="coordinate-based-interactions">
+<h3>Coordinate-Based Interactions<a class="headerlink" href="#coordinate-based-interactions" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="clickAtCoordinates">
+<span class="sig-name descname"><span class="pre">clickAtCoordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#clickAtCoordinates" title="Link to this definition">¶</a></dt>
+<dd><p>Click at specific screen coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – X coordinate (non-negative)</p></li>
+<li><p><strong>y</strong> – Y coordinate (non-negative)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="longClickAtCoordinates">
+<span class="sig-name descname"><span class="pre">longClickAtCoordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#longClickAtCoordinates" title="Link to this definition">¶</a></dt>
+<dd><p>Long click at specific screen coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – X coordinate (non-negative)</p></li>
+<li><p><strong>y</strong> – Y coordinate (non-negative)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="swipeGesture">
+<span class="sig-name descname"><span class="pre">swipeGesture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">startX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#swipeGesture" title="Link to this definition">¶</a></dt>
+<dd><p>Perform a swipe gesture.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>startX</strong> – Starting X coordinate</p></li>
+<li><p><strong>startY</strong> – Starting Y coordinate</p></li>
+<li><p><strong>endX</strong> – Ending X coordinate</p></li>
+<li><p><strong>endY</strong> – Ending Y coordinate</p></li>
+<li><p><strong>steps</strong> – Number of steps (default: 10)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="device-actions">
+<h3>Device Actions<a class="headerlink" href="#device-actions" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="wakeDevice">
+<span class="sig-name descname"><span class="pre">wakeDevice</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#wakeDevice" title="Link to this definition">¶</a></dt>
+<dd><p>Wake up the device (turn screen on).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="sleepDevice">
+<span class="sig-name descname"><span class="pre">sleepDevice</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sleepDevice" title="Link to this definition">¶</a></dt>
+<dd><p>Put the device to sleep (turn screen off).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pressRecentApps">
+<span class="sig-name descname"><span class="pre">pressRecentApps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pressRecentApps" title="Link to this definition">¶</a></dt>
+<dd><p>Press the Recent Apps button.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="getCurrentPackage">
+<span class="sig-name descname"><span class="pre">getCurrentPackage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#getCurrentPackage" title="Link to this definition">¶</a></dt>
+<dd><p>Get the package name of the currently running app.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JSON with package name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="forceStopApp">
+<span class="sig-name descname"><span class="pre">forceStopApp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packageName</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#forceStopApp" title="Link to this definition">¶</a></dt>
+<dd><p>Force stop an application.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>packageName</strong> – The package name to stop</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h2>
+<p>The MCP server consists of three main components:</p>
+<ol class="arabic simple">
+<li><p><strong>CulebraTester2Client</strong>: HTTP client wrapper for the CulebraTester2 API</p></li>
+<li><p><strong>ObjectStore</strong>: In-memory storage for UI element references</p></li>
+<li><p><strong>MCP Tools</strong>: 20 tool handlers that expose functionality to AI assistants</p></li>
+</ol>
+<p>All tools return JSON responses with a consistent format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">"success"</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">"data"</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Or on error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">"success"</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+  <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Error message"</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>See <code class="docutils literal notranslate"><span class="pre">examples/mcp_config.json</span></code> for a complete Claude Code configuration,
+<code class="docutils literal notranslate"><span class="pre">examples/mcp_config_kiro.json</span></code> for the Kiro equivalent, and
+<code class="docutils literal notranslate"><span class="pre">examples/test_calculator_mcp.py</span></code> for usage examples.</p>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
+<p><strong>Connection Refused</strong></p>
+<p>If you see “Connection refused” errors:</p>
+<ol class="arabic simple">
+<li><p>Verify CulebraTester2 is running on the device</p></li>
+<li><p>Check port forwarding: <code class="docutils literal notranslate"><span class="pre">adb</span> <span class="pre">forward</span> <span class="pre">tcp:9987</span> <span class="pre">tcp:9987</span></code></p></li>
+<li><p>Verify the device is connected: <code class="docutils literal notranslate"><span class="pre">adb</span> <span class="pre">devices</span></code></p></li>
+</ol>
+<p><strong>Element Not Found</strong></p>
+<p>If elements cannot be found:</p>
+<ol class="arabic simple">
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">dumpUiHierarchy()</span></code> to inspect the current UI</p></li>
+<li><p>Verify the text or resource ID is correct</p></li>
+<li><p>Wait for the UI to load before searching</p></li>
+</ol>
+<p><strong>Timeout Errors</strong></p>
+<p>If requests timeout:</p>
+<ol class="arabic simple">
+<li><p>Increase <code class="docutils literal notranslate"><span class="pre">CULEBRATESTER2_TIMEOUT</span></code> environment variable</p></li>
+<li><p>Check network connectivity to the device</p></li>
+<li><p>Verify CulebraTester2 is responding</p></li>
+</ol>
+</section>
+<section id="module-com.dtmilano.android.mcp.server">
+<span id="api-reference"></span><h2>API Reference<a class="headerlink" href="#module-com.dtmilano.android.mcp.server" title="Link to this heading">¶</a></h2>
+<p>MCP Server Core for CulebraTester2</p>
+<p>This module implements the main MCP server that exposes CulebraTester2
+functionality to AI assistants via the Model Context Protocol.</p>
+<p>Copyright (C) 2012-2024  Diego Torres Milano
+Created on 2024-12-20 by Culebra</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.server.main">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.server.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#com.dtmilano.android.mcp.server.main" title="Link to this definition">¶</a></dt>
+<dd><p>Main entry point for the MCP server.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.server.validateConnection">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.server.</span></span><span class="sig-name descname"><span class="pre">validateConnection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#com.dtmilano.android.mcp.server.validateConnection" title="Link to this definition">¶</a></dt>
+<dd><p>Validate connection to CulebraTester2 server.</p>
+</dd></dl>
+
+<p id="module-com.dtmilano.android.mcp.object_store">Object Store for MCP Server</p>
+<p>This module provides an in-memory storage mechanism for UI element references
+returned by CulebraTester2 find operations. The object store allows MCP tools
+to cache and reuse object identifiers across multiple operations.</p>
+<p>Copyright (C) 2012-2024  Diego Torres Milano
+Created on 2024-12-20 by Culebra</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.object_store.ObjectStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.object_store.</span></span><span class="sig-name descname"><span class="pre">ObjectStore</span></span><a class="headerlink" href="#com.dtmilano.android.mcp.object_store.ObjectStore" title="Link to this definition">¶</a></dt>
+<dd><p>In-memory storage for UI element references.</p>
+<p>The ObjectStore maintains a mapping between object IDs (returned by
+CulebraTester2) and metadata about those objects (such as the selector
+used to find them). This allows MCP tools to validate object IDs before
+performing operations and to retrieve information about cached objects.</p>
+<dl>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">store</span> <span class="o">=</span> <span class="n">ObjectStore</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="mi">123</span><span class="p">,</span> <span class="p">{</span><span class="s2">"selector"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"text"</span><span class="p">:</span> <span class="s2">"Login"</span><span class="p">},</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"text"</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="go">{'selector': {'text': 'Login'}, 'type': 'text'}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.object_store.ObjectStore.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.object_store.ObjectStore.clear" title="Link to this definition">¶</a></dt>
+<dd><p>Clear all objects from the store.</p>
+<p>This removes all cached object references, effectively resetting
+the store to its initial empty state.</p>
+<dl>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">_objects</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.object_store.ObjectStore.exists">
+<span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.object_store.ObjectStore.exists" title="Link to this definition">¶</a></dt>
+<dd><p>Check if an object ID exists in the store.</p>
+<dl>
+<dt>Args:</dt><dd><p>oid: The object ID to check</p>
+</dd>
+<dt>Returns:</dt><dd><p>True if the object ID exists, False otherwise</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">store</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="mi">456</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Object found"</span><span class="p">)</span>
+<span class="go">Object found</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.object_store.ObjectStore.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.object_store.ObjectStore.get" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve metadata for a stored object.</p>
+<dl>
+<dt>Args:</dt><dd><p>oid: The object ID to look up</p>
+</dd>
+<dt>Returns:</dt><dd><p>Dictionary containing the object’s metadata, or None if the
+object ID is not found in the store</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">456</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">metadata</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">'selector'</span><span class="p">])</span>
+<span class="go">{'resourceId': 'com.example:id/button'}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.object_store.ObjectStore.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.object_store.ObjectStore.remove" title="Link to this definition">¶</a></dt>
+<dd><p>Remove an object from the store.</p>
+<p>This method is idempotent - removing a non-existent object ID
+does not raise an error.</p>
+<dl>
+<dt>Args:</dt><dd><p>oid: The object ID to remove</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">456</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="mi">456</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.object_store.ObjectStore.store">
+<span class="sig-name descname"><span class="pre">store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.object_store.ObjectStore.store" title="Link to this definition">¶</a></dt>
+<dd><p>Store an object reference with associated metadata.</p>
+<dl>
+<dt>Args:</dt><dd><p>oid: The object ID returned by CulebraTester2
+metadata: Dictionary containing information about the object,</p>
+<blockquote>
+<div><p>typically including the selector used to find it</p>
+</div></blockquote>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="mi">456</span><span class="p">,</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">"selector"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"resourceId"</span><span class="p">:</span> <span class="s2">"com.example:id/button"</span><span class="p">},</span>
+<span class="gp">... </span>    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"resourceId"</span>
+<span class="gp">... </span><span class="p">})</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p id="module-com.dtmilano.android.mcp.tools">MCP Tool Handlers for CulebraTester2</p>
+<p>This module implements all MCP tool handlers that expose CulebraTester2
+functionality through the Model Context Protocol.</p>
+<p>Copyright (C) 2012-2024  Diego Torres Milano
+Created on 2024-12-20 by Culebra</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.clearText">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">clearText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementId</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.clearText" title="Link to this definition">¶</a></dt>
+<dd><p>Clear text from a UI element (e.g., EditText field).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>elementId: The ID of the element to clear text from</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.clickAtCoordinates">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">clickAtCoordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.clickAtCoordinates" title="Link to this definition">¶</a></dt>
+<dd><p>Click at specific screen coordinates.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: X coordinate (must be non-negative)
+y: Y coordinate (must be non-negative)</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.clickElement">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">clickElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementId</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.clickElement" title="Link to this definition">¶</a></dt>
+<dd><p>Click on a previously found UI element.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>elementId: The ID of the element to click (from findElementByText or findElementByResourceId)</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.dumpUiHierarchy">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">dumpUiHierarchy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.dumpUiHierarchy" title="Link to this definition">¶</a></dt>
+<dd><p>Dump the current UI hierarchy as XML.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>JSON string with UI hierarchy XML</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.enterText">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">enterText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementId</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.enterText" title="Link to this definition">¶</a></dt>
+<dd><p>Enter text into a UI element (e.g., EditText field).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>elementId: The ID of the element to enter text into
+text: The text to enter</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.findElementByResourceId">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">findElementByResourceId</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resourceId</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.findElementByResourceId" title="Link to this definition">¶</a></dt>
+<dd><p>Find a UI element by its resource ID.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>resourceId: The resource ID to search for (e.g., “com.example:id/button”)</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with element info or error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.findElementByText">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">findElementByText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.findElementByText" title="Link to this definition">¶</a></dt>
+<dd><p>Find a UI element by its text content.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>text: The text to search for</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with element info or error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.forceStopApp">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">forceStopApp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packageName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.forceStopApp" title="Link to this definition">¶</a></dt>
+<dd><p>Force stop an application.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>packageName: The package name to force stop (e.g., “com.example.app”)</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.getCurrentPackage">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">getCurrentPackage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.getCurrentPackage" title="Link to this definition">¶</a></dt>
+<dd><p>Get the package name of the currently running application.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>JSON string with the current package name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.getDeviceInfo">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">getDeviceInfo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.getDeviceInfo" title="Link to this definition">¶</a></dt>
+<dd><p>Get device display information including screen dimensions and density.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>JSON string with display info (width, height, density, etc.)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.longClickAtCoordinates">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">longClickAtCoordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.longClickAtCoordinates" title="Link to this definition">¶</a></dt>
+<dd><p>Long click at specific screen coordinates.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: X coordinate (must be non-negative)
+y: Y coordinate (must be non-negative)</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.longClickElement">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">longClickElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementId</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.longClickElement" title="Link to this definition">¶</a></dt>
+<dd><p>Long click on a previously found UI element.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>elementId: The ID of the element to long click (from findElementByText or findElementByResourceId)</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.pressBack">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">pressBack</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.pressBack" title="Link to this definition">¶</a></dt>
+<dd><p>Press the Android BACK button.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.pressHome">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">pressHome</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.pressHome" title="Link to this definition">¶</a></dt>
+<dd><p>Press the Android HOME button.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.pressRecentApps">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">pressRecentApps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.pressRecentApps" title="Link to this definition">¶</a></dt>
+<dd><p>Press the Recent Apps button to show recently used applications.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.sleepDevice">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">sleepDevice</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.sleepDevice" title="Link to this definition">¶</a></dt>
+<dd><p>Put the device to sleep (turn screen off).</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.startApp">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">startApp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packageName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activityName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.startApp" title="Link to this definition">¶</a></dt>
+<dd><p>Start an Android application.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>packageName: The package name of the app (e.g., “com.example.app”)
+activityName: Optional activity name to start (e.g., “.MainActivity”)</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.swipeGesture">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">swipeGesture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">startX</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startY</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endX</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endY</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.swipeGesture" title="Link to this definition">¶</a></dt>
+<dd><p>Perform a swipe gesture from one coordinate to another.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>startX: Starting X coordinate (must be non-negative)
+startY: Starting Y coordinate (must be non-negative)
+endX: Ending X coordinate (must be non-negative)
+endY: Ending Y coordinate (must be non-negative)
+steps: Number of steps for the swipe (default: 10, must be positive)</p>
+</dd>
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.takeScreenshot">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">takeScreenshot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.takeScreenshot" title="Link to this definition">¶</a></dt>
+<dd><p>Take a screenshot of the current screen.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>JSON string with base64-encoded screenshot data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="com.dtmilano.android.mcp.tools.wakeDevice">
+<span class="sig-prename descclassname"><span class="pre">com.dtmilano.android.mcp.tools.</span></span><span class="sig-name descname"><span class="pre">wakeDevice</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#com.dtmilano.android.mcp.tools.wakeDevice" title="Link to this definition">¶</a></dt>
+<dd><p>Wake up the device (turn screen on).</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>JSON string with success status</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">MCP Server for AI-Powered Testing</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#quick-start">Quick Start</a></li>
+<li><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
+<li><a class="reference internal" href="#available-tools">Available Tools</a><ul>
+<li><a class="reference internal" href="#element-based-interactions">Element-Based Interactions</a><ul>
+<li><a class="reference internal" href="#getDeviceInfo"><code class="docutils literal notranslate"><span class="pre">getDeviceInfo()</span></code></a></li>
+<li><a class="reference internal" href="#dumpUiHierarchy"><code class="docutils literal notranslate"><span class="pre">dumpUiHierarchy()</span></code></a></li>
+<li><a class="reference internal" href="#findElementByText"><code class="docutils literal notranslate"><span class="pre">findElementByText()</span></code></a></li>
+<li><a class="reference internal" href="#findElementByResourceId"><code class="docutils literal notranslate"><span class="pre">findElementByResourceId()</span></code></a></li>
+<li><a class="reference internal" href="#clickElement"><code class="docutils literal notranslate"><span class="pre">clickElement()</span></code></a></li>
+<li><a class="reference internal" href="#longClickElement"><code class="docutils literal notranslate"><span class="pre">longClickElement()</span></code></a></li>
+<li><a class="reference internal" href="#enterText"><code class="docutils literal notranslate"><span class="pre">enterText()</span></code></a></li>
+<li><a class="reference internal" href="#clearText"><code class="docutils literal notranslate"><span class="pre">clearText()</span></code></a></li>
+<li><a class="reference internal" href="#pressBack"><code class="docutils literal notranslate"><span class="pre">pressBack()</span></code></a></li>
+<li><a class="reference internal" href="#pressHome"><code class="docutils literal notranslate"><span class="pre">pressHome()</span></code></a></li>
+<li><a class="reference internal" href="#takeScreenshot"><code class="docutils literal notranslate"><span class="pre">takeScreenshot()</span></code></a></li>
+<li><a class="reference internal" href="#startApp"><code class="docutils literal notranslate"><span class="pre">startApp()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#coordinate-based-interactions">Coordinate-Based Interactions</a><ul>
+<li><a class="reference internal" href="#clickAtCoordinates"><code class="docutils literal notranslate"><span class="pre">clickAtCoordinates()</span></code></a></li>
+<li><a class="reference internal" href="#longClickAtCoordinates"><code class="docutils literal notranslate"><span class="pre">longClickAtCoordinates()</span></code></a></li>
+<li><a class="reference internal" href="#swipeGesture"><code class="docutils literal notranslate"><span class="pre">swipeGesture()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#device-actions">Device Actions</a><ul>
+<li><a class="reference internal" href="#wakeDevice"><code class="docutils literal notranslate"><span class="pre">wakeDevice()</span></code></a></li>
+<li><a class="reference internal" href="#sleepDevice"><code class="docutils literal notranslate"><span class="pre">sleepDevice()</span></code></a></li>
+<li><a class="reference internal" href="#pressRecentApps"><code class="docutils literal notranslate"><span class="pre">pressRecentApps()</span></code></a></li>
+<li><a class="reference internal" href="#getCurrentPackage"><code class="docutils literal notranslate"><span class="pre">getCurrentPackage()</span></code></a></li>
+<li><a class="reference internal" href="#forceStopApp"><code class="docutils literal notranslate"><span class="pre">forceStopApp()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#architecture">Architecture</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li><a class="reference internal" href="#module-com.dtmilano.android.mcp.server">API Reference</a><ul>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.server.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.server.validateConnection"><code class="docutils literal notranslate"><span class="pre">validateConnection()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.object_store.ObjectStore"><code class="docutils literal notranslate"><span class="pre">ObjectStore</span></code></a><ul>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.object_store.ObjectStore.clear"><code class="docutils literal notranslate"><span class="pre">ObjectStore.clear()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.object_store.ObjectStore.exists"><code class="docutils literal notranslate"><span class="pre">ObjectStore.exists()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.object_store.ObjectStore.get"><code class="docutils literal notranslate"><span class="pre">ObjectStore.get()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.object_store.ObjectStore.remove"><code class="docutils literal notranslate"><span class="pre">ObjectStore.remove()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.object_store.ObjectStore.store"><code class="docutils literal notranslate"><span class="pre">ObjectStore.store()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.clearText"><code class="docutils literal notranslate"><span class="pre">clearText()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.clickAtCoordinates"><code class="docutils literal notranslate"><span class="pre">clickAtCoordinates()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.clickElement"><code class="docutils literal notranslate"><span class="pre">clickElement()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.dumpUiHierarchy"><code class="docutils literal notranslate"><span class="pre">dumpUiHierarchy()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.enterText"><code class="docutils literal notranslate"><span class="pre">enterText()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.findElementByResourceId"><code class="docutils literal notranslate"><span class="pre">findElementByResourceId()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.findElementByText"><code class="docutils literal notranslate"><span class="pre">findElementByText()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.forceStopApp"><code class="docutils literal notranslate"><span class="pre">forceStopApp()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.getCurrentPackage"><code class="docutils literal notranslate"><span class="pre">getCurrentPackage()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.getDeviceInfo"><code class="docutils literal notranslate"><span class="pre">getDeviceInfo()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.longClickAtCoordinates"><code class="docutils literal notranslate"><span class="pre">longClickAtCoordinates()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.longClickElement"><code class="docutils literal notranslate"><span class="pre">longClickElement()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.pressBack"><code class="docutils literal notranslate"><span class="pre">pressBack()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.pressHome"><code class="docutils literal notranslate"><span class="pre">pressHome()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.pressRecentApps"><code class="docutils literal notranslate"><span class="pre">pressRecentApps()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.sleepDevice"><code class="docutils literal notranslate"><span class="pre">sleepDevice()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.startApp"><code class="docutils literal notranslate"><span class="pre">startApp()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.swipeGesture"><code class="docutils literal notranslate"><span class="pre">swipeGesture()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.takeScreenshot"><code class="docutils literal notranslate"><span class="pre">takeScreenshot()</span></code></a></li>
+<li><a class="reference internal" href="#com.dtmilano.android.mcp.tools.wakeDevice"><code class="docutils literal notranslate"><span class="pre">wakeDevice()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">Welcome to AndroidViewClient/culebra’s documentation!</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/mcp.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to AndroidViewClient/culebra’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">AndroidViewClient/culebra 25.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">MCP Server for AI-Powered Testing</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2022, Diego Torres Milano.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>
