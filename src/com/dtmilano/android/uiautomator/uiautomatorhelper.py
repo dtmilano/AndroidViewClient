@@ -500,8 +500,15 @@ class UiAutomatorHelper:
 
             :see https://github.com/dtmilano/CulebraTester2-public/blob/master/openapi.yaml
             :param _format: the format (e.g.: JSON, XML)
-            :return: the window hierarchy
+            :return: the window hierarchy: a WindowHierarchy for JSON, the XML document as a str for XML
             """
+            if _format and _format.upper() == 'XML':
+                # The server answers XML as a text/plain document, but the generated client declares a
+                # single response type (WindowHierarchy) for this endpoint and tries to deserialize the
+                # XML into it, which fails. Take the body undeserialized and hand back the document.
+                response = self.uiAutomatorHelper.api_instance.ui_device_dump_window_hierarchy_get(
+                    format=_format, _preload_content=False)
+                return response.data.decode('utf-8')
             return self.uiAutomatorHelper.api_instance.ui_device_dump_window_hierarchy_get(format=_format)
 
         @kato.kato
