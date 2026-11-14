@@ -46,7 +46,28 @@ import warnings
 import copy
 import os
 import platform
-from pkg_resources import Requirement, resource_filename
+from importlib.metadata import PackageNotFoundError, distribution
+
+
+def _culebra_icon_path() -> Optional[str]:
+    """
+    Path to the culebra window icon, or None if it cannot be found.
+
+    Replaces pkg_resources.resource_filename(Requirement.parse("androidviewclient"), ...),
+    which resolved the file relative to the installed distribution's location. pkg_resources
+    has been removed from setuptools, so it is looked up with the standard library instead,
+    falling back to the source tree when running from a checkout.
+    """
+    relative = os.path.join('share', 'pixmaps', 'culebra.png')
+    try:
+        located = str(distribution('androidviewclient').locate_file(relative))
+        if os.path.isfile(located):
+            return located
+    except PackageNotFoundError:
+        pass
+    # src/com/dtmilano/android/culebron.py -> src/share/pixmaps/culebra.png
+    in_tree = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', relative)
+    return os.path.normpath(in_tree) if os.path.isfile(in_tree) else None
 
 # noinspection PyBroadException
 try:
@@ -289,9 +310,8 @@ This is usually installed by python package. Check your distribution details.
         self.concertinaConfigFile = concertinaConfigFile
         self.window = tkinter.Tk()
         try:
-            f = resource_filename(Requirement.parse("androidviewclient"),
-                                  "share/pixmaps/culebra.png")
-            icon = ImageTk.PhotoImage(file=f)
+            f = _culebra_icon_path()
+            icon = ImageTk.PhotoImage(file=f) if f else None
         except:
             icon = None
         if icon:
