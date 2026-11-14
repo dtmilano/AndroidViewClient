@@ -171,9 +171,9 @@ All logs go to stderr (doesn't interfere with MCP protocol on stdout).
 - `tools/culebra-mcp` - Command-line entry point
 
 ### Tests
-- `tst/mcp/test_object_store.py` - ObjectStore tests (14 tests)
-- `tst/mcp/test_properties.py` - Property-based tests (4 tests)
-- `tst/mcp/test_tools.py` - Tool tests (2 tests, skipped in CI)
+- `tst/mcp_tests/test_object_store.py` - ObjectStore tests (14 tests)
+- `tst/mcp_tests/test_properties.py` - Property-based tests (4 tests)
+- `tst/mcp_tests/test_tools.py` - Tool tests (runs in CI; previously skipped because tst/mcp shadowed the mcp SDK)
 
 ### Examples
 - `examples/test_calculator_mcp.py` - Complete calculator test example
