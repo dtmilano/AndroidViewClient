@@ -38,3 +38,42 @@ class TestMCPTools:
             if 'mcp.server' in str(e):
                 pytest.skip("MCP SDK not installed in test environment")
             raise
+
+
+class TestStartApp:
+    """startApp must call the endpoint with pkg and cls, which are both required query params."""
+
+    @pytest.fixture
+    def tools(self):
+        try:
+            from com.dtmilano.android.mcp import tools
+        except ImportError as e:
+            if 'mcp.server' in str(e):
+                pytest.skip("MCP SDK not installed in test environment")
+            raise
+        return tools
+
+    def _start(self, tools, monkeypatch, *args):
+        import json
+        from unittest import mock
+        fake = mock.Mock()
+        fake.target_context_start_activity_get.return_value = None
+        monkeypatch.setattr(tools, 'client', fake)
+        return json.loads(tools.startApp(*args)), fake.target_context_start_activity_get
+
+    def test_relative_activity_is_expanded(self, tools, monkeypatch):
+        # The server passes cls to the Intent verbatim, so ".Main" must be expanded client-side.
+        result, call = self._start(tools, monkeypatch, 'com.example.app', '.MainActivity')
+        assert result['success'] is True
+        call.assert_called_once_with(pkg='com.example.app', cls='com.example.app.MainActivity')
+
+    def test_fully_qualified_activity_is_passed_through(self, tools, monkeypatch):
+        result, call = self._start(tools, monkeypatch, 'com.example.app', 'com.other.Launcher')
+        assert result['success'] is True
+        call.assert_called_once_with(pkg='com.example.app', cls='com.other.Launcher')
+
+    def test_missing_activity_fails_without_calling_the_api(self, tools, monkeypatch):
+        result, call = self._start(tools, monkeypatch, 'com.example.app', None)
+        assert result['success'] is False
+        assert 'activityName is required' in result['error']
+        call.assert_not_called()

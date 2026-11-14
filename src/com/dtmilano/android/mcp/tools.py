@@ -65,10 +65,10 @@ def getDeviceInfo() -> str:
 @mcp.tool()
 def dumpUiHierarchy() -> str:
     """
-    Dump the current UI hierarchy as XML.
-    
+    Dump the current UI hierarchy.
+
     Returns:
-        JSON string with UI hierarchy XML
+        JSON string whose "data" is the window hierarchy as a nested dict
     """
     try:
         hierarchy = client.ui_device_dump_window_hierarchy_get()
@@ -351,19 +351,29 @@ def startApp(packageName: str, activityName: str = None) -> str:
     
     Args:
         packageName: The package name of the app (e.g., "com.example.app")
-        activityName: Optional activity name to start (e.g., ".MainActivity")
-        
+        activityName: The activity to start, either fully qualified
+            ("com.example.app.MainActivity") or relative to the package
+            (".MainActivity"). Required: CulebraTester2's startActivity
+            endpoint takes an explicit class and cannot resolve a launcher
+            activity from the package name alone.
+
     Returns:
         JSON string with success status
     """
     try:
-        # Build component string
-        if activityName:
-            component = "{}/{}".format(packageName, activityName)
-        else:
-            component = packageName
-        
-        result = client.target_context_start_activity_get(component=component)
+        if not activityName:
+            return json.dumps({
+                "success": False,
+                "error": "activityName is required (e.g. \".MainActivity\"): "
+                         "CulebraTester2 starts activities by explicit class"
+            })
+
+        # The endpoint takes pkg and cls as separate required query params,
+        # and the server does not expand a relative class name -- ".Main"
+        # reaches the Intent verbatim and fails with ActivityNotFoundException.
+        cls = packageName + activityName if activityName.startswith('.') else activityName
+
+        result = client.target_context_start_activity_get(pkg=packageName, cls=cls)
         return json.dumps({
             "success": True,
             "data": str(result) if result else "OK"
