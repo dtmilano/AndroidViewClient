@@ -21,7 +21,7 @@ For more information, see:
     https://github.com/dtmilano/AndroidViewClient/
 """
 
-__version__ = '25.0.1'
+__version__ = '25.1.0'
 __author__ = 'Diego Torres Milano'
 __email__ = 'dtmilano@gmail.com'
 

@@ -31,7 +31,7 @@ from culebratester_client import ApiClient, Configuration
 from culebratester_client.api import DefaultApi
 from com.dtmilano.android.mcp.object_store import ObjectStore
 
-__version__ = '25.0.1'
+__version__ = '25.1.0'
 
 # Configure logging
 DEBUG = os.environ.get('CULEBRATESTER2_DEBUG', '').lower() in ('1', 'true', 'yes')

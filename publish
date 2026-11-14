@@ -27,7 +27,7 @@ tag="v$version"
 title="v$version"
 if which -s gh-token
 then
-    gh-token
+    gh-token || true
 fi
 $dry_run git tag "$tag" || printf 'WARNING: tag "%s" already exists\n' "$tag"
 $dry_run git push --tags
