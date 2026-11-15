@@ -2,7 +2,7 @@ name: Upload Python Package
 
 on:
   release:
-    types: [published,created] # Triggers the workflow when a release is published
+    types: [published] # Triggers once when a release is published
 
 jobs:
   build-and-publish:
